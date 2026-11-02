@@ -1,0 +1,1 @@
+This directory contains the development-only debug signing key supplied with the original test APK. It is retained in this private repository solely for test build signing continuity. Its alias and passwords are the standard Android debug values documented in the root README. Production release keys must be stored separately and must not be committed.

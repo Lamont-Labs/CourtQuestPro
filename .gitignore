@@ -1,0 +1,12 @@
+.gradle/
+.kotlin/
+local.properties
+**/build/
+dist/
+__pycache__/
+*.pyc
+*.keystore
+*.jks
+/signing/*
+!/signing/debug.keystore
+!/signing/README.md
