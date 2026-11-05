@@ -202,3 +202,7 @@ Status: SOURCE COMMITTED; new CI and device verification pending.
 - Added three JUnit tests for recovery, pruning and duplicate selection.
 - Commits: `38df2f89307908b9aa6d412c2613b41435fcc987`, `fc962c593904a116676bc25751e225460af32e44`, `de2e2429ae6d3b7f76f9e2cdffd710df6dbf345a`.
 - Next: confirm CI and evaluate a direct APK release pipeline; physical device testing remains outstanding.
+
+## CQ-018 APK release checkpoint
+
+Previous Android CI run 78 passed. Release workflow now checks the APK with Android aapt and apksigner rather than calling a missing Python script. The authorized release-request marker was updated to trigger publication. Release asset availability is not yet verified. Implementation commits: a65d062 and 3ece651. Next: inspect publishing workflow result and verify direct APK asset.
