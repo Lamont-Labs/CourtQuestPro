@@ -132,7 +132,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         if (save.activeDate != today) {
             save.drillDrafts = mutableListOf()
             save.activeDate = today
-            save.slots = makeDailySlots(save.difficulty).toMutableList()
+            save.slots = makeDailySlots(save.difficulty, save.weeklyPlan).toMutableList()
             save.championshipDone = false
             save.playerScore = 0
             save.opponentScore = 0
@@ -140,7 +140,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             save.showWarmupDone = false
             refresh()
         } else if (save.slots.isEmpty()) {
-            save.slots = makeDailySlots(save.difficulty).toMutableList()
+            save.slots = makeDailySlots(save.difficulty, save.weeklyPlan).toMutableList()
             save.drillDrafts = mutableListOf()
             refresh()
         } else {
@@ -294,7 +294,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         },
                         onBack = { screen = "home" }
                     )
-                    "recap" -> recap?.let { MatchRecapScreen(it, save.totalXp, onHome = { screen = "home" }, onCareer = { screen = "career" }) } ?: HomeScreen(save, { screen = "drill" }, { screen = "champSetup" }, { screen = "career" })
+                    "recap" -> recap?.let { MatchRecapScreen(it, save.totalXp, onHome = { screen = "home" }, onCareer = { screen = "career" }) } ?: HomeScreen(save, { screen = "home" }, { screen = "champSetup" }, { screen = "career" }, { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() }, { plan -> save.weeklyPlan = plan; refresh() })
                     "career" -> CareerScreen(save, onHome = { screen = "home" })
                     "settings" -> SettingsScreen(save.difficulty, onDifficulty = { save.difficulty = it; refresh() }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
@@ -306,16 +306,27 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     }
 }
 
-private fun makeDailySlots(level: String): List<Slot> {
-    val categoryNames = listOf("Shooting", "Ball Handling", "Finishing", "Defense", "Rebounding", "Passing")
-    val chosen = mutableListOf<Drill>()
-    repeat(6) {
-        val category = categoryNames.random()
-        val options = drills.filter { it.category == category && it.id !in chosen.map { d -> d.id } }
-        chosen.add((options.ifEmpty { drills.filter { d -> d.id !in chosen.map { it.id } } }).random())
+private fun makeDailySlots(level: String, weeklyPlan: String = "Balanced"): List<Slot> {
+    val categories = listOf("Shooting", "Ball Handling", "Finishing", "Defense", "Rebounding", "Passing")
+    val focus = weeklyPlan.takeIf { it in categories }
+    val levels = listOf("Beginner", "Intermediate", "Advanced", "Expert", "Elite")
+    val requestedIndex = levels.indexOf(level).coerceAtLeast(0)
+    val chosen = categories.map { category ->
+        val options = drills.filter { it.category == category }
+        val preferred = if (category == focus) {
+            // For the focus skill, prefer the next available challenge tier.
+            options.filter { levels.indexOf(it.level) > requestedIndex }
+                .minByOrNull { levels.indexOf(it.level) }
+        } else null
+        preferred ?: options.filter { it.level == level }.randomOrNull()
+            ?: options.minByOrNull { kotlin.math.abs(levels.indexOf(it.level) - requestedIndex) }
+            ?: error("No drills configured for $category")
     }
-    return chosen.mapIndexed { i, d -> Slot("${LocalDate.now()}_${i}_${Random.nextInt(100000)}", d.id) }
+    return chosen.shuffled().mapIndexed { i, drill ->
+        Slot("${LocalDate.now()}_${i}_${Random.nextInt(100000)}", drill.id)
+    }
 }
+
 private fun award(s: SaveState, key: String, xp: Int) {
     if (key !in s.awardedKeys) { s.awardedKeys.add(key); s.totalXp += xp }
 }
