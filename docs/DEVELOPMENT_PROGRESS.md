@@ -95,3 +95,15 @@ Status: SOURCE COMMITTED; physical-device execution pending.
 - Cannot claim physical-device testing: no device control was available.
 - The new JUnit tests need GitHub CI execution on the new head commit.
 - Next task: inspect new CI result, address failures, and verify resume-match UX or document limitation.
+
+## CQ-009 — Vincent-first visual foundation
+
+Status: SOURCE COMMITTED; Android CI and device acceptance pending.
+
+- Commit: `3928cfc3418a05826178e56898677d76680b9e92`.
+- Changed `MainActivity.kt` design tokens to a charcoal / warm-orange court palette and dark Material surfaces, revised dashboard and navigation copy for Vincent-first training.
+- Retained existing player state, daily drill completion, scorekeeper, history, and persistence.
+- Personalization fallback uses Vincent only when no player name has been saved; stored player name takes precedence, allowing future profiles.
+- This is a first-pass visual foundation, not a full design overhaul. Remaining: guided training sessions, actual performance metrics, reusable component extraction, responsive UI polish, accessibility, and device review.
+- No device run or successful CI check claimed for this commit.
+- Next: verify Android CI and address theme/contrast and build issues before expanding training UX.
