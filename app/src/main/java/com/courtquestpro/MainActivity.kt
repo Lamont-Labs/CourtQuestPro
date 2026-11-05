@@ -162,10 +162,10 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         Scaffold(
             containerColor = Color(0xFF121315),
             bottomBar = {
-                NavigationBar(containerColor = Color(0xFF1B1B1E)) {
-                    NavigationBarItem(selected = screen == "home", onClick = { screen = "home" }, icon = { Icon(Icons.Default.Home, null) }, label = { Text("Court") })
-                    NavigationBarItem(selected = screen == "career", onClick = { screen = "career" }, icon = { Icon(Icons.Default.EmojiEvents, null) }, label = { Text("Progress") })
-                    NavigationBarItem(selected = screen == "settings", onClick = { screen = "settings" }, icon = { Icon(Icons.Default.Tune, null) }, label = { Text("Setup") })
+                NavigationBar(containerColor = Color(0xFF17191C), tonalElevation = 0.dp) {
+                    NavigationBarItem(selected = screen == "home", onClick = { screen = "home" }, icon = { Icon(Icons.Default.SportsBasketball, "Court dashboard") }, label = { Text("COURT", fontWeight = FontWeight.Bold, fontSize = 10.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
+                    NavigationBarItem(selected = screen == "career", onClick = { screen = "career" }, icon = { Icon(Icons.Default.Insights, "Player development") }, label = { Text("PROGRESS", fontWeight = FontWeight.Bold, fontSize = 10.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
+                    NavigationBarItem(selected = screen == "settings", onClick = { screen = "settings" }, icon = { Icon(Icons.Default.Tune, "Player settings") }, label = { Text("SETUP", fontWeight = FontWeight.Bold, fontSize = 10.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
                 }
             }
         ) { padding ->
@@ -176,7 +176,13 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                             if (save.slots.all { it.complete }) screen = "champSetup"
                             else {
                                 val candidates = save.slots.indices.filter { !save.slots[it].complete }
-                                selectedSlot = candidates.random()
+                                selectedSlot = candidates.firstOrNull { index ->
+                                    save.drillDrafts.orEmpty().any { draft ->
+                                        draft.date == save.activeDate &&
+                                            draft.slotId == save.slots[index].id &&
+                                            draft.drillId == save.slots[index].drillId
+                                    }
+                                } ?: candidates.random()
                                 screen = "drill"
                             }
                         },
@@ -356,6 +362,11 @@ private fun CourtSectionTitle(number: String, title: String) {
 @Composable
 private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> Unit, onCareer: () -> Unit) {
     val done = save.slots.count { it.complete }
+    val resumable = save.slots.count { slot ->
+        !slot.complete && save.drillDrafts.orEmpty().any { draft ->
+            draft.date == save.activeDate && draft.slotId == slot.id && draft.drillId == slot.drillId
+        }
+    }
     val progress by animateFloatAsState(if (save.slots.isEmpty()) 0f else done / 6f, animationSpec = tween(650), label = "progress")
     LazyColumn(Modifier.fillMaxSize()) {
         item { AppHeader("${save.playerName.ifBlank { "Vincent" }}'s court.", "BUILD YOUR GAME  /  ONE SESSION AT A TIME") }
@@ -383,10 +394,10 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                         Spacer(Modifier.height(16.dp))
                         Button(onClick = onSpin, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(16.dp)) {
                             Icon(Icons.Default.Casino, null); Spacer(Modifier.width(8.dp))
-                            Text(if (done == 6) "TRAINING COMPLETE · PLAY 1-ON-1" else "START NEXT DRILL", fontWeight = FontWeight.Bold)
+                            Text(if (done == 6) "TRAINING COMPLETE · PLAY 1-ON-1" else if (resumable > 0) "RESUME TRAINING" else "START NEXT DRILL", fontWeight = FontWeight.Bold)
                         }
                         Spacer(Modifier.height(8.dp))
-                        Text("6 skill sessions · your progress is saved automatically", color = Muted, fontSize = 12.sp)
+                        Text(if (resumable > 0) "$resumable unfinished session(s) ready to resume" else "6 skill sessions · your progress is saved automatically", color = Muted, fontSize = 12.sp)
                     }
                 }
                 CourtSectionTitle("02 /", "GAME DAY")
