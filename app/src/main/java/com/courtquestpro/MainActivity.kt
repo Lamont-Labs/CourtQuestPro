@@ -593,7 +593,7 @@ private fun MatchRecapScreen(record: MatchRecord, totalXp: Int, onHome: () -> Un
 @Composable
 private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
     LazyColumn(Modifier.fillMaxSize()) {
-        item { AppHeader("Your career", "Progress built one session at a time.") }
+        item { AppHeader("${save.playerName.ifBlank { "Vincent" }} · Development", "RECORDED WORK  /  MEASURABLE PROGRESS") }
         item {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -603,6 +603,57 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     StatCard("CURRENT STREAK", save.currentStreak.toString(), Modifier.weight(1f))
                     StatCard("LONGEST STREAK", save.longestStreak.toString(), Modifier.weight(1f))
+                }
+                Text("PLAYER DEVELOPMENT", color = Ink, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                val recorded = save.drillResults.orEmpty()
+                if (recorded.isEmpty()) {
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124))) {
+                        Column(Modifier.padding(18.dp)) {
+                            Text("YOUR BASELINE STARTS HERE", color = Orange, fontWeight = FontWeight.Bold)
+                            Spacer(Modifier.height(6.dp))
+                            Text("Complete a drill and record attempts to start building a real performance history. XP alone is not a skill rating.", color = Muted, fontSize = 13.sp)
+                        }
+                    }
+                } else {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        StatCard("RECORDED DRILLS", recorded.size.toString(), Modifier.weight(1f))
+                        StatCard("TOTAL ATTEMPTS", recorded.sumOf { it.attempted }.toString(), Modifier.weight(1f))
+                    }
+                    val categories = listOf("Shooting", "Ball Handling", "Finishing", "Defense", "Rebounding", "Passing")
+                    categories.forEach { category ->
+                        val results = recorded.filter { result ->
+                            drills.any { it.id == result.drillId && it.category == category }
+                        }
+                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(18.dp)) {
+                            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(category.uppercase(), color = Ink, fontWeight = FontWeight.ExtraBold, modifier = Modifier.weight(1f))
+                                    Text("${results.size} SESSIONS", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+                                if (results.isEmpty()) {
+                                    Text("No recorded results yet", color = Muted, fontSize = 12.sp)
+                                } else {
+                                    val attempts = results.sumOf { it.attempted }
+                                    val successful = results.sumOf { it.completed }
+                                    Text("$successful successful / $attempts attempts", color = Ink, fontWeight = FontWeight.SemiBold)
+                                    if (attempts > 0) {
+                                        LinearProgressIndicator(
+                                            progress = { (successful.toFloat() / attempts).coerceIn(0f, 1f) },
+                                            modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
+                                            color = Orange, trackColor = CourtLight
+                                        )
+                                        Text("${successful * 100 / attempts}% recorded success rate · not a skill rating", color = Muted, fontSize = 12.sp)
+                                    }
+                                    val best = results.maxByOrNull { it.completed }
+                                    if (best != null) {
+                                        val drillName = drills.firstOrNull { it.id == best.drillId }?.title ?: category
+                                        Text("Best recorded: ${best.completed} / ${best.attempted} · $drillName", color = Muted, fontSize = 12.sp)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Text("Different drills have different difficulty and targets. These totals are descriptive; compare the same drill over time before drawing improvement conclusions.", color = Muted, fontSize = 12.sp)
                 }
                 Text("MATCH HISTORY", color = Ink, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
                 if (save.matches.isEmpty()) {
@@ -635,7 +686,7 @@ private fun SettingsScreen(difficulty: String, onDifficulty: (String) -> Unit, o
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text("DIFFICULTY LEVEL", fontWeight = FontWeight.ExtraBold, color = Ink)
             listOf("Beginner", "Intermediate", "Advanced", "Expert", "Elite").forEach { level ->
-                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(if (level == difficulty) CourtLight else Color.White).clickable { onDifficulty(level) }.padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(if (level == difficulty) CourtLight else Color(0xFF212124)).clickable { onDifficulty(level) }.padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(level, fontWeight = FontWeight.Bold, color = Ink)
                         Text(difficultyDescription(level), color = Muted, fontSize = 12.sp)
