@@ -73,3 +73,14 @@ Status: IN PROGRESS, not yet verified as passing.
 - Six standalone Kotlin assertions passed locally against the pure scorekeeper logic (Kotlin 1.9/JRE 21); these are independent smoke checks, not a substitute for the project's JUnit/Android CI.
 - Final CI outcome, APK artifact and Android device behavior remain pending.
 - Next: inspect the completed job, fix any failing Gradle test/lint/build, and preserve evidence before merging.
+
+## CQ-006 — Android CI evidence confirmed
+
+Status: CI PASSED; physical-device gameplay testing pending.
+
+- GitHub Actions run #6 (`42094156820`): verify job success; unit tests, debug APK build, lint, artifact upload successful.
+- GitHub Actions run #8 (`42094492183`): verify job success; same checks successful.
+- Run #8 artifact: `courtquest-dev-verification` (ID `13447127081`, 16,125,930 bytes), SHA-256 digest `cb30395c7f18e96ddf52a442823d732200a74db3563cd99c079b26b1eed5eec9`.
+- Artifact retained until 2026-11-19 19:36 UTC.
+- Draft PR #1 remains unmerged; main untouched. No release published.
+- Next task: verify device installation and interactive scorekeeper behavior; review PR before any merge.
