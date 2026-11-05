@@ -131,3 +131,14 @@ Status: SOURCE COMMITTED; new CI and physical device verification pending.
 - Implementation commit: `b2494c93a96e0124ea6d7233ad81616c25e84c10`.
 - Three new JUnit tests for persistence, legacy compatibility, and personal-best selection: `bafdd0c885e4cb6a7fe4efde35c21f074a1a23b8`.
 - Next: confirm CI; add drill-specific measurement schemas and aggregate player development views.
+
+## CQ-012 — Player development dashboard
+
+Status: SOURCE COMMITTED; CQ-012 CI and physical device verification pending.
+
+- CQ-011 Android workflow run #34 (`42103282591`) succeeded.
+- Implementation commit `ef016389a704193e8fbc118e461a3b5ef96519d5` adds recorded drill/session and attempt counts to the Progress/Career screen, category breakdowns, success percentages, and highest successful-count record.
+- Displays explicit caution: cross-drill success rates are descriptive, not calibrated skill ratings or demonstrated improvement.
+- Handles empty and legacy results safely via `drillResults.orEmpty()`.
+- Updated setup option backgrounds for dark theme contrast.
+- Next: confirm Android CI; compare identical drills over time, separate shooting accuracy from repetition counts, and consider resumable training sessions.
