@@ -718,6 +718,14 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                         StatCard("RECORDED DRILLS", recorded.size.toString(), Modifier.weight(1f))
                         StatCard("TOTAL ATTEMPTS", recorded.sumOf { it.attempted }.toString(), Modifier.weight(1f))
                     }
+                    CourtSectionTitle("01 /", "TRAINING RECORD")
+                    val validResults = recorded.filter { it.attempted > 0 && it.completed >= 0 && it.completed <= it.attempted }
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        StatCard("TRAINING DAYS", validResults.map { it.date }.distinct().size.toString(), Modifier.weight(1f))
+                        StatCard("DRILLS PRACTICED", validResults.map { it.drillId }.distinct().size.toString(), Modifier.weight(1f))
+                    }
+                    Text("Training days and drill variety measure activity, not skill.", color = Muted, fontSize = 12.sp)
+                    CourtSectionTitle("02 /", "SKILL BREAKDOWN")
                     val categories = listOf("Shooting", "Ball Handling", "Finishing", "Defense", "Rebounding", "Passing")
                     categories.forEach { category ->
                         val results = recorded.filter { result ->
@@ -752,7 +760,7 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                             }
                         }
                     }
-                    Text("SAME-DRILL TRENDS", color = Ink, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                    CourtSectionTitle("03 /", "SAME-DRILL TRENDS")
                     val distinctDrills = recorded.map { it.drillId }.distinct()
                     distinctDrills.forEach { id ->
                         val title = drills.firstOrNull { it.id == id }?.title ?: id
@@ -780,7 +788,7 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                     Text("Trends compare the earliest and latest valid session for the same drill. Results may reflect changing conditions or small samples; they do not establish a skill rating.", color = Muted, fontSize = 12.sp)
                     Text("Different drills have different difficulty and targets. These totals are descriptive; compare the same drill over time before drawing improvement conclusions.", color = Muted, fontSize = 12.sp)
                 }
-                Text("MATCH HISTORY", color = Ink, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                CourtSectionTitle("04 /", "MATCH HISTORY")
                 if (save.matches.isEmpty()) {
                     Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124))) {
                         Text("Your championship results will show up here after your first game.", Modifier.padding(18.dp), color = Muted)
