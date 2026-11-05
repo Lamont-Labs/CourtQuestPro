@@ -166,3 +166,15 @@ Status: SOURCE COMMITTED; CI and device verification pending.
 - Commits: `3dd76cdd967ff17540bdc37ba6f6e5073b1117c6`, `071f77250454137f7bfc905ad95e4aff1e5ecc1d`, `5932c4ebeae9cd7ef1c82e25facbdafb4329a644`.
 - Scope limit: this is category-specific vocabulary, not yet per-drill measurement units, timed interval metrics, or detailed coaching analytics.
 - Next: verify CI, then implement drill-specific targets and outcome validation.
+
+## CQ-015 — Drill completion target gates
+
+Status: SOURCE COMMITTED; CI and device verification pending.
+
+- CQ-014 Android workflow #54 (`42106730888`) passed.
+- Added explicit minimum successful-action counts for all 18 existing drills (`DrillTargets.kt`).
+- Drill completion button now requires meeting the minimum recorded successful actions AND checking an acknowledgment that the full written target was completed (including sides, timed rounds, rest and technique).
+- No automatic inference that counts prove technique or side balance. Interval drills count completed rounds; the user confirms durations.
+- Added 3 unit tests for target coverage, thresholds and invalid data.
+- Commits: `d04aefd3cba78b33d2fc071ba5baa990b1617ba1`, `1941565997659e589e66b42e4edbfc585b05d163`, `cdb6fdc8a928f47115af8772b66e126e22cf0ffe`.
+- Next: verify CI; consider persisting in-progress sessions and richer per-side/interval metrics.
