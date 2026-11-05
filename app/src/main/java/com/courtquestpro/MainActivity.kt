@@ -62,6 +62,7 @@ data class SaveState(
     var championshipDone: Boolean = false,
     var playerScore: Int = 0,
     var opponentScore: Int = 0,
+    var pointHistory: MutableList<Boolean>? = mutableListOf(),
     var matchPlayer: String = "",
     var matchOpponent: String = "",
     var matches: MutableList<MatchRecord> = mutableListOf(),
@@ -129,6 +130,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             save.championshipDone = false
             save.playerScore = 0
             save.opponentScore = 0
+            save.pointHistory = mutableListOf()
             save.showWarmupDone = false
             refresh()
         } else if (save.slots.isEmpty()) {
@@ -196,6 +198,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                                 save.matchPlayer = save.playerName
                                 save.matchOpponent = opponentInput.trim()
                                 save.playerScore = 0; save.opponentScore = 0
+                                save.pointHistory = mutableListOf()
                                 save.championshipDone = false
                                 refresh()
                                 error = ""
@@ -210,6 +213,8 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         onPoint = { playerPoint ->
                             if (save.playerScore < 11 && save.opponentScore < 11) {
                                 if (playerPoint) save.playerScore++ else save.opponentScore++
+                                if (save.pointHistory == null) save.pointHistory = mutableListOf()
+                                save.pointHistory!!.add(playerPoint)
                                 if (save.playerScore >= 11 || save.opponentScore >= 11) {
                                     val winner = if (save.playerScore > save.opponentScore) save.matchPlayer else save.matchOpponent
                                     val won = winner == save.matchPlayer
@@ -228,10 +233,12 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                             }
                         },
                         onUndo = {
-                            // Undo the most recent point, preferring the player whose score is higher.
-                            if (save.playerScore > 0 || save.opponentScore > 0) {
-                                if (save.playerScore >= save.opponentScore && save.playerScore > 0) save.playerScore--
-                                else if (save.opponentScore > 0) save.opponentScore--
+                            // Reverse the actual last scorer; legacy matches without history cannot be safely undone.
+                            val history = save.pointHistory
+                            if (!history.isNullOrEmpty()) {
+                                val lastWasPlayer = history.removeAt(history.lastIndex)
+                                if (lastWasPlayer && save.playerScore > 0) save.playerScore--
+                                else if (!lastWasPlayer && save.opponentScore > 0) save.opponentScore--
                                 refresh()
                             }
                         },
