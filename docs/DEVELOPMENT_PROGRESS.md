@@ -154,3 +154,15 @@ Status: SOURCE COMMITTED; new CI/device verification pending.
 - Commits: `f417a740a3c69e43ddaf4f3de3b2ae98e0efaceb`, `66eddec50d41a4a70da93f87d1af8a8884f4c5e5`, `932cbb53d37734c6c39522243150a280b8264be9`.
 - Limitation: compares earliest and latest, not statistical significance or a calibrated player rating. Distinct drill IDs may still have varying conditions.
 - Next: confirm CI, then refine drill-specific measurement definitions and training flow.
+
+## CQ-014 — Basketball-specific measurement vocabulary
+
+Status: SOURCE COMMITTED; CI and device verification pending.
+
+- CQ-013 GitHub Actions run #46 (`42105820959`) passed.
+- Added `DrillMeasurement.kt` with distinct result labels and coaching instructions for shooting, finishing, passing, ball handling, defense and rebounding.
+- Updated drill recorder to display category-appropriate success/attempt labels and buttons; no existing saved result schema changed.
+- Added two unit tests for category coverage and fallback behavior.
+- Commits: `3dd76cdd967ff17540bdc37ba6f6e5073b1117c6`, `071f77250454137f7bfc905ad95e4aff1e5ecc1d`, `5932c4ebeae9cd7ef1c82e25facbdafb4329a644`.
+- Scope limit: this is category-specific vocabulary, not yet per-drill measurement units, timed interval metrics, or detailed coaching analytics.
+- Next: verify CI, then implement drill-specific targets and outcome validation.
