@@ -389,6 +389,31 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                         }
                     }
                 }
+                CourtSectionTitle("WEEK /", "TRAINING CHALLENGE")
+                val weekStart = LocalDate.now().with(java.time.DayOfWeek.MONDAY)
+                val weekEnd = weekStart.plusDays(6)
+                val trainedThisWeek = save.drillResults.orEmpty().asSequence()
+                    .filter { it.attempted > 0 && it.completed in 0..it.attempted }
+                    .mapNotNull { runCatching { LocalDate.parse(it.date) }.getOrNull() }
+                    .filter { !it.isBefore(weekStart) && !it.isAfter(weekEnd) }
+                    .distinct().count()
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(20.dp)) {
+                    Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("3-DAY CONSISTENCY CHALLENGE", color = Ink, fontWeight = FontWeight.ExtraBold)
+                        Text("$trainedThisWeek / 3 training days this week", color = Orange, fontWeight = FontWeight.Bold)
+                        LinearProgressIndicator(
+                            progress = { (trainedThisWeek / 3f).coerceIn(0f, 1f) },
+                            modifier = Modifier.fillMaxWidth().height(9.dp).clip(CircleShape),
+                            color = CourtGreen, trackColor = CourtLight
+                        )
+                        Text(
+                            if (trainedThisWeek >= 3) "Weekly goal reached. Keep practicing with control and recovery."
+                            else "Complete and record a drill on ${3 - trainedThisWeek} more different day${if (3 - trainedThisWeek == 1) "" else "s"} this week.",
+                            color = Muted, fontSize = 12.sp
+                        )
+                        Text("Resets each Monday · Counts recorded training days, not skill level.", color = Muted, fontSize = 11.sp)
+                    }
+                }
                 CourtSectionTitle("01 /", "DAILY WORKOUT")
                 Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1D21)), shape = RoundedCornerShape(22.dp)) {
                     Column(Modifier.padding(18.dp)) {
