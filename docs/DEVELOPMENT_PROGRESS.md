@@ -119,3 +119,15 @@ Status: SOURCE COMMITTED; CI and physical device verification pending.
 - Training timer commit: `8d75e56fd026b77281b730e5878ef192d8ae5da5`.
 - The timer is ephemeral UI state; score and completion persistence are unchanged. Do not claim background or process-death timer continuity.
 - Next: verify CI green; introduce actual recorded drill outcomes (attempts/makes or reps) rather than XP-only completion.
+
+## CQ-011 — Measurable drill results
+
+Status: SOURCE COMMITTED; new CI and physical device verification pending.
+
+- Confirmed CQ-010 workflow run #28 (`42102728158`) passed Android unit tests, APK compilation, and lint.
+- Added persisted `DrillResult` records with date, slot ID, drill ID, successful attempts and total attempts. Nullable `SaveState.drillResults` preserves Gson compatibility with older saves.
+- Drill screen now records attempts and successful reps, blocks successful count exceeding attempts, requires at least one attempt before completion, and shows the previous highest successful count for that drill.
+- Results are saved atomically with the existing completion/XP update. Incomplete in-progress counters are not yet persisted; no claims of advanced analytics or calibrated player skill ratings.
+- Implementation commit: `b2494c93a96e0124ea6d7233ad81616c25e84c10`.
+- Three new JUnit tests for persistence, legacy compatibility, and personal-best selection: `bafdd0c885e4cb6a7fe4efde35c21f074a1a23b8`.
+- Next: confirm CI; add drill-specific measurement schemas and aggregate player development views.
