@@ -461,7 +461,7 @@ private fun DrillSessionTimer(minutes: Int, initialRemaining: Int, onRemaining: 
     }
     Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(22.dp)) {
         Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("TRAINING CLOCK", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+            Text(if (remaining == 0) "TRAINING CLOCK · FINISHED" else if (running) "TRAINING CLOCK · RUNNING" else "TRAINING CLOCK · PAUSED", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
             Text("%02d:%02d".format(remaining / 60, remaining % 60),
                 color = Ink, fontSize = 46.sp, fontWeight = FontWeight.ExtraBold)
             LinearProgressIndicator(
@@ -477,7 +477,7 @@ private fun DrillSessionTimer(minutes: Int, initialRemaining: Int, onRemaining: 
                 ) {
                     Icon(if (running) Icons.Default.Pause else Icons.Default.PlayArrow, null)
                     Spacer(Modifier.width(6.dp))
-                    Text(if (running) "PAUSE" else if (remaining == 0) "RESTART" else "START")
+                    Text(if (running) "PAUSE" else if (remaining == 0) "RESTART" else if (remaining < initialSeconds) "RESUME" else "START")
                 }
                 OutlinedButton(
                     onClick = { running = false; remaining = initialSeconds; onRemaining(remaining) },
@@ -550,13 +550,13 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previo
                             color = Ink, fontWeight = FontWeight.Bold
                         )
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            OutlinedButton(onClick = { if (completedCount > 0) { completedCount--; saveDraft() } }) { Text("−") }
+                            OutlinedButton(onClick = { if (completedCount > 0) { completedCount--; attemptedCount--; saveDraft() } }) { Text("−") }
                             Text("$completedCount", color = Ink, fontSize = 28.sp, fontWeight = FontWeight.Bold)
                             Button(onClick = { completedCount++; attemptedCount++; saveDraft() }) { Text("+ " + measurement.successButton) }
                         }
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             OutlinedButton(onClick = { if (attemptedCount > completedCount) { attemptedCount--; saveDraft() } }) { Text("−") }
-                            Text("$attemptedCount · ${measurement.attemptLabel}", color = Ink, fontWeight = FontWeight.Bold)
+                            Text("$attemptedCount · ${measurement.attemptLabel}", color = Ink, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                             OutlinedButton(onClick = { attemptedCount++; saveDraft() }) { Text("+ MISSED / OTHER") }
                         }
                         if (best != null) Text("PERSONAL BEST  ·  ${best.completed} successful / ${best.attempted} attempts", color = Muted, fontSize = 12.sp)
