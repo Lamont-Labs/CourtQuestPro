@@ -765,9 +765,17 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                     distinctDrills.forEach { id ->
                         val title = drills.firstOrNull { it.id == id }?.title ?: id
                         val trend = DrillTrends.calculate(id, recorded)
+                        val validForDrill = recorded.filter { it.drillId == id && it.attempted > 0 && it.completed in 0..it.attempted }
+                        val personalBest = validForDrill.maxByOrNull { it.completed }
+                        val sampleAttempts = validForDrill.sumOf { it.attempted }
                         Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(16.dp)) {
                             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Text(title, color = Ink, fontWeight = FontWeight.Bold)
+                                Text("${validForDrill.size} VALID SESSIONS · $sampleAttempts ATTEMPTS", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                if (personalBest != null) {
+                                    Text("PERSONAL RECORD · ${personalBest.completed} SUCCESSFUL", color = CourtGreen, fontWeight = FontWeight.ExtraBold, fontSize = 13.sp)
+                                    Text("${personalBest.attempted} attempts · ${personalBest.date}", color = Muted, fontSize = 12.sp)
+                                }
                                 if (trend == null) {
                                     Text("Record this drill again to establish a trend.", color = Muted, fontSize = 12.sp)
                                 } else {
