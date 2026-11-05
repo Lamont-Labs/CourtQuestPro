@@ -222,3 +222,7 @@ Previous stage passed Android development checks in workflow run 42111391727. Up
 ## CQ-021 Training Experience 2.0 — stage 1
 
 Verified preceding navigation commit 041cbc9 passed Android workflow run 42112305153. Implemented live target progress meter, stronger drill title hierarchy, single-tap successful action recording (increments successful and attempted together), separate missed/other attempt recording, explanatory guidance, and accessible inline target confirmation. Existing draft persistence, completion eligibility and timer retained. Implementation commit 8ad0e769206cf3add8bd13bfd8a9d4afe8644f30. CI for this commit and physical-device review remain pending. Next: inspect CI and refine timer/recording usability without changing saved-state schema.
+
+## CQ-021 Training Experience 2.0 — stage 2
+
+Previous stage CI run 42112997829 was still in progress when inspected. Improved timer status labeling (paused/running/finished), distinguished Resume from Start, and corrected the successful-action decrement control to reverse both success and attempted counters, matching the one-tap recording behavior. Allocated flexible width to attempt count for smaller screens. Source commit d94477cb1fe6edb656438d0e6b6f4b1858814e8e. Automated verification of this commit and device acceptance are pending. Next: verify CI and improve result completion feedback.
