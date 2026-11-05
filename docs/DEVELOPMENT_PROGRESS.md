@@ -52,3 +52,14 @@ Tests are authored, not yet demonstrated passing. Branch workflows newly added o
 
 ### Next task
 CQ-003: Verify actual GitHub Actions execution and inspect failing tests/build/lint, then fix issues; consider a test-only PR check if the branch workflow cannot start.
+
+## CQ-003 — CI execution enablement
+
+Status: DRAFT PR CREATED; checks not yet reported.
+
+- CI workflow amended to include `pull_request` events targeting `main`.
+- Workflow-change commit: `379662d6a27e708b79892f6d56f9302d17ae5681`.
+- Draft PR #1: https://github.com/Lamont-Labs/CourtQuestPro/pull/1
+- No merge or release authorized/performed.
+- At initial inspection, PR-associated workflow runs and commit status lists were empty. Do not infer success.
+- Follow-up: inspect PR checks after GitHub processes the event; if none appear, investigate repository Actions settings/workflow registration. Verify Gradle tests, lint, APK, and behavior before merging.
