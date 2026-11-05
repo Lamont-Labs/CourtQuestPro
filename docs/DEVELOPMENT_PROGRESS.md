@@ -234,3 +234,7 @@ Previous timer and undo changes passed Android development workflow run 42113383
 ## CQ-022 Player Development 2.0 — stage 1
 
 Previous CQ-021 completion-feedback commit 09c560d passed Android development workflow run 42114392786. Added evidence-based training days and distinct drills practiced from valid recorded results. Career dashboard now has numbered training record, skill breakdown, same-drill trends and match history sections. Activity metrics explicitly distinguish themselves from skill ratings. Existing saved state and trend logic preserved. Source commit dac974b55b6764cd34fb28dc4007365800f01aa2. Current CI and physical device acceptance pending. Next: verify CI and add per-drill personal-record presentation with sample-size context.
+
+## CQ-022 Player Development 2.0 — stage 2
+
+Previous stage passed Android development workflow run 42126107671. Added per-drill personal record based on maximum valid successful actions, with the record's date and attempts, plus valid session count and total sample attempts beside same-drill trend. Excludes malformed/zero-attempt records from record and sample summaries. Keeps trends separate and does not imply calibrated skill rating. Source commit 065f21eb1c2c813ff44df1525e531d4fb217d14c. Current CI and device acceptance pending. Next: verify CI and consider explicit session-level progress visuals.
