@@ -1,3 +1,5 @@
 Authorized by project owner on 2026-11-05: publish a development Android APK as a GitHub prerelease with a direct installable APK asset. Build and test from the development branch; do not merge to main.
 
 CQ-018 release request: run repaired APK verification and publish the current development branch as a direct GitHub APK asset. Date: 2026-11-05.
+
+CQ-022 preview refresh authorized 2026-11-05: replace existing release APK assets in place, preserve package ID and signing identity. Source through 065f21e; Android CI run 42127949693 passed.
