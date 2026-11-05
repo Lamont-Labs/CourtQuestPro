@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -374,6 +375,52 @@ private fun StatCard(label: String, value: String, modifier: Modifier = Modifier
 }
 
 @Composable
+private fun DrillSessionTimer(minutes: Int) {
+    val initialSeconds = minutes.coerceAtLeast(1) * 60
+    var remaining by remember(minutes) { mutableIntStateOf(initialSeconds) }
+    var running by remember(minutes) { mutableStateOf(false) }
+    LaunchedEffect(running, remaining) {
+        if (running && remaining > 0) {
+            delay(1000L)
+            remaining = (remaining - 1).coerceAtLeast(0)
+            if (remaining == 0) running = false
+        }
+    }
+    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(22.dp)) {
+        Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("TRAINING CLOCK", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+            Text("%02d:%02d".format(remaining / 60, remaining % 60),
+                color = Ink, fontSize = 46.sp, fontWeight = FontWeight.ExtraBold)
+            LinearProgressIndicator(
+                progress = { remaining.toFloat() / initialSeconds },
+                modifier = Modifier.fillMaxWidth().height(7.dp).clip(CircleShape),
+                color = Orange, trackColor = CourtLight
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Button(
+                    onClick = { if (remaining == 0) remaining = initialSeconds; running = !running },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(if (running) Icons.Default.Pause else Icons.Default.PlayArrow, null)
+                    Spacer(Modifier.width(6.dp))
+                    Text(if (running) "PAUSE" else if (remaining == 0) "RESTART" else "START")
+                }
+                OutlinedButton(
+                    onClick = { running = false; remaining = initialSeconds },
+                    shape = RoundedCornerShape(12.dp)
+                ) { Text("RESET") }
+            }
+            Text(
+                if (remaining == 0) "Time complete. Record the drill only after completing its target."
+                else "Timer runs while this drill is open. Pause for recovery as needed.",
+                color = Muted, fontSize = 12.sp
+            )
+        }
+    }
+}
+
+@Composable
 private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, onVideo: () -> Unit, onComplete: () -> Unit, onBack: () -> Unit) {
     LazyColumn(Modifier.fillMaxSize()) {
         item { AppHeader("Drill $slotNumber of 6", drill.category.uppercase()) }
@@ -403,6 +450,7 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, onVide
                         Text("Use a dry, clear court. Warm up first, keep movements controlled, and stop if the surface is slippery or something hurts.", color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
                     }
                 }
+                DrillSessionTimer(drill.minutes)
                 Button(onClick = onVideo, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(15.dp)) {
                     Icon(Icons.Default.PlayCircle, null); Spacer(Modifier.width(8.dp)); Text("WATCH VIDEO DEMONSTRATION")
                 }
