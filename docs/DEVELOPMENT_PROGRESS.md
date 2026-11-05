@@ -142,3 +142,15 @@ Status: SOURCE COMMITTED; CQ-012 CI and physical device verification pending.
 - Handles empty and legacy results safely via `drillResults.orEmpty()`.
 - Updated setup option backgrounds for dark theme contrast.
 - Next: confirm Android CI; compare identical drills over time, separate shooting accuracy from repetition counts, and consider resumable training sessions.
+
+## CQ-013 — Same-drill performance trends
+
+Status: SOURCE COMMITTED; new CI/device verification pending.
+
+- CQ-012 GitHub Actions run #38 (`42103779012`) succeeded.
+- Added pure deterministic `DrillTrends.calculate`: compares earliest and latest valid recorded results by date for identical drill IDs, excludes zero-attempt/invalid records, requires at least two sessions.
+- Added same-drill trend cards to Progress: first/latest success rate, direction, percentage-point difference, session count and insufficient-data state.
+- Three unit tests cover insufficient samples, out-of-order records and invalid data.
+- Commits: `f417a740a3c69e43ddaf4f3de3b2ae98e0efaceb`, `66eddec50d41a4a70da93f87d1af8a8884f4c5e5`, `932cbb53d37734c6c39522243150a280b8264be9`.
+- Limitation: compares earliest and latest, not statistical significance or a calibrated player rating. Distinct drill IDs may still have varying conditions.
+- Next: confirm CI, then refine drill-specific measurement definitions and training flow.
