@@ -206,3 +206,7 @@ Status: SOURCE COMMITTED; new CI and device verification pending.
 ## CQ-018 APK release checkpoint
 
 Previous Android CI run 78 passed. Release workflow now checks the APK with Android aapt and apksigner rather than calling a missing Python script. The authorized release-request marker was updated to trigger publication. Release asset availability is not yet verified. Implementation commits: a65d062 and 3ece651. Next: inspect publishing workflow result and verify direct APK asset.
+
+## CQ-019 Published Android APK verification
+
+Verified GitHub prerelease tag: courtquest-dev-2026-11-05. Target commit: 3ece6517196472cbb516d13404e52299c13e8a89. Published 2026-11-05T21:13:53Z. GitHub confirms uploaded APK asset CourtQuestPro-Android-debug.apk (16,621,617 bytes), SHA-256 b735413e0ae7c48a52d700accbb232aaea38f8771c5a0d559bc2b68abc422191. A separate .sha256 asset is uploaded. Direct URL: https://github.com/Lamont-Labs/CourtQuestPro/releases/download/courtquest-dev-2026-11-05/CourtQuestPro-Android-debug.apk . Verified release metadata and asset listing, not physical installation. The release points to the authorized trigger commit, not later documentation commits. Next: device acceptance and release hardening. Main branch unchanged by this task.
