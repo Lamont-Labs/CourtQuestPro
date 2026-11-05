@@ -187,7 +187,8 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                             }
                         },
                         onStartChamp = { screen = "champSetup" },
-                        onCareer = { screen = "career" }
+                        onCareer = { screen = "career" },
+                        onSaveName = { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() }
                     )
                     "drill" -> {
                         val slot = save.slots.getOrNull(selectedSlot)
@@ -296,7 +297,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     "settings" -> SettingsScreen(save.difficulty, onDifficulty = { save.difficulty = it; refresh() }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
                     })
-                    else -> HomeScreen(save, { screen = "drill" }, { screen = "champSetup" }, { screen = "career" })
+                    else -> HomeScreen(save, { screen = "home" }, { screen = "champSetup" }, { screen = "career" }, { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() })
                 }
             }
         }
@@ -360,7 +361,8 @@ private fun CourtSectionTitle(number: String, title: String) {
 }
 
 @Composable
-private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> Unit, onCareer: () -> Unit) {
+private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> Unit, onCareer: () -> Unit, onSaveName: (String) -> Unit) {
+    var newPlayerName by remember { mutableStateOf("") }
     val done = save.slots.count { it.complete }
     val resumable = save.slots.count { slot ->
         !slot.complete && save.drillDrafts.orEmpty().any { draft ->
@@ -376,6 +378,16 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                     StatCard("TOTAL XP", save.totalXp.toString(), Modifier.weight(1f))
                     StatCard("RANK", rankFor(save.totalXp), Modifier.weight(1f))
                     StatCard("STREAK", "${save.currentStreak} DAYS", Modifier.weight(1f))
+                }
+                if (save.playerName.isBlank()) {
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF302722)), shape = RoundedCornerShape(20.dp)) {
+                        Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text("MAKE THIS YOUR COURT", color = Ink, fontWeight = FontWeight.ExtraBold)
+                            Text("Add your player name to personalize training and game records. You can change it in Setup later.", color = Muted, fontSize = 12.sp)
+                            OutlinedTextField(value = newPlayerName, onValueChange = { newPlayerName = it.take(40) }, label = { Text("Player name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            Button(onClick = { onSaveName(newPlayerName) }, enabled = newPlayerName.trim().isNotEmpty(), modifier = Modifier.fillMaxWidth()) { Text("SAVE PLAYER NAME") }
+                        }
+                    }
                 }
                 CourtSectionTitle("01 /", "DAILY WORKOUT")
                 Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1D21)), shape = RoundedCornerShape(22.dp)) {
