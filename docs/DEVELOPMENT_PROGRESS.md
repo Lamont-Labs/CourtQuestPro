@@ -226,3 +226,7 @@ Verified preceding navigation commit 041cbc9 passed Android workflow run 4211230
 ## CQ-021 Training Experience 2.0 — stage 2
 
 Previous stage CI run 42112997829 was still in progress when inspected. Improved timer status labeling (paused/running/finished), distinguished Resume from Start, and corrected the successful-action decrement control to reverse both success and attempted counters, matching the one-tap recording behavior. Allocated flexible width to attempt count for smaller screens. Source commit d94477cb1fe6edb656438d0e6b6f4b1858814e8e. Automated verification of this commit and device acceptance are pending. Next: verify CI and improve result completion feedback.
+
+## CQ-021 Training Experience 2.0 — stage 3
+
+Previous timer and undo changes passed Android development workflow run 42113383827. Replaced generic completion lock explanation with contextual messages for incomplete target, achieved target awaiting full-technique confirmation, ready-to-save, and already-completed drills. No changes to eligibility gates, persistence or XP awards. Implementation commit 09c560d41146a038d3c51a6c8bb9b4c93b23568b. Current CI pending. Next: verify CI, then begin CQ-022 player development dashboard.
