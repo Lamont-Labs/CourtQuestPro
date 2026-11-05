@@ -70,6 +70,7 @@ data class SaveState(
     var matches: MutableList<MatchRecord> = mutableListOf(),
     var awardedKeys: MutableList<String> = mutableListOf(),
     var drillResults: MutableList<DrillResult>? = null,
+    var drillDrafts: MutableList<DrillDraft>? = null,
     var showWarmupDone: Boolean = false
 )
 
@@ -178,12 +179,25 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         DrillScreen(
                             drill = drill, slotNumber = selectedSlot + 1, complete = slot?.complete == true,
                             previousResults = save.drillResults.orEmpty().filter { it.drillId == drill.id },
+                            draft = save.drillDrafts.orEmpty().firstOrNull {
+                                it.date == save.activeDate && it.slotId == slot?.id && it.drillId == drill.id
+                            } ?: DrillDraft(save.activeDate, slot?.id ?: "", drill.id,
+                                remainingSeconds = drill.minutes.coerceAtLeast(1) * 60),
+                            onDraft = { updated ->
+                                save.drillDrafts = (save.drillDrafts.orEmpty().filterNot {
+                                    it.date == updated.date && it.slotId == updated.slotId
+                                } + updated).toMutableList()
+                                persist()
+                            },
                             onVideo = { openUrl("https://www.youtube.com/results?search_query=" + Uri.encode(drill.videoQuery)) },
                             onComplete = { completed, attempted ->
                                 if (selectedSlot in save.slots.indices && !save.slots[selectedSlot].complete) {
                                     val result = DrillResult(save.activeDate, save.slots[selectedSlot].id, drill.id, completed, attempted)
                                     save.drillResults = (save.drillResults.orEmpty() + result).toMutableList()
                                     save.slots[selectedSlot].complete = true
+                                    save.drillDrafts = save.drillDrafts.orEmpty().filterNot {
+                                        it.date == save.activeDate && it.slotId == save.slots[selectedSlot].id
+                                    }.toMutableList()
                                     award(save, "drill_${save.activeDate}_${save.slots[selectedSlot].id}", 50)
                                     if (save.slots.all { it.complete }) award(save, "six_${save.activeDate}", 100)
                                     refresh()
@@ -380,14 +394,15 @@ private fun StatCard(label: String, value: String, modifier: Modifier = Modifier
 }
 
 @Composable
-private fun DrillSessionTimer(minutes: Int) {
+private fun DrillSessionTimer(minutes: Int, initialRemaining: Int, onRemaining: (Int) -> Unit) {
     val initialSeconds = minutes.coerceAtLeast(1) * 60
-    var remaining by remember(minutes) { mutableIntStateOf(initialSeconds) }
+    var remaining by remember(minutes) { mutableIntStateOf(initialRemaining.coerceIn(0, initialSeconds)) }
     var running by remember(minutes) { mutableStateOf(false) }
     LaunchedEffect(running, remaining) {
         if (running && remaining > 0) {
             delay(1000L)
             remaining = (remaining - 1).coerceAtLeast(0)
+            onRemaining(remaining)
             if (remaining == 0) running = false
         }
     }
@@ -403,7 +418,7 @@ private fun DrillSessionTimer(minutes: Int) {
             )
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Button(
-                    onClick = { if (remaining == 0) remaining = initialSeconds; running = !running },
+                    onClick = { if (remaining == 0) { remaining = initialSeconds; onRemaining(remaining) }; running = !running },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp)
                 ) {
@@ -412,7 +427,7 @@ private fun DrillSessionTimer(minutes: Int) {
                     Text(if (running) "PAUSE" else if (remaining == 0) "RESTART" else "START")
                 }
                 OutlinedButton(
-                    onClick = { running = false; remaining = initialSeconds },
+                    onClick = { running = false; remaining = initialSeconds; onRemaining(remaining) },
                     shape = RoundedCornerShape(12.dp)
                 ) { Text("RESET") }
             }
@@ -426,13 +441,18 @@ private fun DrillSessionTimer(minutes: Int) {
 }
 
 @Composable
-private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previousResults: List<DrillResult>, onVideo: () -> Unit, onComplete: (Int, Int) -> Unit, onBack: () -> Unit) {
-    var completedCount by remember(drill.id, slotNumber) { mutableIntStateOf(0) }
-    var attemptedCount by remember(drill.id, slotNumber) { mutableIntStateOf(0) }
+private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previousResults: List<DrillResult>, draft: DrillDraft, onDraft: (DrillDraft) -> Unit, onVideo: () -> Unit, onComplete: (Int, Int) -> Unit, onBack: () -> Unit) {
+    var completedCount by remember(drill.id, slotNumber) { mutableIntStateOf(draft.successful) }
+    var attemptedCount by remember(drill.id, slotNumber) { mutableIntStateOf(draft.attempted) }
     val best = previousResults.maxByOrNull { it.completed }
     val measurement = measurementFor(drill.category)
     val requiredCount = DrillTargets.minimum(drill.id)
-    var targetConfirmed by remember(drill.id, slotNumber) { mutableStateOf(false) }
+    var targetConfirmed by remember(drill.id, slotNumber) { mutableStateOf(draft.targetConfirmed) }
+    var timerSeconds by remember(drill.id, slotNumber) { mutableIntStateOf(draft.remainingSeconds) }
+    fun saveDraft() {
+        onDraft(draft.copy(successful = completedCount, attempted = attemptedCount,
+            remainingSeconds = timerSeconds, targetConfirmed = targetConfirmed))
+    }
     val meetsCount = DrillTargets.eligible(drill.id, completedCount, attemptedCount)
     LazyColumn(Modifier.fillMaxSize()) {
         item { AppHeader("Drill $slotNumber of 6", drill.category.uppercase()) }
@@ -470,24 +490,24 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previo
                             color = Ink, fontWeight = FontWeight.Bold
                         )
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            OutlinedButton(onClick = { if (completedCount > 0) completedCount-- }) { Text("−") }
+                            OutlinedButton(onClick = { if (completedCount > 0) { completedCount--; saveDraft() } }) { Text("−") }
                             Text("$completedCount", color = Ink, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                            Button(onClick = { if (completedCount < attemptedCount) completedCount++ }) { Text(measurement.successButton) }
+                            Button(onClick = { if (completedCount < attemptedCount) { completedCount++; saveDraft() } }) { Text(measurement.successButton) }
                         }
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            OutlinedButton(onClick = { if (attemptedCount > completedCount) attemptedCount-- }) { Text("−") }
+                            OutlinedButton(onClick = { if (attemptedCount > completedCount) { attemptedCount--; saveDraft() } }) { Text("−") }
                             Text("$attemptedCount · ${measurement.attemptLabel}", color = Ink, fontWeight = FontWeight.Bold)
-                            OutlinedButton(onClick = { attemptedCount++ }) { Text("+ ATTEMPT") }
+                            OutlinedButton(onClick = { attemptedCount++; saveDraft() }) { Text("+ ATTEMPT") }
                         }
                         if (best != null) Text("PERSONAL BEST  ·  ${best.completed} successful / ${best.attempted} attempts", color = Muted, fontSize = 12.sp)
                         Text(measurement.description + " Results are saved when you complete the drill.", color = Muted, fontSize = 12.sp)
                         Text("TARGET CHECK · ${requiredCount ?: 0} successful actions minimum", color = if (meetsCount) Orange else Muted, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        Checkbox(checked = targetConfirmed, onCheckedChange = { targetConfirmed = it })
+                        Checkbox(checked = targetConfirmed, onCheckedChange = { targetConfirmed = it; saveDraft() })
                         Text("I completed the full written target, including required sides, intervals, rest, and safe technique.", color = Ink, fontSize = 12.sp)
                         if (!meetsCount || !targetConfirmed) Text("Completion unlocks after the minimum count and target confirmation.", color = Muted, fontSize = 12.sp)
                     }
                 }
-                DrillSessionTimer(drill.minutes)
+                DrillSessionTimer(drill.minutes, timerSeconds) { timerSeconds = it; saveDraft() }
                 Button(onClick = onVideo, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(15.dp)) {
                     Icon(Icons.Default.PlayCircle, null); Spacer(Modifier.width(8.dp)); Text("WATCH VIDEO DEMONSTRATION")
                 }
