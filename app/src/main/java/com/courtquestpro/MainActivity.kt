@@ -566,7 +566,17 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previo
                             Checkbox(checked = targetConfirmed, onCheckedChange = { targetConfirmed = it; saveDraft() })
                             Text("I completed the full written target, including required sides, intervals, rest, and safe technique.", color = Ink, fontSize = 12.sp, modifier = Modifier.weight(1f))
                         }
-                        if (!meetsCount || !targetConfirmed) Text("Completion unlocks after the minimum count and target confirmation.", color = Muted, fontSize = 12.sp)
+                        Text(
+                            when {
+                                complete -> "THIS DRILL IS ALREADY COMPLETE"
+                                meetsCount && targetConfirmed -> "READY TO FINISH · SAVE YOUR RECORDED RESULTS"
+                                meetsCount -> "TARGET REACHED · CONFIRM THE FULL DRILL TO FINISH"
+                                else -> "KEEP WORKING · REACH THE TARGET TO UNLOCK COMPLETION"
+                            },
+                            color = if (!complete && meetsCount && targetConfirmed) CourtGreen else Muted,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
                 DrillSessionTimer(drill.minutes, timerSeconds) { timerSeconds = it; saveDraft() }
