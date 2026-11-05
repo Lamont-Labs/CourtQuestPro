@@ -107,3 +107,15 @@ Status: SOURCE COMMITTED; Android CI and device acceptance pending.
 - This is a first-pass visual foundation, not a full design overhaul. Remaining: guided training sessions, actual performance metrics, reusable component extraction, responsive UI polish, accessibility, and device review.
 - No device run or successful CI check claimed for this commit.
 - Next: verify Android CI and address theme/contrast and build issues before expanding training UX.
+
+## CQ-010 — Legacy scoring compatibility and guided drill clock
+
+Status: SOURCE COMMITTED; CI and physical device verification pending.
+
+- Run #22 (`42102160658`) failed with 9 tests, 1 failure: `ScorekeeperPersistenceTest.olderSavedJsonWithoutHistoryDoesNotGuessScorer`.
+- Root cause: `SaveState.pointHistory` defaulted to an empty list, allowing Gson to initialize a missing field as an empty list. Changed the default to null so legacy saves remain distinguishable. New match and daily reset explicitly initialize an empty history.
+- Fix commit: `d91527363a8c0e6db115d8b0f61c334b8072ff41`.
+- Added a per-drill six-minute (drill-configured) countdown with Start/Pause/Reset, visual progress, and an explicit reminder that time elapsed does not automatically count a drill as completed.
+- Training timer commit: `8d75e56fd026b77281b730e5878ef192d8ae5da5`.
+- The timer is ephemeral UI state; score and completion persistence are unchanged. Do not claim background or process-death timer continuity.
+- Next: verify CI green; introduce actual recorded drill outcomes (attempts/makes or reps) rather than XP-only completion.
