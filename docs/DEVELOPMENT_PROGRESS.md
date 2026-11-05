@@ -84,3 +84,14 @@ Status: CI PASSED; physical-device gameplay testing pending.
 - Artifact retained until 2026-11-19 19:36 UTC.
 - Draft PR #1 remains unmerged; main untouched. No release published.
 - Next task: verify device installation and interactive scorekeeper behavior; review PR before any merge.
+
+## CQ-007 — Persistence regression and device acceptance preparation
+
+Status: SOURCE COMMITTED; physical-device execution pending.
+
+- Added `app/src/test/java/com/courtquestpro/ScorekeeperPersistenceTest.kt`: three Gson persistence/legacy compatibility regression tests.
+- Added `docs/ANDROID_DEVICE_ACCEPTANCE.md`: stepwise Android installation, scorekeeping, championship, persistence and acceptance criteria.
+- Commits: `cff0cafb5d9f533864b2c354610725a28ec7987b`, `207d563edae9521b9b132b2928b2c455ce61d40a`.
+- Cannot claim physical-device testing: no device control was available.
+- The new JUnit tests need GitHub CI execution on the new head commit.
+- Next task: inspect new CI result, address failures, and verify resume-match UX or document limitation.
