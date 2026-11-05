@@ -214,3 +214,7 @@ Verified GitHub prerelease tag: courtquest-dev-2026-11-05. Target commit: 3ece65
 ## CQ-020 Premium visual overhaul, stage 1
 
 Approved broader product upgrade includes app shell, training 2.0, player development, plans and challenges. First implementation committed: 8c78a579c6a6723002aff5ed62036536e30ab257. Added a branded basketball header with warm dark gradient, CourtQuest mark, Player Lab identity, bold typography and numbered dashboard sections for workout, game day and skill development. Updated workout surface and key progress typography. Existing save schema, navigation and training logic preserved. Automated CI for this change and physical device review remain pending. Next: verify CI, then expand reusable visual components and overhaul training interactions in small tested changes. Do not mark all roadmap stages complete.
+
+## CQ-020 Premium interface, stage 2
+
+Previous stage passed Android development checks in workflow run 42111391727. Updated bottom navigation with basketball-specific iconography, high-contrast orange selection indicators and accessible descriptions. Home dashboard now highlights unfinished drill sessions, changes primary action to RESUME TRAINING, and selects an unfinished session before selecting a random new drill. Existing saved-state schema and completion logic unchanged. Source commit: 041cbc979e9072d820bc3c74828cc78d0425430b. Current CI and device acceptance pending. Next: training screen visual overhaul and session experience improvements.
