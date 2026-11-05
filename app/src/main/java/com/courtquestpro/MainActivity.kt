@@ -36,7 +36,7 @@ import kotlin.math.max
 import kotlin.random.Random
 
 private val CourtGreen = Color(0xFFFF783D)
-private val CourtLight = Color(0xFF302B29)
+private val CourtLight = Color(0xFF322722)
 private val Ink = Color(0xFFF7F3EF)
 private val Orange = Color(0xFFFFA35C)
 private val Muted = Color(0xFFB7ACA6)
@@ -321,11 +321,35 @@ private fun updateStreak(s: SaveState, sessionDate: LocalDate, today: String) {
 
 @Composable
 private fun AppHeader(title: String, subtitle: String = "") {
-    Column(Modifier.fillMaxWidth().background(Brush.horizontalGradient(listOf(Color(0xFF33231E), Color(0xFF17191D)))).padding(20.dp)) {
-        Text("COURTQUEST  /  PLAYER DEVELOPMENT", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-        Spacer(Modifier.height(8.dp))
-        Text(title, color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
-        if (subtitle.isNotBlank()) { Spacer(Modifier.height(4.dp)); Text(subtitle, color = Color(0xFFB7ACA6), fontSize = 13.sp) }
+    Column(
+        Modifier.fillMaxWidth()
+            .background(Brush.verticalGradient(listOf(Color(0xFF382118), Color(0xFF1D1D21), Color(0xFF121315))))
+            .padding(start = 22.dp, end = 22.dp, top = 27.dp, bottom = 25.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(35.dp).clip(RoundedCornerShape(11.dp)).background(CourtGreen), contentAlignment = Alignment.Center) {
+                Icon(Icons.Default.SportsBasketball, null, tint = Color(0xFF171719), modifier = Modifier.size(22.dp))
+            }
+            Spacer(Modifier.width(10.dp))
+            Text("COURTQUEST", color = Ink, fontSize = 12.sp, fontWeight = FontWeight.Black, letterSpacing = 2.5.sp)
+            Spacer(Modifier.weight(1f))
+            Text("PLAYER LAB", color = Orange, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+        }
+        Spacer(Modifier.height(27.dp))
+        Text(title, color = Ink, fontSize = 34.sp, fontWeight = FontWeight.Black, lineHeight = 37.sp)
+        if (subtitle.isNotBlank()) {
+            Spacer(Modifier.height(9.dp))
+            Text(subtitle, color = Muted, fontSize = 12.sp, letterSpacing = 1.sp)
+        }
+    }
+}
+
+@Composable
+private fun CourtSectionTitle(number: String, title: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(number, color = CourtGreen, fontSize = 11.sp, fontWeight = FontWeight.Black)
+        Spacer(Modifier.width(10.dp))
+        Text(title, color = Ink, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
     }
 }
 
@@ -340,14 +364,15 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     StatCard("TOTAL XP", save.totalXp.toString(), Modifier.weight(1f))
                     StatCard("RANK", rankFor(save.totalXp), Modifier.weight(1f))
-                    StatCard("STREAK", "🔥 ${save.currentStreak}", Modifier.weight(1f))
+                    StatCard("STREAK", "${save.currentStreak} DAYS", Modifier.weight(1f))
                 }
-                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(22.dp)) {
+                CourtSectionTitle("01 /", "DAILY WORKOUT")
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1D21)), shape = RoundedCornerShape(22.dp)) {
                     Column(Modifier.padding(18.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
                                 Text("TODAY'S TRAINING", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                                Text("$done / 6 drills", fontSize = 23.sp, fontWeight = FontWeight.Bold, color = Ink)
+                                Text("$done / 6 drills", fontSize = 29.sp, fontWeight = FontWeight.Black, color = Ink)
                             }
                             Box(Modifier.size(56.dp).clip(CircleShape).background(CourtLight), contentAlignment = Alignment.Center) {
                                 Text("${(progress * 100).toInt()}%", color = Orange, fontWeight = FontWeight.ExtraBold)
@@ -364,7 +389,8 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                         Text("6 skill sessions · your progress is saved automatically", color = Muted, fontSize = 12.sp)
                     }
                 }
-                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF302722)), shape = RoundedCornerShape(22.dp)) {
+                CourtSectionTitle("02 /", "GAME DAY")
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF38251F)), shape = RoundedCornerShape(22.dp)) {
                     Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(50.dp).clip(CircleShape).background(Orange), contentAlignment = Alignment.Center) {
                             Icon(Icons.Default.EmojiEvents, null, tint = Color.White, modifier = Modifier.size(28.dp))
@@ -377,7 +403,7 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                         IconButton(onClick = onStartChamp) { Icon(Icons.Default.ChevronRight, null, tint = Ink) }
                     }
                 }
-                Text("SKILLS TO DEVELOP", fontWeight = FontWeight.ExtraBold, color = Ink, fontSize = 13.sp, letterSpacing = 1.sp)
+                CourtSectionTitle("03 /", "SKILL DEVELOPMENT")
                 val categories = listOf("Shooting" to Icons.Default.SportsBasketball, "Ball Handling" to Icons.Default.Bolt, "Finishing" to Icons.Default.Sports, "Defense" to Icons.Default.Shield, "Rebounding" to Icons.Default.ArrowUpward, "Passing" to Icons.Default.SwapHoriz)
                 categories.chunked(2).forEach { pair ->
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
