@@ -369,7 +369,7 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
     }
     val progress by animateFloatAsState(if (save.slots.isEmpty()) 0f else done / 6f, animationSpec = tween(650), label = "progress")
     LazyColumn(Modifier.fillMaxSize()) {
-        item { AppHeader("${save.playerName.ifBlank { "Vincent" }}'s court.", "BUILD YOUR GAME  /  ONE SESSION AT A TIME") }
+        item { AppHeader(save.playerName.takeIf { it.isNotBlank() }?.let { "$it’s court." } ?: "Your court.", "BUILD YOUR GAME  /  ONE SESSION AT A TIME") }
         item {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -692,7 +692,7 @@ private fun MatchRecapScreen(record: MatchRecord, totalXp: Int, onHome: () -> Un
 @Composable
 private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
     LazyColumn(Modifier.fillMaxSize()) {
-        item { AppHeader("${save.playerName.ifBlank { "Vincent" }} · Development", "RECORDED WORK  /  MEASURABLE PROGRESS") }
+        item { AppHeader(save.playerName.takeIf { it.isNotBlank() }?.let { "$it · Development" } ?: "Player development", "RECORDED WORK  /  MEASURABLE PROGRESS") }
         item {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -788,6 +788,17 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                                         else -> "NO CHANGE"
                                     }
                                     Text("$firstPct% → $latestPct% · $direction", color = Orange, fontWeight = FontWeight.Bold)
+                                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Text("FIRST", color = Muted, fontSize = 10.sp, modifier = Modifier.width(48.dp))
+                                        LinearProgressIndicator(progress = { trend.firstRate.toFloat().coerceIn(0f, 1f) }, modifier = Modifier.weight(1f).height(8.dp).clip(CircleShape), color = Muted, trackColor = CourtLight)
+                                        Text("$firstPct%", color = Ink, fontSize = 12.sp)
+                                    }
+                                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Text("LATEST", color = Muted, fontSize = 10.sp, modifier = Modifier.width(48.dp))
+                                        LinearProgressIndicator(progress = { trend.latestRate.toFloat().coerceIn(0f, 1f) }, modifier = Modifier.weight(1f).height(8.dp).clip(CircleShape), color = CourtGreen, trackColor = CourtLight)
+                                        Text("$latestPct%", color = Ink, fontSize = 12.sp)
+                                    }
+
                                     Text("${trend.sessions} recorded sessions · ${"%.1f".format(kotlin.math.abs(delta))} percentage-point difference", color = Muted, fontSize = 12.sp)
                                 }
                             }
