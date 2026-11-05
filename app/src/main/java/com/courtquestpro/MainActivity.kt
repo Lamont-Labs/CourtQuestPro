@@ -212,9 +212,13 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         playerScore = save.playerScore, opponentScore = save.opponentScore,
                         onPoint = { playerPoint ->
                             if (save.playerScore < 11 && save.opponentScore < 11) {
-                                if (playerPoint) save.playerScore++ else save.opponentScore++
-                                if (save.pointHistory == null) save.pointHistory = mutableListOf()
-                                save.pointHistory!!.add(playerPoint)
+                                val updated = Scorekeeper.point(
+                                    Scorekeeper.Score(save.playerScore, save.opponentScore, save.pointHistory),
+                                    playerPoint
+                                )
+                                save.playerScore = updated.player
+                                save.opponentScore = updated.opponent
+                                save.pointHistory = updated.history?.toMutableList()
                                 if (save.playerScore >= 11 || save.opponentScore >= 11) {
                                     val winner = if (save.playerScore > save.opponentScore) save.matchPlayer else save.matchOpponent
                                     val won = winner == save.matchPlayer
@@ -233,12 +237,13 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                             }
                         },
                         onUndo = {
-                            // Reverse the actual last scorer; legacy matches without history cannot be safely undone.
-                            val history = save.pointHistory
-                            if (!history.isNullOrEmpty()) {
-                                val lastWasPlayer = history.removeAt(history.lastIndex)
-                                if (lastWasPlayer && save.playerScore > 0) save.playerScore--
-                                else if (!lastWasPlayer && save.opponentScore > 0) save.opponentScore--
+                            val updated = Scorekeeper.undo(
+                                Scorekeeper.Score(save.playerScore, save.opponentScore, save.pointHistory)
+                            )
+                            if (updated.player != save.playerScore || updated.opponent != save.opponentScore) {
+                                save.playerScore = updated.player
+                                save.opponentScore = updated.opponent
+                                save.pointHistory = updated.history?.toMutableList()
                                 refresh()
                             }
                         },
