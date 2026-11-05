@@ -238,3 +238,7 @@ Previous CQ-021 completion-feedback commit 09c560d passed Android development wo
 ## CQ-022 Player Development 2.0 — stage 2
 
 Previous stage passed Android development workflow run 42126107671. Added per-drill personal record based on maximum valid successful actions, with the record's date and attempts, plus valid session count and total sample attempts beside same-drill trend. Excludes malformed/zero-attempt records from record and sample summaries. Keeps trends separate and does not imply calibrated skill rating. Source commit 065f21eb1c2c813ff44df1525e531d4fb217d14c. Current CI and device acceptance pending. Next: verify CI and consider explicit session-level progress visuals.
+
+## CQ-022 Player Development 2.0 — stage 3
+
+Removed hardcoded Vincent display-name fallbacks from home and development screens. Saved playerName remains configurable through Settings, and blank names use generic Your court / Player development labels. Added first-versus-latest same-drill rate comparison bars, backed by existing DrillTrends values, with percentage labels. No saved-state schema changes. Source commit d64f8053db7d26ffb4f62a9cf3ac81f898e1c1d5. CI pending; new APK not yet published. Next verify CI and extend generic player-name UX/onboarding.
