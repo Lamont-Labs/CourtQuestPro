@@ -230,3 +230,7 @@ Previous stage CI run 42112997829 was still in progress when inspected. Improved
 ## CQ-021 Training Experience 2.0 — stage 3
 
 Previous timer and undo changes passed Android development workflow run 42113383827. Replaced generic completion lock explanation with contextual messages for incomplete target, achieved target awaiting full-technique confirmation, ready-to-save, and already-completed drills. No changes to eligibility gates, persistence or XP awards. Implementation commit 09c560d41146a038d3c51a6c8bb9b4c93b23568b. Current CI pending. Next: verify CI, then begin CQ-022 player development dashboard.
+
+## CQ-022 Player Development 2.0 — stage 1
+
+Previous CQ-021 completion-feedback commit 09c560d passed Android development workflow run 42114392786. Added evidence-based training days and distinct drills practiced from valid recorded results. Career dashboard now has numbered training record, skill breakdown, same-drill trends and match history sections. Activity metrics explicitly distinguish themselves from skill ratings. Existing saved state and trend logic preserved. Source commit dac974b55b6764cd34fb28dc4007365800f01aa2. Current CI and physical device acceptance pending. Next: verify CI and add per-drill personal-record presentation with sample-size context.
