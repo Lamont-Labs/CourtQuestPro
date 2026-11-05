@@ -43,4 +43,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh release create courtquest-dev-2026-11-05 dist/CourtQuestPro-Android-debug.apk dist/CourtQuestPro-Android-debug.apk.sha256 --target "${GITHUB_SHA}" --title "CourtQuest Pro — Android development APK (2026-11-05)" --notes "Installable Android debug APK. Development/testing build; not Play Store signed. Includes training results, trends, completion gates, and draft recovery. Generated from the development branch; no merge to main." --prerelease
+          gh release upload courtquest-dev-2026-11-05 dist/CourtQuestPro-Android-debug.apk dist/CourtQuestPro-Android-debug.apk.sha256 --clobber
