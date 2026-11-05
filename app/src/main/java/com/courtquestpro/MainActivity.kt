@@ -508,14 +508,14 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previo
     }
     val meetsCount = DrillTargets.eligible(drill.id, completedCount, attemptedCount)
     LazyColumn(Modifier.fillMaxSize()) {
-        item { AppHeader("Drill $slotNumber of 6", drill.category.uppercase()) }
+        item { AppHeader("Training / $slotNumber of 6", drill.category.uppercase()) }
         item {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(24.dp)) {
                     Column(Modifier.padding(20.dp)) {
                         Text(drill.category.uppercase(), color = CourtGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
                         Spacer(Modifier.height(7.dp))
-                        Text(drill.title, fontSize = 25.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
+                        Text(drill.title, fontSize = 29.sp, fontWeight = FontWeight.Black, color = Ink, lineHeight = 33.sp)
                         Spacer(Modifier.height(12.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Pill("${drill.minutes} MIN")
@@ -537,7 +537,14 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previo
                 }
                 Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(22.dp)) {
                     Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("RECORD YOUR RESULTS", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                        Text("02 / LIVE PERFORMANCE", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 1.3.sp)
+                        Text("Log each attempt as it happens", color = Muted, fontSize = 12.sp)
+                        Text("$completedCount / ${requiredCount ?: 0} TARGET", color = Ink, fontSize = 26.sp, fontWeight = FontWeight.Black)
+                        LinearProgressIndicator(
+                            progress = { if (requiredCount != null && requiredCount > 0) (completedCount.toFloat() / requiredCount).coerceIn(0f, 1f) else 0f },
+                            modifier = Modifier.fillMaxWidth().height(9.dp).clip(CircleShape),
+                            color = CourtGreen, trackColor = CourtLight
+                        )
                         Text(
                             "${measurement.successLabel} / ${measurement.attemptLabel}",
                             color = Ink, fontWeight = FontWeight.Bold
@@ -545,18 +552,20 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previo
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             OutlinedButton(onClick = { if (completedCount > 0) { completedCount--; saveDraft() } }) { Text("−") }
                             Text("$completedCount", color = Ink, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                            Button(onClick = { if (completedCount < attemptedCount) { completedCount++; saveDraft() } }) { Text(measurement.successButton) }
+                            Button(onClick = { completedCount++; attemptedCount++; saveDraft() }) { Text("+ " + measurement.successButton) }
                         }
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             OutlinedButton(onClick = { if (attemptedCount > completedCount) { attemptedCount--; saveDraft() } }) { Text("−") }
                             Text("$attemptedCount · ${measurement.attemptLabel}", color = Ink, fontWeight = FontWeight.Bold)
-                            OutlinedButton(onClick = { attemptedCount++; saveDraft() }) { Text("+ ATTEMPT") }
+                            OutlinedButton(onClick = { attemptedCount++; saveDraft() }) { Text("+ MISSED / OTHER") }
                         }
                         if (best != null) Text("PERSONAL BEST  ·  ${best.completed} successful / ${best.attempted} attempts", color = Muted, fontSize = 12.sp)
-                        Text(measurement.description + " Results are saved when you complete the drill.", color = Muted, fontSize = 12.sp)
+                        Text(measurement.description + " Each successful action also counts as an attempt. Use missed / other for attempts without success. Progress is saved as you go.", color = Muted, fontSize = 12.sp)
                         Text("TARGET CHECK · ${requiredCount ?: 0} successful actions minimum", color = if (meetsCount) Orange else Muted, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        Checkbox(checked = targetConfirmed, onCheckedChange = { targetConfirmed = it; saveDraft() })
-                        Text("I completed the full written target, including required sides, intervals, rest, and safe technique.", color = Ink, fontSize = 12.sp)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(checked = targetConfirmed, onCheckedChange = { targetConfirmed = it; saveDraft() })
+                            Text("I completed the full written target, including required sides, intervals, rest, and safe technique.", color = Ink, fontSize = 12.sp, modifier = Modifier.weight(1f))
+                        }
                         if (!meetsCount || !targetConfirmed) Text("Completion unlocks after the minimum count and target confirmation.", color = Muted, fontSize = 12.sp)
                     }
                 }
