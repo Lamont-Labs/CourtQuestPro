@@ -62,7 +62,7 @@ data class SaveState(
     var championshipDone: Boolean = false,
     var playerScore: Int = 0,
     var opponentScore: Int = 0,
-    var pointHistory: MutableList<Boolean>? = mutableListOf(),
+    var pointHistory: MutableList<Boolean>? = null,
     var matchPlayer: String = "",
     var matchOpponent: String = "",
     var matches: MutableList<MatchRecord> = mutableListOf(),
