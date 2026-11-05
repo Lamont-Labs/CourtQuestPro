@@ -431,6 +431,9 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previo
     var attemptedCount by remember(drill.id, slotNumber) { mutableIntStateOf(0) }
     val best = previousResults.maxByOrNull { it.completed }
     val measurement = measurementFor(drill.category)
+    val requiredCount = DrillTargets.minimum(drill.id)
+    var targetConfirmed by remember(drill.id, slotNumber) { mutableStateOf(false) }
+    val meetsCount = DrillTargets.eligible(drill.id, completedCount, attemptedCount)
     LazyColumn(Modifier.fillMaxSize()) {
         item { AppHeader("Drill $slotNumber of 6", drill.category.uppercase()) }
         item {
@@ -478,13 +481,17 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previo
                         }
                         if (best != null) Text("PERSONAL BEST  ·  ${best.completed} successful / ${best.attempted} attempts", color = Muted, fontSize = 12.sp)
                         Text(measurement.description + " Results are saved when you complete the drill.", color = Muted, fontSize = 12.sp)
+                        Text("TARGET CHECK · ${requiredCount ?: 0} successful actions minimum", color = if (meetsCount) Orange else Muted, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Checkbox(checked = targetConfirmed, onCheckedChange = { targetConfirmed = it })
+                        Text("I completed the full written target, including required sides, intervals, rest, and safe technique.", color = Ink, fontSize = 12.sp)
+                        if (!meetsCount || !targetConfirmed) Text("Completion unlocks after the minimum count and target confirmation.", color = Muted, fontSize = 12.sp)
                     }
                 }
                 DrillSessionTimer(drill.minutes)
                 Button(onClick = onVideo, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(15.dp)) {
                     Icon(Icons.Default.PlayCircle, null); Spacer(Modifier.width(8.dp)); Text("WATCH VIDEO DEMONSTRATION")
                 }
-                Button(onClick = { onComplete(completedCount, attemptedCount) }, enabled = !complete && attemptedCount > 0, modifier = Modifier.fillMaxWidth().height(56.dp), colors = ButtonDefaults.buttonColors(containerColor = if (complete) Muted else CourtGreen), shape = RoundedCornerShape(15.dp)) {
+                Button(onClick = { onComplete(completedCount, attemptedCount) }, enabled = !complete && meetsCount && targetConfirmed, modifier = Modifier.fillMaxWidth().height(56.dp), colors = ButtonDefaults.buttonColors(containerColor = if (complete) Muted else CourtGreen), shape = RoundedCornerShape(15.dp)) {
                     Icon(Icons.Default.CheckCircle, null); Spacer(Modifier.width(8.dp)); Text(if (complete) "SLOT COMPLETED" else "SAVE RESULTS & COMPLETE · +50 XP", fontWeight = FontWeight.Bold)
                 }
                 OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text("Back to dashboard") }
