@@ -1,0 +1,1 @@
+Authorized by project owner on 2026-11-05: publish a development Android APK as a GitHub prerelease with a direct installable APK asset. Build and test from the development branch; do not merge to main.
