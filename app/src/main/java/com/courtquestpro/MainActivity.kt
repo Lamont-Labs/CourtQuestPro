@@ -403,10 +403,14 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                 Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(20.dp)) {
                     Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text("YOUR WEEKLY FOCUS", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            listOf("Balanced", "Shooting", "Ball Handling", "Finishing").forEach { plan ->
-                                FilterChip(selected = selectedPlan == plan, onClick = { onWeeklyPlan(plan) },
-                                    label = { Text(plan, fontSize = 10.sp) })
+                        Column {
+                            listOf("Balanced", "Shooting", "Ball Handling", "Finishing").chunked(2).forEach { pair ->
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    pair.forEach { plan ->
+                                        FilterChip(selected = selectedPlan == plan, onClick = { onWeeklyPlan(plan) },
+                                            label = { Text(plan, fontSize = 11.sp) })
+                                    }
+                                }
                             }
                         }
                         Text(when (selectedPlan) {
