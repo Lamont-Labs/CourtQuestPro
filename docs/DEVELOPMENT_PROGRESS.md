@@ -26,3 +26,29 @@ Implementation commit: `2fa10f66304ba40efd4f42ea2f5c6bcdee4c694a`
 
 ### Next task
 CQ-002: Add isolated scorekeeper logic with automated unit tests covering alternating scorers, tied scores, repeated undo, old saved state, and win boundaries; enable safe branch build verification without publishing a release.
+
+## CQ-002 — Automated scorekeeper verification
+
+Status: SOURCE IMPLEMENTED; CI execution not yet confirmed.
+
+Branch: `dev/scorekeeper-undo-history`
+
+### Commits
+- `29a8e246b9171250727eaa625b14c0e49e084d04` — pure scorekeeper transitions
+- `513ee64e2a4350e7077a6f26ce404be601761ec6` — six JUnit regression cases
+- `af716fd79b712662f210457d8bc5268af7acee01` — wire UI to transitions
+- `f41ccbecaedda6dad570741dbe8cd05e00ca182f` — JUnit dependency
+- `e803dcb29454ee95c0561b7235fdbeff61bc00f9` — development CI workflow
+
+### Files
+- `app/src/main/java/com/courtquestpro/Scorekeeper.kt`
+- `app/src/test/java/com/courtquestpro/ScorekeeperTest.kt`
+- `app/src/main/java/com/courtquestpro/MainActivity.kt`
+- `app/build.gradle.kts`
+- `.github/workflows/android-development.yml`
+
+### Verification limitations
+Tests are authored, not yet demonstrated passing. Branch workflows newly added outside the default branch may not trigger until GitHub recognizes the workflow. No emulator/device run. No production merge or release.
+
+### Next task
+CQ-003: Verify actual GitHub Actions execution and inspect failing tests/build/lint, then fix issues; consider a test-only PR check if the branch workflow cannot start.
