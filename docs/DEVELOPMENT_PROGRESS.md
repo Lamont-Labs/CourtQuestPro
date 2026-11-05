@@ -190,3 +190,15 @@ Status: SOURCE COMMITTED; new CI and physical device verification pending.
 - Added two Gson tests for roundtrip and legacy-save compatibility.
 - Commits: `75d10432c6b1859f702256dc142e8b9e8ba19818`, `4c60f044efdf2d328a6c3bc34d92cd5646fe0c01`, `b6399d0c2d4039becb49dbaf60a62e2cbe9a6612`.
 - Timer resumes paused rather than continuing while app is closed. Pending: CI/device acceptance, draft cleanup policy, state validation.
+
+## CQ-017 — Training recovery hardening
+
+Status: SOURCE COMMITTED; new CI and device verification pending.
+
+- CQ-016 Android workflow #70 (`42108323195`) passed.
+- Added `DrillDraftRecovery` validation for date, slot ID, drill ID, incomplete status, nonnegative counters, successful <= attempted and timer within drill duration.
+- Daily rollover and newly generated slots discard old drafts; current-day startup prunes invalid, stale and duplicate records.
+- In-progress writes are accepted only for the active, matching incomplete slot; recovery ignores invalid drafts.
+- Added three JUnit tests for recovery, pruning and duplicate selection.
+- Commits: `38df2f89307908b9aa6d412c2613b41435fcc987`, `fc962c593904a116676bc25751e225460af32e44`, `de2e2429ae6d3b7f76f9e2cdffd710df6dbf345a`.
+- Next: confirm CI and evaluate a direct APK release pipeline; physical device testing remains outstanding.
