@@ -55,6 +55,7 @@ data class MatchRecord(
 data class SaveState(
     var playerName: String = "",
     var difficulty: String = "Intermediate",
+    var weeklyPlan: String = "Balanced",
     var totalXp: Int = 0,
     var currentStreak: Int = 0,
     var longestStreak: Int = 0,
@@ -188,7 +189,8 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         },
                         onStartChamp = { screen = "champSetup" },
                         onCareer = { screen = "career" },
-                        onSaveName = { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() }
+                        onSaveName = { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() },
+                        onWeeklyPlan = { plan -> save.weeklyPlan = plan; refresh() }
                     )
                     "drill" -> {
                         val slot = save.slots.getOrNull(selectedSlot)
@@ -297,7 +299,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     "settings" -> SettingsScreen(save.difficulty, onDifficulty = { save.difficulty = it; refresh() }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
                     })
-                    else -> HomeScreen(save, { screen = "home" }, { screen = "champSetup" }, { screen = "career" }, { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() })
+                    else -> HomeScreen(save, { screen = "home" }, { screen = "champSetup" }, { screen = "career" }, { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() }, { plan -> save.weeklyPlan = plan; refresh() })
                 }
             }
         }
@@ -361,7 +363,7 @@ private fun CourtSectionTitle(number: String, title: String) {
 }
 
 @Composable
-private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> Unit, onCareer: () -> Unit, onSaveName: (String) -> Unit) {
+private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> Unit, onCareer: () -> Unit, onSaveName: (String) -> Unit, onWeeklyPlan: (String) -> Unit) {
     var newPlayerName by remember { mutableStateOf("") }
     val done = save.slots.count { it.complete }
     val resumable = save.slots.count { slot ->
@@ -390,6 +392,7 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                     }
                 }
                 CourtSectionTitle("WEEK /", "TRAINING CHALLENGE")
+                val selectedPlan = save.weeklyPlan.takeIf { it in listOf("Balanced", "Shooting", "Ball Handling", "Finishing") } ?: "Balanced"
                 val weekStart = LocalDate.now().with(java.time.DayOfWeek.MONDAY)
                 val weekEnd = weekStart.plusDays(6)
                 val trainedThisWeek = save.drillResults.orEmpty().asSequence()
@@ -399,6 +402,19 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                     .distinct().count()
                 Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(20.dp)) {
                     Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("YOUR WEEKLY FOCUS", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            listOf("Balanced", "Shooting", "Ball Handling", "Finishing").forEach { plan ->
+                                FilterChip(selected = selectedPlan == plan, onClick = { onWeeklyPlan(plan) },
+                                    label = { Text(plan, fontSize = 10.sp) })
+                            }
+                        }
+                        Text(when (selectedPlan) {
+                            "Shooting" -> "Focus on shooting form and repeatable mechanics."
+                            "Ball Handling" -> "Focus on control, footwork, and change of pace."
+                            "Finishing" -> "Focus on safe footwork and finishes at the rim."
+                            else -> "Build a balanced foundation across basketball skills."
+                        }, color = Muted, fontSize = 12.sp)
                         Text("3-DAY CONSISTENCY CHALLENGE", color = Ink, fontWeight = FontWeight.ExtraBold)
                         Text("$trainedThisWeek / 3 training days this week", color = Orange, fontWeight = FontWeight.Bold)
                         LinearProgressIndicator(
