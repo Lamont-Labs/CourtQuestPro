@@ -218,3 +218,7 @@ Approved broader product upgrade includes app shell, training 2.0, player develo
 ## CQ-020 Premium interface, stage 2
 
 Previous stage passed Android development checks in workflow run 42111391727. Updated bottom navigation with basketball-specific iconography, high-contrast orange selection indicators and accessible descriptions. Home dashboard now highlights unfinished drill sessions, changes primary action to RESUME TRAINING, and selects an unfinished session before selecting a random new drill. Existing saved-state schema and completion logic unchanged. Source commit: 041cbc979e9072d820bc3c74828cc78d0425430b. Current CI and device acceptance pending. Next: training screen visual overhaul and session experience improvements.
+
+## CQ-021 Training Experience 2.0 — stage 1
+
+Verified preceding navigation commit 041cbc9 passed Android workflow run 42112305153. Implemented live target progress meter, stronger drill title hierarchy, single-tap successful action recording (increments successful and attempted together), separate missed/other attempt recording, explanatory guidance, and accessible inline target confirmation. Existing draft persistence, completion eligibility and timer retained. Implementation commit 8ad0e769206cf3add8bd13bfd8a9d4afe8644f30. CI for this commit and physical-device review remain pending. Next: inspect CI and refine timer/recording usability without changing saved-state schema.
