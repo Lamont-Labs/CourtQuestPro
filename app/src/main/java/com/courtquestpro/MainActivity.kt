@@ -430,6 +430,7 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previo
     var completedCount by remember(drill.id, slotNumber) { mutableIntStateOf(0) }
     var attemptedCount by remember(drill.id, slotNumber) { mutableIntStateOf(0) }
     val best = previousResults.maxByOrNull { it.completed }
+    val measurement = measurementFor(drill.category)
     LazyColumn(Modifier.fillMaxSize()) {
         item { AppHeader("Drill $slotNumber of 6", drill.category.uppercase()) }
         item {
@@ -462,22 +463,21 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previo
                     Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text("RECORD YOUR RESULTS", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                         Text(
-                            if (drill.category == "Shooting" || drill.category == "Finishing") "Made / Attempted"
-                            else "Clean reps / Attempts",
+                            "${measurement.successLabel} / ${measurement.attemptLabel}",
                             color = Ink, fontWeight = FontWeight.Bold
                         )
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             OutlinedButton(onClick = { if (completedCount > 0) completedCount-- }) { Text("−") }
                             Text("$completedCount", color = Ink, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                            Button(onClick = { if (completedCount < attemptedCount) completedCount++ }) { Text("+ MADE") }
+                            Button(onClick = { if (completedCount < attemptedCount) completedCount++ }) { Text(measurement.successButton) }
                         }
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             OutlinedButton(onClick = { if (attemptedCount > completedCount) attemptedCount-- }) { Text("−") }
-                            Text("$attemptedCount attempts", color = Ink, fontWeight = FontWeight.Bold)
+                            Text("$attemptedCount · ${measurement.attemptLabel}", color = Ink, fontWeight = FontWeight.Bold)
                             OutlinedButton(onClick = { attemptedCount++ }) { Text("+ ATTEMPT") }
                         }
                         if (best != null) Text("PERSONAL BEST  ·  ${best.completed} successful / ${best.attempted} attempts", color = Muted, fontSize = 12.sp)
-                        Text("Record each attempt first, then mark successful attempts. Your results are saved when you complete the drill.", color = Muted, fontSize = 12.sp)
+                        Text(measurement.description + " Results are saved when you complete the drill.", color = Muted, fontSize = 12.sp)
                     }
                 }
                 DrillSessionTimer(drill.minutes)
