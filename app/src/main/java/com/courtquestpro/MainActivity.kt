@@ -34,11 +34,11 @@ import java.time.ZoneId
 import kotlin.math.max
 import kotlin.random.Random
 
-private val CourtGreen = Color(0xFF176B45)
-private val CourtLight = Color(0xFFEAF4E7)
-private val Ink = Color(0xFF183127)
-private val Orange = Color(0xFFF28C28)
-private val Muted = Color(0xFF63766B)
+private val CourtGreen = Color(0xFFFF783D)
+private val CourtLight = Color(0xFF302B29)
+private val Ink = Color(0xFFF7F3EF)
+private val Orange = Color(0xFFFFA35C)
+private val Muted = Color(0xFFB7ACA6)
 
 data class Drill(
     val id: String, val category: String, val title: String, val level: String,
@@ -141,17 +141,17 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
 
     MaterialTheme(
         colorScheme = lightColorScheme(
-            primary = CourtGreen, onPrimary = Color.White, secondary = Orange,
-            background = Color(0xFFF5F8F1), surface = Color.White, onSurface = Ink
+            primary = CourtGreen, onPrimary = Color(0xFF1B1411), secondary = Orange,
+            background = Color(0xFF121315), surface = Color(0xFF212124), onSurface = Ink
         )
     ) {
         Scaffold(
-            containerColor = Color(0xFFF5F8F1),
+            containerColor = Color(0xFF121315),
             bottomBar = {
-                NavigationBar(containerColor = Color.White) {
-                    NavigationBarItem(selected = screen == "home", onClick = { screen = "home" }, icon = { Icon(Icons.Default.Home, null) }, label = { Text("Home") })
-                    NavigationBarItem(selected = screen == "career", onClick = { screen = "career" }, icon = { Icon(Icons.Default.EmojiEvents, null) }, label = { Text("Career") })
-                    NavigationBarItem(selected = screen == "settings", onClick = { screen = "settings" }, icon = { Icon(Icons.Default.Tune, null) }, label = { Text("Settings") })
+                NavigationBar(containerColor = Color(0xFF1B1B1E)) {
+                    NavigationBarItem(selected = screen == "home", onClick = { screen = "home" }, icon = { Icon(Icons.Default.Home, null) }, label = { Text("Court") })
+                    NavigationBarItem(selected = screen == "career", onClick = { screen = "career" }, icon = { Icon(Icons.Default.EmojiEvents, null) }, label = { Text("Progress") })
+                    NavigationBarItem(selected = screen == "settings", onClick = { screen = "settings" }, icon = { Icon(Icons.Default.Tune, null) }, label = { Text("Setup") })
                 }
             }
         ) { padding ->
@@ -285,11 +285,11 @@ private fun updateStreak(s: SaveState, sessionDate: LocalDate, today: String) {
 
 @Composable
 private fun AppHeader(title: String, subtitle: String = "") {
-    Column(Modifier.fillMaxWidth().background(Brush.horizontalGradient(listOf(Color(0xFF176B45), Color(0xFF2C8C5E)))).padding(20.dp)) {
-        Text("COURT QUEST PRO", color = Color(0xFFD8F2D5), fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+    Column(Modifier.fillMaxWidth().background(Brush.horizontalGradient(listOf(Color(0xFF33231E), Color(0xFF17191D)))).padding(20.dp)) {
+        Text("COURTQUEST  /  PLAYER DEVELOPMENT", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
         Spacer(Modifier.height(8.dp))
-        Text(title, color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold)
-        if (subtitle.isNotBlank()) { Spacer(Modifier.height(4.dp)); Text(subtitle, color = Color(0xFFE6F4E8), fontSize = 13.sp) }
+        Text(title, color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
+        if (subtitle.isNotBlank()) { Spacer(Modifier.height(4.dp)); Text(subtitle, color = Color(0xFFB7ACA6), fontSize = 13.sp) }
     }
 }
 
@@ -298,7 +298,7 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
     val done = save.slots.count { it.complete }
     val progress by animateFloatAsState(if (save.slots.isEmpty()) 0f else done / 6f, animationSpec = tween(650), label = "progress")
     LazyColumn(Modifier.fillMaxSize()) {
-        item { AppHeader("Your court. Your quest.", "A little better every day.") }
+        item { AppHeader("${save.playerName.ifBlank { "Vincent" }}'s court.", "BUILD YOUR GAME  /  ONE SESSION AT A TIME") }
         item {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -306,15 +306,15 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                     StatCard("RANK", rankFor(save.totalXp), Modifier.weight(1f))
                     StatCard("STREAK", "🔥 ${save.currentStreak}", Modifier.weight(1f))
                 }
-                Card(colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(22.dp)) {
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(22.dp)) {
                     Column(Modifier.padding(18.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
-                                Text("TODAY'S CHALLENGE", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                                Text("TODAY'S TRAINING", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                                 Text("$done / 6 drills", fontSize = 23.sp, fontWeight = FontWeight.Bold, color = Ink)
                             }
                             Box(Modifier.size(56.dp).clip(CircleShape).background(CourtLight), contentAlignment = Alignment.Center) {
-                                Text("${(progress * 100).toInt()}%", color = CourtGreen, fontWeight = FontWeight.ExtraBold)
+                                Text("${(progress * 100).toInt()}%", color = Orange, fontWeight = FontWeight.ExtraBold)
                             }
                         }
                         Spacer(Modifier.height(12.dp))
@@ -322,31 +322,31 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                         Spacer(Modifier.height(16.dp))
                         Button(onClick = onSpin, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(16.dp)) {
                             Icon(Icons.Default.Casino, null); Spacer(Modifier.width(8.dp))
-                            Text(if (done == 6) "ALL DRILLS COMPLETE · CHAMPIONSHIP" else "SPIN THE DRILL WHEEL", fontWeight = FontWeight.Bold)
+                            Text(if (done == 6) "TRAINING COMPLETE · PLAY 1-ON-1" else "START NEXT DRILL", fontWeight = FontWeight.Bold)
                         }
                         Spacer(Modifier.height(8.dp))
-                        Text("Six slots · repeats possible · progress saves automatically", color = Muted, fontSize = 12.sp)
+                        Text("6 skill sessions · your progress is saved automatically", color = Muted, fontSize = 12.sp)
                     }
                 }
-                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF0DB)), shape = RoundedCornerShape(22.dp)) {
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF302722)), shape = RoundedCornerShape(22.dp)) {
                     Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(50.dp).clip(CircleShape).background(Orange), contentAlignment = Alignment.Center) {
                             Icon(Icons.Default.EmojiEvents, null, tint = Color.White, modifier = Modifier.size(28.dp))
                         }
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
-                            Text("THE CHAMPIONSHIP", fontWeight = FontWeight.ExtraBold, color = Ink)
+                            Text("GAME DAY  /  1-ON-1", fontWeight = FontWeight.ExtraBold, color = Ink)
                             Text("Real 1-on-1. First to 11. At 10–10, next point wins.", fontSize = 12.sp, color = Muted)
                         }
                         IconButton(onClick = onStartChamp) { Icon(Icons.Default.ChevronRight, null, tint = Ink) }
                     }
                 }
-                Text("YOUR DAILY SKILL MIX", fontWeight = FontWeight.ExtraBold, color = Ink, fontSize = 13.sp, letterSpacing = 1.sp)
+                Text("SKILLS TO DEVELOP", fontWeight = FontWeight.ExtraBold, color = Ink, fontSize = 13.sp, letterSpacing = 1.sp)
                 val categories = listOf("Shooting" to Icons.Default.SportsBasketball, "Ball Handling" to Icons.Default.Bolt, "Finishing" to Icons.Default.Sports, "Defense" to Icons.Default.Shield, "Rebounding" to Icons.Default.ArrowUpward, "Passing" to Icons.Default.SwapHoriz)
                 categories.chunked(2).forEach { pair ->
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         pair.forEach { (name, icon) ->
-                            Card(modifier = Modifier.weight(1f), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(16.dp)) {
+                            Card(modifier = Modifier.weight(1f), colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(16.dp)) {
                                 Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Icon(icon, null, tint = CourtGreen)
                                     Spacer(Modifier.width(8.dp))
@@ -356,7 +356,7 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                         }
                     }
                 }
-                OutlinedButton(onClick = onCareer, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Default.Insights, null); Spacer(Modifier.width(8.dp)); Text("View career stats") }
+                OutlinedButton(onClick = onCareer, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Default.Insights, null); Spacer(Modifier.width(8.dp)); Text("View player development") }
             }
         }
     }
@@ -364,7 +364,7 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
 
 @Composable
 private fun StatCard(label: String, value: String, modifier: Modifier = Modifier) {
-    Card(modifier, colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(16.dp)) {
+    Card(modifier, colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(16.dp)) {
         Column(Modifier.padding(vertical = 13.dp, horizontal = 10.dp)) {
             Text(label, color = Muted, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             Spacer(Modifier.height(5.dp))
@@ -379,7 +379,7 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, onVide
         item { AppHeader("Drill $slotNumber of 6", drill.category.uppercase()) }
         item {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Card(colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(24.dp)) {
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(24.dp)) {
                     Column(Modifier.padding(20.dp)) {
                         Text(drill.category.uppercase(), color = CourtGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
                         Spacer(Modifier.height(7.dp))
@@ -427,7 +427,7 @@ private fun ChampionshipSetup(playerName: String, opponentName: String, error: S
             OutlinedTextField(value = playerName, onValueChange = onPlayerName, modifier = Modifier.fillMaxWidth(), label = { Text("Your name") }, singleLine = true, leadingIcon = { Icon(Icons.Default.Person, null) }, shape = RoundedCornerShape(14.dp))
             OutlinedTextField(value = opponentName, onValueChange = onOpponentName, modifier = Modifier.fillMaxWidth(), label = { Text("Opponent's name (required)") }, singleLine = true, leadingIcon = { Icon(Icons.Default.Group, null) }, shape = RoundedCornerShape(14.dp))
             if (error.isNotBlank()) Text(error, color = Color(0xFFB3261E), fontWeight = FontWeight.SemiBold)
-            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF0DB)), shape = RoundedCornerShape(18.dp)) {
+            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF302722)), shape = RoundedCornerShape(18.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     Text("GAME RULES", color = Ink, fontWeight = FontWeight.ExtraBold)
                     Spacer(Modifier.height(6.dp))
@@ -470,7 +470,7 @@ private fun ScoreScreen(player: String, opponent: String, playerScore: Int, oppo
 }
 @Composable
 private fun ScorePanel(name: String, score: Int, color: Color, modifier: Modifier = Modifier) {
-    Card(modifier, colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(24.dp)) {
+    Card(modifier, colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(24.dp)) {
         Column(Modifier.fillMaxWidth().padding(vertical = 22.dp, horizontal = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Box(Modifier.size(12.dp).clip(CircleShape).background(color))
             Spacer(Modifier.height(9.dp))
@@ -486,7 +486,7 @@ private fun MatchRecapScreen(record: MatchRecord, totalXp: Int, onHome: () -> Un
     Column(Modifier.fillMaxSize()) {
         AppHeader("Final buzzer", "Championship complete")
         Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF0DB)), shape = RoundedCornerShape(24.dp)) {
+            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF302722)), shape = RoundedCornerShape(24.dp)) {
                 Column(Modifier.fillMaxWidth().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.EmojiEvents, null, tint = Orange, modifier = Modifier.size(54.dp))
                     Spacer(Modifier.height(8.dp))
@@ -499,7 +499,7 @@ private fun MatchRecapScreen(record: MatchRecord, totalXp: Int, onHome: () -> Un
                 StatCard("MATCH XP", "+${record.xp}", Modifier.weight(1f))
                 StatCard("TOTAL XP", totalXp.toString(), Modifier.weight(1f))
             }
-            Card(colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(18.dp)) {
+            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(18.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     Text("MATCH RECAP", fontWeight = FontWeight.ExtraBold, color = Ink)
                     Spacer(Modifier.height(7.dp))
@@ -528,11 +528,11 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                 }
                 Text("MATCH HISTORY", color = Ink, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
                 if (save.matches.isEmpty()) {
-                    Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124))) {
                         Text("Your championship results will show up here after your first game.", Modifier.padding(18.dp), color = Muted)
                     }
                 } else save.matches.forEach { m ->
-                    Card(colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(16.dp)) {
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(16.dp)) {
                         Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
                                 Text("${m.player} vs ${m.opponent}", color = Ink, fontWeight = FontWeight.Bold)
