@@ -63,3 +63,13 @@ Status: DRAFT PR CREATED; checks not yet reported.
 - No merge or release authorized/performed.
 - At initial inspection, PR-associated workflow runs and commit status lists were empty. Do not infer success.
 - Follow-up: inspect PR checks after GitHub processes the event; if none appear, investigate repository Actions settings/workflow registration. Verify Gradle tests, lint, APK, and behavior before merging.
+
+## CQ-004 — Live CI execution diagnosis
+
+Status: IN PROGRESS, not yet verified as passing.
+
+- GitHub Actions run #6 (ID `42094156820`) started on draft PR #1.
+- Job `verify` ID `127479706204`: checkout, JDK 17 setup, and Android SDK install succeeded; Gradle unit tests/build/lint running at inspection.
+- Six standalone Kotlin assertions passed locally against the pure scorekeeper logic (Kotlin 1.9/JRE 21); these are independent smoke checks, not a substitute for the project's JUnit/Android CI.
+- Final CI outcome, APK artifact and Android device behavior remain pending.
+- Next: inspect the completed job, fix any failing Gradle test/lint/build, and preserve evidence before merging.
