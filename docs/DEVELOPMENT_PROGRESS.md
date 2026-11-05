@@ -242,3 +242,7 @@ Previous stage passed Android development workflow run 42126107671. Added per-dr
 ## CQ-022 Player Development 2.0 — stage 3
 
 Removed hardcoded Vincent display-name fallbacks from home and development screens. Saved playerName remains configurable through Settings, and blank names use generic Your court / Player development labels. Added first-versus-latest same-drill rate comparison bars, backed by existing DrillTrends values, with percentage labels. No saved-state schema changes. Source commit d64f8053db7d26ffb4f62a9cf3ac81f898e1c1d5. CI pending; new APK not yet published. Next verify CI and extend generic player-name UX/onboarding.
+
+## CQ-022 stage 4 — first-visit player identity
+
+Added optional player-name card on home screen only when no name is saved; input trimmed and capped at 40 characters, Save disabled for blanks, existing settings rename remains. Saved progress unchanged. No Vincent hardcoding. Source commit 81167c235b45bb38a198a8998ae4af9123ceb5b1. CI and APK publication for this commit pending. Next verify CI, then continue training plan roadmap.
