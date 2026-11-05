@@ -178,3 +178,15 @@ Status: SOURCE COMMITTED; CI and device verification pending.
 - Added 3 unit tests for target coverage, thresholds and invalid data.
 - Commits: `d04aefd3cba78b33d2fc071ba5baa990b1617ba1`, `1941565997659e589e66b42e4edbfc585b05d163`, `cdb6fdc8a928f47115af8772b66e126e22cf0ffe`.
 - Next: verify CI; consider persisting in-progress sessions and richer per-side/interval metrics.
+
+## CQ-016 — Resumable training drafts
+
+Status: SOURCE COMMITTED; new CI and physical device verification pending.
+
+- CQ-015 GitHub Actions run #62 (`42107549654`) passed.
+- Added nullable `SaveState.drillDrafts` and `DrillDraft` containing date, slot ID, drill ID, successes, attempts, remaining seconds and target confirmation.
+- Counts and confirmation persist immediately when changed; timer remaining seconds persist as it ticks and on reset/restart. Draft is restored when reopening the same date/slot/drill.
+- Completing a drill removes its draft in the same saved-state update as the result and XP award. Drafts do not award XP.
+- Added two Gson tests for roundtrip and legacy-save compatibility.
+- Commits: `75d10432c6b1859f702256dc142e8b9e8ba19818`, `4c60f044efdf2d328a6c3bc34d92cd5646fe0c01`, `b6399d0c2d4039becb49dbaf60a62e2cbe9a6612`.
+- Timer resumes paused rather than continuing while app is closed. Pending: CI/device acceptance, draft cleanup policy, state validation.
