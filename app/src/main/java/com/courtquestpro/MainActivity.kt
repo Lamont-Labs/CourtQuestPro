@@ -47,6 +47,7 @@ data class Drill(
 )
 
 data class Slot(val id: String, val drillId: String, var complete: Boolean = false)
+data class DrillResult(val date: String, val slotId: String, val drillId: String, val completed: Int, val attempted: Int)
 data class MatchRecord(
     val date: String, val player: String, val opponent: String,
     val playerScore: Int, val opponentScore: Int, val winner: String, val xp: Int
@@ -68,6 +69,7 @@ data class SaveState(
     var matchOpponent: String = "",
     var matches: MutableList<MatchRecord> = mutableListOf(),
     var awardedKeys: MutableList<String> = mutableListOf(),
+    var drillResults: MutableList<DrillResult>? = null,
     var showWarmupDone: Boolean = false
 )
 
@@ -175,9 +177,12 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         val drill = drills.firstOrNull { it.id == slot?.drillId } ?: drills.first()
                         DrillScreen(
                             drill = drill, slotNumber = selectedSlot + 1, complete = slot?.complete == true,
+                            previousResults = save.drillResults.orEmpty().filter { it.drillId == drill.id },
                             onVideo = { openUrl("https://www.youtube.com/results?search_query=" + Uri.encode(drill.videoQuery)) },
-                            onComplete = {
+                            onComplete = { completed, attempted ->
                                 if (selectedSlot in save.slots.indices && !save.slots[selectedSlot].complete) {
+                                    val result = DrillResult(save.activeDate, save.slots[selectedSlot].id, drill.id, completed, attempted)
+                                    save.drillResults = (save.drillResults.orEmpty() + result).toMutableList()
                                     save.slots[selectedSlot].complete = true
                                     award(save, "drill_${save.activeDate}_${save.slots[selectedSlot].id}", 50)
                                     if (save.slots.all { it.complete }) award(save, "six_${save.activeDate}", 100)
@@ -421,7 +426,10 @@ private fun DrillSessionTimer(minutes: Int) {
 }
 
 @Composable
-private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, onVideo: () -> Unit, onComplete: () -> Unit, onBack: () -> Unit) {
+private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previousResults: List<DrillResult>, onVideo: () -> Unit, onComplete: (Int, Int) -> Unit, onBack: () -> Unit) {
+    var completedCount by remember(drill.id, slotNumber) { mutableIntStateOf(0) }
+    var attemptedCount by remember(drill.id, slotNumber) { mutableIntStateOf(0) }
+    val best = previousResults.maxByOrNull { it.completed }
     LazyColumn(Modifier.fillMaxSize()) {
         item { AppHeader("Drill $slotNumber of 6", drill.category.uppercase()) }
         item {
@@ -450,12 +458,34 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, onVide
                         Text("Use a dry, clear court. Warm up first, keep movements controlled, and stop if the surface is slippery or something hurts.", color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
                     }
                 }
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(22.dp)) {
+                    Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text("RECORD YOUR RESULTS", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                        Text(
+                            if (drill.category == "Shooting" || drill.category == "Finishing") "Made / Attempted"
+                            else "Clean reps / Attempts",
+                            color = Ink, fontWeight = FontWeight.Bold
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            OutlinedButton(onClick = { if (completedCount > 0) completedCount-- }) { Text("−") }
+                            Text("$completedCount", color = Ink, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                            Button(onClick = { if (completedCount < attemptedCount) completedCount++ }) { Text("+ MADE") }
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            OutlinedButton(onClick = { if (attemptedCount > completedCount) attemptedCount-- }) { Text("−") }
+                            Text("$attemptedCount attempts", color = Ink, fontWeight = FontWeight.Bold)
+                            OutlinedButton(onClick = { attemptedCount++ }) { Text("+ ATTEMPT") }
+                        }
+                        if (best != null) Text("PERSONAL BEST  ·  ${best.completed} successful / ${best.attempted} attempts", color = Muted, fontSize = 12.sp)
+                        Text("Record each attempt first, then mark successful attempts. Your results are saved when you complete the drill.", color = Muted, fontSize = 12.sp)
+                    }
+                }
                 DrillSessionTimer(drill.minutes)
                 Button(onClick = onVideo, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(15.dp)) {
                     Icon(Icons.Default.PlayCircle, null); Spacer(Modifier.width(8.dp)); Text("WATCH VIDEO DEMONSTRATION")
                 }
-                Button(onClick = onComplete, enabled = !complete, modifier = Modifier.fillMaxWidth().height(56.dp), colors = ButtonDefaults.buttonColors(containerColor = if (complete) Muted else CourtGreen), shape = RoundedCornerShape(15.dp)) {
-                    Icon(Icons.Default.CheckCircle, null); Spacer(Modifier.width(8.dp)); Text(if (complete) "SLOT COMPLETED" else "MARK DRILL COMPLETE · +50 XP", fontWeight = FontWeight.Bold)
+                Button(onClick = { onComplete(completedCount, attemptedCount) }, enabled = !complete && attemptedCount > 0, modifier = Modifier.fillMaxWidth().height(56.dp), colors = ButtonDefaults.buttonColors(containerColor = if (complete) Muted else CourtGreen), shape = RoundedCornerShape(15.dp)) {
+                    Icon(Icons.Default.CheckCircle, null); Spacer(Modifier.width(8.dp)); Text(if (complete) "SLOT COMPLETED" else "SAVE RESULTS & COMPLETE · +50 XP", fontWeight = FontWeight.Bold)
                 }
                 OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text("Back to dashboard") }
             }
