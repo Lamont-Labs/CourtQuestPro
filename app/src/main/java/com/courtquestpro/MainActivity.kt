@@ -129,6 +129,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     val today = LocalDate.now(ZoneId.systemDefault()).toString()
     LaunchedEffect(today) {
         if (save.activeDate != today) {
+            save.drillDrafts = mutableListOf()
             save.activeDate = today
             save.slots = makeDailySlots(save.difficulty).toMutableList()
             save.championshipDone = false
@@ -139,7 +140,16 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             refresh()
         } else if (save.slots.isEmpty()) {
             save.slots = makeDailySlots(save.difficulty).toMutableList()
+            save.drillDrafts = mutableListOf()
             refresh()
+        } else {
+            val retained = DrillDraftRecovery.prune(save.drillDrafts.orEmpty(), today, save.slots) { id ->
+                drills.firstOrNull { it.id == id }?.minutes?.coerceAtLeast(1)?.times(60)
+            }
+            if (retained != save.drillDrafts.orEmpty()) {
+                save.drillDrafts = retained.toMutableList()
+                refresh()
+            }
         }
     }
 
@@ -179,15 +189,21 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         DrillScreen(
                             drill = drill, slotNumber = selectedSlot + 1, complete = slot?.complete == true,
                             previousResults = save.drillResults.orEmpty().filter { it.drillId == drill.id },
-                            draft = save.drillDrafts.orEmpty().firstOrNull {
-                                it.date == save.activeDate && it.slotId == slot?.id && it.drillId == drill.id
+                            draft = slot?.let {
+                                DrillDraftRecovery.recover(save.drillDrafts.orEmpty(), save.activeDate,
+                                    it, drill.minutes.coerceAtLeast(1) * 60)
                             } ?: DrillDraft(save.activeDate, slot?.id ?: "", drill.id,
                                 remainingSeconds = drill.minutes.coerceAtLeast(1) * 60),
                             onDraft = { updated ->
+                                val currentSlot = save.slots.getOrNull(selectedSlot)
+                                if (currentSlot != null && save.activeDate == today &&
+                                    DrillDraftRecovery.valid(updated, today, currentSlot,
+                                        drill.minutes.coerceAtLeast(1) * 60)) {
                                 save.drillDrafts = (save.drillDrafts.orEmpty().filterNot {
                                     it.date == updated.date && it.slotId == updated.slotId
                                 } + updated).toMutableList()
                                 persist()
+                                }
                             },
                             onVideo = { openUrl("https://www.youtube.com/results?search_query=" + Uri.encode(drill.videoQuery)) },
                             onComplete = { completed, attempted ->
