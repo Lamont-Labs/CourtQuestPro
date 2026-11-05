@@ -653,6 +653,32 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                             }
                         }
                     }
+                    Text("SAME-DRILL TRENDS", color = Ink, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                    val distinctDrills = recorded.map { it.drillId }.distinct()
+                    distinctDrills.forEach { id ->
+                        val title = drills.firstOrNull { it.id == id }?.title ?: id
+                        val trend = DrillTrends.calculate(id, recorded)
+                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(16.dp)) {
+                            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(title, color = Ink, fontWeight = FontWeight.Bold)
+                                if (trend == null) {
+                                    Text("Record this drill again to establish a trend.", color = Muted, fontSize = 12.sp)
+                                } else {
+                                    val firstPct = (trend.firstRate * 100).toInt()
+                                    val latestPct = (trend.latestRate * 100).toInt()
+                                    val delta = trend.changePoints
+                                    val direction = when {
+                                        delta > 0.00001 -> "INCREASE"
+                                        delta < -0.00001 -> "DECREASE"
+                                        else -> "NO CHANGE"
+                                    }
+                                    Text("$firstPct% → $latestPct% · $direction", color = Orange, fontWeight = FontWeight.Bold)
+                                    Text("${trend.sessions} recorded sessions · ${"%.1f".format(kotlin.math.abs(delta))} percentage-point difference", color = Muted, fontSize = 12.sp)
+                                }
+                            }
+                        }
+                    }
+                    Text("Trends compare the earliest and latest valid session for the same drill. Results may reflect changing conditions or small samples; they do not establish a skill rating.", color = Muted, fontSize = 12.sp)
                     Text("Different drills have different difficulty and targets. These totals are descriptive; compare the same drill over time before drawing improvement conclusions.", color = Muted, fontSize = 12.sp)
                 }
                 Text("MATCH HISTORY", color = Ink, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
