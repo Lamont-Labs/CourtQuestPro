@@ -258,3 +258,7 @@ Added suggested Monday/Wednesday/Friday skill sessions and Tuesday/Thursday/Satu
 ## CQ-023 stage 8 — seven-day recurring activity planner
 
 Verified Android development checks run #148 passed for source 03ec8b5. Extended practice/game controls to all seven weekdays; tapping a selected activity clears it. Existing weeklyActivities persistence is reused, and current-day guidance continues reading today's selection. No training history or in-progress session is changed. Source commit cf94d6fe7385930368fea60a0367dcdb659754f6. Latest CI pending; APK not republished.
+
+## CQ-023 stage 9 — compact weekly planner
+
+Android CI run #150 passed for stage 8 source cf94d6f. Added an EDIT WEEK/CLOSE toggle to collapse seven-day training and practice/game editing controls by default, keeping today guidance and the three-day challenge visible. Existing schedule persistence unchanged. Source commit 052ad099cf135ace4a989a633971d4e129eace8b. Latest CI and APK publication pending.
