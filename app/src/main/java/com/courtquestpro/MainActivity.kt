@@ -461,6 +461,40 @@ private fun CourtSectionTitle(number: String, title: String) {
 }
 
 @Composable
+private fun CourtOnboardingChoice(
+    title: String, description: String, selected: Boolean, onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(19.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected) Color(0xFF3B2A23) else Color(0xFF242428)
+        ),
+        border = androidx.compose.foundation.BorderStroke(
+            if (selected) 2.dp else 1.dp,
+            if (selected) CourtGreen else Color(0xFF3B3738)
+        )
+    ) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 17.dp, vertical = 18.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text(title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+                Text(description, color = Muted, fontSize = 12.sp, lineHeight = 17.sp)
+            }
+            Spacer(Modifier.width(10.dp))
+            Icon(
+                if (selected) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+                contentDescription = if (selected) "Selected" else "Not selected",
+                tint = if (selected) CourtGreen else Muted
+            )
+        }
+    }
+}
+
+@Composable
 private fun CourtOnboarding(
     step: Int, name: String, level: String, focus: String, days: List<Int>,
     onName: (String) -> Unit, onLevel: (String) -> Unit, onFocus: (String) -> Unit,
@@ -506,13 +540,32 @@ private fun CourtOnboarding(
                 label = { Text("Player name (optional)") }, singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
-            2 -> listOf("Beginner", "Intermediate", "Advanced").forEach { option ->
-                FilterChip(selected = level == option, onClick = { onLevel(option) },
-                    label = { Text(option) }, modifier = Modifier.fillMaxWidth())
+            2 -> {
+                listOf(
+                    "Beginner" to "Build confidence, fundamentals, and repeatable technique.",
+                    "Intermediate" to "Strengthen consistency, control, and game-ready skills.",
+                    "Advanced" to "Challenge precision, pace, and execution under pressure."
+                ).forEach { (option, description) ->
+                    CourtOnboardingChoice(
+                        title = option, description = description,
+                        selected = level == option, onClick = { onLevel(option) }
+                    )
+                    Spacer(Modifier.height(10.dp))
+                }
             }
-            3 -> listOf("Balanced", "Shooting", "Ball Handling", "Finishing").forEach { option ->
-                FilterChip(selected = focus == option, onClick = { onFocus(option) },
-                    label = { Text(option) }, modifier = Modifier.fillMaxWidth())
+            3 -> {
+                listOf(
+                    "Balanced" to "Develop a well-rounded game across multiple skills.",
+                    "Shooting" to "Prioritize mechanics, accuracy, and shot repetition.",
+                    "Ball Handling" to "Build dribble control, coordination, and confidence.",
+                    "Finishing" to "Work on controlled scoring around the basket."
+                ).forEach { (option, description) ->
+                    CourtOnboardingChoice(
+                        title = option, description = description,
+                        selected = focus == option, onClick = { onFocus(option) }
+                    )
+                    Spacer(Modifier.height(10.dp))
+                }
             }
             4 -> {
                 Text("YOUR TRAINING DAYS", color = Orange, fontSize = 11.sp,
