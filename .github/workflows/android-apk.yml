@@ -139,7 +139,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           APP_VERSION: ${{ steps.package.outputs.version }}
+        shell: bash
         run: |
+          set -euo pipefail
           tag="android-v${APP_VERSION}-build${GITHUB_RUN_NUMBER}"
           title="CourtQuest Pro ${APP_VERSION} - Build ${GITHUB_RUN_NUMBER}"
           # Never silently overwrite an existing signed APK release.
