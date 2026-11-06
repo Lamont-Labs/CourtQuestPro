@@ -27,6 +27,12 @@ class ReleaseContractTests(unittest.TestCase):
         self.assertNotIn("--clobber", WORKFLOW)
         self.assertNotIn("gh release edit", WORKFLOW)
 
+    def test_publication_shell_fails_fast(self):
+        start = WORKFLOW.index("- name: Publish APK to GitHub Releases")
+        step = WORKFLOW[start:]
+        self.assertIn("set -euo pipefail", step)
+        self.assertIn("gh release create", step)
+
     def test_only_verified_release_assets_are_published(self):
         self.assertIn('test -s "$apk"', WORKFLOW)
         self.assertIn('sha256sum -c SHA256SUMS.txt', WORKFLOW)
