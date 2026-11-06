@@ -393,6 +393,7 @@ private fun CourtSectionTitle(number: String, title: String) {
 @Composable
 private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> Unit, onCareer: () -> Unit, onSaveName: (String) -> Unit, onWeeklyPlan: (String) -> Unit, onTrainingDay: (Int) -> Unit, onActivity: (Int, String) -> Unit) {
     var newPlayerName by remember { mutableStateOf("") }
+    var showWeeklyEditor by remember { mutableStateOf(false) }
     val done = save.slots.count { it.complete }
     val resumable = save.slots.count { slot ->
         !slot.complete && save.drillDrafts.orEmpty().any { draft ->
@@ -447,7 +448,13 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                             "Finishing" -> "Focus on safe footwork and finishes at the rim."
                             else -> "Build a balanced foundation across basketball skills."
                         }, color = Muted, fontSize = 12.sp)
-                        Text("WEEKLY TRAINING RHYTHM", color = Ink, fontWeight = FontWeight.ExtraBold)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("WEEKLY TRAINING RHYTHM", color = Ink, fontWeight = FontWeight.ExtraBold, modifier = Modifier.weight(1f))
+                            TextButton(onClick = { showWeeklyEditor = !showWeeklyEditor }) {
+                                Text(if (showWeeklyEditor) "CLOSE" else "EDIT WEEK", color = Orange)
+                            }
+                        }
+                        if (showWeeklyEditor) {
                         val plannedDays = save.trainingDays?.filter { it in 1..7 }?.distinct() ?: listOf(1, 3, 5)
                         Text("SELECT YOUR TRAINING DAYS", color = Muted, fontSize = 11.sp)
                         listOf(listOf("MON", "TUE", "WED", "THU"), listOf("FRI", "SAT", "SUN")).forEachIndexed { rowIndex, labels ->
@@ -474,6 +481,7 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                             }
                         }
                         Text("Tap a selected activity again to clear it. These preferences repeat weekly.", color = Muted, fontSize = 11.sp)
+                        }
                         val scheduled = LocalDate.now().dayOfWeek.value in plannedDays
                         val recordedToday = save.drillResults.orEmpty().any { it.date == LocalDate.now().toString() && it.attempted > 0 && it.completed in 0..it.attempted }
                         Text(
