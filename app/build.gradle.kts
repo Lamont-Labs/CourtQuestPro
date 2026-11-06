@@ -20,10 +20,21 @@ android {
     buildFeatures { compose = true }
     signingConfigs {
         getByName("debug") {
-            storeFile = rootProject.file("signing/debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
+            // Optional migration path: CI can supply the preserved owner key
+            // through a runner-local file and environment variables.
+            // Existing private-repository debug builds retain their signing identity
+            // until the secured migration is verified.
+            storeFile = file(
+                providers.environmentVariable("COURTQUEST_SIGNING_KEYSTORE_PATH")
+                    .orElse(rootProject.file("signing/debug.keystore").absolutePath)
+                    .get()
+            )
+            storePassword = providers.environmentVariable("COURTQUEST_SIGNING_STORE_PASSWORD")
+                .orElse("android").get()
+            keyAlias = providers.environmentVariable("COURTQUEST_SIGNING_KEY_ALIAS")
+                .orElse("androiddebugkey").get()
+            keyPassword = providers.environmentVariable("COURTQUEST_SIGNING_KEY_PASSWORD")
+                .orElse("android").get()
         }
     }
     compileOptions {
