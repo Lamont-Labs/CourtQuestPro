@@ -514,9 +514,45 @@ private fun CourtOnboarding(
                 FilterChip(selected = focus == option, onClick = { onFocus(option) },
                     label = { Text(option) }, modifier = Modifier.fillMaxWidth())
             }
-            4 -> listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun").forEachIndexed { index, day ->
-                FilterChip(selected = index + 1 in days, onClick = { onDay(index + 1) },
-                    label = { Text(day) }, modifier = Modifier.fillMaxWidth())
+            4 -> {
+                Text("YOUR TRAINING DAYS", color = Orange, fontSize = 11.sp,
+                    fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
+                Spacer(Modifier.height(8.dp))
+                listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+                    .chunked(4).forEachIndexed { rowIndex, rowDays ->
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            rowDays.forEachIndexed { columnIndex, day ->
+                                val dayNumber = rowIndex * 4 + columnIndex + 1
+                                FilterChip(
+                                    selected = dayNumber in days,
+                                    onClick = { onDay(dayNumber) },
+                                    label = { Text(day) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            repeat(4 - rowDays.size) { Spacer(Modifier.weight(1f)) }
+                        }
+                    }
+                Spacer(Modifier.height(22.dp))
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242022)),
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("YOUR STARTING PLAN", color = Orange, fontSize = 11.sp,
+                            fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
+                        Text(if (name.isBlank()) "Basketball player" else name.trim(),
+                            color = Ink, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+                        Text("$level  ·  $focus", color = Ink, fontSize = 14.sp)
+                        Text(
+                            if (days.isEmpty()) "No recurring training days selected"
+                            else "${days.size} training ${if (days.size == 1) "day" else "days"} per week",
+                            color = Muted, fontSize = 13.sp
+                        )
+                    }
+                }
             }
         }
         Spacer(Modifier.height(36.dp))
