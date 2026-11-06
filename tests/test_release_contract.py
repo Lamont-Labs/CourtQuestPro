@@ -30,6 +30,15 @@ class ReleaseContractTests(unittest.TestCase):
         self.assertIn('gh release create "$tag" "$apk" dist/SHA256SUMS.txt', WORKFLOW)
         self.assertNotIn('gh release create "$tag" dist/*', WORKFLOW)
 
+    def test_retained_artifacts_exclude_raw_build_logs(self):
+        start = WORKFLOW.index("- name: Retain APK and verification evidence")
+        end = WORKFLOW.index("- name: Publish APK to GitHub Releases", start)
+        step = WORKFLOW[start:end]
+        self.assertIn("dist/apk-manifest.json", step)
+        self.assertIn("dist/SHA256SUMS.txt", step)
+        self.assertNotIn("path: dist/", step)
+        self.assertNotIn("dist/gradle-build.txt", step)
+
     def test_gradle_failures_propagate(self):
         # Restrict the assertion to this step; a later step cannot satisfy it.
         start = WORKFLOW.index("- name: Compile and run Android lint")
