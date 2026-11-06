@@ -405,10 +405,24 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
         item { AppHeader(save.playerName.takeIf { it.isNotBlank() }?.let { "$it’s court." } ?: "Your court.", "BUILD YOUR GAME  /  ONE SESSION AT A TIME") }
         item {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    StatCard("TOTAL XP", save.totalXp.toString(), Modifier.weight(1f))
-                    StatCard("RANK", rankFor(save.totalXp), Modifier.weight(1f))
-                    StatCard("STREAK", "${save.currentStreak} DAYS", Modifier.weight(1f))
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242022)),
+                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text("PLAYER PERFORMANCE", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text(rankFor(save.totalXp), color = Ink, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+                        Text("Keep showing up. Every recorded session builds your game.", color = Muted, fontSize = 12.sp)
+                        HorizontalDivider(color = Color(0xFF443835))
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            StatCard("TOTAL XP", save.totalXp.toString(), Modifier.weight(1f))
+                            StatCard("STREAK", "${save.currentStreak} DAYS", Modifier.weight(1f))
+                        }
+                    }
                 }
                 if (save.playerName.isBlank()) {
                     Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF302722)), shape = RoundedCornerShape(20.dp)) {
