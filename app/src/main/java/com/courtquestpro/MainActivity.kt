@@ -783,6 +783,13 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                                 Text("OF 6", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                             }
                         }
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically) {
+                            Text("SESSION PROGRESS", color = Muted, fontSize = 10.sp,
+                                fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
+                            Text("${(progress * 100).toInt().coerceIn(0, 100)}%", color = Orange,
+                                fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
+                        }
                         LinearProgressIndicator(
                             progress = { progress },
                             modifier = Modifier.fillMaxWidth().height(7.dp).clip(CircleShape),
@@ -810,10 +817,10 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                             )
                         }
                         Text(
-                            if (done >= 6) "Today's workout is recorded."
+                            if (done >= 6) "Today's workout is recorded. Your next challenge is ready."
                             else if (resumable > 0) "$resumable drill session(s) ready to resume · progress saved"
                             else "Six basketball skill drills · progress saved automatically",
-                            color = Muted, fontSize = 12.sp
+                            color = Muted, fontSize = 12.sp, lineHeight = 18.sp
                         )
                     }
                 }
