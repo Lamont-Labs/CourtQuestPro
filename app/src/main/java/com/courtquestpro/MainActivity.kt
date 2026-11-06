@@ -451,6 +451,22 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                         val plannedDays = save.trainingDays?.filter { it in 1..7 }?.distinct() ?: listOf(1, 3, 5)
                         val todayNumber = LocalDate.now().dayOfWeek.value
                         val todayActivity = save.weeklyActivities.orEmpty().firstOrNull { it.startsWith("$todayNumber:") }?.substringAfter(":")
+                        val weekdayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+                        val weeklyOverview = (1..7).mapNotNull { day ->
+                            val activity = save.weeklyActivities.orEmpty().firstOrNull { it.startsWith("$day:") }?.substringAfter(":")
+                            val label = when {
+                                activity == "Game" -> "Game"
+                                activity == "Practice" -> "Practice"
+                                day in plannedDays -> "Train"
+                                else -> null
+                            }
+                            label?.let { "${weekdayLabels[day - 1]} $it" }
+                        }
+                        Text(
+                            if (weeklyOverview.isEmpty()) "No sessions planned this week"
+                            else weeklyOverview.joinToString("  ·  "),
+                            color = Muted, fontSize = 12.sp
+                        )
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("WEEKLY TRAINING RHYTHM", color = Ink, fontWeight = FontWeight.ExtraBold, modifier = Modifier.weight(1f))
                             TextButton(onClick = { showWeeklyEditor = !showWeeklyEditor }) {
