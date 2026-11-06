@@ -43,7 +43,10 @@ def main() -> None:
     source = (ROOT / "app/build.gradle.kts").read_text()
     package = build_setting(source, "applicationId", r'"([^"]+)"')
     version = build_setting(source, "versionName", r'"([^"]+)"')
-    code = int(build_setting(source, "versionCode", r"(\d+)"))
+    # CI supplies the actual packaged version code; local verification uses
+    # the original static baseline when no release override is present.
+    code = int(os.environ.get("COURTQUEST_VERSION_CODE", "1"))
+    require(code > 0, "Invalid APK version code")
     min_sdk = int(build_setting(source, "minSdk", r"(\d+)"))
     target_sdk = int(build_setting(source, "targetSdk", r"(\d+)"))
 
