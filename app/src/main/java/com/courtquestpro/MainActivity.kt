@@ -460,13 +460,20 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                         }
                         val todayNumber = LocalDate.now().dayOfWeek.value
                         val todayActivity = save.weeklyActivities.orEmpty().firstOrNull { it.startsWith("$todayNumber:") }?.substringAfter(":")
-                        Text("TODAY'S ORGANIZED BASKETBALL", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf("Practice", "Game").forEach { kind ->
-                                FilterChip(selected = todayActivity == kind, onClick = { onActivity(todayNumber, kind) }, label = { Text(kind) })
+                        Text("TEAM PRACTICES & GAMES", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        listOf("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN").forEachIndexed { index, label ->
+                            val day = index + 1
+                            val activity = save.weeklyActivities.orEmpty().firstOrNull { it.startsWith("$day:") }?.substringAfter(":")
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                                Text(label, color = if (day == todayNumber) Orange else Ink, fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold, modifier = Modifier.width(42.dp))
+                                listOf("Practice", "Game").forEach { kind ->
+                                    FilterChip(selected = activity == kind, onClick = { onActivity(day, kind) },
+                                        label = { Text(kind, fontSize = 11.sp) })
+                                }
                             }
                         }
-                        Text("Tap again to clear. Weekly activities repeat on the same weekday.", color = Muted, fontSize = 11.sp)
+                        Text("Tap a selected activity again to clear it. These preferences repeat weekly.", color = Muted, fontSize = 11.sp)
                         val scheduled = LocalDate.now().dayOfWeek.value in plannedDays
                         val recordedToday = save.drillResults.orEmpty().any { it.date == LocalDate.now().toString() && it.attempted > 0 && it.completed in 0..it.attempted }
                         Text(
