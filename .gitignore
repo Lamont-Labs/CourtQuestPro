@@ -8,5 +8,4 @@ __pycache__/
 *.keystore
 *.jks
 /signing/*
-!/signing/debug.keystore
 !/signing/README.md
