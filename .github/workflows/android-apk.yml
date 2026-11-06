@@ -36,6 +36,48 @@ jobs:
         run: |
           "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.1"
 
+      - name: Prepare preserved signing identity when secrets are configured
+        shell: bash
+        env:
+          COURTQUEST_KEYSTORE_BASE64: ${{ secrets.COURTQUEST_KEYSTORE_BASE64 }}
+          COURTQUEST_STORE_PASSWORD_SECRET: ${{ secrets.COURTQUEST_SIGNING_STORE_PASSWORD }}
+          COURTQUEST_KEY_ALIAS_SECRET: ${{ secrets.COURTQUEST_SIGNING_KEY_ALIAS }}
+          COURTQUEST_KEY_PASSWORD_SECRET: ${{ secrets.COURTQUEST_SIGNING_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          # The existing private-repository debug key remains the fallback
+          # until migration is explicitly configured and verified.
+          if [[ -z "$COURTQUEST_KEYSTORE_BASE64" && -z "$COURTQUEST_STORE_PASSWORD_SECRET" && -z "$COURTQUEST_KEY_ALIAS_SECRET" && -z "$COURTQUEST_KEY_PASSWORD_SECRET" ]]; then
+            echo "Signing migration not configured; retaining existing debug signing path."
+            exit 0
+          fi
+          if [[ -z "$COURTQUEST_KEYSTORE_BASE64" || -z "$COURTQUEST_STORE_PASSWORD_SECRET" || -z "$COURTQUEST_KEY_ALIAS_SECRET" || -z "$COURTQUEST_KEY_PASSWORD_SECRET" ]]; then
+            echo "::error::Incomplete signing secret set; refusing to build."
+            exit 1
+          fi
+          python3 - <<'PY'
+          import base64, os, pathlib
+          target=pathlib.Path(os.environ["RUNNER_TEMP"])/"courtquest-preserved.keystore"
+          target.write_bytes(base64.b64decode(os.environ["COURTQUEST_KEYSTORE_BASE64"],validate=True))
+          target.chmod(0o600)
+          with open(os.environ["GITHUB_ENV"],"a",encoding="utf-8") as out:
+              for key,value in (
+                  ("COURTQUEST_SIGNING_KEYSTORE_PATH",str(target)),
+                  ("COURTQUEST_SIGNING_STORE_PASSWORD",os.environ["COURTQUEST_STORE_PASSWORD_SECRET"]),
+                  ("COURTQUEST_SIGNING_KEY_ALIAS",os.environ["COURTQUEST_KEY_ALIAS_SECRET"]),
+                  ("COURTQUEST_SIGNING_KEY_PASSWORD",os.environ["COURTQUEST_KEY_PASSWORD_SECRET"]),
+              ):
+                  print(f"{key}<<COURTQUEST_VALUE_END",file=out)
+                  print(value,file=out)
+                  print("COURTQUEST_VALUE_END",file=out)
+          PY
+          echo "::add-mask::$COURTQUEST_STORE_PASSWORD_SECRET"
+          echo "::add-mask::$COURTQUEST_KEY_PASSWORD_SECRET"
+          # Compare public certificates, not key bytes. Fail closed on mismatch.
+          keytool -exportcert -keystore signing/debug.keystore -alias androiddebugkey -storepass android -file "${RUNNER_TEMP}/courtquest-original.der" >/dev/null
+          keytool -exportcert -keystore "${RUNNER_TEMP}/courtquest-preserved.keystore" -alias "$COURTQUEST_KEY_ALIAS_SECRET" -storepass "$COURTQUEST_STORE_PASSWORD_SECRET" -file "${RUNNER_TEMP}/courtquest-candidate.der" >/dev/null
+          cmp -s "${RUNNER_TEMP}/courtquest-original.der" "${RUNNER_TEMP}/courtquest-candidate.der" || { echo "::error::Signing certificate mismatch; refusing to build."; exit 1; }
+
       - name: Compile and run Android lint
         run: |
           mkdir -p dist
@@ -51,6 +93,12 @@ jobs:
             --output dist
           cp app/build/reports/lint-results-debug.html dist/
           cp app/build/reports/lint-results-debug.xml dist/
+
+      - name: Remove temporary signing material
+        if: always()
+        shell: bash
+        run: |
+          rm -f "${RUNNER_TEMP}/courtquest-preserved.keystore" "${RUNNER_TEMP}/courtquest-original.der" "${RUNNER_TEMP}/courtquest-candidate.der"
 
       - name: Retain APK and verification evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
