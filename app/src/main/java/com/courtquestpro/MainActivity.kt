@@ -433,6 +433,20 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                             "Finishing" -> "Focus on safe footwork and finishes at the rim."
                             else -> "Build a balanced foundation across basketball skills."
                         }, color = Muted, fontSize = 12.sp)
+                        Text("WEEKLY TRAINING RHYTHM", color = Ink, fontWeight = FontWeight.ExtraBold)
+                        Text("MON · WED · FRI  /  SKILL SESSIONS", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text("TUE · THU · SAT · SUN  /  RECOVERY OR LIGHT MOVEMENT", color = Muted, fontSize = 11.sp)
+                        val weekday = LocalDate.now().dayOfWeek
+                        val scheduled = weekday in listOf(java.time.DayOfWeek.MONDAY, java.time.DayOfWeek.WEDNESDAY, java.time.DayOfWeek.FRIDAY)
+                        val recordedToday = save.drillResults.orEmpty().any { it.date == LocalDate.now().toString() && it.attempted > 0 && it.completed in 0..it.attempted }
+                        Text(
+                            when {
+                                recordedToday -> "Today recorded: training completed. Prioritize recovery."
+                                scheduled -> "Today is a suggested training day. Start with a warm-up and work at your own pace."
+                                else -> "Suggested recovery day. Rest, walk, or practice light mobility as comfortable."
+                            }, color = Ink, fontSize = 12.sp
+                        )
+                        Text("Suggested schedule only. Practices and games can replace training days; no penalties for rest.", color = Muted, fontSize = 11.sp)
                         Text("3-DAY CONSISTENCY CHALLENGE", color = Ink, fontWeight = FontWeight.ExtraBold)
                         Text("$trainedThisWeek / 3 training days this week", color = Orange, fontWeight = FontWeight.Bold)
                         LinearProgressIndicator(
