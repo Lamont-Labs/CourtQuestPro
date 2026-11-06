@@ -129,16 +129,16 @@ jobs:
         run: |
           tag="android-v${APP_VERSION}-build${GITHUB_RUN_NUMBER}"
           title="CourtQuest Pro ${APP_VERSION} - Build ${GITHUB_RUN_NUMBER}"
+          # Never silently overwrite an existing signed APK release.
           if gh release view "$tag" >/dev/null 2>&1; then
-            gh release upload "$tag" dist/* --clobber
-            gh release edit "$tag" --title "$title" --notes-file dist/RELEASE_NOTES.md --latest
-          else
-            gh release create "$tag" dist/* \
-              --target "$GITHUB_SHA" \
-              --title "$title" \
-              --notes-file dist/RELEASE_NOTES.md \
-              --latest
+            echo "::error::Release tag already exists; refusing to replace APK assets."
+            exit 1
           fi
+          gh release create "$tag" dist/* \
+            --target "$GITHUB_SHA" \
+            --title "$title" \
+            --notes-file dist/RELEASE_NOTES.md \
+            --latest
           {
             echo "## APK ready"
             echo ""
