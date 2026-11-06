@@ -80,9 +80,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # GitHub run IDs increase across runs and avoid reusing versionCode=1.
-          # Android versionCode must fit the Play-compatible 32-bit range.
-          version_code=$(( GITHUB_RUN_ID % 1800000000 + 100000000 ))
+          # GitHub workflow run numbers increase for this workflow.
+          # A fixed offset leaves room for the original versionCode=1.
+          version_code=$(( 10000 + GITHUB_RUN_NUMBER ))
+          if (( version_code > 2100000000 )); then
+            echo "::error::Android version code exhausted."
+            exit 1
+          fi
           echo "COURTQUEST_VERSION_CODE=$version_code" >> "$GITHUB_ENV"
 
       - name: Compile and run Android lint
