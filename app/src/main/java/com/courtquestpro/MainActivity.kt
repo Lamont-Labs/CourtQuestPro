@@ -504,9 +504,17 @@ private fun CourtOnboarding(
         Text("COURTQUEST / PLAYER SETUP", color = Orange, fontSize = 11.sp,
             fontWeight = FontWeight.ExtraBold, letterSpacing = 1.3.sp)
         Spacer(Modifier.height(16.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically) {
+            Text("STEP ${step + 1} OF 5", color = Ink, fontSize = 12.sp,
+                fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+            Text("${(step + 1) * 20}% COMPLETE", color = Muted, fontSize = 11.sp,
+                fontWeight = FontWeight.Bold, letterSpacing = 0.7.sp)
+        }
+        Spacer(Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             repeat(5) { index ->
-                Box(Modifier.weight(1f).height(5.dp).clip(CircleShape)
+                Box(Modifier.weight(1f).height(6.dp).clip(CircleShape)
                     .background(if (index <= step) CourtGreen else Color(0xFF40332E)))
             }
         }
@@ -638,6 +646,13 @@ private fun CourtOnboarding(
                             repeat(4 - rowDays.size) { Spacer(Modifier.weight(1f)) }
                         }
                     }
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    if (days.isEmpty()) "No scheduled days — you can still train anytime."
+                    else "SCHEDULED: " + listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+                        .filterIndexed { index, _ -> index + 1 in days }.joinToString(" · "),
+                    color = Muted, fontSize = 12.sp, lineHeight = 18.sp
+                )
                 Spacer(Modifier.height(22.dp))
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF242022)),
