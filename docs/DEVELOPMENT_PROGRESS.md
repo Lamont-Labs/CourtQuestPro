@@ -246,3 +246,7 @@ Removed hardcoded Vincent display-name fallbacks from home and development scree
 ## CQ-022 stage 4 — first-visit player identity
 
 Added optional player-name card on home screen only when no name is saved; input trimmed and capped at 40 characters, Save disabled for blanks, existing settings rename remains. Saved progress unchanged. No Vincent hardcoding. Source commit 81167c235b45bb38a198a8998ae4af9123ceb5b1. CI and APK publication for this commit pending. Next verify CI, then continue training plan roadmap.
+
+## CQ-023 stage 4 — safe weekly focus progression
+
+Android CI run 42130224998 passed for prior source fdb6971. The daily drill generator now honors the configured difficulty as a strict upper bound, uses a lighter available tier for non-focused categories, retains six skill categories, and changes assignments only when a new day is initialized. Existing in-progress sessions and historical results are unchanged. Source commit 479096e74cc5498b7113a3b4cfc84283a748c6cf. CI for this latest commit pending; no new APK published.
