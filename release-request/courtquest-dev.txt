@@ -1,0 +1,9 @@
+Authorized by project owner on 2026-11-05: publish a development Android APK as a GitHub prerelease with a direct installable APK asset. Build and test from the development branch; do not merge to main.
+
+CQ-018 release request: run repaired APK verification and publish the current development branch as a direct GitHub APK asset. Date: 2026-11-05.
+
+CQ-022 preview refresh authorized 2026-11-05: replace existing release APK assets in place, preserve package ID and signing identity. Source through 065f21e; Android CI run 42127949693 passed.
+
+CQ-023 verified preview refresh requested 2026-11-05: Android development checks run #160 passed at 52d33f5682061387136d9cee000f410db2e3b686. Rebuild the current development branch and replace the existing development APK and SHA-256 assets only after the release workflow tests and verifies package identity and signing. Preserve signing/debug.keystore, application ID, saved user data, and main branch.
+
+CQ-024 onboarding preview refresh authorized 2026-11-05: publish current development branch after Android checks #178 and #180 passed. Include five-step onboarding, resumable setup, compact-screen scrolling and drill UI stages. Preserve com.courtquestpro, existing debug signing identity, player data and main branch. Verify APK before replacing the existing prerelease asset.

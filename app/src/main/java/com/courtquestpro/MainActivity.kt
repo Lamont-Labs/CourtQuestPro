@@ -12,12 +12,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,11 +37,11 @@ import java.time.ZoneId
 import kotlin.math.max
 import kotlin.random.Random
 
-private val CourtGreen = Color(0xFF176B45)
-private val CourtLight = Color(0xFFEAF4E7)
-private val Ink = Color(0xFF183127)
-private val Orange = Color(0xFFF28C28)
-private val Muted = Color(0xFF63766B)
+private val CourtGreen = Color(0xFFFF783D)
+private val CourtLight = Color(0xFF322722)
+private val Ink = Color(0xFFF7F3EF)
+private val Orange = Color(0xFFFFA35C)
+private val Muted = Color(0xFFB7ACA6)
 
 data class Drill(
     val id: String, val category: String, val title: String, val level: String,
@@ -46,6 +49,7 @@ data class Drill(
 )
 
 data class Slot(val id: String, val drillId: String, var complete: Boolean = false)
+data class DrillResult(val date: String, val slotId: String, val drillId: String, val completed: Int, val attempted: Int)
 data class MatchRecord(
     val date: String, val player: String, val opponent: String,
     val playerScore: Int, val opponentScore: Int, val winner: String, val xp: Int
@@ -53,6 +57,9 @@ data class MatchRecord(
 data class SaveState(
     var playerName: String = "",
     var difficulty: String = "Intermediate",
+    var weeklyPlan: String = "Balanced",
+    var trainingDays: MutableList<Int>? = null,
+    var weeklyActivities: MutableList<String>? = null,
     var totalXp: Int = 0,
     var currentStreak: Int = 0,
     var longestStreak: Int = 0,
@@ -62,10 +69,13 @@ data class SaveState(
     var championshipDone: Boolean = false,
     var playerScore: Int = 0,
     var opponentScore: Int = 0,
+    var pointHistory: MutableList<Boolean>? = null,
     var matchPlayer: String = "",
     var matchOpponent: String = "",
     var matches: MutableList<MatchRecord> = mutableListOf(),
     var awardedKeys: MutableList<String> = mutableListOf(),
+    var drillResults: MutableList<DrillResult>? = null,
+    var drillDrafts: MutableList<DrillDraft>? = null,
     var showWarmupDone: Boolean = false
 )
 
@@ -113,6 +123,54 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     fun persist() { prefs.edit().putString("state", gson.toJson(save)).apply() }
     fun refresh() { save = gson.fromJson(gson.toJson(save), SaveState::class.java); persist() }
 
+    val legacyProfileExists = remember { prefs.contains("state") }
+    var onboardingComplete by remember {
+        mutableStateOf(prefs.getBoolean("onboarding_complete", legacyProfileExists))
+    }
+    // Pin the first-install decision before daily state writes create a "state" entry.
+    LaunchedEffect(Unit) {
+        if (!prefs.contains("onboarding_complete")) {
+            prefs.edit().putBoolean("onboarding_complete", legacyProfileExists).apply()
+        }
+    }
+    var onboardingStep by remember { mutableIntStateOf(prefs.getInt("onboarding_step", 0).coerceIn(0, 4)) }
+    var onboardingName by remember { mutableStateOf(prefs.getString("onboarding_name", save.playerName) ?: "") }
+    var onboardingLevel by remember {
+        mutableStateOf((prefs.getString("onboarding_level", save.difficulty) ?: "Intermediate")
+            .takeIf { it in listOf("Beginner", "Intermediate", "Advanced") } ?: "Intermediate")
+    }
+    var onboardingFocus by remember {
+        mutableStateOf((prefs.getString("onboarding_focus", save.weeklyPlan) ?: "Balanced")
+            .takeIf { it in listOf("Balanced", "Shooting", "Ball Handling", "Finishing") } ?: "Balanced")
+    }
+    var onboardingDays by remember {
+        mutableStateOf(
+            (prefs.getString("onboarding_days", null)?.split(",")?.mapNotNull { it.toIntOrNull() }
+                ?: save.trainingDays ?: listOf(1, 3, 5)).filter { it in 1..7 }.distinct().sorted()
+        )
+    }
+    fun persistOnboardingDraft() {
+        prefs.edit()
+            .putInt("onboarding_step", onboardingStep)
+            .putString("onboarding_name", onboardingName)
+            .putString("onboarding_level", onboardingLevel)
+            .putString("onboarding_focus", onboardingFocus)
+            .putString("onboarding_days", onboardingDays.joinToString(","))
+            .apply()
+    }
+    fun finishOnboarding() {
+        save.playerName = onboardingName.trim().take(40)
+        save.difficulty = onboardingLevel
+        save.weeklyPlan = onboardingFocus
+        save.trainingDays = onboardingDays.toMutableList()
+        save.slots = makeDailySlots(save.difficulty, save.weeklyPlan).toMutableList()
+        save.drillDrafts = mutableListOf()
+        refresh()
+        prefs.edit().putBoolean("onboarding_complete", true)
+            .remove("onboarding_step").remove("onboarding_name").remove("onboarding_level")
+            .remove("onboarding_focus").remove("onboarding_days").apply()
+        onboardingComplete = true
+    }
     var screen by remember { mutableStateOf("home") }
     var selectedSlot by remember { mutableIntStateOf(-1) }
     var spinning by remember { mutableStateOf(false) }
@@ -124,58 +182,119 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     val today = LocalDate.now(ZoneId.systemDefault()).toString()
     LaunchedEffect(today) {
         if (save.activeDate != today) {
+            save.drillDrafts = mutableListOf()
             save.activeDate = today
-            save.slots = makeDailySlots(save.difficulty).toMutableList()
+            save.slots = makeDailySlots(save.difficulty, save.weeklyPlan).toMutableList()
             save.championshipDone = false
             save.playerScore = 0
             save.opponentScore = 0
+            save.pointHistory = mutableListOf()
             save.showWarmupDone = false
             refresh()
         } else if (save.slots.isEmpty()) {
-            save.slots = makeDailySlots(save.difficulty).toMutableList()
+            save.slots = makeDailySlots(save.difficulty, save.weeklyPlan).toMutableList()
+            save.drillDrafts = mutableListOf()
             refresh()
+        } else {
+            val retained = DrillDraftRecovery.prune(save.drillDrafts.orEmpty(), today, save.slots) { id ->
+                drills.firstOrNull { it.id == id }?.minutes?.coerceAtLeast(1)?.times(60)
+            }
+            if (retained != save.drillDrafts.orEmpty()) {
+                save.drillDrafts = retained.toMutableList()
+                refresh()
+            }
         }
     }
 
     MaterialTheme(
         colorScheme = lightColorScheme(
-            primary = CourtGreen, onPrimary = Color.White, secondary = Orange,
-            background = Color(0xFFF5F8F1), surface = Color.White, onSurface = Ink
+            primary = CourtGreen, onPrimary = Color(0xFF1B1411), secondary = Orange,
+            background = Color(0xFF121315), surface = Color(0xFF212124), onSurface = Ink
         )
     ) {
         Scaffold(
-            containerColor = Color(0xFFF5F8F1),
+            containerColor = Color(0xFF121315),
             bottomBar = {
-                NavigationBar(containerColor = Color.White) {
-                    NavigationBarItem(selected = screen == "home", onClick = { screen = "home" }, icon = { Icon(Icons.Default.Home, null) }, label = { Text("Home") })
-                    NavigationBarItem(selected = screen == "career", onClick = { screen = "career" }, icon = { Icon(Icons.Default.EmojiEvents, null) }, label = { Text("Career") })
-                    NavigationBarItem(selected = screen == "settings", onClick = { screen = "settings" }, icon = { Icon(Icons.Default.Tune, null) }, label = { Text("Settings") })
+                if (onboardingComplete) NavigationBar(containerColor = Color(0xFF17191C), tonalElevation = 0.dp) {
+                    NavigationBarItem(selected = screen == "home", onClick = { screen = "home" }, icon = { Icon(Icons.Default.SportsBasketball, "Court dashboard") }, label = { Text("COURT", fontWeight = FontWeight.Bold, fontSize = 10.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
+                    NavigationBarItem(selected = screen == "career", onClick = { screen = "career" }, icon = { Icon(Icons.Default.Insights, "Player development") }, label = { Text("PROGRESS", fontWeight = FontWeight.Bold, fontSize = 10.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
+                    NavigationBarItem(selected = screen == "settings", onClick = { screen = "settings" }, icon = { Icon(Icons.Default.Tune, "Player settings") }, label = { Text("SETUP", fontWeight = FontWeight.Bold, fontSize = 10.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
                 }
             }
         ) { padding ->
-            AnimatedContent(targetState = screen, label = "screen-transition", modifier = Modifier.padding(padding)) { target ->
+            if (!onboardingComplete) {
+                CourtOnboarding(
+                    step = onboardingStep,
+                    name = onboardingName,
+                    level = onboardingLevel,
+                    focus = onboardingFocus,
+                    days = onboardingDays,
+                    onName = { onboardingName = it.take(40); persistOnboardingDraft() },
+                    onLevel = { onboardingLevel = it; persistOnboardingDraft() },
+                    onFocus = { onboardingFocus = it; persistOnboardingDraft() },
+                    onDay = { day ->
+                        onboardingDays = if (day in onboardingDays) onboardingDays - day else (onboardingDays + day).sorted()
+                        persistOnboardingDraft()
+                    },
+                    onBack = { onboardingStep = (onboardingStep - 1).coerceAtLeast(0); persistOnboardingDraft() },
+                    onNext = {
+                        if (onboardingStep < 4) { onboardingStep++; persistOnboardingDraft() }
+                        else finishOnboarding()
+                    }
+                )
+            } else AnimatedContent(targetState = screen, label = "screen-transition", modifier = Modifier.padding(padding)) { target ->
                 when (target) {
                     "home" -> HomeScreen(
                         save = save, onSpin = {
                             if (save.slots.all { it.complete }) screen = "champSetup"
                             else {
                                 val candidates = save.slots.indices.filter { !save.slots[it].complete }
-                                selectedSlot = candidates.random()
+                                selectedSlot = candidates.firstOrNull { index ->
+                                    save.drillDrafts.orEmpty().any { draft ->
+                                        draft.date == save.activeDate &&
+                                            draft.slotId == save.slots[index].id &&
+                                            draft.drillId == save.slots[index].drillId
+                                    }
+                                } ?: candidates.random()
                                 screen = "drill"
                             }
                         },
                         onStartChamp = { screen = "champSetup" },
-                        onCareer = { screen = "career" }
+                        onCareer = { screen = "career" },
+                        onSaveName = { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() },
+                        onWeeklyPlan = { plan -> save.weeklyPlan = plan; refresh() }, onTrainingDay = { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() }, onActivity = { day, kind -> save.weeklyActivities = updateWeeklyActivity(save.weeklyActivities, day, kind); refresh() }
                     )
                     "drill" -> {
                         val slot = save.slots.getOrNull(selectedSlot)
                         val drill = drills.firstOrNull { it.id == slot?.drillId } ?: drills.first()
                         DrillScreen(
                             drill = drill, slotNumber = selectedSlot + 1, complete = slot?.complete == true,
+                            previousResults = save.drillResults.orEmpty().filter { it.drillId == drill.id },
+                            draft = slot?.let {
+                                DrillDraftRecovery.recover(save.drillDrafts.orEmpty(), save.activeDate,
+                                    it, drill.minutes.coerceAtLeast(1) * 60)
+                            } ?: DrillDraft(save.activeDate, slot?.id ?: "", drill.id,
+                                remainingSeconds = drill.minutes.coerceAtLeast(1) * 60),
+                            onDraft = { updated ->
+                                val currentSlot = save.slots.getOrNull(selectedSlot)
+                                if (currentSlot != null && save.activeDate == today &&
+                                    DrillDraftRecovery.valid(updated, today, currentSlot,
+                                        drill.minutes.coerceAtLeast(1) * 60)) {
+                                save.drillDrafts = (save.drillDrafts.orEmpty().filterNot {
+                                    it.date == updated.date && it.slotId == updated.slotId
+                                } + updated).toMutableList()
+                                persist()
+                                }
+                            },
                             onVideo = { openUrl("https://www.youtube.com/results?search_query=" + Uri.encode(drill.videoQuery)) },
-                            onComplete = {
+                            onComplete = { completed, attempted ->
                                 if (selectedSlot in save.slots.indices && !save.slots[selectedSlot].complete) {
+                                    val result = DrillResult(save.activeDate, save.slots[selectedSlot].id, drill.id, completed, attempted)
+                                    save.drillResults = (save.drillResults.orEmpty() + result).toMutableList()
                                     save.slots[selectedSlot].complete = true
+                                    save.drillDrafts = save.drillDrafts.orEmpty().filterNot {
+                                        it.date == save.activeDate && it.slotId == save.slots[selectedSlot].id
+                                    }.toMutableList()
                                     award(save, "drill_${save.activeDate}_${save.slots[selectedSlot].id}", 50)
                                     if (save.slots.all { it.complete }) award(save, "six_${save.activeDate}", 100)
                                     refresh()
@@ -196,6 +315,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                                 save.matchPlayer = save.playerName
                                 save.matchOpponent = opponentInput.trim()
                                 save.playerScore = 0; save.opponentScore = 0
+                                save.pointHistory = mutableListOf()
                                 save.championshipDone = false
                                 refresh()
                                 error = ""
@@ -209,7 +329,13 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         playerScore = save.playerScore, opponentScore = save.opponentScore,
                         onPoint = { playerPoint ->
                             if (save.playerScore < 11 && save.opponentScore < 11) {
-                                if (playerPoint) save.playerScore++ else save.opponentScore++
+                                val updated = Scorekeeper.point(
+                                    Scorekeeper.Score(save.playerScore, save.opponentScore, save.pointHistory),
+                                    playerPoint
+                                )
+                                save.playerScore = updated.player
+                                save.opponentScore = updated.opponent
+                                save.pointHistory = updated.history?.toMutableList()
                                 if (save.playerScore >= 11 || save.opponentScore >= 11) {
                                     val winner = if (save.playerScore > save.opponentScore) save.matchPlayer else save.matchOpponent
                                     val won = winner == save.matchPlayer
@@ -228,37 +354,66 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                             }
                         },
                         onUndo = {
-                            // Undo the most recent point, preferring the player whose score is higher.
-                            if (save.playerScore > 0 || save.opponentScore > 0) {
-                                if (save.playerScore >= save.opponentScore && save.playerScore > 0) save.playerScore--
-                                else if (save.opponentScore > 0) save.opponentScore--
+                            val updated = Scorekeeper.undo(
+                                Scorekeeper.Score(save.playerScore, save.opponentScore, save.pointHistory)
+                            )
+                            if (updated.player != save.playerScore || updated.opponent != save.opponentScore) {
+                                save.playerScore = updated.player
+                                save.opponentScore = updated.opponent
+                                save.pointHistory = updated.history?.toMutableList()
                                 refresh()
                             }
                         },
                         onBack = { screen = "home" }
                     )
-                    "recap" -> recap?.let { MatchRecapScreen(it, save.totalXp, onHome = { screen = "home" }, onCareer = { screen = "career" }) } ?: HomeScreen(save, { screen = "drill" }, { screen = "champSetup" }, { screen = "career" })
+                    "recap" -> recap?.let { MatchRecapScreen(it, save.totalXp, onHome = { screen = "home" }, onCareer = { screen = "career" }) } ?: HomeScreen(save, { screen = "home" }, { screen = "champSetup" }, { screen = "career" }, { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() }, { plan -> save.weeklyPlan = plan; refresh() }, { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() }, { day, kind -> save.weeklyActivities = updateWeeklyActivity(save.weeklyActivities, day, kind); refresh() })
                     "career" -> CareerScreen(save, onHome = { screen = "home" })
                     "settings" -> SettingsScreen(save.difficulty, onDifficulty = { save.difficulty = it; refresh() }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
                     })
-                    else -> HomeScreen(save, { screen = "drill" }, { screen = "champSetup" }, { screen = "career" })
+                    else -> HomeScreen(save, { screen = "home" }, { screen = "champSetup" }, { screen = "career" }, { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() }, { plan -> save.weeklyPlan = plan; refresh() }, { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() }, { day, kind -> save.weeklyActivities = updateWeeklyActivity(save.weeklyActivities, day, kind); refresh() })
                 }
             }
         }
     }
 }
 
-private fun makeDailySlots(level: String): List<Slot> {
-    val categoryNames = listOf("Shooting", "Ball Handling", "Finishing", "Defense", "Rebounding", "Passing")
-    val chosen = mutableListOf<Drill>()
-    repeat(6) {
-        val category = categoryNames.random()
-        val options = drills.filter { it.category == category && it.id !in chosen.map { d -> d.id } }
-        chosen.add((options.ifEmpty { drills.filter { d -> d.id !in chosen.map { it.id } } }).random())
-    }
-    return chosen.mapIndexed { i, d -> Slot("${LocalDate.now()}_${i}_${Random.nextInt(100000)}", d.id) }
+private fun updateWeeklyActivity(current: MutableList<String>?, day: Int, kind: String): MutableList<String> {
+    if (day !in 1..7 || kind !in listOf("Practice", "Game")) return current ?: mutableListOf()
+    val retained = current.orEmpty().filterNot { it.startsWith("$day:") }
+    val existing = current.orEmpty().any { it == "$day:$kind" }
+    return (retained + if (existing) emptyList() else listOf("$day:$kind")).toMutableList()
 }
+
+private fun toggleTrainingDay(current: MutableList<Int>?, day: Int): MutableList<Int> {
+    val days = current?.filter { it in 1..7 }?.distinct() ?: listOf(1, 3, 5)
+    return (if (day in days) days.filterNot { it == day } else days + day).sorted().toMutableList()
+}
+
+private fun makeDailySlots(level: String, weeklyPlan: String = "Balanced"): List<Slot> {
+    val categories = listOf("Shooting", "Ball Handling", "Finishing", "Defense", "Rebounding", "Passing")
+    val focus = weeklyPlan.takeIf { it in categories }
+    val levels = listOf("Beginner", "Intermediate", "Advanced", "Expert", "Elite")
+    val requestedIndex = levels.indexOf(level).coerceAtLeast(0)
+    val dayIndex = LocalDate.now().dayOfYear
+    val chosen = categories.map { category ->
+        val options = drills.filter { it.category == category }
+        // A focus prioritizes the selected difficulty; other categories
+        // use a lighter tier when available. Never escalate above the setting.
+        val targetIndex = if (focus == null || category == focus) requestedIndex
+            else (requestedIndex - 1).coerceAtLeast(0)
+        val eligible = options.filter { levels.indexOf(it.level) in 0..targetIndex }
+        val closest = eligible.maxOfOrNull { levels.indexOf(it.level) }
+        val candidates = eligible.filter { levels.indexOf(it.level) == closest }
+        candidates.ifEmpty { options.filter { it.level == "Beginner" } }
+            .ifEmpty { options }
+            .let { it[dayIndex % it.size] }
+    }
+    return chosen.shuffled().mapIndexed { i, drill ->
+        Slot("${LocalDate.now()}_${i}_${Random.nextInt(100000)}", drill.id)
+    }
+}
+
 private fun award(s: SaveState, key: String, xp: Int) {
     if (key !in s.awardedKeys) { s.awardedKeys.add(key); s.totalXp += xp }
 }
@@ -273,68 +428,483 @@ private fun updateStreak(s: SaveState, sessionDate: LocalDate, today: String) {
 
 @Composable
 private fun AppHeader(title: String, subtitle: String = "") {
-    Column(Modifier.fillMaxWidth().background(Brush.horizontalGradient(listOf(Color(0xFF176B45), Color(0xFF2C8C5E)))).padding(20.dp)) {
-        Text("COURT QUEST PRO", color = Color(0xFFD8F2D5), fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-        Spacer(Modifier.height(8.dp))
-        Text(title, color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold)
-        if (subtitle.isNotBlank()) { Spacer(Modifier.height(4.dp)); Text(subtitle, color = Color(0xFFE6F4E8), fontSize = 13.sp) }
+    Column(
+        Modifier.fillMaxWidth()
+            .background(Brush.verticalGradient(listOf(Color(0xFF382118), Color(0xFF1D1D21), Color(0xFF121315))))
+            .padding(start = 22.dp, end = 22.dp, top = 27.dp, bottom = 25.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(35.dp).clip(RoundedCornerShape(11.dp)).background(CourtGreen), contentAlignment = Alignment.Center) {
+                Icon(Icons.Default.SportsBasketball, null, tint = Color(0xFF171719), modifier = Modifier.size(22.dp))
+            }
+            Spacer(Modifier.width(10.dp))
+            Text("COURTQUEST", color = Ink, fontSize = 12.sp, fontWeight = FontWeight.Black, letterSpacing = 2.5.sp)
+            Spacer(Modifier.weight(1f))
+            Text("PLAYER LAB", color = Orange, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+        }
+        Spacer(Modifier.height(27.dp))
+        Text(title, color = Ink, fontSize = 34.sp, fontWeight = FontWeight.Black, lineHeight = 37.sp)
+        if (subtitle.isNotBlank()) {
+            Spacer(Modifier.height(9.dp))
+            Text(subtitle, color = Muted, fontSize = 12.sp, letterSpacing = 1.sp)
+        }
     }
 }
 
 @Composable
-private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> Unit, onCareer: () -> Unit) {
-    val done = save.slots.count { it.complete }
-    val progress by animateFloatAsState(if (save.slots.isEmpty()) 0f else done / 6f, animationSpec = tween(650), label = "progress")
-    LazyColumn(Modifier.fillMaxSize()) {
-        item { AppHeader("Your court. Your quest.", "A little better every day.") }
-        item {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    StatCard("TOTAL XP", save.totalXp.toString(), Modifier.weight(1f))
-                    StatCard("RANK", rankFor(save.totalXp), Modifier.weight(1f))
-                    StatCard("STREAK", "🔥 ${save.currentStreak}", Modifier.weight(1f))
-                }
-                Card(colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(22.dp)) {
-                    Column(Modifier.padding(18.dp)) {
+private fun CourtSectionTitle(number: String, title: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(number, color = CourtGreen, fontSize = 11.sp, fontWeight = FontWeight.Black)
+        Spacer(Modifier.width(10.dp))
+        Text(title, color = Ink, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+    }
+}
+
+@Composable
+private fun CourtOnboardingChoice(
+    title: String, description: String, selected: Boolean, onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(19.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected) Color(0xFF3B2A23) else Color(0xFF242428)
+        ),
+        border = androidx.compose.foundation.BorderStroke(
+            if (selected) 2.dp else 1.dp,
+            if (selected) CourtGreen else Color(0xFF3B3738)
+        )
+    ) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 17.dp, vertical = 18.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text(title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+                Text(description, color = Muted, fontSize = 12.sp, lineHeight = 17.sp)
+            }
+            Spacer(Modifier.width(10.dp))
+            Icon(
+                if (selected) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+                contentDescription = if (selected) "Selected" else "Not selected",
+                tint = if (selected) CourtGreen else Muted
+            )
+        }
+    }
+}
+
+@Composable
+private fun CourtOnboarding(
+    step: Int, name: String, level: String, focus: String, days: List<Int>,
+    onName: (String) -> Unit, onLevel: (String) -> Unit, onFocus: (String) -> Unit,
+    onDay: (Int) -> Unit, onBack: () -> Unit, onNext: () -> Unit
+) {
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 22.dp)) {
+        Text("COURTQUEST / PLAYER SETUP", color = Orange, fontSize = 11.sp,
+            fontWeight = FontWeight.ExtraBold, letterSpacing = 1.3.sp)
+        Spacer(Modifier.height(16.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            repeat(5) { index ->
+                Box(Modifier.weight(1f).height(5.dp).clip(CircleShape)
+                    .background(if (index <= step) CourtGreen else Color(0xFF40332E)))
+            }
+        }
+        Spacer(Modifier.height(26.dp))
+        Text(
+            listOf("Your court starts here.", "Make it yours.", "Find your level.",
+                "Choose your focus.", "Build your routine.")[step],
+            color = Ink, fontSize = 32.sp, lineHeight = 37.sp, fontWeight = FontWeight.Black
+        )
+        Spacer(Modifier.height(12.dp))
+        Text(
+            listOf(
+                "A training plan built around your game. No account or internet required.",
+                "What should we call you? You can change this anytime.",
+                "Choose the level that best matches your current experience.",
+                "Your focus shapes the drills selected for your daily sessions.",
+                "Pick your usual training days. You can adjust them later."
+            )[step], color = Muted, fontSize = 15.sp, lineHeight = 22.sp
+        )
+        Spacer(Modifier.height(24.dp))
+        when (step) {
+            0 -> {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF272022))
+                ) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(18.dp)
+                    ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f)) {
-                                Text("TODAY'S CHALLENGE", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                                Text("$done / 6 drills", fontSize = 23.sp, fontWeight = FontWeight.Bold, color = Ink)
+                            Box(
+                                Modifier.size(76.dp).clip(RoundedCornerShape(22.dp))
+                                    .background(Color(0xFF493025)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Default.SportsBasketball, contentDescription = null,
+                                    tint = Orange, modifier = Modifier.size(46.dp))
                             }
-                            Box(Modifier.size(56.dp).clip(CircleShape).background(CourtLight), contentAlignment = Alignment.Center) {
-                                Text("${(progress * 100).toInt()}%", color = CourtGreen, fontWeight = FontWeight.ExtraBold)
+                            Spacer(Modifier.width(16.dp))
+                            Column {
+                                Text("BUILT FOR THE WORK", color = Orange, fontSize = 10.sp,
+                                    fontWeight = FontWeight.ExtraBold, letterSpacing = 1.2.sp)
+                                Text("One session at a time.", color = Ink, fontSize = 20.sp,
+                                    fontWeight = FontWeight.Black, lineHeight = 25.sp)
                             }
                         }
-                        Spacer(Modifier.height(12.dp))
-                        LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth().height(8.dp).clip(CircleShape), color = CourtGreen, trackColor = CourtLight)
-                        Spacer(Modifier.height(16.dp))
-                        Button(onClick = onSpin, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(16.dp)) {
-                            Icon(Icons.Default.Casino, null); Spacer(Modifier.width(8.dp))
-                            Text(if (done == 6) "ALL DRILLS COMPLETE · CHAMPIONSHIP" else "SPIN THE DRILL WHEEL", fontWeight = FontWeight.Bold)
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        Text("Six slots · repeats possible · progress saves automatically", color = Muted, fontSize = 12.sp)
+                        Box(Modifier.fillMaxWidth().height(1.dp).background(Color(0xFF473936)))
+                        Text("YOUR TRAINING. YOUR PROGRESS.", color = Ink, fontSize = 16.sp,
+                            fontWeight = FontWeight.ExtraBold)
+                        Text(
+                            "Choose your level, focus, and training days. CourtQuest builds your starting routine and tracks what you complete.",
+                            color = Muted, fontSize = 13.sp, lineHeight = 20.sp
+                        )
+                        Text("PRIVATE BY DEFAULT  ·  WORKS OFFLINE", color = Orange,
+                            fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.7.sp)
                     }
                 }
-                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF0DB)), shape = RoundedCornerShape(22.dp)) {
+            }
+            1 -> {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(22.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242428))
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Text("PLAYER IDENTITY", color = Orange, fontSize = 11.sp,
+                            fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
+                        OutlinedTextField(
+                            value = name, onValueChange = onName,
+                            label = { Text("Player name") },
+                            placeholder = { Text("What should we call you?") },
+                            supportingText = { Text("Optional. You can change this later.") },
+                            singleLine = true, modifier = Modifier.fillMaxWidth()
+                        )
+                        Text(
+                            if (name.isBlank()) "Your dashboard will use a generic player greeting."
+                            else "Your dashboard will welcome ${name.trim()}.",
+                            color = Muted, fontSize = 12.sp, lineHeight = 18.sp
+                        )
+                    }
+                }
+            }
+            2 -> {
+                listOf(
+                    "Beginner" to "Build confidence, fundamentals, and repeatable technique.",
+                    "Intermediate" to "Strengthen consistency, control, and game-ready skills.",
+                    "Advanced" to "Challenge precision, pace, and execution under pressure."
+                ).forEach { (option, description) ->
+                    CourtOnboardingChoice(
+                        title = option, description = description,
+                        selected = level == option, onClick = { onLevel(option) }
+                    )
+                    Spacer(Modifier.height(10.dp))
+                }
+            }
+            3 -> {
+                listOf(
+                    "Balanced" to "Develop a well-rounded game across multiple skills.",
+                    "Shooting" to "Prioritize mechanics, accuracy, and shot repetition.",
+                    "Ball Handling" to "Build dribble control, coordination, and confidence.",
+                    "Finishing" to "Work on controlled scoring around the basket."
+                ).forEach { (option, description) ->
+                    CourtOnboardingChoice(
+                        title = option, description = description,
+                        selected = focus == option, onClick = { onFocus(option) }
+                    )
+                    Spacer(Modifier.height(10.dp))
+                }
+            }
+            4 -> {
+                Text("YOUR TRAINING DAYS", color = Orange, fontSize = 11.sp,
+                    fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
+                Spacer(Modifier.height(8.dp))
+                listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+                    .chunked(4).forEachIndexed { rowIndex, rowDays ->
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            rowDays.forEachIndexed { columnIndex, day ->
+                                val dayNumber = rowIndex * 4 + columnIndex + 1
+                                FilterChip(
+                                    selected = dayNumber in days,
+                                    onClick = { onDay(dayNumber) },
+                                    label = { Text(day) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            repeat(4 - rowDays.size) { Spacer(Modifier.weight(1f)) }
+                        }
+                    }
+                Spacer(Modifier.height(22.dp))
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242022)),
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("YOUR STARTING PLAN", color = Orange, fontSize = 11.sp,
+                            fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
+                        Text(if (name.isBlank()) "Basketball player" else name.trim(),
+                            color = Ink, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+                        Text("$level  ·  $focus", color = Ink, fontSize = 14.sp)
+                        Text(
+                            if (days.isEmpty()) "No recurring training days selected"
+                            else "${days.size} training ${if (days.size == 1) "day" else "days"} per week",
+                            color = Muted, fontSize = 13.sp
+                        )
+                    }
+                }
+            }
+        }
+        Spacer(Modifier.height(36.dp))
+        Button(onClick = onNext, modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = RoundedCornerShape(16.dp)) {
+            Text(if (step == 4) "ENTER MY COURT" else "CONTINUE",
+                fontWeight = FontWeight.ExtraBold)
+        }
+        if (step > 0) {
+            TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+                Text("BACK", color = Muted)
+            }
+        }
+        Spacer(Modifier.height(20.dp))
+    }
+}
+
+@Composable
+private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> Unit, onCareer: () -> Unit, onSaveName: (String) -> Unit, onWeeklyPlan: (String) -> Unit, onTrainingDay: (Int) -> Unit, onActivity: (Int, String) -> Unit) {
+    var newPlayerName by remember { mutableStateOf("") }
+    var showWeeklyEditor by remember { mutableStateOf(false) }
+    val done = save.slots.count { it.complete }
+    val resumable = save.slots.count { slot ->
+        !slot.complete && save.drillDrafts.orEmpty().any { draft ->
+            draft.date == save.activeDate && draft.slotId == slot.id && draft.drillId == slot.drillId
+        }
+    }
+    val progress by animateFloatAsState(if (save.slots.isEmpty()) 0f else done / 6f, animationSpec = tween(650), label = "progress")
+    LazyColumn(Modifier.fillMaxSize()) {
+        item { AppHeader(save.playerName.takeIf { it.isNotBlank() }?.let { "$it’s court." } ?: "Your court.", "BUILD YOUR GAME  /  ONE SESSION AT A TIME") }
+        item {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242022)),
+                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text("PLAYER PERFORMANCE", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text(rankFor(save.totalXp), color = Ink, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+                        Text("Keep showing up. Every recorded session builds your game.", color = Muted, fontSize = 12.sp)
+                        HorizontalDivider(color = Color(0xFF443835))
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            StatCard("TOTAL XP", save.totalXp.toString(), Modifier.weight(1f))
+                            StatCard("STREAK", "${save.currentStreak} DAYS", Modifier.weight(1f))
+                        }
+                    }
+                }
+                if (save.playerName.isBlank()) {
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF302722)), shape = RoundedCornerShape(20.dp)) {
+                        Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text("MAKE THIS YOUR COURT", color = Ink, fontWeight = FontWeight.ExtraBold)
+                            Text("Add your player name to personalize training and game records. You can change it in Setup later.", color = Muted, fontSize = 12.sp)
+                            OutlinedTextField(value = newPlayerName, onValueChange = { newPlayerName = it.take(40) }, label = { Text("Player name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            Button(onClick = { onSaveName(newPlayerName) }, enabled = newPlayerName.trim().isNotEmpty(), modifier = Modifier.fillMaxWidth()) { Text("SAVE PLAYER NAME") }
+                        }
+                    }
+                }
+                CourtSectionTitle("01 /", "TODAY’S TRAINING")
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C20)),
+                    shape = RoundedCornerShape(26.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(22.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.Top) {
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text("DAILY SESSION", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.4.sp)
+                                Text(
+                                    if (done >= 6) "Session complete" else if (resumable > 0) "Pick up where you left off" else "Build your game today",
+                                    color = Ink, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 29.sp
+                                )
+                                Text(
+                                    if (done >= 6) "All six drills finished" else "${6 - done} drills remaining",
+                                    color = Muted, fontSize = 13.sp
+                                )
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text("$done", color = Ink, fontSize = 38.sp, fontWeight = FontWeight.Black)
+                                Text("OF 6", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                            }
+                        }
+                        LinearProgressIndicator(
+                            progress = { progress },
+                            modifier = Modifier.fillMaxWidth().height(7.dp).clip(CircleShape),
+                            color = CourtGreen, trackColor = Color(0xFF40332E)
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            repeat(6) { index ->
+                                Box(
+                                    Modifier.weight(1f).height(5.dp).clip(CircleShape)
+                                        .background(if (index < done) CourtGreen else Color(0xFF40332E))
+                                )
+                            }
+                        }
+                        Button(
+                            onClick = onSpin,
+                            modifier = Modifier.fillMaxWidth().height(58.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp)
+                        ) {
+                            Icon(if (done >= 6) Icons.Default.EmojiEvents else Icons.Default.PlayArrow, contentDescription = null)
+                            Spacer(Modifier.width(9.dp))
+                            Text(
+                                if (done >= 6) "PLAY 1-ON-1" else if (resumable > 0) "RESUME SESSION" else "START TRAINING",
+                                fontWeight = FontWeight.ExtraBold, letterSpacing = 0.4.sp
+                            )
+                        }
+                        Text(
+                            if (done >= 6) "Today's workout is recorded."
+                            else if (resumable > 0) "$resumable drill session(s) ready to resume · progress saved"
+                            else "Six basketball skill drills · progress saved automatically",
+                            color = Muted, fontSize = 12.sp
+                        )
+                    }
+                }
+                CourtSectionTitle("02 /", "YOUR WEEK")
+                val selectedPlan = save.weeklyPlan.takeIf { it in listOf("Balanced", "Shooting", "Ball Handling", "Finishing") } ?: "Balanced"
+                val weekStart = LocalDate.now().with(java.time.DayOfWeek.MONDAY)
+                val weekEnd = weekStart.plusDays(6)
+                val trainedThisWeek = save.drillResults.orEmpty().asSequence()
+                    .filter { it.attempted > 0 && it.completed in 0..it.attempted }
+                    .mapNotNull { runCatching { LocalDate.parse(it.date) }.getOrNull() }
+                    .filter { !it.isBefore(weekStart) && !it.isAfter(weekEnd) }
+                    .distinct().count()
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(20.dp)) {
+                    Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("YOUR WEEKLY FOCUS", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Column {
+                            listOf("Balanced", "Shooting", "Ball Handling", "Finishing").chunked(2).forEach { pair ->
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    pair.forEach { plan ->
+                                        FilterChip(selected = selectedPlan == plan, onClick = { onWeeklyPlan(plan) },
+                                            label = { Text(plan, fontSize = 11.sp) })
+                                    }
+                                }
+                            }
+                        }
+                        Text(when (selectedPlan) {
+                            "Shooting" -> "Focus on shooting form and repeatable mechanics."
+                            "Ball Handling" -> "Focus on control, footwork, and change of pace."
+                            "Finishing" -> "Focus on safe footwork and finishes at the rim."
+                            else -> "Build a balanced foundation across basketball skills."
+                        }, color = Muted, fontSize = 12.sp)
+                        val plannedDays = save.trainingDays?.filter { it in 1..7 }?.distinct() ?: listOf(1, 3, 5)
+                        val todayNumber = LocalDate.now().dayOfWeek.value
+                        val todayActivity = save.weeklyActivities.orEmpty().firstOrNull { it.startsWith("$todayNumber:") }?.substringAfter(":")
+                        val weekdayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+                        val weeklyOverview = (1..7).mapNotNull { day ->
+                            val activity = save.weeklyActivities.orEmpty().firstOrNull { it.startsWith("$day:") }?.substringAfter(":")
+                            val label = when {
+                                activity == "Game" -> "Game"
+                                activity == "Practice" -> "Practice"
+                                day in plannedDays -> "Train"
+                                else -> null
+                            }
+                            label?.let { "${weekdayLabels[day - 1]} $it" }
+                        }
+                        Text(
+                            if (weeklyOverview.isEmpty()) "No sessions planned this week"
+                            else weeklyOverview.joinToString("  ·  "),
+                            color = Muted, fontSize = 12.sp
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("WEEKLY TRAINING RHYTHM", color = Ink, fontWeight = FontWeight.ExtraBold, modifier = Modifier.weight(1f))
+                            TextButton(onClick = { showWeeklyEditor = !showWeeklyEditor }) {
+                                Text(if (showWeeklyEditor) "CLOSE" else "EDIT WEEK", color = Orange)
+                            }
+                        }
+                        if (showWeeklyEditor) {
+                        Text("SELECT YOUR TRAINING DAYS", color = Muted, fontSize = 11.sp)
+                        listOf(listOf("MON", "TUE", "WED", "THU"), listOf("FRI", "SAT", "SUN")).forEachIndexed { rowIndex, labels ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                                labels.forEachIndexed { index, label ->
+                                    val day = if (rowIndex == 0) index + 1 else index + 5
+                                    FilterChip(selected = day in plannedDays, onClick = { onTrainingDay(day) }, label = { Text(label, fontSize = 11.sp) })
+                                }
+                            }
+                        }
+                        Text("TEAM PRACTICES & GAMES", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        listOf("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN").forEachIndexed { index, label ->
+                            val day = index + 1
+                            val activity = save.weeklyActivities.orEmpty().firstOrNull { it.startsWith("$day:") }?.substringAfter(":")
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                                Text(label, color = if (day == todayNumber) Orange else Ink, fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold, modifier = Modifier.width(42.dp))
+                                listOf("Practice", "Game").forEach { kind ->
+                                    FilterChip(selected = activity == kind, onClick = { onActivity(day, kind) },
+                                        label = { Text(kind, fontSize = 11.sp) })
+                                }
+                            }
+                        }
+                        Text("Tap a selected activity again to clear it. These preferences repeat weekly.", color = Muted, fontSize = 11.sp)
+                        }
+                        val scheduled = LocalDate.now().dayOfWeek.value in plannedDays
+                        val recordedToday = save.drillResults.orEmpty().any { it.date == LocalDate.now().toString() && it.attempted > 0 && it.completed in 0..it.attempted }
+                        Text(
+                            when {
+                                recordedToday -> "Today recorded: training completed. Prioritize recovery."
+                                todayActivity == "Game" -> "Game day. Warm up, play, and allow recovery afterward."
+                                todayActivity == "Practice" -> "Team practice today. This can replace a separate skill session."
+                                scheduled -> "Today is a suggested training day. Start with a warm-up and work at your own pace."
+                                else -> "Suggested recovery day. Rest, walk, or practice light mobility as comfortable."
+                            }, color = Ink, fontSize = 12.sp
+                        )
+                        Text("Suggested schedule only. Practices and games can replace training days; no penalties for rest.", color = Muted, fontSize = 11.sp)
+                        Text("3-DAY CONSISTENCY CHALLENGE", color = Ink, fontWeight = FontWeight.ExtraBold)
+                        Text("$trainedThisWeek / 3 training days this week", color = Orange, fontWeight = FontWeight.Bold)
+                        LinearProgressIndicator(
+                            progress = { (trainedThisWeek / 3f).coerceIn(0f, 1f) },
+                            modifier = Modifier.fillMaxWidth().height(9.dp).clip(CircleShape),
+                            color = CourtGreen, trackColor = CourtLight
+                        )
+                        Text(
+                            if (trainedThisWeek >= 3) "Weekly goal reached. Keep practicing with control and recovery."
+                            else "Complete and record a drill on ${3 - trainedThisWeek} more different day${if (3 - trainedThisWeek == 1) "" else "s"} this week.",
+                            color = Muted, fontSize = 12.sp
+                        )
+                        Text("Resets each Monday · Counts recorded training days, not skill level.", color = Muted, fontSize = 11.sp)
+                    }
+                }
+                CourtSectionTitle("03 /", "GAME DAY")
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF38251F)), shape = RoundedCornerShape(22.dp)) {
                     Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(50.dp).clip(CircleShape).background(Orange), contentAlignment = Alignment.Center) {
                             Icon(Icons.Default.EmojiEvents, null, tint = Color.White, modifier = Modifier.size(28.dp))
                         }
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
-                            Text("THE CHAMPIONSHIP", fontWeight = FontWeight.ExtraBold, color = Ink)
+                            Text("GAME DAY  /  1-ON-1", fontWeight = FontWeight.ExtraBold, color = Ink)
                             Text("Real 1-on-1. First to 11. At 10–10, next point wins.", fontSize = 12.sp, color = Muted)
                         }
                         IconButton(onClick = onStartChamp) { Icon(Icons.Default.ChevronRight, null, tint = Ink) }
                     }
                 }
-                Text("YOUR DAILY SKILL MIX", fontWeight = FontWeight.ExtraBold, color = Ink, fontSize = 13.sp, letterSpacing = 1.sp)
+                CourtSectionTitle("04 /", "SKILL DEVELOPMENT")
                 val categories = listOf("Shooting" to Icons.Default.SportsBasketball, "Ball Handling" to Icons.Default.Bolt, "Finishing" to Icons.Default.Sports, "Defense" to Icons.Default.Shield, "Rebounding" to Icons.Default.ArrowUpward, "Passing" to Icons.Default.SwapHoriz)
                 categories.chunked(2).forEach { pair ->
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         pair.forEach { (name, icon) ->
-                            Card(modifier = Modifier.weight(1f), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(16.dp)) {
+                            Card(modifier = Modifier.weight(1f), colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(16.dp)) {
                                 Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Icon(icon, null, tint = CourtGreen)
                                     Spacer(Modifier.width(8.dp))
@@ -344,7 +914,7 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                         }
                     }
                 }
-                OutlinedButton(onClick = onCareer, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Default.Insights, null); Spacer(Modifier.width(8.dp)); Text("View career stats") }
+                OutlinedButton(onClick = onCareer, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Default.Insights, null); Spacer(Modifier.width(8.dp)); Text("View player development") }
             }
         }
     }
@@ -352,7 +922,7 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
 
 @Composable
 private fun StatCard(label: String, value: String, modifier: Modifier = Modifier) {
-    Card(modifier, colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(16.dp)) {
+    Card(modifier, colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(16.dp)) {
         Column(Modifier.padding(vertical = 13.dp, horizontal = 10.dp)) {
             Text(label, color = Muted, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             Spacer(Modifier.height(5.dp))
@@ -362,22 +932,101 @@ private fun StatCard(label: String, value: String, modifier: Modifier = Modifier
 }
 
 @Composable
-private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, onVideo: () -> Unit, onComplete: () -> Unit, onBack: () -> Unit) {
+private fun DrillSessionTimer(minutes: Int, initialRemaining: Int, onRemaining: (Int) -> Unit) {
+    val initialSeconds = minutes.coerceAtLeast(1) * 60
+    var remaining by remember(minutes) { mutableIntStateOf(initialRemaining.coerceIn(0, initialSeconds)) }
+    var running by remember(minutes) { mutableStateOf(false) }
+    LaunchedEffect(running, remaining) {
+        if (running && remaining > 0) {
+            delay(1000L)
+            remaining = (remaining - 1).coerceAtLeast(0)
+            onRemaining(remaining)
+            if (remaining == 0) running = false
+        }
+    }
+    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(22.dp)) {
+        Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(if (remaining == 0) "TRAINING CLOCK · FINISHED" else if (running) "TRAINING CLOCK · RUNNING" else "TRAINING CLOCK · PAUSED", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+            Text("%02d:%02d".format(remaining / 60, remaining % 60),
+                color = Ink, fontSize = 46.sp, fontWeight = FontWeight.ExtraBold)
+            LinearProgressIndicator(
+                progress = { remaining.toFloat() / initialSeconds },
+                modifier = Modifier.fillMaxWidth().height(7.dp).clip(CircleShape),
+                color = Orange, trackColor = CourtLight
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Button(
+                    onClick = { if (remaining == 0) { remaining = initialSeconds; onRemaining(remaining) }; running = !running },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(if (running) Icons.Default.Pause else Icons.Default.PlayArrow, null)
+                    Spacer(Modifier.width(6.dp))
+                    Text(if (running) "PAUSE" else if (remaining == 0) "RESTART" else if (remaining < initialSeconds) "RESUME" else "START")
+                }
+                OutlinedButton(
+                    onClick = { running = false; remaining = initialSeconds; onRemaining(remaining) },
+                    shape = RoundedCornerShape(12.dp)
+                ) { Text("RESET") }
+            }
+            Text(
+                if (remaining == 0) "Time complete. Record the drill only after completing its target."
+                else "Timer runs while this drill is open. Pause for recovery as needed.",
+                color = Muted, fontSize = 12.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previousResults: List<DrillResult>, draft: DrillDraft, onDraft: (DrillDraft) -> Unit, onVideo: () -> Unit, onComplete: (Int, Int) -> Unit, onBack: () -> Unit) {
+    var completedCount by remember(drill.id, slotNumber) { mutableIntStateOf(draft.successful) }
+    var attemptedCount by remember(drill.id, slotNumber) { mutableIntStateOf(draft.attempted) }
+    val best = previousResults.maxByOrNull { it.completed }
+    val measurement = measurementFor(drill.category)
+    val requiredCount = DrillTargets.minimum(drill.id)
+    var targetConfirmed by remember(drill.id, slotNumber) { mutableStateOf(draft.targetConfirmed) }
+    var timerSeconds by remember(drill.id, slotNumber) { mutableIntStateOf(draft.remainingSeconds) }
+    fun saveDraft() {
+        onDraft(draft.copy(successful = completedCount, attempted = attemptedCount,
+            remainingSeconds = timerSeconds, targetConfirmed = targetConfirmed))
+    }
+    val meetsCount = DrillTargets.eligible(drill.id, completedCount, attemptedCount)
     LazyColumn(Modifier.fillMaxSize()) {
-        item { AppHeader("Drill $slotNumber of 6", drill.category.uppercase()) }
+        item { AppHeader("Training session", "FOCUS / ${drill.category.uppercase()}") }
         item {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Card(colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(24.dp)) {
-                    Column(Modifier.padding(20.dp)) {
-                        Text(drill.category.uppercase(), color = CourtGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
-                        Spacer(Modifier.height(7.dp))
-                        Text(drill.title, fontSize = 25.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
-                        Spacer(Modifier.height(12.dp))
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242022)),
+                    shape = RoundedCornerShape(26.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(22.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("DRILL ${slotNumber.coerceIn(1, 6).toString().padStart(2, '0')} / 06",
+                                color = Orange, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold,
+                                letterSpacing = 1.3.sp, modifier = Modifier.weight(1f))
+                            Text(drill.category.uppercase(), color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Text(drill.title, fontSize = 30.sp, fontWeight = FontWeight.Black, color = Ink, lineHeight = 35.sp)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Pill("${drill.minutes} MIN")
                             Pill(drill.level.uppercase())
                         }
-                        Spacer(Modifier.height(18.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                            repeat(6) { index ->
+                                Box(Modifier.weight(1f).height(5.dp).clip(CircleShape)
+                                    .background(if (index < slotNumber.coerceIn(1, 6)) CourtGreen else Color(0xFF49352E)))
+                            }
+                        }
+                        Text("SESSION POSITION · DRILL ${slotNumber.coerceIn(1, 6)} OF 6",
+                            color = Muted, fontSize = 11.sp)
+                    }
+                }
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(24.dp)) {
+                    Column(Modifier.padding(20.dp)) {
+                        Text("01 / DRILL GUIDE", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.2.sp)
+                        Spacer(Modifier.height(14.dp))
                         Text("HOW TO DO IT", fontWeight = FontWeight.ExtraBold, color = Ink)
                         Spacer(Modifier.height(7.dp))
                         Text(drill.instructions, color = Muted, lineHeight = 22.sp)
@@ -391,11 +1040,111 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, onVide
                         Text("Use a dry, clear court. Warm up first, keep movements controlled, and stop if the surface is slippery or something hurts.", color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
                     }
                 }
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(22.dp)) {
+                    Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text("02 / LIVE PERFORMANCE", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 1.3.sp)
+                        Text("Log each attempt as it happens", color = Muted, fontSize = 12.sp)
+                        Text("$completedCount / ${requiredCount ?: 0} TARGET", color = Ink, fontSize = 26.sp, fontWeight = FontWeight.Black)
+                        LinearProgressIndicator(
+                            progress = { if (requiredCount != null && requiredCount > 0) (completedCount.toFloat() / requiredCount).coerceIn(0f, 1f) else 0f },
+                            modifier = Modifier.fillMaxWidth().height(9.dp).clip(CircleShape),
+                            color = CourtGreen, trackColor = CourtLight
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text(measurement.successLabel.uppercase(), color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("$completedCount", color = Ink, fontSize = 34.sp, fontWeight = FontWeight.Black)
+                            }
+                            Column(Modifier.weight(1f)) {
+                                Text(measurement.attemptLabel.uppercase(), color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("$attemptedCount", color = Ink, fontSize = 34.sp, fontWeight = FontWeight.Black)
+                            }
+                        }
+                        Button(
+                            onClick = { completedCount++; attemptedCount++; saveDraft() },
+                            modifier = Modifier.fillMaxWidth().height(62.dp),
+                            shape = RoundedCornerShape(17.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp)
+                        ) {
+                            Icon(Icons.Default.CheckCircle, contentDescription = null)
+                            Spacer(Modifier.width(9.dp))
+                            Text("+ " + measurement.successButton, fontWeight = FontWeight.ExtraBold)
+                        }
+                        OutlinedButton(
+                            onClick = { attemptedCount++; saveDraft() },
+                            modifier = Modifier.fillMaxWidth().height(58.dp),
+                            shape = RoundedCornerShape(17.dp)
+                        ) {
+                            Icon(Icons.Default.AddCircleOutline, contentDescription = null)
+                            Spacer(Modifier.width(9.dp))
+                            Text("+ MISSED / OTHER ATTEMPT", fontWeight = FontWeight.Bold)
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text("CORRECT LAST ENTRY", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                            OutlinedButton(
+                                onClick = { if (completedCount > 0) { completedCount--; attemptedCount--; saveDraft() } },
+                                enabled = completedCount > 0
+                            ) { Text("− SUCCESS") }
+                            OutlinedButton(
+                                onClick = { if (attemptedCount > completedCount) { attemptedCount--; saveDraft() } },
+                                enabled = attemptedCount > completedCount
+                            ) { Text("− MISS") }
+                        }
+                        if (best != null) Text("PERSONAL BEST  ·  ${best.completed} successful / ${best.attempted} attempts", color = Muted, fontSize = 12.sp)
+                        Text(measurement.description + " Each successful action also counts as an attempt. Use missed / other for attempts without success. Progress is saved as you go.", color = Muted, fontSize = 12.sp)
+                    }
+                }
+                DrillSessionTimer(drill.minutes, timerSeconds) { timerSeconds = it; saveDraft() }
                 Button(onClick = onVideo, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(15.dp)) {
                     Icon(Icons.Default.PlayCircle, null); Spacer(Modifier.width(8.dp)); Text("WATCH VIDEO DEMONSTRATION")
                 }
-                Button(onClick = onComplete, enabled = !complete, modifier = Modifier.fillMaxWidth().height(56.dp), colors = ButtonDefaults.buttonColors(containerColor = if (complete) Muted else CourtGreen), shape = RoundedCornerShape(15.dp)) {
-                    Icon(Icons.Default.CheckCircle, null); Spacer(Modifier.width(8.dp)); Text(if (complete) "SLOT COMPLETED" else "MARK DRILL COMPLETE · +50 XP", fontWeight = FontWeight.Bold)
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242022)),
+                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
+                        Text("03 / FINISH YOUR DRILL", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.2.sp)
+                        Text(
+                            when {
+                                complete -> "Drill recorded"
+                                !meetsCount -> "Reach your performance target"
+                                !targetConfirmed -> "Confirm the full drill"
+                                else -> "Ready to save"
+                            },
+                            color = Ink, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold
+                        )
+                        Text(
+                            when {
+                                complete -> "Your completed results have been recorded."
+                                !meetsCount -> "Record at least ${requiredCount ?: 0} successful actions to unlock completion."
+                                !targetConfirmed -> "Your recorded target is met. Confirm all required sides, intervals, rest, and safe technique."
+                                else -> "Your target and technique check are complete. Save your results to finish."
+                            },
+                            color = Muted, fontSize = 13.sp, lineHeight = 19.sp
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = targetConfirmed,
+                                onCheckedChange = { targetConfirmed = it; saveDraft() },
+                                enabled = !complete
+                            )
+                            Text(
+                                "I completed the full written target with safe technique.",
+                                color = Ink, fontSize = 13.sp, modifier = Modifier.weight(1f)
+                            )
+                        }
+                        Button(
+                            onClick = { onComplete(completedCount, attemptedCount) },
+                            enabled = !complete && meetsCount && targetConfirmed,
+                            modifier = Modifier.fillMaxWidth().height(58.dp),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Icon(Icons.Default.CheckCircle, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(if (complete) "DRILL COMPLETE" else "SAVE RESULTS · +50 XP", fontWeight = FontWeight.ExtraBold)
+                        }
+                    }
                 }
                 OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text("Back to dashboard") }
             }
@@ -415,7 +1164,7 @@ private fun ChampionshipSetup(playerName: String, opponentName: String, error: S
             OutlinedTextField(value = playerName, onValueChange = onPlayerName, modifier = Modifier.fillMaxWidth(), label = { Text("Your name") }, singleLine = true, leadingIcon = { Icon(Icons.Default.Person, null) }, shape = RoundedCornerShape(14.dp))
             OutlinedTextField(value = opponentName, onValueChange = onOpponentName, modifier = Modifier.fillMaxWidth(), label = { Text("Opponent's name (required)") }, singleLine = true, leadingIcon = { Icon(Icons.Default.Group, null) }, shape = RoundedCornerShape(14.dp))
             if (error.isNotBlank()) Text(error, color = Color(0xFFB3261E), fontWeight = FontWeight.SemiBold)
-            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF0DB)), shape = RoundedCornerShape(18.dp)) {
+            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF302722)), shape = RoundedCornerShape(18.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     Text("GAME RULES", color = Ink, fontWeight = FontWeight.ExtraBold)
                     Spacer(Modifier.height(6.dp))
@@ -458,7 +1207,7 @@ private fun ScoreScreen(player: String, opponent: String, playerScore: Int, oppo
 }
 @Composable
 private fun ScorePanel(name: String, score: Int, color: Color, modifier: Modifier = Modifier) {
-    Card(modifier, colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(24.dp)) {
+    Card(modifier, colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(24.dp)) {
         Column(Modifier.fillMaxWidth().padding(vertical = 22.dp, horizontal = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Box(Modifier.size(12.dp).clip(CircleShape).background(color))
             Spacer(Modifier.height(9.dp))
@@ -474,7 +1223,7 @@ private fun MatchRecapScreen(record: MatchRecord, totalXp: Int, onHome: () -> Un
     Column(Modifier.fillMaxSize()) {
         AppHeader("Final buzzer", "Championship complete")
         Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF0DB)), shape = RoundedCornerShape(24.dp)) {
+            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF302722)), shape = RoundedCornerShape(24.dp)) {
                 Column(Modifier.fillMaxWidth().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.EmojiEvents, null, tint = Orange, modifier = Modifier.size(54.dp))
                     Spacer(Modifier.height(8.dp))
@@ -487,7 +1236,7 @@ private fun MatchRecapScreen(record: MatchRecord, totalXp: Int, onHome: () -> Un
                 StatCard("MATCH XP", "+${record.xp}", Modifier.weight(1f))
                 StatCard("TOTAL XP", totalXp.toString(), Modifier.weight(1f))
             }
-            Card(colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(18.dp)) {
+            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(18.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     Text("MATCH RECAP", fontWeight = FontWeight.ExtraBold, color = Ink)
                     Spacer(Modifier.height(7.dp))
@@ -503,7 +1252,7 @@ private fun MatchRecapScreen(record: MatchRecord, totalXp: Int, onHome: () -> Un
 @Composable
 private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
     LazyColumn(Modifier.fillMaxSize()) {
-        item { AppHeader("Your career", "Progress built one session at a time.") }
+        item { AppHeader(save.playerName.takeIf { it.isNotBlank() }?.let { "$it · Development" } ?: "Player development", "RECORDED WORK  /  MEASURABLE PROGRESS") }
         item {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -514,13 +1263,117 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                     StatCard("CURRENT STREAK", save.currentStreak.toString(), Modifier.weight(1f))
                     StatCard("LONGEST STREAK", save.longestStreak.toString(), Modifier.weight(1f))
                 }
-                Text("MATCH HISTORY", color = Ink, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                Text("PLAYER DEVELOPMENT", color = Ink, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                val recorded = save.drillResults.orEmpty()
+                if (recorded.isEmpty()) {
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124))) {
+                        Column(Modifier.padding(18.dp)) {
+                            Text("YOUR BASELINE STARTS HERE", color = Orange, fontWeight = FontWeight.Bold)
+                            Spacer(Modifier.height(6.dp))
+                            Text("Complete a drill and record attempts to start building a real performance history. XP alone is not a skill rating.", color = Muted, fontSize = 13.sp)
+                        }
+                    }
+                } else {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        StatCard("RECORDED DRILLS", recorded.size.toString(), Modifier.weight(1f))
+                        StatCard("TOTAL ATTEMPTS", recorded.sumOf { it.attempted }.toString(), Modifier.weight(1f))
+                    }
+                    CourtSectionTitle("01 /", "TRAINING RECORD")
+                    val validResults = recorded.filter { it.attempted > 0 && it.completed >= 0 && it.completed <= it.attempted }
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        StatCard("TRAINING DAYS", validResults.map { it.date }.distinct().size.toString(), Modifier.weight(1f))
+                        StatCard("DRILLS PRACTICED", validResults.map { it.drillId }.distinct().size.toString(), Modifier.weight(1f))
+                    }
+                    Text("Training days and drill variety measure activity, not skill.", color = Muted, fontSize = 12.sp)
+                    CourtSectionTitle("02 /", "SKILL BREAKDOWN")
+                    val categories = listOf("Shooting", "Ball Handling", "Finishing", "Defense", "Rebounding", "Passing")
+                    categories.forEach { category ->
+                        val results = recorded.filter { result ->
+                            drills.any { it.id == result.drillId && it.category == category }
+                        }
+                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(18.dp)) {
+                            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(category.uppercase(), color = Ink, fontWeight = FontWeight.ExtraBold, modifier = Modifier.weight(1f))
+                                    Text("${results.size} SESSIONS", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+                                if (results.isEmpty()) {
+                                    Text("No recorded results yet", color = Muted, fontSize = 12.sp)
+                                } else {
+                                    val attempts = results.sumOf { it.attempted }
+                                    val successful = results.sumOf { it.completed }
+                                    Text("$successful successful / $attempts attempts", color = Ink, fontWeight = FontWeight.SemiBold)
+                                    if (attempts > 0) {
+                                        LinearProgressIndicator(
+                                            progress = { (successful.toFloat() / attempts).coerceIn(0f, 1f) },
+                                            modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
+                                            color = Orange, trackColor = CourtLight
+                                        )
+                                        Text("${successful * 100 / attempts}% recorded success rate · not a skill rating", color = Muted, fontSize = 12.sp)
+                                    }
+                                    val best = results.maxByOrNull { it.completed }
+                                    if (best != null) {
+                                        val drillName = drills.firstOrNull { it.id == best.drillId }?.title ?: category
+                                        Text("Best recorded: ${best.completed} / ${best.attempted} · $drillName", color = Muted, fontSize = 12.sp)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    CourtSectionTitle("03 /", "SAME-DRILL TRENDS")
+                    val distinctDrills = recorded.map { it.drillId }.distinct()
+                    distinctDrills.forEach { id ->
+                        val title = drills.firstOrNull { it.id == id }?.title ?: id
+                        val trend = DrillTrends.calculate(id, recorded)
+                        val validForDrill = recorded.filter { it.drillId == id && it.attempted > 0 && it.completed in 0..it.attempted }
+                        val personalBest = validForDrill.maxByOrNull { it.completed }
+                        val sampleAttempts = validForDrill.sumOf { it.attempted }
+                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(16.dp)) {
+                            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(title, color = Ink, fontWeight = FontWeight.Bold)
+                                Text("${validForDrill.size} VALID SESSIONS · $sampleAttempts ATTEMPTS", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                if (personalBest != null) {
+                                    Text("PERSONAL RECORD · ${personalBest.completed} SUCCESSFUL", color = CourtGreen, fontWeight = FontWeight.ExtraBold, fontSize = 13.sp)
+                                    Text("${personalBest.attempted} attempts · ${personalBest.date}", color = Muted, fontSize = 12.sp)
+                                }
+                                if (trend == null) {
+                                    Text("Record this drill again to establish a trend.", color = Muted, fontSize = 12.sp)
+                                } else {
+                                    val firstPct = (trend.firstRate * 100).toInt()
+                                    val latestPct = (trend.latestRate * 100).toInt()
+                                    val delta = trend.changePoints
+                                    val direction = when {
+                                        delta > 0.00001 -> "INCREASE"
+                                        delta < -0.00001 -> "DECREASE"
+                                        else -> "NO CHANGE"
+                                    }
+                                    Text("$firstPct% → $latestPct% · $direction", color = Orange, fontWeight = FontWeight.Bold)
+                                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Text("FIRST", color = Muted, fontSize = 10.sp, modifier = Modifier.width(48.dp))
+                                        LinearProgressIndicator(progress = { trend.firstRate.toFloat().coerceIn(0f, 1f) }, modifier = Modifier.weight(1f).height(8.dp).clip(CircleShape), color = Muted, trackColor = CourtLight)
+                                        Text("$firstPct%", color = Ink, fontSize = 12.sp)
+                                    }
+                                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Text("LATEST", color = Muted, fontSize = 10.sp, modifier = Modifier.width(48.dp))
+                                        LinearProgressIndicator(progress = { trend.latestRate.toFloat().coerceIn(0f, 1f) }, modifier = Modifier.weight(1f).height(8.dp).clip(CircleShape), color = CourtGreen, trackColor = CourtLight)
+                                        Text("$latestPct%", color = Ink, fontSize = 12.sp)
+                                    }
+
+                                    Text("${trend.sessions} recorded sessions · ${"%.1f".format(kotlin.math.abs(delta))} percentage-point difference", color = Muted, fontSize = 12.sp)
+                                }
+                            }
+                        }
+                    }
+                    Text("Trends compare the earliest and latest valid session for the same drill. Results may reflect changing conditions or small samples; they do not establish a skill rating.", color = Muted, fontSize = 12.sp)
+                    Text("Different drills have different difficulty and targets. These totals are descriptive; compare the same drill over time before drawing improvement conclusions.", color = Muted, fontSize = 12.sp)
+                }
+                CourtSectionTitle("04 /", "MATCH HISTORY")
                 if (save.matches.isEmpty()) {
-                    Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124))) {
                         Text("Your championship results will show up here after your first game.", Modifier.padding(18.dp), color = Muted)
                     }
                 } else save.matches.forEach { m ->
-                    Card(colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(16.dp)) {
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(16.dp)) {
                         Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
                                 Text("${m.player} vs ${m.opponent}", color = Ink, fontWeight = FontWeight.Bold)
@@ -545,7 +1398,7 @@ private fun SettingsScreen(difficulty: String, onDifficulty: (String) -> Unit, o
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text("DIFFICULTY LEVEL", fontWeight = FontWeight.ExtraBold, color = Ink)
             listOf("Beginner", "Intermediate", "Advanced", "Expert", "Elite").forEach { level ->
-                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(if (level == difficulty) CourtLight else Color.White).clickable { onDifficulty(level) }.padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(if (level == difficulty) CourtLight else Color(0xFF212124)).clickable { onDifficulty(level) }.padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(level, fontWeight = FontWeight.Bold, color = Ink)
                         Text(difficultyDescription(level), color = Muted, fontSize = 12.sp)
