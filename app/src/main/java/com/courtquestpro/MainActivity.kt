@@ -435,26 +435,64 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                     }
                 }
                 CourtSectionTitle("01 /", "TODAY’S TRAINING")
-                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1D21)), shape = RoundedCornerShape(22.dp)) {
-                    Column(Modifier.padding(18.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f)) {
-                                Text("TODAY'S TRAINING", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                                Text("$done / 6 drills", fontSize = 29.sp, fontWeight = FontWeight.Black, color = Ink)
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C20)),
+                    shape = RoundedCornerShape(26.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(22.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.Top) {
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text("DAILY SESSION", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.4.sp)
+                                Text(
+                                    if (done >= 6) "Session complete" else if (resumable > 0) "Pick up where you left off" else "Build your game today",
+                                    color = Ink, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 29.sp
+                                )
+                                Text(
+                                    if (done >= 6) "All six drills finished" else "${6 - done} drills remaining",
+                                    color = Muted, fontSize = 13.sp
+                                )
                             }
-                            Box(Modifier.size(56.dp).clip(CircleShape).background(CourtLight), contentAlignment = Alignment.Center) {
-                                Text("${(progress * 100).toInt()}%", color = Orange, fontWeight = FontWeight.ExtraBold)
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text("$done", color = Ink, fontSize = 38.sp, fontWeight = FontWeight.Black)
+                                Text("OF 6", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                             }
                         }
-                        Spacer(Modifier.height(12.dp))
-                        LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth().height(8.dp).clip(CircleShape), color = CourtGreen, trackColor = CourtLight)
-                        Spacer(Modifier.height(16.dp))
-                        Button(onClick = onSpin, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(16.dp)) {
-                            Icon(Icons.Default.Casino, null); Spacer(Modifier.width(8.dp))
-                            Text(if (done == 6) "TRAINING COMPLETE · PLAY 1-ON-1" else if (resumable > 0) "RESUME TRAINING" else "START NEXT DRILL", fontWeight = FontWeight.Bold)
+                        LinearProgressIndicator(
+                            progress = { progress },
+                            modifier = Modifier.fillMaxWidth().height(7.dp).clip(CircleShape),
+                            color = CourtGreen, trackColor = Color(0xFF40332E)
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            repeat(6) { index ->
+                                Box(
+                                    Modifier.weight(1f).height(5.dp).clip(CircleShape)
+                                        .background(if (index < done) CourtGreen else Color(0xFF40332E))
+                                )
+                            }
                         }
-                        Spacer(Modifier.height(8.dp))
-                        Text(if (resumable > 0) "$resumable unfinished session(s) ready to resume" else "6 skill sessions · your progress is saved automatically", color = Muted, fontSize = 12.sp)
+                        Button(
+                            onClick = onSpin,
+                            modifier = Modifier.fillMaxWidth().height(58.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp)
+                        ) {
+                            Icon(if (done >= 6) Icons.Default.EmojiEvents else Icons.Default.PlayArrow, contentDescription = null)
+                            Spacer(Modifier.width(9.dp))
+                            Text(
+                                if (done >= 6) "PLAY 1-ON-1" else if (resumable > 0) "RESUME SESSION" else "START TRAINING",
+                                fontWeight = FontWeight.ExtraBold, letterSpacing = 0.4.sp
+                            )
+                        }
+                        Text(
+                            if (done >= 6) "Today's workout is recorded."
+                            else if (resumable > 0) "$resumable drill session(s) ready to resume · progress saved"
+                            else "Six basketball skill drills · progress saved automatically",
+                            color = Muted, fontSize = 12.sp
+                        )
                     }
                 }
                 CourtSectionTitle("02 /", "YOUR WEEK")
