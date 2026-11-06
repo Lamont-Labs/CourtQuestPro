@@ -9,6 +9,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -42,6 +43,15 @@ private val CourtLight = Color(0xFF322722)
 private val Ink = Color(0xFFF7F3EF)
 private val Orange = Color(0xFFFFA35C)
 private val Muted = Color(0xFFB7ACA6)
+
+// Glass-inspired surface treatment: translucent gradients and restrained highlights.
+// No real-time background blur is used, keeping scrolling predictable on older devices.
+private val GlassFill = Brush.linearGradient(listOf(
+    Color(0xD9363033), Color(0xE91D1E23), Color(0xF015171B)
+))
+private val GlassEdge = Brush.linearGradient(listOf(
+    Color(0x8CFFB080), Color(0x354D4345), Color(0x1F89858B)
+))
 
 data class Drill(
     val id: String, val category: String, val title: String, val level: String,
@@ -467,11 +477,10 @@ private fun CourtOnboardingChoice(
 ) {
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(19.dp))
+            .background(if (selected) Brush.linearGradient(listOf(Color(0xFF513329), Color(0xFF252329))) else GlassFill),
         shape = RoundedCornerShape(19.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (selected) Color(0xFF3B2A23) else Color(0xFF242428)
-        ),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         border = androidx.compose.foundation.BorderStroke(
             if (selected) 2.dp else 1.dp,
             if (selected) CourtGreen else Color(0xFF3B3738)
@@ -769,9 +778,10 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                         letterSpacing = 0.8.sp)
                 }
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C20)),
+                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                     shape = RoundedCornerShape(26.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(26.dp))
+                        .background(GlassFill).border(1.dp, GlassEdge, RoundedCornerShape(26.dp))
                 ) {
                     Column(
                         Modifier.fillMaxWidth().padding(22.dp),
@@ -977,8 +987,13 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
 
 @Composable
 private fun StatCard(label: String, value: String, modifier: Modifier = Modifier) {
-    Card(modifier, colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(16.dp)) {
-        Column(Modifier.padding(vertical = 13.dp, horizontal = 10.dp)) {
+    Card(
+        modifier = modifier.clip(RoundedCornerShape(18.dp))
+            .background(GlassFill).border(1.dp, GlassEdge, RoundedCornerShape(18.dp)),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        shape = RoundedCornerShape(18.dp)
+    ) {
+        Column(Modifier.padding(vertical = 16.dp, horizontal = 14.dp)) {
             Text(label, color = Muted, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             Spacer(Modifier.height(5.dp))
             Text(value, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
