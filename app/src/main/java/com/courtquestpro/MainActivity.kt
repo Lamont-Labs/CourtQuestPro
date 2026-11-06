@@ -311,16 +311,19 @@ private fun makeDailySlots(level: String, weeklyPlan: String = "Balanced"): List
     val focus = weeklyPlan.takeIf { it in categories }
     val levels = listOf("Beginner", "Intermediate", "Advanced", "Expert", "Elite")
     val requestedIndex = levels.indexOf(level).coerceAtLeast(0)
+    val dayIndex = LocalDate.now().dayOfYear
     val chosen = categories.map { category ->
         val options = drills.filter { it.category == category }
-        val preferred = if (category == focus) {
-            // For the focus skill, prefer the next available challenge tier.
-            options.filter { levels.indexOf(it.level) > requestedIndex }
-                .minByOrNull { levels.indexOf(it.level) }
-        } else null
-        preferred ?: options.filter { it.level == level }.randomOrNull()
-            ?: options.minByOrNull { kotlin.math.abs(levels.indexOf(it.level) - requestedIndex) }
-            ?: error("No drills configured for $category")
+        // A focus prioritizes the selected difficulty; other categories
+        // use a lighter tier when available. Never escalate above the setting.
+        val targetIndex = if (focus == null || category == focus) requestedIndex
+            else (requestedIndex - 1).coerceAtLeast(0)
+        val eligible = options.filter { levels.indexOf(it.level) in 0..targetIndex }
+        val closest = eligible.maxOfOrNull { levels.indexOf(it.level) }
+        val candidates = eligible.filter { levels.indexOf(it.level) == closest }
+        candidates.ifEmpty { options.filter { it.level == "Beginner" } }
+            .ifEmpty { options }
+            .let { it[dayIndex % it.size] }
     }
     return chosen.shuffled().mapIndexed { i, drill ->
         Slot("${LocalDate.now()}_${i}_${Random.nextInt(100000)}", drill.id)
