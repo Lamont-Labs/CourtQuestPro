@@ -120,7 +120,17 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: CourtQuestPro-${{ steps.package.outputs.version }}-build-${{ github.run_number }}
-          path: dist/
+          # Explicit allowlist: exclude Gradle logs and arbitrary build outputs.
+          path: |
+            dist/CourtQuestPro-*.apk
+            dist/SHA256SUMS.txt
+            dist/apk-manifest.json
+            dist/signature-verification.txt
+            dist/zip-alignment.txt
+            dist/apk-badging.txt
+            dist/RELEASE_NOTES.md
+            dist/lint-results-debug.html
+            dist/lint-results-debug.xml
           if-no-files-found: error
           retention-days: 90
 
