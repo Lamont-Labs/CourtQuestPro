@@ -13,7 +13,12 @@ android {
         applicationId = "com.courtquestpro"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
+        // Monotonic for CI builds; local builds retain the original version.
+        // Set only by the release workflow, never from an untrusted PR.
+        versionCode = providers.environmentVariable("COURTQUEST_VERSION_CODE")
+            .map { it.toInt() }
+            .orElse(1)
+            .get()
         versionName = "1.0"
     }
 
