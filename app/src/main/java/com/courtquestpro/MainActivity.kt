@@ -807,30 +807,59 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previo
                         }
                         if (best != null) Text("PERSONAL BEST  ·  ${best.completed} successful / ${best.attempted} attempts", color = Muted, fontSize = 12.sp)
                         Text(measurement.description + " Each successful action also counts as an attempt. Use missed / other for attempts without success. Progress is saved as you go.", color = Muted, fontSize = 12.sp)
-                        Text("TARGET CHECK · ${requiredCount ?: 0} successful actions minimum", color = if (meetsCount) Orange else Muted, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(checked = targetConfirmed, onCheckedChange = { targetConfirmed = it; saveDraft() })
-                            Text("I completed the full written target, including required sides, intervals, rest, and safe technique.", color = Ink, fontSize = 12.sp, modifier = Modifier.weight(1f))
-                        }
-                        Text(
-                            when {
-                                complete -> "THIS DRILL IS ALREADY COMPLETE"
-                                meetsCount && targetConfirmed -> "READY TO FINISH · SAVE YOUR RECORDED RESULTS"
-                                meetsCount -> "TARGET REACHED · CONFIRM THE FULL DRILL TO FINISH"
-                                else -> "KEEP WORKING · REACH THE TARGET TO UNLOCK COMPLETION"
-                            },
-                            color = if (!complete && meetsCount && targetConfirmed) CourtGreen else Muted,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
                     }
                 }
                 DrillSessionTimer(drill.minutes, timerSeconds) { timerSeconds = it; saveDraft() }
                 Button(onClick = onVideo, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(15.dp)) {
                     Icon(Icons.Default.PlayCircle, null); Spacer(Modifier.width(8.dp)); Text("WATCH VIDEO DEMONSTRATION")
                 }
-                Button(onClick = { onComplete(completedCount, attemptedCount) }, enabled = !complete && meetsCount && targetConfirmed, modifier = Modifier.fillMaxWidth().height(56.dp), colors = ButtonDefaults.buttonColors(containerColor = if (complete) Muted else CourtGreen), shape = RoundedCornerShape(15.dp)) {
-                    Icon(Icons.Default.CheckCircle, null); Spacer(Modifier.width(8.dp)); Text(if (complete) "SLOT COMPLETED" else "SAVE RESULTS & COMPLETE · +50 XP", fontWeight = FontWeight.Bold)
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242022)),
+                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
+                        Text("03 / FINISH YOUR DRILL", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.2.sp)
+                        Text(
+                            when {
+                                complete -> "Drill recorded"
+                                !meetsCount -> "Reach your performance target"
+                                !targetConfirmed -> "Confirm the full drill"
+                                else -> "Ready to save"
+                            },
+                            color = Ink, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold
+                        )
+                        Text(
+                            when {
+                                complete -> "Your completed results have been recorded."
+                                !meetsCount -> "Record at least ${requiredCount ?: 0} successful actions to unlock completion."
+                                !targetConfirmed -> "Your recorded target is met. Confirm all required sides, intervals, rest, and safe technique."
+                                else -> "Your target and technique check are complete. Save your results to finish."
+                            },
+                            color = Muted, fontSize = 13.sp, lineHeight = 19.sp
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = targetConfirmed,
+                                onCheckedChange = { targetConfirmed = it; saveDraft() },
+                                enabled = !complete
+                            )
+                            Text(
+                                "I completed the full written target with safe technique.",
+                                color = Ink, fontSize = 13.sp, modifier = Modifier.weight(1f)
+                            )
+                        }
+                        Button(
+                            onClick = { onComplete(completedCount, attemptedCount) },
+                            enabled = !complete && meetsCount && targetConfirmed,
+                            modifier = Modifier.fillMaxWidth().height(58.dp),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Icon(Icons.Default.CheckCircle, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(if (complete) "DRILL COMPLETE" else "SAVE RESULTS · +50 XP", fontWeight = FontWeight.ExtraBold)
+                        }
+                    }
                 }
                 OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text("Back to dashboard") }
             }
