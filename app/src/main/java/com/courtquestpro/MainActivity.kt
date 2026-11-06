@@ -708,20 +708,40 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previo
     }
     val meetsCount = DrillTargets.eligible(drill.id, completedCount, attemptedCount)
     LazyColumn(Modifier.fillMaxSize()) {
-        item { AppHeader("Training / $slotNumber of 6", drill.category.uppercase()) }
+        item { AppHeader("Training session", "FOCUS / ${drill.category.uppercase()}") }
         item {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(24.dp)) {
-                    Column(Modifier.padding(20.dp)) {
-                        Text(drill.category.uppercase(), color = CourtGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
-                        Spacer(Modifier.height(7.dp))
-                        Text(drill.title, fontSize = 29.sp, fontWeight = FontWeight.Black, color = Ink, lineHeight = 33.sp)
-                        Spacer(Modifier.height(12.dp))
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242022)),
+                    shape = RoundedCornerShape(26.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(22.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("DRILL ${slotNumber.coerceIn(1, 6).toString().padStart(2, '0')} / 06",
+                                color = Orange, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold,
+                                letterSpacing = 1.3.sp, modifier = Modifier.weight(1f))
+                            Text(drill.category.uppercase(), color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Text(drill.title, fontSize = 30.sp, fontWeight = FontWeight.Black, color = Ink, lineHeight = 35.sp)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Pill("${drill.minutes} MIN")
                             Pill(drill.level.uppercase())
                         }
-                        Spacer(Modifier.height(18.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                            repeat(6) { index ->
+                                Box(Modifier.weight(1f).height(5.dp).clip(CircleShape)
+                                    .background(if (index < slotNumber.coerceIn(1, 6)) CourtGreen else Color(0xFF49352E)))
+                            }
+                        }
+                        Text("SESSION POSITION · DRILL ${slotNumber.coerceIn(1, 6)} OF 6",
+                            color = Muted, fontSize = 11.sp)
+                    }
+                }
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(24.dp)) {
+                    Column(Modifier.padding(20.dp)) {
+                        Text("01 / DRILL GUIDE", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.2.sp)
+                        Spacer(Modifier.height(14.dp))
                         Text("HOW TO DO IT", fontWeight = FontWeight.ExtraBold, color = Ink)
                         Spacer(Modifier.height(7.dp))
                         Text(drill.instructions, color = Muted, lineHeight = 22.sp)
