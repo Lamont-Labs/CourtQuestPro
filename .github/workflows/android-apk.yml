@@ -53,6 +53,8 @@ jobs:
             echo "::error::Incomplete signing secret set; refusing to build."
             exit 1
           fi
+          echo "::add-mask::$COURTQUEST_STORE_PASSWORD_SECRET"
+          echo "::add-mask::$COURTQUEST_KEY_PASSWORD_SECRET"
           python3 - <<'PY'
           import base64, os, pathlib
           target=pathlib.Path(os.environ["RUNNER_TEMP"])/"courtquest-preserved.keystore"
@@ -69,15 +71,15 @@ jobs:
                   print(value,file=out)
                   print("COURTQUEST_VALUE_END",file=out)
           PY
-          echo "::add-mask::$COURTQUEST_STORE_PASSWORD_SECRET"
-          echo "::add-mask::$COURTQUEST_KEY_PASSWORD_SECRET"
           # Compare public certificates, not key bytes. Fail closed on mismatch.
           keytool -exportcert -keystore signing/debug.keystore -alias androiddebugkey -storepass android -file "${RUNNER_TEMP}/courtquest-original.der" >/dev/null
           keytool -exportcert -keystore "${RUNNER_TEMP}/courtquest-preserved.keystore" -alias "$COURTQUEST_KEY_ALIAS_SECRET" -storepass "$COURTQUEST_STORE_PASSWORD_SECRET" -file "${RUNNER_TEMP}/courtquest-candidate.der" >/dev/null
           cmp -s "${RUNNER_TEMP}/courtquest-original.der" "${RUNNER_TEMP}/courtquest-candidate.der" || { echo "::error::Signing certificate mismatch; refusing to build."; exit 1; }
 
       - name: Compile and run Android lint
+        shell: bash
         run: |
+          set -euo pipefail
           mkdir -p dist
           chmod +x gradlew
           ./gradlew --no-daemon --console=plain :app:assembleDebug :app:lintDebug 2>&1 | tee dist/gradle-build.txt
