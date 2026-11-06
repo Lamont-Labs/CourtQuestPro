@@ -78,7 +78,7 @@ jobs:
           test -s app/build/outputs/apk/debug/app-debug.apk
           "${ANDROID_HOME}/build-tools/35.0.1/aapt" dump badging app/build/outputs/apk/debug/app-debug.apk | grep -F "package: name='com.courtquestpro'"
       - name: Boot emulator and capture first launch
-        uses: reactivecircus/android-emulator-runner@1dcd18e484fb70b8d54f68c07a9516e8fd2b6f8 # v2.34.0
+        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
         with:
           api-level: 35
           arch: x86_64
