@@ -137,7 +137,13 @@ jobs:
             echo "::error::Release tag already exists; refusing to replace APK assets."
             exit 1
           fi
-          gh release create "$tag" dist/* \
+          # Publish only verified APK and its checksums; never upload build logs
+          # or unreviewed files from dist/ to a release.
+          apk="dist/CourtQuestPro-${APP_VERSION}.apk"
+          test -s "$apk"
+          test -s dist/SHA256SUMS.txt
+          (cd dist && sha256sum -c SHA256SUMS.txt)
+          gh release create "$tag" "$apk" dist/SHA256SUMS.txt \
             --target "$GITHUB_SHA" \
             --title "$title" \
             --notes-file dist/RELEASE_NOTES.md \
