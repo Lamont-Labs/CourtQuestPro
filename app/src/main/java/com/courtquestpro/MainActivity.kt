@@ -448,6 +448,9 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                             "Finishing" -> "Focus on safe footwork and finishes at the rim."
                             else -> "Build a balanced foundation across basketball skills."
                         }, color = Muted, fontSize = 12.sp)
+                        val plannedDays = save.trainingDays?.filter { it in 1..7 }?.distinct() ?: listOf(1, 3, 5)
+                        val todayNumber = LocalDate.now().dayOfWeek.value
+                        val todayActivity = save.weeklyActivities.orEmpty().firstOrNull { it.startsWith("$todayNumber:") }?.substringAfter(":")
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("WEEKLY TRAINING RHYTHM", color = Ink, fontWeight = FontWeight.ExtraBold, modifier = Modifier.weight(1f))
                             TextButton(onClick = { showWeeklyEditor = !showWeeklyEditor }) {
@@ -455,7 +458,6 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                             }
                         }
                         if (showWeeklyEditor) {
-                        val plannedDays = save.trainingDays?.filter { it in 1..7 }?.distinct() ?: listOf(1, 3, 5)
                         Text("SELECT YOUR TRAINING DAYS", color = Muted, fontSize = 11.sp)
                         listOf(listOf("MON", "TUE", "WED", "THU"), listOf("FRI", "SAT", "SUN")).forEachIndexed { rowIndex, labels ->
                             Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
@@ -465,8 +467,6 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                                 }
                             }
                         }
-                        val todayNumber = LocalDate.now().dayOfWeek.value
-                        val todayActivity = save.weeklyActivities.orEmpty().firstOrNull { it.startsWith("$todayNumber:") }?.substringAfter(":")
                         Text("TEAM PRACTICES & GAMES", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         listOf("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN").forEachIndexed { index, label ->
                             val day = index + 1
