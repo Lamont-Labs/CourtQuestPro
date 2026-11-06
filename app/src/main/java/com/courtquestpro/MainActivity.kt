@@ -434,7 +434,30 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                         }
                     }
                 }
-                CourtSectionTitle("WEEK /", "TRAINING CHALLENGE")
+                CourtSectionTitle("01 /", "TODAY’S TRAINING")
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1D21)), shape = RoundedCornerShape(22.dp)) {
+                    Column(Modifier.padding(18.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text("TODAY'S TRAINING", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                                Text("$done / 6 drills", fontSize = 29.sp, fontWeight = FontWeight.Black, color = Ink)
+                            }
+                            Box(Modifier.size(56.dp).clip(CircleShape).background(CourtLight), contentAlignment = Alignment.Center) {
+                                Text("${(progress * 100).toInt()}%", color = Orange, fontWeight = FontWeight.ExtraBold)
+                            }
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth().height(8.dp).clip(CircleShape), color = CourtGreen, trackColor = CourtLight)
+                        Spacer(Modifier.height(16.dp))
+                        Button(onClick = onSpin, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(16.dp)) {
+                            Icon(Icons.Default.Casino, null); Spacer(Modifier.width(8.dp))
+                            Text(if (done == 6) "TRAINING COMPLETE · PLAY 1-ON-1" else if (resumable > 0) "RESUME TRAINING" else "START NEXT DRILL", fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        Text(if (resumable > 0) "$resumable unfinished session(s) ready to resume" else "6 skill sessions · your progress is saved automatically", color = Muted, fontSize = 12.sp)
+                    }
+                }
+                CourtSectionTitle("02 /", "YOUR WEEK")
                 val selectedPlan = save.weeklyPlan.takeIf { it in listOf("Balanced", "Shooting", "Ball Handling", "Finishing") } ?: "Balanced"
                 val weekStart = LocalDate.now().with(java.time.DayOfWeek.MONDAY)
                 val weekEnd = weekStart.plusDays(6)
@@ -539,30 +562,7 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                         Text("Resets each Monday · Counts recorded training days, not skill level.", color = Muted, fontSize = 11.sp)
                     }
                 }
-                CourtSectionTitle("01 /", "DAILY WORKOUT")
-                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1D21)), shape = RoundedCornerShape(22.dp)) {
-                    Column(Modifier.padding(18.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f)) {
-                                Text("TODAY'S TRAINING", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                                Text("$done / 6 drills", fontSize = 29.sp, fontWeight = FontWeight.Black, color = Ink)
-                            }
-                            Box(Modifier.size(56.dp).clip(CircleShape).background(CourtLight), contentAlignment = Alignment.Center) {
-                                Text("${(progress * 100).toInt()}%", color = Orange, fontWeight = FontWeight.ExtraBold)
-                            }
-                        }
-                        Spacer(Modifier.height(12.dp))
-                        LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth().height(8.dp).clip(CircleShape), color = CourtGreen, trackColor = CourtLight)
-                        Spacer(Modifier.height(16.dp))
-                        Button(onClick = onSpin, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(16.dp)) {
-                            Icon(Icons.Default.Casino, null); Spacer(Modifier.width(8.dp))
-                            Text(if (done == 6) "TRAINING COMPLETE · PLAY 1-ON-1" else if (resumable > 0) "RESUME TRAINING" else "START NEXT DRILL", fontWeight = FontWeight.Bold)
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        Text(if (resumable > 0) "$resumable unfinished session(s) ready to resume" else "6 skill sessions · your progress is saved automatically", color = Muted, fontSize = 12.sp)
-                    }
-                }
-                CourtSectionTitle("02 /", "GAME DAY")
+                CourtSectionTitle("03 /", "GAME DAY")
                 Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF38251F)), shape = RoundedCornerShape(22.dp)) {
                     Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(50.dp).clip(CircleShape).background(Orange), contentAlignment = Alignment.Center) {
@@ -576,7 +576,7 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                         IconButton(onClick = onStartChamp) { Icon(Icons.Default.ChevronRight, null, tint = Ink) }
                     }
                 }
-                CourtSectionTitle("03 /", "SKILL DEVELOPMENT")
+                CourtSectionTitle("04 /", "SKILL DEVELOPMENT")
                 val categories = listOf("Shooting" to Icons.Default.SportsBasketball, "Ball Handling" to Icons.Default.Bolt, "Finishing" to Icons.Default.Sports, "Defense" to Icons.Default.Shield, "Rebounding" to Icons.Default.ArrowUpward, "Passing" to Icons.Default.SwapHoriz)
                 categories.chunked(2).forEach { pair ->
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
