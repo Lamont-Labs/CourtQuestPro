@@ -765,19 +765,45 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previo
                             modifier = Modifier.fillMaxWidth().height(9.dp).clip(CircleShape),
                             color = CourtGreen, trackColor = CourtLight
                         )
-                        Text(
-                            "${measurement.successLabel} / ${measurement.attemptLabel}",
-                            color = Ink, fontWeight = FontWeight.Bold
-                        )
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            OutlinedButton(onClick = { if (completedCount > 0) { completedCount--; attemptedCount--; saveDraft() } }) { Text("−") }
-                            Text("$completedCount", color = Ink, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                            Button(onClick = { completedCount++; attemptedCount++; saveDraft() }) { Text("+ " + measurement.successButton) }
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text(measurement.successLabel.uppercase(), color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("$completedCount", color = Ink, fontSize = 34.sp, fontWeight = FontWeight.Black)
+                            }
+                            Column(Modifier.weight(1f)) {
+                                Text(measurement.attemptLabel.uppercase(), color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("$attemptedCount", color = Ink, fontSize = 34.sp, fontWeight = FontWeight.Black)
+                            }
+                        }
+                        Button(
+                            onClick = { completedCount++; attemptedCount++; saveDraft() },
+                            modifier = Modifier.fillMaxWidth().height(62.dp),
+                            shape = RoundedCornerShape(17.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp)
+                        ) {
+                            Icon(Icons.Default.CheckCircle, contentDescription = null)
+                            Spacer(Modifier.width(9.dp))
+                            Text("+ " + measurement.successButton, fontWeight = FontWeight.ExtraBold)
+                        }
+                        OutlinedButton(
+                            onClick = { attemptedCount++; saveDraft() },
+                            modifier = Modifier.fillMaxWidth().height(58.dp),
+                            shape = RoundedCornerShape(17.dp)
+                        ) {
+                            Icon(Icons.Default.AddCircleOutline, contentDescription = null)
+                            Spacer(Modifier.width(9.dp))
+                            Text("+ MISSED / OTHER ATTEMPT", fontWeight = FontWeight.Bold)
                         }
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            OutlinedButton(onClick = { if (attemptedCount > completedCount) { attemptedCount--; saveDraft() } }) { Text("−") }
-                            Text("$attemptedCount · ${measurement.attemptLabel}", color = Ink, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                            OutlinedButton(onClick = { attemptedCount++; saveDraft() }) { Text("+ MISSED / OTHER") }
+                            Text("CORRECT LAST ENTRY", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                            OutlinedButton(
+                                onClick = { if (completedCount > 0) { completedCount--; attemptedCount--; saveDraft() } },
+                                enabled = completedCount > 0
+                            ) { Text("− SUCCESS") }
+                            OutlinedButton(
+                                onClick = { if (attemptedCount > completedCount) { attemptedCount--; saveDraft() } },
+                                enabled = attemptedCount > completedCount
+                            ) { Text("− MISS") }
                         }
                         if (best != null) Text("PERSONAL BEST  ·  ${best.completed} successful / ${best.attempted} attempts", color = Muted, fontSize = 12.sp)
                         Text(measurement.description + " Each successful action also counts as an attempt. Use missed / other for attempts without success. Progress is saved as you go.", color = Muted, fontSize = 12.sp)
