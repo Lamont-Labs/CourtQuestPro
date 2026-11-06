@@ -756,7 +756,18 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                         }
                     }
                 }
-                CourtSectionTitle("01 /", "TODAY’S TRAINING")
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween) {
+                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text("01 / TODAY", color = Orange, fontSize = 10.sp,
+                            fontWeight = FontWeight.ExtraBold, letterSpacing = 1.2.sp)
+                        Text("Your training", color = Ink, fontSize = 22.sp,
+                            fontWeight = FontWeight.Black, lineHeight = 27.sp)
+                    }
+                    Text(if (done >= 6) "COMPLETED" else if (resumable > 0) "IN PROGRESS" else "READY",
+                        color = Orange, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = 0.8.sp)
+                }
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C20)),
                     shape = RoundedCornerShape(26.dp),
