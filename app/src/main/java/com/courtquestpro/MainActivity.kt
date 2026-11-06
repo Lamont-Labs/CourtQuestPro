@@ -555,7 +555,7 @@ private fun CourtOnboarding(
                                     fontWeight = FontWeight.Black, lineHeight = 25.sp)
                             }
                         }
-                        HorizontalDivider(color = Color(0xFF473936))
+                        Box(Modifier.fillMaxWidth().height(1.dp).background(Color(0xFF473936)))
                         Text("YOUR TRAINING. YOUR PROGRESS.", color = Ink, fontSize = 16.sp,
                             fontWeight = FontWeight.ExtraBold)
                         Text(
