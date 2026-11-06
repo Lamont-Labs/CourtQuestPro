@@ -1,0 +1,119 @@
+name: Premium visual refinement - capture baseline
+
+on:
+  workflow_dispatch:
+    inputs:
+      campaign_id:
+        description: 'Stable campaign identifier'
+        required: true
+        default: 'courtquest-premium-800'
+      phase:
+        description: 'Refinement category to capture'
+        required: true
+        type: choice
+        options:
+          - visual-identity
+          - layout-composition
+          - typography
+          - glass-depth
+          - motion-interactions
+          - consistency
+          - usability
+          - final-refinement
+      pass_number:
+        description: 'Pass number (1-100); only completed evidence is counted'
+        required: true
+        default: '1'
+      ref_to_test:
+        description: 'Existing branch or commit to inspect (never auto-modifies source)'
+        required: true
+        default: 'main'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: visual-capture-${{ inputs.campaign_id }}-${{ inputs.phase }}-${{ inputs.pass_number }}
+  cancel-in-progress: false
+
+jobs:
+  validate-input:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Validate campaign and pass
+        env:
+          CAMPAIGN: ${{ inputs.campaign_id }}
+          PHASE: ${{ inputs.phase }}
+          PASS: ${{ inputs.pass_number }}
+          REF: ${{ inputs.ref_to_test }}
+        run: |
+          set -euo pipefail
+          [[ "$CAMPAIGN" =~ ^[a-zA-Z0-9_-]{3,64}$ ]] || exit 1
+          [[ "$PASS" =~ ^([1-9]|[1-9][0-9]|100)$ ]] || exit 1
+          [[ "$REF" =~ ^[a-zA-Z0-9_./-]{1,120}$ ]] || exit 1
+          echo "Capturing $CAMPAIGN / $PHASE / $PASS from $REF"
+
+  android-visual-baseline:
+    needs: validate-input
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - name: Check out requested revision
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.ref_to_test }}
+          persist-credentials: false
+      - name: Set up Java 17
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Build and test APK
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew --no-daemon --console=plain :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          "${ANDROID_HOME}/build-tools/35.0.1/aapt" dump badging app/build/outputs/apk/debug/app-debug.apk | grep -F "package: name='com.courtquestpro'"
+      - name: Boot emulator and capture first launch
+        uses: reactivecircus/android-emulator-runner@1dcd18e484fb70b8d54f68c07a9516e8fd2b6f8 # v2.34.0
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: false
+          script: |
+            set -euo pipefail
+            mkdir -p visual-evidence
+            adb install -r app/build/outputs/apk/debug/app-debug.apk
+            adb shell am start -n com.courtquestpro/.MainActivity
+            sleep 8
+            adb shell screencap -p /sdcard/courtquest-first-launch.png
+            adb pull /sdcard/courtquest-first-launch.png visual-evidence/first-launch.png
+            adb shell dumpsys activity activities > visual-evidence/activity-state.txt
+      - name: Save immutable evidence and status
+        if: always()
+        env:
+          CAMPAIGN: ${{ inputs.campaign_id }}
+          PHASE: ${{ inputs.phase }}
+          PASS: ${{ inputs.pass_number }}
+          REF: ${{ inputs.ref_to_test }}
+        run: |
+          mkdir -p visual-evidence
+          printf 'campaign=%s\nphase=%s\npass=%s\nref=%s\nsha=%s\nrun=%s\n' "$CAMPAIGN" "$PHASE" "$PASS" "$REF" "$GITHUB_SHA" "$GITHUB_RUN_ID" > visual-evidence/manifest.txt
+          if [ -s visual-evidence/first-launch.png ]; then
+            sha256sum visual-evidence/first-launch.png >> visual-evidence/manifest.txt
+          fi
+      - name: Upload screenshot and test evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: visual-${{ inputs.campaign_id }}-${{ inputs.phase }}-pass-${{ inputs.pass_number }}
+          path: |
+            visual-evidence/
+            app/build/test-results/testDebugUnitTest/
+            app/build/reports/lint-results-debug.*
+          retention-days: 30
+          if-no-files-found: warn
