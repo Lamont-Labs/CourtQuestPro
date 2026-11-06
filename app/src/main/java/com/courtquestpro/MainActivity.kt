@@ -57,6 +57,7 @@ data class SaveState(
     var difficulty: String = "Intermediate",
     var weeklyPlan: String = "Balanced",
     var trainingDays: MutableList<Int>? = null,
+    var weeklyActivities: MutableList<String>? = null,
     var totalXp: Int = 0,
     var currentStreak: Int = 0,
     var longestStreak: Int = 0,
@@ -191,7 +192,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         onStartChamp = { screen = "champSetup" },
                         onCareer = { screen = "career" },
                         onSaveName = { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() },
-                        onWeeklyPlan = { plan -> save.weeklyPlan = plan; refresh() }, onTrainingDay = { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() }
+                        onWeeklyPlan = { plan -> save.weeklyPlan = plan; refresh() }, onTrainingDay = { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() }, onActivity = { day, kind -> save.weeklyActivities = updateWeeklyActivity(save.weeklyActivities, day, kind); refresh() }
                     )
                     "drill" -> {
                         val slot = save.slots.getOrNull(selectedSlot)
@@ -295,7 +296,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         },
                         onBack = { screen = "home" }
                     )
-                    "recap" -> recap?.let { MatchRecapScreen(it, save.totalXp, onHome = { screen = "home" }, onCareer = { screen = "career" }) } ?: HomeScreen(save, { screen = "home" }, { screen = "champSetup" }, { screen = "career" }, { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() }, { plan -> save.weeklyPlan = plan; refresh() }, { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() })
+                    "recap" -> recap?.let { MatchRecapScreen(it, save.totalXp, onHome = { screen = "home" }, onCareer = { screen = "career" }) } ?: HomeScreen(save, { screen = "home" }, { screen = "champSetup" }, { screen = "career" }, { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() }, { plan -> save.weeklyPlan = plan; refresh() }, { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() }, { day, kind -> save.weeklyActivities = updateWeeklyActivity(save.weeklyActivities, day, kind); refresh() })
                     "career" -> CareerScreen(save, onHome = { screen = "home" })
                     "settings" -> SettingsScreen(save.difficulty, onDifficulty = { save.difficulty = it; refresh() }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
@@ -305,6 +306,13 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             }
         }
     }
+}
+
+private fun updateWeeklyActivity(current: MutableList<String>?, day: Int, kind: String): MutableList<String> {
+    if (day !in 1..7 || kind !in listOf("Practice", "Game")) return current ?: mutableListOf()
+    val retained = current.orEmpty().filterNot { it.startsWith("$day:") }
+    val existing = current.orEmpty().any { it == "$day:$kind" }
+    return (retained + if (existing) emptyList() else listOf("$day:$kind")).toMutableList()
 }
 
 private fun toggleTrainingDay(current: MutableList<Int>?, day: Int): MutableList<Int> {
@@ -383,7 +391,7 @@ private fun CourtSectionTitle(number: String, title: String) {
 }
 
 @Composable
-private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> Unit, onCareer: () -> Unit, onSaveName: (String) -> Unit, onWeeklyPlan: (String) -> Unit, onTrainingDay: (Int) -> Unit) {
+private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> Unit, onCareer: () -> Unit, onSaveName: (String) -> Unit, onWeeklyPlan: (String) -> Unit, onTrainingDay: (Int) -> Unit, onActivity: (Int, String) -> Unit) {
     var newPlayerName by remember { mutableStateOf("") }
     val done = save.slots.count { it.complete }
     val resumable = save.slots.count { slot ->
@@ -450,11 +458,22 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                                 }
                             }
                         }
+                        val todayNumber = LocalDate.now().dayOfWeek.value
+                        val todayActivity = save.weeklyActivities.orEmpty().firstOrNull { it.startsWith("$todayNumber:") }?.substringAfter(":")
+                        Text("TODAY'S ORGANIZED BASKETBALL", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            listOf("Practice", "Game").forEach { kind ->
+                                FilterChip(selected = todayActivity == kind, onClick = { onActivity(todayNumber, kind) }, label = { Text(kind) })
+                            }
+                        }
+                        Text("Tap again to clear. Weekly activities repeat on the same weekday.", color = Muted, fontSize = 11.sp)
                         val scheduled = LocalDate.now().dayOfWeek.value in plannedDays
                         val recordedToday = save.drillResults.orEmpty().any { it.date == LocalDate.now().toString() && it.attempted > 0 && it.completed in 0..it.attempted }
                         Text(
                             when {
                                 recordedToday -> "Today recorded: training completed. Prioritize recovery."
+                                todayActivity == "Game" -> "Game day. Warm up, play, and allow recovery afterward."
+                                todayActivity == "Practice" -> "Team practice today. This can replace a separate skill session."
                                 scheduled -> "Today is a suggested training day. Start with a warm-up and work at your own pace."
                                 else -> "Suggested recovery day. Rest, walk, or practice light mobility as comfortable."
                             }, color = Ink, fontSize = 12.sp
