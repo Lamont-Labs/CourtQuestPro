@@ -676,6 +676,23 @@ private fun CourtOnboarding(
             }
         }
         Spacer(Modifier.height(36.dp))
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF211F21)),
+            shape = RoundedCornerShape(18.dp)
+        ) {
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 13.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Icon(Icons.Default.Lock, contentDescription = null, tint = Orange,
+                    modifier = Modifier.size(18.dp))
+                Text("Saved on this device. You can change your choices later.",
+                    color = Muted, fontSize = 12.sp, lineHeight = 17.sp)
+            }
+        }
+        Spacer(Modifier.height(16.dp))
         Button(onClick = onNext, modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(16.dp)) {
             Text(if (step == 4) "ENTER MY COURT" else "CONTINUE",
@@ -683,7 +700,10 @@ private fun CourtOnboarding(
         }
         if (step > 0) {
             TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-                Text("BACK", color = Muted)
+                Icon(Icons.Default.ArrowBack, contentDescription = null,
+                    tint = Muted, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("PREVIOUS STEP", color = Muted)
             }
         }
         Spacer(Modifier.height(20.dp))
