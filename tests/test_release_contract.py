@@ -24,6 +24,12 @@ class ReleaseContractTests(unittest.TestCase):
         self.assertNotIn("--clobber", WORKFLOW)
         self.assertNotIn("gh release edit", WORKFLOW)
 
+    def test_only_verified_release_assets_are_published(self):
+        self.assertIn('test -s "$apk"', WORKFLOW)
+        self.assertIn('sha256sum -c SHA256SUMS.txt', WORKFLOW)
+        self.assertIn('gh release create "$tag" "$apk" dist/SHA256SUMS.txt', WORKFLOW)
+        self.assertNotIn('gh release create "$tag" dist/*', WORKFLOW)
+
     def test_gradle_failures_propagate(self):
         self.assertRegex(
             WORKFLOW,
