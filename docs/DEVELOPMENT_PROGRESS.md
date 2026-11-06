@@ -254,3 +254,7 @@ Android CI run 42130224998 passed for prior source fdb6971. The daily drill gene
 ## CQ-023 stage 5 — weekly training and recovery rhythm
 
 Added suggested Monday/Wednesday/Friday skill sessions and Tuesday/Thursday/Saturday/Sunday recovery/light movement, with day-specific guidance and recognition of recorded drill work today. Guidance is advisory, not enforced; no penalties or changes to active workout scheduling or historical data. Source e3c69620affd978f6106e33d55ab26a13b64536a. CI for prior commit 479096e was in progress when checked; latest CI unverified. APK not republished.
+
+## CQ-023 stage 8 — seven-day recurring activity planner
+
+Verified Android development checks run #148 passed for source 03ec8b5. Extended practice/game controls to all seven weekdays; tapping a selected activity clears it. Existing weeklyActivities persistence is reused, and current-day guidance continues reading today's selection. No training history or in-progress session is changed. Source commit cf94d6fe7385930368fea60a0367dcdb659754f6. Latest CI pending; APK not republished.
