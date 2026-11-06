@@ -56,6 +56,7 @@ data class SaveState(
     var playerName: String = "",
     var difficulty: String = "Intermediate",
     var weeklyPlan: String = "Balanced",
+    var trainingDays: MutableList<Int>? = null,
     var totalXp: Int = 0,
     var currentStreak: Int = 0,
     var longestStreak: Int = 0,
@@ -190,7 +191,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         onStartChamp = { screen = "champSetup" },
                         onCareer = { screen = "career" },
                         onSaveName = { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() },
-                        onWeeklyPlan = { plan -> save.weeklyPlan = plan; refresh() }
+                        onWeeklyPlan = { plan -> save.weeklyPlan = plan; refresh() }, onTrainingDay = { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() }
                     )
                     "drill" -> {
                         val slot = save.slots.getOrNull(selectedSlot)
@@ -294,7 +295,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         },
                         onBack = { screen = "home" }
                     )
-                    "recap" -> recap?.let { MatchRecapScreen(it, save.totalXp, onHome = { screen = "home" }, onCareer = { screen = "career" }) } ?: HomeScreen(save, { screen = "home" }, { screen = "champSetup" }, { screen = "career" }, { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() }, { plan -> save.weeklyPlan = plan; refresh() })
+                    "recap" -> recap?.let { MatchRecapScreen(it, save.totalXp, onHome = { screen = "home" }, onCareer = { screen = "career" }) } ?: HomeScreen(save, { screen = "home" }, { screen = "champSetup" }, { screen = "career" }, { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() }, { plan -> save.weeklyPlan = plan; refresh() }, { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() })
                     "career" -> CareerScreen(save, onHome = { screen = "home" })
                     "settings" -> SettingsScreen(save.difficulty, onDifficulty = { save.difficulty = it; refresh() }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
@@ -304,6 +305,11 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             }
         }
     }
+}
+
+private fun toggleTrainingDay(current: MutableList<Int>?, day: Int): MutableList<Int> {
+    val days = current?.filter { it in 1..7 }?.distinct() ?: listOf(1, 3, 5)
+    return (if (day in days) days.filterNot { it == day } else days + day).sorted().toMutableList()
 }
 
 private fun makeDailySlots(level: String, weeklyPlan: String = "Balanced"): List<Slot> {
@@ -377,7 +383,7 @@ private fun CourtSectionTitle(number: String, title: String) {
 }
 
 @Composable
-private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> Unit, onCareer: () -> Unit, onSaveName: (String) -> Unit, onWeeklyPlan: (String) -> Unit) {
+private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> Unit, onCareer: () -> Unit, onSaveName: (String) -> Unit, onWeeklyPlan: (String) -> Unit, onTrainingDay: (Int) -> Unit) {
     var newPlayerName by remember { mutableStateOf("") }
     val done = save.slots.count { it.complete }
     val resumable = save.slots.count { slot ->
@@ -434,10 +440,17 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                             else -> "Build a balanced foundation across basketball skills."
                         }, color = Muted, fontSize = 12.sp)
                         Text("WEEKLY TRAINING RHYTHM", color = Ink, fontWeight = FontWeight.ExtraBold)
-                        Text("MON · WED · FRI  /  SKILL SESSIONS", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        Text("TUE · THU · SAT · SUN  /  RECOVERY OR LIGHT MOVEMENT", color = Muted, fontSize = 11.sp)
-                        val weekday = LocalDate.now().dayOfWeek
-                        val scheduled = weekday in listOf(java.time.DayOfWeek.MONDAY, java.time.DayOfWeek.WEDNESDAY, java.time.DayOfWeek.FRIDAY)
+                        val plannedDays = save.trainingDays?.filter { it in 1..7 }?.distinct() ?: listOf(1, 3, 5)
+                        Text("SELECT YOUR TRAINING DAYS", color = Muted, fontSize = 11.sp)
+                        listOf(listOf("MON", "TUE", "WED", "THU"), listOf("FRI", "SAT", "SUN")).forEachIndexed { rowIndex, labels ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                                labels.forEachIndexed { index, label ->
+                                    val day = if (rowIndex == 0) index + 1 else index + 5
+                                    FilterChip(selected = day in plannedDays, onClick = { onTrainingDay(day) }, label = { Text(label, fontSize = 11.sp) })
+                                }
+                            }
+                        }
+                        val scheduled = LocalDate.now().dayOfWeek.value in plannedDays
                         val recordedToday = save.drillResults.orEmpty().any { it.date == LocalDate.now().toString() && it.attempted > 0 && it.completed in 0..it.attempted }
                         Text(
                             when {
