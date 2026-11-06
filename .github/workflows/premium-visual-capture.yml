@@ -89,7 +89,7 @@ jobs:
           profile: pixel_6
           disable-animations: false
           script: |
-            set -euo pipefail
+            set -eu
             mkdir -p visual-evidence
             adb install -r app/build/outputs/apk/debug/app-debug.apk
             adb shell am start -n com.courtquestpro/.MainActivity
