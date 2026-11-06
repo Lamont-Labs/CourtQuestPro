@@ -121,6 +121,25 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     fun persist() { prefs.edit().putString("state", gson.toJson(save)).apply() }
     fun refresh() { save = gson.fromJson(gson.toJson(save), SaveState::class.java); persist() }
 
+    var onboardingComplete by remember {
+        mutableStateOf(prefs.getBoolean("onboarding_complete", prefs.contains("state")))
+    }
+    var onboardingStep by remember { mutableIntStateOf(0) }
+    var onboardingName by remember { mutableStateOf(save.playerName) }
+    var onboardingLevel by remember { mutableStateOf(save.difficulty) }
+    var onboardingFocus by remember { mutableStateOf(save.weeklyPlan) }
+    var onboardingDays by remember { mutableStateOf((save.trainingDays ?: mutableListOf(1, 3, 5)).toList()) }
+    fun finishOnboarding() {
+        save.playerName = onboardingName.trim().take(40)
+        save.difficulty = onboardingLevel
+        save.weeklyPlan = onboardingFocus
+        save.trainingDays = onboardingDays.toMutableList()
+        save.slots = makeDailySlots(save.difficulty, save.weeklyPlan).toMutableList()
+        save.drillDrafts = mutableListOf()
+        refresh()
+        prefs.edit().putBoolean("onboarding_complete", true).apply()
+        onboardingComplete = true
+    }
     var screen by remember { mutableStateOf("home") }
     var selectedSlot by remember { mutableIntStateOf(-1) }
     var spinning by remember { mutableStateOf(false) }
@@ -165,14 +184,28 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         Scaffold(
             containerColor = Color(0xFF121315),
             bottomBar = {
-                NavigationBar(containerColor = Color(0xFF17191C), tonalElevation = 0.dp) {
+                if (onboardingComplete) NavigationBar(containerColor = Color(0xFF17191C), tonalElevation = 0.dp) {
                     NavigationBarItem(selected = screen == "home", onClick = { screen = "home" }, icon = { Icon(Icons.Default.SportsBasketball, "Court dashboard") }, label = { Text("COURT", fontWeight = FontWeight.Bold, fontSize = 10.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
                     NavigationBarItem(selected = screen == "career", onClick = { screen = "career" }, icon = { Icon(Icons.Default.Insights, "Player development") }, label = { Text("PROGRESS", fontWeight = FontWeight.Bold, fontSize = 10.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
                     NavigationBarItem(selected = screen == "settings", onClick = { screen = "settings" }, icon = { Icon(Icons.Default.Tune, "Player settings") }, label = { Text("SETUP", fontWeight = FontWeight.Bold, fontSize = 10.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
                 }
             }
         ) { padding ->
-            AnimatedContent(targetState = screen, label = "screen-transition", modifier = Modifier.padding(padding)) { target ->
+            if (!onboardingComplete) {
+                CourtOnboarding(
+                    step = onboardingStep,
+                    name = onboardingName,
+                    level = onboardingLevel,
+                    focus = onboardingFocus,
+                    days = onboardingDays,
+                    onName = { onboardingName = it.take(40) },
+                    onLevel = { onboardingLevel = it },
+                    onFocus = { onboardingFocus = it },
+                    onDay = { day -> onboardingDays = if (day in onboardingDays) onboardingDays - day else (onboardingDays + day).sorted() },
+                    onBack = { onboardingStep = (onboardingStep - 1).coerceAtLeast(0) },
+                    onNext = { if (onboardingStep < 4) onboardingStep++ else finishOnboarding() }
+                )
+            } else AnimatedContent(targetState = screen, label = "screen-transition", modifier = Modifier.padding(padding)) { target ->
                 when (target) {
                     "home" -> HomeScreen(
                         save = save, onSpin = {
@@ -387,6 +420,79 @@ private fun CourtSectionTitle(number: String, title: String) {
         Text(number, color = CourtGreen, fontSize = 11.sp, fontWeight = FontWeight.Black)
         Spacer(Modifier.width(10.dp))
         Text(title, color = Ink, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+    }
+}
+
+@Composable
+private fun CourtOnboarding(
+    step: Int, name: String, level: String, focus: String, days: List<Int>,
+    onName: (String) -> Unit, onLevel: (String) -> Unit, onFocus: (String) -> Unit,
+    onDay: (Int) -> Unit, onBack: () -> Unit, onNext: () -> Unit
+) {
+    Column(Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 22.dp)) {
+        Text("COURTQUEST / PLAYER SETUP", color = Orange, fontSize = 11.sp,
+            fontWeight = FontWeight.ExtraBold, letterSpacing = 1.3.sp)
+        Spacer(Modifier.height(16.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            repeat(5) { index ->
+                Box(Modifier.weight(1f).height(5.dp).clip(CircleShape)
+                    .background(if (index <= step) CourtGreen else Color(0xFF40332E)))
+            }
+        }
+        Spacer(Modifier.height(32.dp))
+        Text(
+            listOf("Your court starts here.", "Make it yours.", "Find your level.",
+                "Choose your focus.", "Build your routine.")[step],
+            color = Ink, fontSize = 32.sp, lineHeight = 37.sp, fontWeight = FontWeight.Black
+        )
+        Spacer(Modifier.height(12.dp))
+        Text(
+            listOf(
+                "A training plan built around your game. No account or internet required.",
+                "What should we call you? You can change this anytime.",
+                "Choose the level that best matches your current experience.",
+                "Your focus shapes the drills selected for your daily sessions.",
+                "Pick your usual training days. You can adjust them later."
+            )[step], color = Muted, fontSize = 15.sp, lineHeight = 22.sp
+        )
+        Spacer(Modifier.height(30.dp))
+        when (step) {
+            0 -> {
+                Icon(Icons.Default.SportsBasketball, contentDescription = null,
+                    tint = Orange, modifier = Modifier.size(110.dp))
+                Spacer(Modifier.height(16.dp))
+                Text("TRAIN WITH PURPOSE. TRACK REAL PROGRESS.", color = Ink,
+                    fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+            }
+            1 -> OutlinedTextField(
+                value = name, onValueChange = onName,
+                label = { Text("Player name (optional)") }, singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            2 -> listOf("Beginner", "Intermediate", "Advanced").forEach { option ->
+                FilterChip(selected = level == option, onClick = { onLevel(option) },
+                    label = { Text(option) }, modifier = Modifier.fillMaxWidth())
+            }
+            3 -> listOf("Balanced", "Shooting", "Ball Handling", "Finishing").forEach { option ->
+                FilterChip(selected = focus == option, onClick = { onFocus(option) },
+                    label = { Text(option) }, modifier = Modifier.fillMaxWidth())
+            }
+            4 -> listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun").forEachIndexed { index, day ->
+                FilterChip(selected = index + 1 in days, onClick = { onDay(index + 1) },
+                    label = { Text(day) }, modifier = Modifier.fillMaxWidth())
+            }
+        }
+        Spacer(Modifier.weight(1f))
+        Button(onClick = onNext, modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = RoundedCornerShape(16.dp)) {
+            Text(if (step == 4) "ENTER MY COURT" else "CONTINUE",
+                fontWeight = FontWeight.ExtraBold)
+        }
+        if (step > 0) {
+            TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+                Text("BACK", color = Muted)
+            }
+        }
     }
 }
 
