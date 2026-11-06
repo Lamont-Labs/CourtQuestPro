@@ -250,3 +250,7 @@ Added optional player-name card on home screen only when no name is saved; input
 ## CQ-023 stage 4 — safe weekly focus progression
 
 Android CI run 42130224998 passed for prior source fdb6971. The daily drill generator now honors the configured difficulty as a strict upper bound, uses a lighter available tier for non-focused categories, retains six skill categories, and changes assignments only when a new day is initialized. Existing in-progress sessions and historical results are unchanged. Source commit 479096e74cc5498b7113a3b4cfc84283a748c6cf. CI for this latest commit pending; no new APK published.
+
+## CQ-023 stage 5 — weekly training and recovery rhythm
+
+Added suggested Monday/Wednesday/Friday skill sessions and Tuesday/Thursday/Saturday/Sunday recovery/light movement, with day-specific guidance and recognition of recorded drill work today. Guidance is advisory, not enforced; no penalties or changes to active workout scheduling or historical data. Source e3c69620affd978f6106e33d55ab26a13b64536a. CI for prior commit 479096e was in progress when checked; latest CI unverified. APK not republished.
