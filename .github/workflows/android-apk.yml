@@ -143,10 +143,20 @@ jobs:
           tag="android-v${APP_VERSION}-build${GITHUB_RUN_NUMBER}"
           title="CourtQuest Pro ${APP_VERSION} - Build ${GITHUB_RUN_NUMBER}"
           # Never silently overwrite an existing signed APK release.
-          if gh release view "$tag" >/dev/null 2>&1; then
-            echo "::error::Release tag already exists; refusing to replace APK assets."
-            exit 1
-          fi
+          # Distinguish an absent release from authentication/API failures.
+          # A failed lookup must never authorize publication.
+          status=$(gh api -i "repos/${GITHUB_REPOSITORY}/releases/tags/${tag}" 2>/dev/null | head -n 1 || true)
+          case "$status" in
+            *" 404 "*) ;;
+            *" 200 "*)
+              echo "::error::Release tag already exists; refusing to replace APK assets."
+              exit 1
+              ;;
+            *)
+              echo "::error::Cannot confirm release tag availability; refusing publication."
+              exit 1
+              ;;
+          esac
           # Publish only verified APK and its checksums; never upload build logs
           # or unreviewed files from dist/ to a release.
           apk="dist/CourtQuestPro-${APP_VERSION}.apk"
