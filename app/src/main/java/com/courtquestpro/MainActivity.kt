@@ -529,17 +529,69 @@ private fun CourtOnboarding(
         Spacer(Modifier.height(24.dp))
         when (step) {
             0 -> {
-                Icon(Icons.Default.SportsBasketball, contentDescription = null,
-                    tint = Orange, modifier = Modifier.size(110.dp))
-                Spacer(Modifier.height(16.dp))
-                Text("TRAIN WITH PURPOSE. TRACK REAL PROGRESS.", color = Ink,
-                    fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF272022))
+                ) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(18.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                Modifier.size(76.dp).clip(RoundedCornerShape(22.dp))
+                                    .background(Color(0xFF493025)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Default.SportsBasketball, contentDescription = null,
+                                    tint = Orange, modifier = Modifier.size(46.dp))
+                            }
+                            Spacer(Modifier.width(16.dp))
+                            Column {
+                                Text("BUILT FOR THE WORK", color = Orange, fontSize = 10.sp,
+                                    fontWeight = FontWeight.ExtraBold, letterSpacing = 1.2.sp)
+                                Text("One session at a time.", color = Ink, fontSize = 20.sp,
+                                    fontWeight = FontWeight.Black, lineHeight = 25.sp)
+                            }
+                        }
+                        HorizontalDivider(color = Color(0xFF473936))
+                        Text("YOUR TRAINING. YOUR PROGRESS.", color = Ink, fontSize = 16.sp,
+                            fontWeight = FontWeight.ExtraBold)
+                        Text(
+                            "Choose your level, focus, and training days. CourtQuest builds your starting routine and tracks what you complete.",
+                            color = Muted, fontSize = 13.sp, lineHeight = 20.sp
+                        )
+                        Text("PRIVATE BY DEFAULT  ·  WORKS OFFLINE", color = Orange,
+                            fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.7.sp)
+                    }
+                }
             }
-            1 -> OutlinedTextField(
-                value = name, onValueChange = onName,
-                label = { Text("Player name (optional)") }, singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
+            1 -> {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(22.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242428))
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Text("PLAYER IDENTITY", color = Orange, fontSize = 11.sp,
+                            fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
+                        OutlinedTextField(
+                            value = name, onValueChange = onName,
+                            label = { Text("Player name") },
+                            placeholder = { Text("What should we call you?") },
+                            supportingText = { Text("Optional. You can change this later.") },
+                            singleLine = true, modifier = Modifier.fillMaxWidth()
+                        )
+                        Text(
+                            if (name.isBlank()) "Your dashboard will use a generic player greeting."
+                            else "Your dashboard will welcome ${name.trim()}.",
+                            color = Muted, fontSize = 12.sp, lineHeight = 18.sp
+                        )
+                    }
+                }
+            }
             2 -> {
                 listOf(
                     "Beginner" to "Build confidence, fundamentals, and repeatable technique.",
