@@ -76,6 +76,15 @@ jobs:
           keytool -exportcert -keystore "${RUNNER_TEMP}/courtquest-preserved.keystore" -alias "$COURTQUEST_KEY_ALIAS_SECRET" -storepass "$COURTQUEST_STORE_PASSWORD_SECRET" -file "${RUNNER_TEMP}/courtquest-candidate.der" >/dev/null
           cmp -s "${RUNNER_TEMP}/courtquest-original.der" "${RUNNER_TEMP}/courtquest-candidate.der" || { echo "::error::Signing certificate mismatch; refusing to build."; exit 1; }
 
+      - name: Assign Android update version code
+        shell: bash
+        run: |
+          set -euo pipefail
+          # GitHub run IDs increase across runs and avoid reusing versionCode=1.
+          # Android versionCode must fit the Play-compatible 32-bit range.
+          version_code=$(( GITHUB_RUN_ID % 1800000000 + 100000000 ))
+          echo "COURTQUEST_VERSION_CODE=$version_code" >> "$GITHUB_ENV"
+
       - name: Compile and run Android lint
         shell: bash
         run: |
