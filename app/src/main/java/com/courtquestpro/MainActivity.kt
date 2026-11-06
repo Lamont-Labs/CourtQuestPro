@@ -121,14 +121,41 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     fun persist() { prefs.edit().putString("state", gson.toJson(save)).apply() }
     fun refresh() { save = gson.fromJson(gson.toJson(save), SaveState::class.java); persist() }
 
+    val legacyProfileExists = remember { prefs.contains("state") }
     var onboardingComplete by remember {
-        mutableStateOf(prefs.getBoolean("onboarding_complete", prefs.contains("state")))
+        mutableStateOf(prefs.getBoolean("onboarding_complete", legacyProfileExists))
     }
-    var onboardingStep by remember { mutableIntStateOf(0) }
-    var onboardingName by remember { mutableStateOf(save.playerName) }
-    var onboardingLevel by remember { mutableStateOf(save.difficulty) }
-    var onboardingFocus by remember { mutableStateOf(save.weeklyPlan) }
-    var onboardingDays by remember { mutableStateOf((save.trainingDays ?: mutableListOf(1, 3, 5)).toList()) }
+    // Pin the first-install decision before daily state writes create a "state" entry.
+    LaunchedEffect(Unit) {
+        if (!prefs.contains("onboarding_complete")) {
+            prefs.edit().putBoolean("onboarding_complete", legacyProfileExists).apply()
+        }
+    }
+    var onboardingStep by remember { mutableIntStateOf(prefs.getInt("onboarding_step", 0).coerceIn(0, 4)) }
+    var onboardingName by remember { mutableStateOf(prefs.getString("onboarding_name", save.playerName) ?: "") }
+    var onboardingLevel by remember {
+        mutableStateOf((prefs.getString("onboarding_level", save.difficulty) ?: "Intermediate")
+            .takeIf { it in listOf("Beginner", "Intermediate", "Advanced") } ?: "Intermediate")
+    }
+    var onboardingFocus by remember {
+        mutableStateOf((prefs.getString("onboarding_focus", save.weeklyPlan) ?: "Balanced")
+            .takeIf { it in listOf("Balanced", "Shooting", "Ball Handling", "Finishing") } ?: "Balanced")
+    }
+    var onboardingDays by remember {
+        mutableStateOf(
+            (prefs.getString("onboarding_days", null)?.split(",")?.mapNotNull { it.toIntOrNull() }
+                ?: save.trainingDays ?: listOf(1, 3, 5)).filter { it in 1..7 }.distinct().sorted()
+        )
+    }
+    fun persistOnboardingDraft() {
+        prefs.edit()
+            .putInt("onboarding_step", onboardingStep)
+            .putString("onboarding_name", onboardingName)
+            .putString("onboarding_level", onboardingLevel)
+            .putString("onboarding_focus", onboardingFocus)
+            .putString("onboarding_days", onboardingDays.joinToString(","))
+            .apply()
+    }
     fun finishOnboarding() {
         save.playerName = onboardingName.trim().take(40)
         save.difficulty = onboardingLevel
@@ -137,7 +164,9 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         save.slots = makeDailySlots(save.difficulty, save.weeklyPlan).toMutableList()
         save.drillDrafts = mutableListOf()
         refresh()
-        prefs.edit().putBoolean("onboarding_complete", true).apply()
+        prefs.edit().putBoolean("onboarding_complete", true)
+            .remove("onboarding_step").remove("onboarding_name").remove("onboarding_level")
+            .remove("onboarding_focus").remove("onboarding_days").apply()
         onboardingComplete = true
     }
     var screen by remember { mutableStateOf("home") }
@@ -198,12 +227,18 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     level = onboardingLevel,
                     focus = onboardingFocus,
                     days = onboardingDays,
-                    onName = { onboardingName = it.take(40) },
-                    onLevel = { onboardingLevel = it },
-                    onFocus = { onboardingFocus = it },
-                    onDay = { day -> onboardingDays = if (day in onboardingDays) onboardingDays - day else (onboardingDays + day).sorted() },
-                    onBack = { onboardingStep = (onboardingStep - 1).coerceAtLeast(0) },
-                    onNext = { if (onboardingStep < 4) onboardingStep++ else finishOnboarding() }
+                    onName = { onboardingName = it.take(40); persistOnboardingDraft() },
+                    onLevel = { onboardingLevel = it; persistOnboardingDraft() },
+                    onFocus = { onboardingFocus = it; persistOnboardingDraft() },
+                    onDay = { day ->
+                        onboardingDays = if (day in onboardingDays) onboardingDays - day else (onboardingDays + day).sorted()
+                        persistOnboardingDraft()
+                    },
+                    onBack = { onboardingStep = (onboardingStep - 1).coerceAtLeast(0); persistOnboardingDraft() },
+                    onNext = {
+                        if (onboardingStep < 4) { onboardingStep++; persistOnboardingDraft() }
+                        else finishOnboarding()
+                    }
                 )
             } else AnimatedContent(targetState = screen, label = "screen-transition", modifier = Modifier.padding(padding)) { target ->
                 when (target) {
