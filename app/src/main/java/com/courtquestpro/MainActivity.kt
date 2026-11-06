@@ -224,6 +224,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         ) { padding ->
             if (!onboardingComplete) {
                 CourtOnboarding(
+                    modifier = Modifier.padding(padding),
                     step = onboardingStep,
                     name = onboardingName,
                     level = onboardingLevel,
@@ -496,11 +497,12 @@ private fun CourtOnboardingChoice(
 
 @Composable
 private fun CourtOnboarding(
+    modifier: Modifier = Modifier,
     step: Int, name: String, level: String, focus: String, days: List<Int>,
     onName: (String) -> Unit, onLevel: (String) -> Unit, onFocus: (String) -> Unit,
     onDay: (Int) -> Unit, onBack: () -> Unit, onNext: () -> Unit
 ) {
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 22.dp)) {
+    Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 22.dp)) {
         Text("COURTQUEST / PLAYER SETUP", color = Orange, fontSize = 11.sp,
             fontWeight = FontWeight.ExtraBold, letterSpacing = 1.3.sp)
         Spacer(Modifier.height(16.dp))
