@@ -31,10 +31,13 @@ class ReleaseContractTests(unittest.TestCase):
         self.assertNotIn('gh release create "$tag" dist/*', WORKFLOW)
 
     def test_gradle_failures_propagate(self):
-        self.assertRegex(
-            WORKFLOW,
-            r"(?s)- name: Compile and run Android lint\n.*?set -euo pipefail\n.*?./gradlew",
-        )
+        # Restrict the assertion to this step; a later step cannot satisfy it.
+        start = WORKFLOW.index("- name: Compile and run Android lint")
+        end = WORKFLOW.index("- name: Verify installable APK", start)
+        step = WORKFLOW[start:end]
+        self.assertIn("set -euo pipefail", step)
+        self.assertIn("./gradlew --no-daemon", step)
+        self.assertIn("| tee dist/gradle-build.txt", step)
 
     def test_secrets_are_all_or_nothing(self):
         for secret in (
