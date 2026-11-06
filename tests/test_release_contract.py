@@ -19,7 +19,10 @@ class ReleaseContractTests(unittest.TestCase):
         self.assertNotRegex(WORKFLOW, r"(?m)^\s{2}(push|pull_request|schedule):")
 
     def test_release_cannot_overwrite_existing_assets(self):
-        self.assertIn('gh release view "$tag"', WORKFLOW)
+        self.assertIn('gh api -i "repos/${GITHUB_REPOSITORY}/releases/tags/${tag}"', WORKFLOW)
+        self.assertIn('Cannot confirm release tag availability; refusing publication.', WORKFLOW)
+        self.assertIn('*" 404 "*)', WORKFLOW)
+        self.assertIn('*" 200 "*)', WORKFLOW)
         self.assertIn("Release tag already exists; refusing to replace APK assets.", WORKFLOW)
         self.assertNotIn("--clobber", WORKFLOW)
         self.assertNotIn("gh release edit", WORKFLOW)
