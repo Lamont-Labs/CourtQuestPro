@@ -12,6 +12,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -464,7 +466,7 @@ private fun CourtOnboarding(
     onName: (String) -> Unit, onLevel: (String) -> Unit, onFocus: (String) -> Unit,
     onDay: (Int) -> Unit, onBack: () -> Unit, onNext: () -> Unit
 ) {
-    Column(Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 22.dp)) {
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 22.dp)) {
         Text("COURTQUEST / PLAYER SETUP", color = Orange, fontSize = 11.sp,
             fontWeight = FontWeight.ExtraBold, letterSpacing = 1.3.sp)
         Spacer(Modifier.height(16.dp))
@@ -474,7 +476,7 @@ private fun CourtOnboarding(
                     .background(if (index <= step) CourtGreen else Color(0xFF40332E)))
             }
         }
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(26.dp))
         Text(
             listOf("Your court starts here.", "Make it yours.", "Find your level.",
                 "Choose your focus.", "Build your routine.")[step],
@@ -490,7 +492,7 @@ private fun CourtOnboarding(
                 "Pick your usual training days. You can adjust them later."
             )[step], color = Muted, fontSize = 15.sp, lineHeight = 22.sp
         )
-        Spacer(Modifier.height(30.dp))
+        Spacer(Modifier.height(24.dp))
         when (step) {
             0 -> {
                 Icon(Icons.Default.SportsBasketball, contentDescription = null,
@@ -517,7 +519,7 @@ private fun CourtOnboarding(
                     label = { Text(day) }, modifier = Modifier.fillMaxWidth())
             }
         }
-        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.height(36.dp))
         Button(onClick = onNext, modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(16.dp)) {
             Text(if (step == 4) "ENTER MY COURT" else "CONTINUE",
@@ -528,6 +530,7 @@ private fun CourtOnboarding(
                 Text("BACK", color = Muted)
             }
         }
+        Spacer(Modifier.height(20.dp))
     }
 }
 
