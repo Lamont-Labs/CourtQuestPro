@@ -1,6 +1,10 @@
 name: Premium visual refinement - capture baseline
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/premium-visual-capture.yml'
   workflow_dispatch:
     inputs:
       campaign_id:
@@ -33,7 +37,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: visual-capture-${{ inputs.campaign_id }}-${{ inputs.phase }}-${{ inputs.pass_number }}
+  group: visual-capture-${{ inputs.campaign_id || 'courtquest-premium-800' }}-${{ inputs.phase || 'visual-identity' }}-${{ inputs.pass_number || '1' }}
   cancel-in-progress: false
 
 jobs:
@@ -43,10 +47,10 @@ jobs:
     steps:
       - name: Validate campaign and pass
         env:
-          CAMPAIGN: ${{ inputs.campaign_id }}
-          PHASE: ${{ inputs.phase }}
-          PASS: ${{ inputs.pass_number }}
-          REF: ${{ inputs.ref_to_test }}
+          CAMPAIGN: ${{ inputs.campaign_id || 'courtquest-premium-800' }}
+          PHASE: ${{ inputs.phase || 'visual-identity' }}
+          PASS: ${{ inputs.pass_number || '1' }}
+          REF: ${{ inputs.ref_to_test || 'main' }}
         run: |
           set -euo pipefail
           [[ "$CAMPAIGN" =~ ^[a-zA-Z0-9_-]{3,64}$ ]] || exit 1
@@ -62,7 +66,7 @@ jobs:
       - name: Check out requested revision
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: ${{ inputs.ref_to_test }}
+          ref: ${{ inputs.ref_to_test || 'main' }}
           persist-credentials: false
       - name: Set up Java 17
         uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
@@ -93,13 +97,28 @@ jobs:
             adb shell screencap -p /sdcard/courtquest-first-launch.png
             adb pull /sdcard/courtquest-first-launch.png visual-evidence/first-launch.png
             adb shell dumpsys activity activities > visual-evidence/activity-state.txt
+      - name: Verify rendered screenshot is real and nonempty
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib, struct, zlib
+          path = pathlib.Path("visual-evidence/first-launch.png")
+          data = path.read_bytes()
+          assert len(data) > 10000, "Screenshot missing or unexpectedly small"
+          assert data[:8] == b"\\x89PNG\\r\\n\\x1a\\n", "Invalid PNG signature"
+          width, height = struct.unpack(">II", data[16:24])
+          assert width >= 320 and height >= 600, f"Unexpected screenshot dimensions: {width}x{height}"
+          assert data[12:16] == b"IHDR", "PNG missing IHDR"
+          assert data[-12:-8] == b"IEND", "PNG missing IEND"
+          print(f"Verified emulator screenshot: {width}x{height}, {len(data)} bytes")
+          PY
       - name: Save immutable evidence and status
         if: always()
         env:
-          CAMPAIGN: ${{ inputs.campaign_id }}
-          PHASE: ${{ inputs.phase }}
-          PASS: ${{ inputs.pass_number }}
-          REF: ${{ inputs.ref_to_test }}
+          CAMPAIGN: ${{ inputs.campaign_id || 'courtquest-premium-800' }}
+          PHASE: ${{ inputs.phase || 'visual-identity' }}
+          PASS: ${{ inputs.pass_number || '1' }}
+          REF: ${{ inputs.ref_to_test || 'main' }}
         run: |
           mkdir -p visual-evidence
           printf 'campaign=%s\nphase=%s\npass=%s\nref=%s\nsha=%s\nrun=%s\n' "$CAMPAIGN" "$PHASE" "$PASS" "$REF" "$GITHUB_SHA" "$GITHUB_RUN_ID" > visual-evidence/manifest.txt
@@ -110,7 +129,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: visual-${{ inputs.campaign_id }}-${{ inputs.phase }}-pass-${{ inputs.pass_number }}
+          name: visual-${{ inputs.campaign_id || 'courtquest-premium-800' }}-${{ inputs.phase || 'visual-identity' }}-pass-${{ inputs.pass_number || '1' }}
           path: |
             visual-evidence/
             app/build/test-results/testDebugUnitTest/
