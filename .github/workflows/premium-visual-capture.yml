@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/premium-visual-capture.yml'
+      - 'scripts/capture_onboarding.py'
   workflow_dispatch:
     inputs:
       campaign_id:
