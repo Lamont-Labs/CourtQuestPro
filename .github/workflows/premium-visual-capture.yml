@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/premium-visual-capture.yml'
       - 'scripts/capture_onboarding.py'
+      - 'scripts/capture_stable_first_launch.py'
       - 'app/src/main/java/com/courtquestpro/AppHeader.kt'
   workflow_dispatch:
     inputs:
@@ -95,20 +96,8 @@ jobs:
           script: |
             set -eu
             mkdir -p visual-evidence
-            adb shell settings put global window_animation_scale 0 || true
-            adb shell settings put global transition_animation_scale 0 || true
-            adb shell settings put global animator_duration_scale 0 || true
-            sleep 25
-            adb install -r app/build/outputs/apk/debug/app-debug.apk
-            adb shell am start -n com.courtquestpro/.MainActivity
-            sleep 15
-            adb exec-out screencap -p > visual-evidence/first-launch.png
+            python3 scripts/capture_stable_first_launch.py
             adb shell dumpsys activity activities > visual-evidence/activity-state.txt
-            # Avoid running the heavy UIAutomator onboarding crawler during baseline capture.
-            # Capture semantic UI structure for deterministic screen navigation in the next phase.
-            # A hierarchy dump is diagnostic-only until the onboarding navigation harness is ready.
-            adb shell uiautomator dump /data/local/tmp/courtquest-ui.xml || true
-            adb exec-out cat /data/local/tmp/courtquest-ui.xml > visual-evidence/ui-hierarchy.xml || true
             adb shell dumpsys window windows > visual-evidence/window-state.txt
       - name: Verify rendered screenshot is real and nonempty
         run: |
