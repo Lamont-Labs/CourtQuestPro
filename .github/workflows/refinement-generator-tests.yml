@@ -5,6 +5,8 @@ on:
     paths:
       - 'scripts/generate_refinement_proposal.py'
       - 'scripts/validate_refinement_proposal.py'
+      - 'scripts/checkpoint_refinement.py'
+      - 'tests/test_refinement_checkpoint.py'
       - 'tests/test_refinement_generator.py'
       - '.github/workflows/refinement-generator-tests.yml'
   workflow_dispatch:
@@ -19,6 +21,8 @@ jobs:
         with:
           persist-credentials: false
       - name: Validate Python syntax
-        run: python3 -m py_compile scripts/generate_refinement_proposal.py tests/test_refinement_generator.py
+        run: python3 -m py_compile scripts/generate_refinement_proposal.py scripts/checkpoint_refinement.py tests/test_refinement_generator.py tests/test_refinement_checkpoint.py
       - name: Run mocked local-model regression tests
-        run: python3 -m unittest discover -s tests -p test_refinement_generator.py -v
+        run: |
+          python3 -m unittest discover -s tests -p test_refinement_generator.py -v
+          python3 -m unittest discover -s tests -p test_refinement_checkpoint.py -v
