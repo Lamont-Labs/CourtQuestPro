@@ -6,6 +6,8 @@ on:
     paths:
       - 'scripts/premium_campaign.py'
       - 'tests/test_premium_campaign.py'
+      - 'scripts/validate_refinement_proposal.py'
+      - 'tests/test_refinement_proposal.py'
       - '.github/workflows/premium-campaign-controller.yml'
   workflow_dispatch:
 
@@ -22,6 +24,8 @@ jobs:
           persist-credentials: false
       - name: Run offline acceptance tests
         run: python3 -m unittest discover -s tests -p 'test_premium_campaign.py' -v
+      - name: Validate refinement proposal safety contract
+        run: python3 -m unittest discover -s tests -p 'test_refinement_proposal.py' -v
       - name: Confirm fresh campaign starts at zero
         run: |
           python3 scripts/premium_campaign.py --ledger /tmp/courtquest-empty-ledger.json status
