@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/generate_refinement_proposal.py'
+      - 'scripts/verify_refinement_candidate.py'
       - '.github/workflows/premium-ai-proposal.yml'
   workflow_dispatch:
     inputs:
