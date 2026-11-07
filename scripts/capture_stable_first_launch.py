@@ -16,7 +16,12 @@ def dump():
     adb("shell", "uiautomator", "dump", "/data/local/tmp/cq-capture.xml", timeout=75)
     raw = adb("exec-out", "cat", "/data/local/tmp/cq-capture.xml")
     (OUT / "ui-hierarchy.xml").write_bytes(raw)
-    return ET.fromstring(raw)
+    start = raw.find(b"<?xml")
+    if start < 0:
+        start = raw.find(b"<hierarchy")
+    if start < 0:
+        raise RuntimeError("Android UI dump returned no XML; diagnostic saved to ui-hierarchy.xml")
+    return ET.fromstring(raw[start:])
 
 def center(bounds):
     import re
@@ -30,7 +35,13 @@ adb("install", "-r", "app/build/outputs/apk/debug/app-debug.apk", timeout=180)
 adb("shell", "am", "start", "-n", PKG + "/.MainActivity")
 for attempt in range(1, 5):
     time.sleep(12 if attempt == 1 else 8)
-    root = dump()
+    try:
+        root = dump()
+    except (ET.ParseError, RuntimeError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
+        (OUT / "ui-dump-error.txt").write_text(f"attempt={attempt}: {type(exc).__name__}: {exc}\\n")
+        if attempt == 4:
+            raise RuntimeError("Android UI hierarchy unavailable after bounded retries") from exc
+        continue
     nodes = list(root.iter("node"))
     dialogs = [n for n in nodes if "isn't responding" in n.get("text", "") or "isn’t responding" in n.get("text", "")]
     if dialogs:
