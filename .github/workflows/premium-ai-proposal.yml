@@ -92,6 +92,10 @@ jobs:
           cp "$RUNNER_TEMP/courtquest-candidate/verification.json" campaign-evidence/
           cp "$RUNNER_TEMP/courtquest-candidate/candidate.diff" campaign-evidence/
           cp "$RUNNER_TEMP/courtquest-candidate/"*.log campaign-evidence/
+      - name: Write verified technical checkpoint
+        run: |
+          set -euo pipefail
+          python3 scripts/checkpoint_refinement.py campaign-evidence/proposal.json campaign-evidence/verification.json campaign-evidence/candidate.diff --output campaign-evidence/technical-checkpoint.json
       - name: Record headless verification status
         run: |
           set -euo pipefail
