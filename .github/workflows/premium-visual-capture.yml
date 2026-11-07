@@ -112,7 +112,7 @@ jobs:
           width, height = struct.unpack(">II", data[16:24])
           assert width >= 320 and height >= 600, f"Unexpected screenshot dimensions: {width}x{height}"
           assert data[12:16] == b"IHDR", "PNG missing IHDR"
-          assert data[-12:-8] == b"IEND", "PNG missing IEND"
+          assert data[-8:-4] == b"IEND", "PNG missing IEND"
           print(f"Verified emulator screenshot: {width}x{height}, {len(data)} bytes")
           PY
       - name: Save immutable evidence and status
