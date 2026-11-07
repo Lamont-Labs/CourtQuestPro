@@ -1,0 +1,24 @@
+name: Refinement generator offline tests
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/generate_refinement_proposal.py'
+      - 'scripts/validate_refinement_proposal.py'
+      - 'tests/test_refinement_generator.py'
+      - '.github/workflows/refinement-generator-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Validate Python syntax
+        run: python3 -m py_compile scripts/generate_refinement_proposal.py tests/test_refinement_generator.py
+      - name: Run mocked local-model regression tests
+        run: python3 -m unittest discover -s tests -p test_refinement_generator.py -v
