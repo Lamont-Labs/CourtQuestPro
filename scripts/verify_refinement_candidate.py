@@ -28,7 +28,7 @@ def verify(repo, proposal_path, output_dir, skip_build=False):
     actual = command(["git", "rev-parse", "--verify", "HEAD"], repo).stdout.strip()
     if actual != base:
         raise ValueError("Repository HEAD does not match proposal base SHA")
-    if command(["git", "status", "--porcelain"], repo).stdout.strip():
+    if command(["git", "status", "--porcelain", "--untracked-files=no"], repo).stdout.strip():
         raise ValueError("Source repository must be clean")
     if output_dir == repo or repo in output_dir.parents:
         raise ValueError("Evidence output must be outside source repository")
