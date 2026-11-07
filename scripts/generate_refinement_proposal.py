@@ -61,8 +61,8 @@ def generate(root, target, phase, number, intent, model):
         raise ValueError("Model response does not begin with the required Kotlin package declaration")
     if "kotlinx.parcelize" in revised and "kotlinx.parcelize" not in original.decode("utf-8"):
         raise ValueError("Model introduced an unsupported Parcelize dependency")
-    if not isinstance(revised, str) or revised.encode("utf-8") == original:
-        raise ValueError("Model returned empty or unchanged source; no refinement proposed")
+    if "".join(revised.split()) == "".join(original.decode("utf-8").split()):
+        raise ValueError("Model changed only whitespace; no meaningful refinement proposed")
     proposal = {"phase": phase, "pass": number, "base_sha": sha, "intent": intent,
         "changes": [{"path": target, "before_sha256": hashlib.sha256(original).hexdigest(),
                      "content": revised}]}
