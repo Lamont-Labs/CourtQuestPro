@@ -63,6 +63,8 @@ def verify(repo, proposal_path, output_dir, skip_build=False):
                     report[label] = run.returncode == 0
                     report[label + "_seconds"] = round(time.monotonic() - started, 1)
                     if run.returncode:
+                        print(f"Candidate {task} failed; final Gradle output follows:", file=sys.stderr)
+                        print((run.stdout + "\\n" + run.stderr)[-9000:], file=sys.stderr)
                         raise RuntimeError(f"{task} failed with exit code {run.returncode}")
             else:
                 report["verification_skipped"] = True
