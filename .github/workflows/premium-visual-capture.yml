@@ -94,8 +94,7 @@ jobs:
             adb install -r app/build/outputs/apk/debug/app-debug.apk
             adb shell am start -n com.courtquestpro/.MainActivity
             sleep 8
-            adb shell screencap -p /sdcard/courtquest-first-launch.png
-            adb pull /sdcard/courtquest-first-launch.png visual-evidence/first-launch.png
+            adb exec-out screencap -p > visual-evidence/first-launch.png
             adb shell dumpsys activity activities > visual-evidence/activity-state.txt
       - name: Verify rendered screenshot is real and nonempty
         run: |
