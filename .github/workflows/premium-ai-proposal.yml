@@ -96,6 +96,10 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/checkpoint_refinement.py campaign-evidence/proposal.json campaign-evidence/verification.json campaign-evidence/candidate.diff --output campaign-evidence/technical-checkpoint.json
+      - name: Prepare verified source patch without committing
+        run: |
+          set -euo pipefail
+          python3 scripts/prepare_refinement_commit.py campaign-evidence/proposal.json campaign-evidence/verification.json campaign-evidence/candidate.diff --repo . --output campaign-evidence/commit-preparation.json
       - name: Record headless verification status
         run: |
           set -euo pipefail
