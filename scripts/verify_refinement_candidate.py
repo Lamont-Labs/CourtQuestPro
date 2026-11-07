@@ -66,6 +66,11 @@ def verify(repo, proposal_path, output_dir, skip_build=False):
                         print(f"Candidate {task} failed; final Gradle output follows:", file=sys.stderr)
                         print((run.stdout + "\\n" + run.stderr)[-9000:], file=sys.stderr)
                         raise RuntimeError(f"{task} failed with exit code {run.returncode}")
+                apk = checkout / "app/build/outputs/apk/debug/app-debug.apk"
+                if not apk.is_file() or apk.stat().st_size == 0:
+                    raise RuntimeError("Verified candidate APK missing")
+                shutil.copy2(apk, output_dir / "candidate-debug.apk")
+                report["candidate_apk_sha256"] = hashlib.sha256(apk.read_bytes()).hexdigest()
             else:
                 report["verification_skipped"] = True
             return report
