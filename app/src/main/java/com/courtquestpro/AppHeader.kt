@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -26,20 +27,20 @@ internal fun AppHeader(title: String, subtitle: String = "") {
             .background(Brush.verticalGradient(listOf(
                 Color(0xFF4B281D), Color(0xFF252127), Color(0xFF121315)
             )))
-            .padding(start = 22.dp, end = 22.dp, top = 27.dp, bottom = 30.dp)
+            .padding(start = 24.dp, end = 24.dp, top = 30.dp, bottom = 34.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
-                Modifier.size(42.dp).clip(RoundedCornerShape(14.dp))
+                Modifier.size(46.dp).clip(RoundedCornerShape(15.dp))
                     .background(Brush.linearGradient(listOf(Color(0xFFFFAD71), Color(0xFFFF783D)))),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Default.SportsBasketball, null,
-                    tint = Color(0xFF211713), modifier = Modifier.size(25.dp))
+                    tint = Color(0xFF211713), modifier = Modifier.size(27.dp))
             }
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(13.dp))
             Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text("COURTQUEST", color = Color(0xFFF7F3EF), fontSize = 13.sp,
+                Text("COURTQUEST", color = Color(0xFFF7F3EF), fontSize = 14.sp,
                     fontWeight = FontWeight.Black, letterSpacing = 2.1.sp)
                 Text("PERFORMANCE STUDIO", color = Color(0xFFFFA35C), fontSize = 9.sp,
                     fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
@@ -52,18 +53,22 @@ internal fun AppHeader(title: String, subtitle: String = "") {
                     .padding(horizontal = 10.dp, vertical = 7.dp)
             ) {
                 Text("PLAYER LAB", color = Color(0xFFF7F3EF), fontSize = 9.sp,
-                    fontWeight = FontWeight.ExtraBold, letterSpacing = 0.7.sp)
+                    fontWeight = FontWeight.ExtraBold, letterSpacing = 0.7.sp,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
-        Spacer(Modifier.height(30.dp))
-        Box(Modifier.width(44.dp).height(3.dp).clip(CircleShape).background(Color(0xFFFFA35C)))
+        Spacer(Modifier.height(28.dp))
+        Box(Modifier.width(56.dp).height(3.dp).clip(CircleShape)
+            .background(Brush.horizontalGradient(listOf(Color(0xFFFFA35C), Color(0xFFFF783D)))))
         Spacer(Modifier.height(13.dp))
-        Text(title, color = Color(0xFFF7F3EF), fontSize = 34.sp,
-            fontWeight = FontWeight.Black, lineHeight = 39.sp)
+        Text(title, color = Color(0xFFF7F3EF), fontSize = 32.sp,
+            fontWeight = FontWeight.Black, lineHeight = 38.sp,
+            maxLines = 2, overflow = TextOverflow.Ellipsis)
         if (subtitle.isNotBlank()) {
             Spacer(Modifier.height(11.dp))
-            Text(subtitle, color = Color(0xFFB7ACA6), fontSize = 11.sp,
-                fontWeight = FontWeight.Medium, letterSpacing = 1.sp, lineHeight = 17.sp)
+            Text(subtitle, color = Color(0xFFB7ACA6), fontSize = 12.sp,
+                fontWeight = FontWeight.Medium, letterSpacing = 0.3.sp, lineHeight = 18.sp,
+                maxLines = 3, overflow = TextOverflow.Ellipsis)
         }
     }
 }
