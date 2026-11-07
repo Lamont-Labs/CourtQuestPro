@@ -1,0 +1,28 @@
+name: Premium campaign controller tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/premium_campaign.py'
+      - 'tests/test_premium_campaign.py'
+      - '.github/workflows/premium-campaign-controller.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-controller:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Run offline acceptance tests
+        run: python3 -m unittest discover -s tests -p 'test_premium_campaign.py' -v
+      - name: Confirm fresh campaign starts at zero
+        run: |
+          python3 scripts/premium_campaign.py --ledger /tmp/courtquest-empty-ledger.json status
+          python3 scripts/premium_campaign.py --ledger /tmp/courtquest-empty-ledger.json next
