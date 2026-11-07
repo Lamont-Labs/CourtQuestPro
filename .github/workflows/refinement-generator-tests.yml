@@ -11,6 +11,8 @@ on:
       - 'tests/test_refinement_continuation.py'
       - 'scripts/prepare_refinement_commit.py'
       - 'tests/test_refinement_commit_preparation.py'
+      - 'scripts/commit_verified_refinement.py'
+      - 'tests/test_refinement_isolated_commit.py'
       - 'tests/test_refinement_generator.py'
       - '.github/workflows/refinement-generator-tests.yml'
   workflow_dispatch:
@@ -25,10 +27,11 @@ jobs:
         with:
           persist-credentials: false
       - name: Validate Python syntax
-        run: python3 -m py_compile scripts/generate_refinement_proposal.py scripts/checkpoint_refinement.py tests/test_refinement_generator.py tests/test_refinement_checkpoint.py scripts/continue_refinement_campaign.py tests/test_refinement_continuation.py scripts/prepare_refinement_commit.py tests/test_refinement_commit_preparation.py
+        run: python3 -m py_compile scripts/generate_refinement_proposal.py scripts/checkpoint_refinement.py tests/test_refinement_generator.py tests/test_refinement_checkpoint.py scripts/continue_refinement_campaign.py tests/test_refinement_continuation.py scripts/prepare_refinement_commit.py tests/test_refinement_commit_preparation.py scripts/commit_verified_refinement.py tests/test_refinement_isolated_commit.py
       - name: Run mocked local-model regression tests
         run: |
           python3 -m unittest discover -s tests -p test_refinement_generator.py -v
           python3 -m unittest discover -s tests -p test_refinement_checkpoint.py -v
           python3 -m unittest discover -s tests -p test_refinement_continuation.py -v
           python3 -m unittest discover -s tests -p test_refinement_commit_preparation.py -v
+          python3 -m unittest discover -s tests -p test_refinement_isolated_commit.py -v
