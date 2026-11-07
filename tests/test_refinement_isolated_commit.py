@@ -47,6 +47,22 @@ class IsolatedCommitTests(unittest.TestCase):
         head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=self.repo, text=True).strip()
         self.assertEqual(head, self.base)
 
+    def test_bundle_survives_worktree_cleanup_and_restores(self):
+        bundle = self.repo / "candidate.bundle"
+        receipt = isolate(self.repo, self.proposal, self.verification, self.diff, bundle)
+        self.assertTrue(bundle.is_file())
+        self.assertGreater(bundle.stat().st_size, 0)
+        self.assertEqual(receipt["preservation"]["candidate_sha"], receipt["candidate_sha"])
+        with tempfile.TemporaryDirectory() as directory:
+            restored = pathlib.Path(directory) / "restored"
+            subprocess.run(["git", "clone", "-q", str(bundle), str(restored)], check=True)
+            # Bundle stores a named checkpoint ref, not a default branch.
+            refs = subprocess.check_output(
+                ["git", "show-ref"], cwd=restored, text=True)
+            self.assertIn(receipt["candidate_sha"], refs)
+        self.assertEqual(subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=self.repo, text=True).strip(), self.base)
+
     def test_unverified_candidate_cannot_commit(self):
         self.verification["tests_passed"] = False
         with self.assertRaisesRegex(ValueError, "tests_passed"):
