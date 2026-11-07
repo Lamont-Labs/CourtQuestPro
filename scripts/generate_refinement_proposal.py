@@ -28,7 +28,7 @@ def generate(root, target, phase, number, intent, model):
     if len(original) > MAX_INPUT:
         raise ValueError("Target exceeds bounded model input size; choose a smaller UI file")
     sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
-    if subprocess.check_output(["git", "status", "--porcelain"], cwd=root, text=True).strip():
+    if subprocess.check_output(["git", "status", "--porcelain", "--untracked-files=no"], cwd=root, text=True).strip():
         raise ValueError("Repository must be clean")
     prompt = ("Improve only the supplied Android UI source file. Preserve package, public APIs, "
               "state persistence, accessibility, and existing functionality. Do not modify "
