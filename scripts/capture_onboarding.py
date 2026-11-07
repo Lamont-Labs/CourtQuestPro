@@ -14,10 +14,27 @@ results = []
 def adb(*args, timeout=90):
     return subprocess.run(["adb", *args], capture_output=True, timeout=timeout, check=True)
 
+def describe_error(exc):
+    if isinstance(exc, subprocess.CalledProcessError):
+        stderr = (exc.stderr or b"").decode("utf-8", "replace")[-700:]
+        stdout = (exc.stdout or b"").decode("utf-8", "replace")[-300:]
+        return f"command={exc.cmd!r} exit={exc.returncode} stderr={stderr!r} stdout={stdout!r}"
+    return f"{type(exc).__name__}: {str(exc)[:700]}"
+
 def hierarchy():
-    adb("shell", "uiautomator", "dump", "/data/local/tmp/courtquest-nav.xml", timeout=120)
-    raw = adb("exec-out", "cat", "/data/local/tmp/courtquest-nav.xml").stdout
-    return ET.fromstring(raw)
+    last_error = None
+    for attempt in range(1, 4):
+        try:
+            adb("shell", "rm", "-f", "/data/local/tmp/courtquest-nav.xml")
+            adb("shell", "uiautomator", "dump", "/data/local/tmp/courtquest-nav.xml", timeout=120)
+            raw = adb("exec-out", "cat", "/data/local/tmp/courtquest-nav.xml").stdout
+            return ET.fromstring(raw)
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, ET.ParseError) as exc:
+            last_error = exc
+            print(f"UI hierarchy attempt {attempt}/3 failed: {describe_error(exc)}", flush=True)
+            if attempt < 3:
+                time.sleep(3 * attempt)
+    raise last_error
 
 def tap_label(root, labels):
     for label in labels:
@@ -61,7 +78,7 @@ for step in range(5):
             item["navigation"] = pressed
             time.sleep(2)
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired, ET.ParseError) as exc:
-        item["error"] = type(exc).__name__
+        item["error"] = describe_error(exc)
         results.append(item)
         break
     results.append(item)
