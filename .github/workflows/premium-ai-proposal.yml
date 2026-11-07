@@ -44,7 +44,7 @@ concurrency:
 jobs:
   propose:
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -73,26 +73,23 @@ jobs:
           print("Local inference verified; no external model API key required")
           PY
       - name: Generate and validate one proposal
-        if: github.event_name == 'workflow_dispatch'
         env:
-          TARGET: ${{ inputs.target }}
-          PHASE: ${{ inputs.phase }}
-          PASS: ${{ inputs.pass_number }}
-          INTENT: ${{ inputs.intent }}
+          TARGET: ${{ inputs.target || 'app/src/main/java/com/courtquestpro/Scorekeeper.kt' }}
+          PHASE: ${{ inputs.phase || 'visual-identity' }}
+          PASS: ${{ inputs.pass_number || '1' }}
+          INTENT: ${{ inputs.intent || 'Improve readability and structure without changing the public Kotlin API or behavior' }}
         run: |
           set -euo pipefail
           mkdir -p campaign-evidence
           python3 scripts/generate_refinement_proposal.py --target "$TARGET" --phase "$PHASE" --pass-number "$PASS" --intent "$INTENT" --output campaign-evidence/proposal.json
           python3 scripts/validate_refinement_proposal.py campaign-evidence/proposal.json
       - name: Set up Java for candidate verification
-        if: github.event_name == 'workflow_dispatch'
         uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         with:
           distribution: temurin
           java-version: '17'
           cache: gradle
       - name: Verify candidate in disposable checkout
-        if: github.event_name == 'workflow_dispatch'
         run: |
           set -euo pipefail
           chmod +x gradlew
@@ -101,7 +98,7 @@ jobs:
           cp "$RUNNER_TEMP/courtquest-candidate/candidate.diff" campaign-evidence/
           cp "$RUNNER_TEMP/courtquest-candidate/"*.log campaign-evidence/
       - name: Upload candidate diagnostics on failure
-        if: github.event_name == 'workflow_dispatch' && failure()
+        if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: courtquest-candidate-failure-${{ github.run_id }}
@@ -111,7 +108,7 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
       - name: Upload unaccepted proposal for review
-        if: github.event_name == 'workflow_dispatch' && success()
+        if: success()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: courtquest-verified-candidate-${{ github.run_id }}
