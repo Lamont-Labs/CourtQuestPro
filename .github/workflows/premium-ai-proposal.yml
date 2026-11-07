@@ -1,0 +1,73 @@
+name: Premium campaign - AI proposal (one bounded pass)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Existing Kotlin UI file (must be <= 28 KB)'
+        required: true
+        default: 'app/src/main/java/com/courtquestpro/Scorekeeper.kt'
+      phase:
+        description: 'Campaign phase'
+        type: choice
+        required: true
+        options:
+          - visual-identity
+          - layout-composition
+          - typography
+          - glass-depth
+          - motion-interactions
+          - consistency
+          - usability
+          - final-refinement
+      pass_number:
+        description: 'Proposed pass (1-100); not automatically accepted'
+        required: true
+        default: '1'
+      intent:
+        description: 'Specific bounded improvement goal'
+        required: true
+        default: 'Improve clarity while preserving existing functionality and APIs'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: courtquest-ai-proposal
+  cancel-in-progress: false
+
+jobs:
+  propose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Require explicitly configured model credential
+        env:
+          MODEL_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [ -z "$MODEL_KEY" ]; then
+            echo "::error::OPENAI_API_KEY repository secret is required. No AI run or campaign was started."
+            exit 1
+          fi
+      - name: Generate and validate one proposal
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          TARGET: ${{ inputs.target }}
+          PHASE: ${{ inputs.phase }}
+          PASS: ${{ inputs.pass_number }}
+          INTENT: ${{ inputs.intent }}
+        run: |
+          set -euo pipefail
+          mkdir -p campaign-evidence
+          python3 scripts/generate_refinement_proposal.py --target "$TARGET" --phase "$PHASE" --pass-number "$PASS" --intent "$INTENT" --output campaign-evidence/proposal.json
+          python3 scripts/validate_refinement_proposal.py campaign-evidence/proposal.json
+      - name: Upload unaccepted proposal for review
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: courtquest-ai-proposal-${{ github.run_id }}
+          path: campaign-evidence/proposal.json
+          retention-days: 7
