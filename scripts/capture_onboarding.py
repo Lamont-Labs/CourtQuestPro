@@ -38,15 +38,15 @@ def hierarchy():
 
 def screen_size():
     output = adb("shell", "wm", "size").stdout.decode("utf-8", "replace")
-    matches = re.findall(r"(\\d+)x(\\d+)", output)
+    matches = re.findall(r"(\d+)x(\d+)", output)
     if not matches:
         raise RuntimeError(f"Cannot determine emulator dimensions: {output!r}")
     return tuple(map(int, matches[-1]))
 
 def visible_step(root):
-    strings = [node.get("text", "") for node in root.iter("node")]
+    strings = [node.get("text", "") + " " + node.get("content-desc", "") for node in root.iter("node")]
     for value in strings:
-        match = re.search(r"STEP\\s+([1-5])\\s+OF\\s+5", value, re.I)
+        match = re.search(r"STEP\s+([1-5])\s+OF\s+5", value, re.I)
         if match:
             return int(match.group(1))
     return None
@@ -56,7 +56,7 @@ def tap_continue(root):
         value = (node.get("text", "") + " " + node.get("content-desc", "")).strip()
         if value.upper() != "CONTINUE":
             continue
-        match = re.fullmatch(r"\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]", node.get("bounds", ""))
+        match = re.fullmatch(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]", node.get("bounds", ""))
         if not match:
             continue
         x1, y1, x2, y2 = map(int, match.groups())
@@ -86,6 +86,7 @@ for step in range(1, 6):
     item = {"step": step}
     try:
         root = hierarchy()
+        ET.ElementTree(root).write(OUT / f"step-{step}-diagnostic.xml", encoding="utf-8", xml_declaration=True)
         observed = visible_step(root)
         item["observed_step"] = observed
         if observed != step:
