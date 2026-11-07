@@ -11,8 +11,9 @@ import sys
 import tempfile
 
 from prepare_refinement_commit import prepare, command
+from preserve_refinement_checkpoint import preserve
 
-def isolate(repo, proposal, verification, diff):
+def isolate(repo, proposal, verification, diff, bundle_output=None):
     repo = repo.resolve(strict=True)
     receipt = prepare(repo, proposal, verification, diff)
     with tempfile.TemporaryDirectory(prefix="courtquest-isolated-commit-") as temp:
@@ -31,9 +32,12 @@ def isolate(repo, proposal, verification, diff):
             parent = command(["git", "rev-parse", "HEAD^"], checkout).stdout.decode().strip()
             if parent != receipt["base_sha"] or sha == parent:
                 raise ValueError("Isolated commit parent mismatch")
-            return {**receipt, "candidate_sha": sha, "source_committed": True,
-                    "commit_location": "local-detached-worktree",
-                    "pushed": False, "campaign_pass_accepted": False}
+            result = {**receipt, "candidate_sha": sha, "source_committed": True,
+                      "commit_location": "local-detached-worktree",
+                      "pushed": False, "campaign_pass_accepted": False}
+            if bundle_output is not None:
+                result["preservation"] = preserve(repo, result, bundle_output)
+            return result
         finally:
             command(["git", "worktree", "remove", "--force", str(checkout)], repo)
 
@@ -44,9 +48,10 @@ def main():
     p.add_argument("diff", type=pathlib.Path)
     p.add_argument("--repo", type=pathlib.Path, default=pathlib.Path("."))
     p.add_argument("--output", type=pathlib.Path, required=True)
+    p.add_argument("--bundle-output", type=pathlib.Path)
     args = p.parse_args()
     result = isolate(args.repo, json.loads(args.proposal.read_text()),
-                     json.loads(args.verification.read_text()), args.diff.read_bytes())
+                     json.loads(args.verification.read_text()), args.diff.read_bytes(), args.bundle_output)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
     print(json.dumps({"candidate_sha": result["candidate_sha"], "pushed": False,
