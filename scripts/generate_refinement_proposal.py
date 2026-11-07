@@ -56,7 +56,7 @@ def generate(root, target, phase, number, intent, model):
         lines = revised.splitlines()
         if len(lines) < 3 or not lines[-1].strip() == "```":
             raise ValueError("Model returned an incomplete fenced source block")
-        revised = "\\n".join(lines[1:-1]) + "\\n"
+        revised = "\n".join(lines[1:-1]) + "\n"
     if not revised.lstrip().startswith("package com.courtquestpro"):
         raise ValueError("Model response does not begin with the required Kotlin package declaration")
     if "kotlinx.parcelize" in revised and "kotlinx.parcelize" not in original.decode("utf-8"):
