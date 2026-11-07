@@ -49,6 +49,18 @@ def generate(root, target, phase, number, intent, model):
         raise ValueError("Local model response exceeds bounded output size")
     result = json.loads(data)
     revised = result["message"]["content"]
+    if not isinstance(revised, str):
+        raise ValueError("Model response is not source text")
+    revised = revised.strip()
+    if revised.startswith("```"):
+        lines = revised.splitlines()
+        if len(lines) < 3 or not lines[-1].strip() == "```":
+            raise ValueError("Model returned an incomplete fenced source block")
+        revised = "\\n".join(lines[1:-1]) + "\\n"
+    if not revised.lstrip().startswith("package com.courtquestpro"):
+        raise ValueError("Model response does not begin with the required Kotlin package declaration")
+    if "kotlinx.parcelize" in revised and "kotlinx.parcelize" not in original.decode("utf-8"):
+        raise ValueError("Model introduced an unsupported Parcelize dependency")
     if not isinstance(revised, str) or revised.encode("utf-8") == original:
         raise ValueError("Model returned empty or unchanged source; no refinement proposed")
     proposal = {"phase": phase, "pass": number, "base_sha": sha, "intent": intent,
