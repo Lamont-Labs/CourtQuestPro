@@ -45,7 +45,15 @@ for step in range(5):
         adb("shell", "rm", "-f", png_path)
         item["captured"] = True
         if step < 4:
-            pressed = tap_label(root, ["GET STARTED", "CONTINUE", "NEXT", "LET'S GO", "START"])
+            pressed = tap_label(root, ["CONTINUE"])
+            for attempt in range(3):
+                if pressed is not None:
+                    break
+                # Scroll to reveal the action below the viewport.
+                adb("shell", "input", "swipe", "540", "1750", "540", "650", "450")
+                time.sleep(1)
+                root = hierarchy()
+                pressed = tap_label(root, ["CONTINUE"])
             if pressed is None:
                 item["navigation"] = "No matching accessible next control; stopped safely"
                 results.append(item)
