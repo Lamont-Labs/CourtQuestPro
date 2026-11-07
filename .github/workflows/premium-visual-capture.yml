@@ -100,6 +100,12 @@ jobs:
             adb pull /data/local/tmp/courtquest-first-launch.png visual-evidence/first-launch.png
             adb shell rm -f /data/local/tmp/courtquest-first-launch.png
             adb shell dumpsys activity activities > visual-evidence/activity-state.txt
+            # Capture semantic UI structure for deterministic screen navigation in the next phase.
+            # A hierarchy dump is diagnostic-only until the onboarding navigation harness is ready.
+            if adb shell uiautomator dump /data/local/tmp/courtquest-ui.xml; then
+              adb pull /data/local/tmp/courtquest-ui.xml visual-evidence/ui-hierarchy.xml || true
+              adb shell rm -f /data/local/tmp/courtquest-ui.xml || true
+            fi
       - name: Verify rendered screenshot is real and nonempty
         run: |
           set -euo pipefail
