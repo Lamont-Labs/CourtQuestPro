@@ -126,19 +126,34 @@ jobs:
             adb shell am start -n com.courtquestpro/.MainActivity
             sleep 8
             adb exec-out screencap -p > campaign-evidence/screenshots/candidate.png
-            python3 - <<'PY'
-            import hashlib, json, pathlib, struct
-            result = {"accepted": False, "screenshots": {}}
-            for name in ("baseline", "candidate"):
-                p = pathlib.Path("campaign-evidence/screenshots") / (name + ".png")
-                data = p.read_bytes()
-                assert len(data) > 10000 and data[:8] == bytes.fromhex("89504e470d0a1a0a")
-                width, height = struct.unpack(">II", data[16:24])
-                assert width >= 320 and height >= 600
-                result["screenshots"][name] = {"width":width, "height":height, "sha256":hashlib.sha256(data).hexdigest()}
-            result["pixels_identical_unverified"] = result["screenshots"]["baseline"]["sha256"] == result["screenshots"]["candidate"]["sha256"]
-            pathlib.Path("campaign-evidence/screenshot-manifest.json").write_text(json.dumps(result,indent=2)+"\\n")
-            PY
+      - name: Validate captured screenshots and write evidence manifest
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import pathlib
+          import struct
+
+          result = {"accepted": False, "screenshots": {}}
+          for name in ("baseline", "candidate"):
+              p = pathlib.Path("campaign-evidence/screenshots") / (name + ".png")
+              data = p.read_bytes()
+              assert len(data) > 10000 and data[:8] == bytes.fromhex("89504e470d0a1a0a")
+              width, height = struct.unpack(">II", data[16:24])
+              assert width >= 320 and height >= 600
+              result["screenshots"][name] = {
+                  "width": width, "height": height,
+                  "sha256": hashlib.sha256(data).hexdigest(),
+              }
+          result["file_hashes_equal"] = (
+              result["screenshots"]["baseline"]["sha256"]
+              == result["screenshots"]["candidate"]["sha256"]
+          )
+          pathlib.Path("campaign-evidence/screenshot-manifest.json").write_text(
+              json.dumps(result, indent=2) + "\n", encoding="utf-8"
+          )
+          PY
       - name: Upload candidate diagnostics on failure
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
