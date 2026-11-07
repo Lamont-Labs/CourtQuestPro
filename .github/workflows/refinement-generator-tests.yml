@@ -12,6 +12,7 @@ on:
       - 'scripts/prepare_refinement_commit.py'
       - 'tests/test_refinement_commit_preparation.py'
       - 'scripts/commit_verified_refinement.py'
+      - 'scripts/preserve_refinement_checkpoint.py'
       - 'tests/test_refinement_isolated_commit.py'
       - 'tests/test_refinement_generator.py'
       - '.github/workflows/refinement-generator-tests.yml'
