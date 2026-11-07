@@ -12,7 +12,7 @@ on:
       target:
         description: 'Existing Kotlin UI file (must be <= 28 KB)'
         required: true
-        default: 'app/src/main/java/com/courtquestpro/Scorekeeper.kt'
+        default: 'app/src/main/java/com/courtquestpro/AppHeader.kt'
       phase:
         description: 'Campaign phase'
         type: choice
@@ -75,10 +75,10 @@ jobs:
           PY
       - name: Generate and validate one proposal
         env:
-          TARGET: ${{ inputs.target || 'app/src/main/java/com/courtquestpro/Scorekeeper.kt' }}
+          TARGET: ${{ inputs.target || 'app/src/main/java/com/courtquestpro/AppHeader.kt' }}
           PHASE: ${{ inputs.phase || 'visual-identity' }}
           PASS: ${{ inputs.pass_number || '1' }}
-          INTENT: ${{ inputs.intent || 'Improve readability and structure without changing the public Kotlin API or behavior' }}
+          INTENT: ${{ inputs.intent || 'Improve premium header spacing and typographic hierarchy while preserving the AppHeader function signature and behavior' }}
         run: |
           set -euo pipefail
           mkdir -p campaign-evidence
