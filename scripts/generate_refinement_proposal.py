@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """One bounded AI-generated refinement proposal; never edits files or commits.
 
-Requires OPENAI_API_KEY explicitly configured in the execution environment.
+Uses local Ollama at 127.0.0.1; no external API credentials.
 This is a proposal generator, NOT an unattended 800-pass campaign.
 """
 import argparse
 import hashlib
 import json
-import os
 import pathlib
 import subprocess
 import sys
@@ -31,9 +30,6 @@ def generate(root, target, phase, number, intent, model):
     sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
     if subprocess.check_output(["git", "status", "--porcelain"], cwd=root, text=True).strip():
         raise ValueError("Repository must be clean")
-    api_key = os.environ.get("OPENAI_API_KEY")
-    if not api_key:
-        raise ValueError("OPENAI_API_KEY is not configured; no model request was made")
     prompt = ("Improve only the supplied Android UI source file. Preserve package, public APIs, "
               "state persistence, accessibility, and existing functionality. Do not modify "
               "signing, package ID, or security boundaries. Return the complete revised file "
@@ -43,17 +39,16 @@ def generate(root, target, phase, number, intent, model):
     payload = {"model": model, "messages": [
         {"role": "system", "content": "You are an Android Kotlin UI refinement coding agent. Output only the complete revised source file."},
         {"role": "user", "content": prompt}],
-        "temperature": 0.2, "max_completion_tokens": 12000}
-    req = urllib.request.Request("https://api.openai.com/v1/chat/completions",
+        "stream": False, "options": {"temperature": 0.2, "num_predict": 4096}}
+    req = urllib.request.Request("http://127.0.0.1:11434/api/chat",
         data=json.dumps(payload).encode("utf-8"),
-        headers={"Authorization": "Bearer " + api_key, "Content-Type": "application/json"},
-        method="POST")
-    with urllib.request.urlopen(req, timeout=180) as response:
+        headers={"Content-Type": "application/json"}, method="POST")
+    with urllib.request.urlopen(req, timeout=420) as response:
         data = response.read(MAX_OUTPUT + 1)
     if len(data) > MAX_OUTPUT:
-        raise ValueError("Model response exceeds bounded output size")
+        raise ValueError("Local model response exceeds bounded output size")
     result = json.loads(data)
-    revised = result["choices"][0]["message"]["content"]
+    revised = result["message"]["content"]
     if not isinstance(revised, str) or revised.encode("utf-8") == original:
         raise ValueError("Model returned empty or unchanged source; no refinement proposed")
     proposal = {"phase": phase, "pass": number, "base_sha": sha, "intent": intent,
@@ -69,7 +64,7 @@ def main():
     p.add_argument("--phase", default="visual-identity")
     p.add_argument("--pass-number", type=int, default=1)
     p.add_argument("--intent", required=True)
-    p.add_argument("--model", default="gpt-4.1-mini")
+    p.add_argument("--model", default="qwen2.5-coder:1.5b-instruct")
     p.add_argument("--output", type=pathlib.Path, required=True)
     args = p.parse_args()
     try:
