@@ -100,6 +100,7 @@ jobs:
             adb pull /data/local/tmp/courtquest-first-launch.png visual-evidence/first-launch.png
             adb shell rm -f /data/local/tmp/courtquest-first-launch.png
             adb shell dumpsys activity activities > visual-evidence/activity-state.txt
+            python3 scripts/capture_onboarding.py || true
             # Capture semantic UI structure for deterministic screen navigation in the next phase.
             # A hierarchy dump is diagnostic-only until the onboarding navigation harness is ready.
             adb shell uiautomator dump /data/local/tmp/courtquest-ui.xml || true
