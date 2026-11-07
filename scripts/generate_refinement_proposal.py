@@ -36,27 +36,46 @@ def generate(root, target, phase, number, intent, model):
               "as plain text with no markdown fences. If uncertain, return the source unchanged.\n"
               f"Category: {phase}\nPass: {number}\nGoal: {intent}\n"
               f"Path: {target}\nOriginal source:\n{original.decode('utf-8')}")
-    payload = {"model": model, "messages": [
-        {"role": "system", "content": "You are an Android Kotlin UI refinement coding agent. Output only the complete revised source file."},
-        {"role": "user", "content": prompt}],
-        "stream": False, "options": {"temperature": 0.1, "num_predict": 8192}}
-    req = urllib.request.Request("http://127.0.0.1:11434/api/chat",
-        data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"}, method="POST")
-    with urllib.request.urlopen(req, timeout=420) as response:
-        data = response.read(MAX_OUTPUT + 1)
-    if len(data) > MAX_OUTPUT:
-        raise ValueError("Local model response exceeds bounded output size")
-    result = json.loads(data)
-    revised = result["message"]["content"]
-    if not isinstance(revised, str):
-        raise ValueError("Model response is not source text")
-    revised = revised.strip()
-    if revised.startswith("```"):
-        lines = revised.splitlines()
-        if len(lines) < 3 or not lines[-1].strip() == "```":
-            raise ValueError("Model returned an incomplete fenced source block")
-        revised = "\n".join(lines[1:-1]) + "\n"
+    revised = None
+    errors = []
+    for attempt in range(1, 4):
+        instruction = prompt
+        if attempt > 1:
+            instruction += ("\\nRETRY: Previous output was invalid or unchanged. "
+                            "Change one existing UI styling value (spacing, size, or typography) "
+                            "without modifying APIs, identifiers, or logic. Return the full file.")
+        payload = {"model": model, "messages": [
+            {"role": "system", "content": "You are an Android Kotlin UI refinement coding agent. Output only complete revised source."},
+            {"role": "user", "content": instruction}],
+            "stream": False, "options": {"temperature": 0.1 + 0.1 * (attempt - 1), "num_predict": 8192}}
+        req = urllib.request.Request("http://127.0.0.1:11434/api/chat",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"}, method="POST")
+        try:
+            with urllib.request.urlopen(req, timeout=420) as response:
+                data = response.read(MAX_OUTPUT + 1)
+            if len(data) > MAX_OUTPUT:
+                raise ValueError("Local model response exceeds bounded output size")
+            result = json.loads(data)
+            candidate = result["message"]["content"]
+            if not isinstance(candidate, str):
+                raise ValueError("Model response is not source text")
+            candidate = candidate.strip()
+            if candidate.startswith("```"):
+                lines = candidate.splitlines()
+                if len(lines) < 3 or lines[-1].strip() != "```":
+                    raise ValueError("Incomplete fenced source block")
+                candidate = "\\n".join(lines[1:-1]) + "\\n"
+            if not candidate.lstrip().startswith("package com.courtquestpro"):
+                raise ValueError("Missing Kotlin package declaration")
+            if "".join(candidate.split()) == "".join(original.decode("utf-8").split()):
+                raise ValueError("Model changed only whitespace or returned unchanged source")
+            revised = candidate
+            break
+        except (ValueError, KeyError, TypeError, json.JSONDecodeError, urllib.error.URLError) as exc:
+            errors.append(f"attempt {attempt}: {type(exc).__name__}: {exc}")
+    if revised is None:
+        raise ValueError("All three model attempts rejected: " + "; ".join(errors))
     if not revised.lstrip().startswith("package com.courtquestpro"):
         raise ValueError("Model response does not begin with the required Kotlin package declaration")
     if "kotlinx.parcelize" in revised and "kotlinx.parcelize" not in original.decode("utf-8"):
