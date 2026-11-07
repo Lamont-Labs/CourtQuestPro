@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/premium-visual-capture.yml'
       - 'scripts/capture_onboarding.py'
+      - 'app/src/main/java/com/courtquestpro/AppHeader.kt'
   workflow_dispatch:
     inputs:
       campaign_id:
@@ -85,28 +86,26 @@ jobs:
       - name: Boot emulator and capture first launch
         uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
         with:
-          api-level: 35
+          api-level: 30
           arch: x86_64
-          profile: pixel_6
+          profile: pixel_2
           disable-animations: false
           emulator-boot-timeout: 900
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none -cores 2 -memory 2048
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none -cores 2 -memory 3072
           script: |
             set -eu
             mkdir -p visual-evidence
             adb install -r app/build/outputs/apk/debug/app-debug.apk
             adb shell am start -n com.courtquestpro/.MainActivity
             sleep 8
-            adb shell screencap -p /data/local/tmp/courtquest-first-launch.png
-            adb pull /data/local/tmp/courtquest-first-launch.png visual-evidence/first-launch.png
-            adb shell rm -f /data/local/tmp/courtquest-first-launch.png
+            adb exec-out screencap -p > visual-evidence/first-launch.png
             adb shell dumpsys activity activities > visual-evidence/activity-state.txt
             python3 scripts/capture_onboarding.py
             # Capture semantic UI structure for deterministic screen navigation in the next phase.
             # A hierarchy dump is diagnostic-only until the onboarding navigation harness is ready.
             adb shell uiautomator dump /data/local/tmp/courtquest-ui.xml || true
-            adb pull /data/local/tmp/courtquest-ui.xml visual-evidence/ui-hierarchy.xml || true
-            adb shell rm -f /data/local/tmp/courtquest-ui.xml || true
+            adb exec-out cat /data/local/tmp/courtquest-ui.xml > visual-evidence/ui-hierarchy.xml || true
+            adb shell dumpsys window windows > visual-evidence/window-state.txt
       - name: Verify rendered screenshot is real and nonempty
         run: |
           set -euo pipefail
@@ -120,6 +119,9 @@ jobs:
           assert width >= 320 and height >= 600, f"Unexpected screenshot dimensions: {width}x{height}"
           assert data[12:16] == b"IHDR", "PNG missing IHDR"
           assert data[-8:-4] == b"IEND", "PNG missing IEND"
+          hierarchy = pathlib.Path("visual-evidence/ui-hierarchy.xml").read_text(encoding="utf-8", errors="replace")
+          assert "isn\u0027t responding" not in hierarchy and "System UI isn" not in hierarchy, "Android System UI ANR"
+          assert "com.courtquestpro" in hierarchy, "CourtQuest Pro not present in UI hierarchy"
           print(f"Verified emulator screenshot: {width}x{height}, {len(data)} bytes")
           PY
       - name: Save immutable evidence and status
