@@ -33,7 +33,7 @@ def generate(root, target, phase, number, intent, model):
     prompt = ("Improve only the supplied Android UI source file. Preserve package, public APIs, "
               "state persistence, accessibility, and existing functionality. Do not modify "
               "signing, package ID, or security boundaries. Return the complete revised file "
-              "as plain text with no markdown fences. If uncertain, return the source unchanged.\n"
+              "as plain text with no markdown fences. Make one meaningful, compile-safe UI styling change; never return unchanged source.\n"
               f"Category: {phase}\nPass: {number}\nGoal: {intent}\n"
               f"Path: {target}\nOriginal source:\n{original.decode('utf-8')}")
     revised = None
