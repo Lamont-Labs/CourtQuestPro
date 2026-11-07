@@ -89,19 +89,22 @@ jobs:
           api-level: 30
           arch: x86_64
           profile: pixel_2
-          disable-animations: false
+          disable-animations: true
           emulator-boot-timeout: 900
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none -cores 2 -memory 3072
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none -cores 4 -memory 4096
           script: |
             set -eu
             mkdir -p visual-evidence
+            adb shell settings put global window_animation_scale 0 || true
+            adb shell settings put global transition_animation_scale 0 || true
+            adb shell settings put global animator_duration_scale 0 || true
+            sleep 25
             adb install -r app/build/outputs/apk/debug/app-debug.apk
             adb shell am start -n com.courtquestpro/.MainActivity
-            sleep 8
+            sleep 15
             adb exec-out screencap -p > visual-evidence/first-launch.png
             adb shell dumpsys activity activities > visual-evidence/activity-state.txt
-            # Onboarding navigation is diagnostic until its Compose semantics are verified.
-            python3 scripts/capture_onboarding.py > visual-evidence/onboarding-navigation.log 2>&1 || echo "Onboarding navigation unverified; see diagnostic log" >> visual-evidence/onboarding-navigation.log
+            # Avoid running the heavy UIAutomator onboarding crawler during baseline capture.
             # Capture semantic UI structure for deterministic screen navigation in the next phase.
             # A hierarchy dump is diagnostic-only until the onboarding navigation harness is ready.
             adb shell uiautomator dump /data/local/tmp/courtquest-ui.xml || true
