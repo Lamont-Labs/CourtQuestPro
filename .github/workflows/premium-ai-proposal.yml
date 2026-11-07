@@ -119,12 +119,20 @@ jobs:
             adb shell pm clear com.courtquestpro
             adb shell am start -n com.courtquestpro/.MainActivity
             sleep 8
+            adb shell dumpsys window windows > campaign-evidence/screenshots/baseline-window.txt
+            adb shell dumpsys activity activities > campaign-evidence/screenshots/baseline-activity.txt
+            adb shell uiautomator dump /data/local/tmp/cq-ui.xml || true
+            adb exec-out cat /data/local/tmp/cq-ui.xml > campaign-evidence/screenshots/baseline-ui.xml || true
             adb exec-out screencap -p > campaign-evidence/screenshots/baseline.png
             adb shell am force-stop com.courtquestpro
             adb install -r "$RUNNER_TEMP/courtquest-candidate/candidate-debug.apk"
             adb shell pm clear com.courtquestpro
             adb shell am start -n com.courtquestpro/.MainActivity
             sleep 8
+            adb shell dumpsys window windows > campaign-evidence/screenshots/candidate-window.txt
+            adb shell dumpsys activity activities > campaign-evidence/screenshots/candidate-activity.txt
+            adb shell uiautomator dump /data/local/tmp/cq-ui.xml || true
+            adb exec-out cat /data/local/tmp/cq-ui.xml > campaign-evidence/screenshots/candidate-ui.xml || true
             adb exec-out screencap -p > campaign-evidence/screenshots/candidate.png
       - name: Validate captured screenshots and write evidence manifest
         run: |
@@ -146,6 +154,14 @@ jobs:
                   "width": width, "height": height,
                   "sha256": hashlib.sha256(data).hexdigest(),
               }
+          for name in ("baseline", "candidate"):
+              hierarchy = (pathlib.Path("campaign-evidence/screenshots") / (name + "-ui.xml")).read_text(encoding="utf-8", errors="replace")
+              assert "System UI isn" not in hierarchy and "isn't responding" not in hierarchy, (
+                  name + " screenshot blocked by Android System UI ANR"
+              )
+              assert "com.courtquestpro" in hierarchy, (
+                  name + " screenshot does not show CourtQuest Pro UI"
+              )
           result["file_hashes_equal"] = (
               result["screenshots"]["baseline"]["sha256"]
               == result["screenshots"]["candidate"]["sha256"]
