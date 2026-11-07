@@ -1,6 +1,11 @@
 name: Premium campaign - AI proposal (one bounded pass)
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/generate_refinement_proposal.py'
+      - '.github/workflows/premium-ai-proposal.yml'
   workflow_dispatch:
     inputs:
       target:
@@ -39,22 +44,37 @@ concurrency:
 jobs:
   propose:
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
-      - name: Require explicitly configured model credential
-        env:
-          MODEL_KEY: ${{ secrets.OPENAI_API_KEY }}
+      - name: Install Ollama and download open model
         run: |
-          if [ -z "$MODEL_KEY" ]; then
-            echo "::error::OPENAI_API_KEY repository secret is required. No AI run or campaign was started."
-            exit 1
-          fi
+          set -euo pipefail
+          curl -fsSL https://ollama.com/install.sh | sh
+          ollama serve > /tmp/ollama-server.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:11434/api/tags >/dev/null; then break; fi
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:11434/api/tags >/dev/null
+          ollama pull qwen2.5-coder:1.5b-instruct
+      - name: Verify no-key local model inference
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, urllib.request
+          data = json.dumps({"model":"qwen2.5-coder:1.5b-instruct","prompt":"Reply with OK only.","stream":False,"options":{"num_predict":12}}).encode()
+          req = urllib.request.Request("http://127.0.0.1:11434/api/generate", data=data, headers={"Content-Type":"application/json"})
+          with urllib.request.urlopen(req, timeout=180) as response:
+              result = json.load(response)
+          assert result.get("response", "").strip(), "Model produced no text"
+          print("Local inference verified; no external model API key required")
+          PY
       - name: Generate and validate one proposal
+        if: github.event_name == 'workflow_dispatch'
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           TARGET: ${{ inputs.target }}
           PHASE: ${{ inputs.phase }}
           PASS: ${{ inputs.pass_number }}
@@ -65,7 +85,7 @@ jobs:
           python3 scripts/generate_refinement_proposal.py --target "$TARGET" --phase "$PHASE" --pass-number "$PASS" --intent "$INTENT" --output campaign-evidence/proposal.json
           python3 scripts/validate_refinement_proposal.py campaign-evidence/proposal.json
       - name: Upload unaccepted proposal for review
-        if: success()
+        if: github.event_name == 'workflow_dispatch' && success()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: courtquest-ai-proposal-${{ github.run_id }}
