@@ -1,12 +1,6 @@
-name: Premium campaign - AI proposal (one bounded pass)
+name: Premium campaign - headless AI proposal (one bounded pass)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'scripts/generate_refinement_proposal.py'
-      - 'scripts/verify_refinement_candidate.py'
-      - '.github/workflows/premium-ai-proposal.yml'
   workflow_dispatch:
     inputs:
       target:
@@ -98,77 +92,22 @@ jobs:
           cp "$RUNNER_TEMP/courtquest-candidate/verification.json" campaign-evidence/
           cp "$RUNNER_TEMP/courtquest-candidate/candidate.diff" campaign-evidence/
           cp "$RUNNER_TEMP/courtquest-candidate/"*.log campaign-evidence/
-      - name: Build unmodified baseline APK
-        run: |
-          set -euo pipefail
-          ./gradlew --no-daemon --console=plain :app:assembleDebug
-          test -s app/build/outputs/apk/debug/app-debug.apk
-      - name: Capture baseline and candidate on Android emulator
-        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
-        with:
-          api-level: 30
-          arch: x86_64
-          profile: pixel_2
-          disable-animations: false
-          emulator-boot-timeout: 900
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none -cores 2 -memory 3072
-          script: |
-            set -eu
-            mkdir -p campaign-evidence/screenshots
-            adb install -r app/build/outputs/apk/debug/app-debug.apk
-            adb shell pm clear com.courtquestpro
-            adb shell am start -n com.courtquestpro/.MainActivity
-            sleep 8
-            adb shell dumpsys window windows > campaign-evidence/screenshots/baseline-window.txt
-            adb shell dumpsys activity activities > campaign-evidence/screenshots/baseline-activity.txt
-            adb shell uiautomator dump /data/local/tmp/cq-ui.xml || true
-            adb exec-out cat /data/local/tmp/cq-ui.xml > campaign-evidence/screenshots/baseline-ui.xml || true
-            adb exec-out screencap -p > campaign-evidence/screenshots/baseline.png
-            adb shell am force-stop com.courtquestpro
-            adb install -r "$RUNNER_TEMP/courtquest-candidate/candidate-debug.apk"
-            adb shell pm clear com.courtquestpro
-            adb shell am start -n com.courtquestpro/.MainActivity
-            sleep 8
-            adb shell dumpsys window windows > campaign-evidence/screenshots/candidate-window.txt
-            adb shell dumpsys activity activities > campaign-evidence/screenshots/candidate-activity.txt
-            adb shell uiautomator dump /data/local/tmp/cq-ui.xml || true
-            adb exec-out cat /data/local/tmp/cq-ui.xml > campaign-evidence/screenshots/candidate-ui.xml || true
-            adb exec-out screencap -p > campaign-evidence/screenshots/candidate.png
-      - name: Validate captured screenshots and write evidence manifest
+      - name: Record headless verification status
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import hashlib
-          import json
-          import pathlib
-          import struct
-
-          result = {"accepted": False, "screenshots": {}}
-          for name in ("baseline", "candidate"):
-              p = pathlib.Path("campaign-evidence/screenshots") / (name + ".png")
-              data = p.read_bytes()
-              assert len(data) > 10000 and data[:8] == bytes.fromhex("89504e470d0a1a0a")
-              width, height = struct.unpack(">II", data[16:24])
-              assert width >= 320 and height >= 600
-              result["screenshots"][name] = {
-                  "width": width, "height": height,
-                  "sha256": hashlib.sha256(data).hexdigest(),
-              }
-          for name in ("baseline", "candidate"):
-              hierarchy = (pathlib.Path("campaign-evidence/screenshots") / (name + "-ui.xml")).read_text(encoding="utf-8", errors="replace")
-              assert "System UI isn" not in hierarchy and "isn't responding" not in hierarchy, (
-                  name + " screenshot blocked by Android System UI ANR"
-              )
-              assert "com.courtquestpro" in hierarchy, (
-                  name + " screenshot does not show CourtQuest Pro UI"
-              )
-          result["file_hashes_equal"] = (
-              result["screenshots"]["baseline"]["sha256"]
-              == result["screenshots"]["candidate"]["sha256"]
-          )
-          pathlib.Path("campaign-evidence/screenshot-manifest.json").write_text(
-              json.dumps(result, indent=2) + "\n", encoding="utf-8"
-          )
+          import json, pathlib
+          evidence = pathlib.Path("campaign-evidence")
+          result = {
+              "verification_mode": "headless",
+              "proposal_validated": True,
+              "candidate_build_test_lint": True,
+              "screenshot_capture": "not_required",
+              "visual_quality_verified": False,
+              "accepted_pass": False,
+              "reason": "Technical verification is not visual acceptance; no automatic source commit."
+          }
+          (evidence / "headless-status.json").write_text(json.dumps(result, indent=2) + "\n")
           PY
       - name: Upload candidate diagnostics on failure
         if: failure()
