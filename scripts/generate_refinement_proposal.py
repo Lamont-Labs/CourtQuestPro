@@ -39,7 +39,7 @@ def generate(root, target, phase, number, intent, model):
     payload = {"model": model, "messages": [
         {"role": "system", "content": "You are an Android Kotlin UI refinement coding agent. Output only the complete revised source file."},
         {"role": "user", "content": prompt}],
-        "stream": False, "options": {"temperature": 0.2, "num_predict": 4096}}
+        "stream": False, "options": {"temperature": 0.1, "num_predict": 8192}}
     req = urllib.request.Request("http://127.0.0.1:11434/api/chat",
         data=json.dumps(payload).encode("utf-8"),
         headers={"Content-Type": "application/json"}, method="POST")
