@@ -45,7 +45,7 @@ concurrency:
 jobs:
   propose:
     runs-on: ubuntu-24.04
-    timeout-minutes: 50
+    timeout-minutes: 70
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -98,6 +98,50 @@ jobs:
           cp "$RUNNER_TEMP/courtquest-candidate/verification.json" campaign-evidence/
           cp "$RUNNER_TEMP/courtquest-candidate/candidate.diff" campaign-evidence/
           cp "$RUNNER_TEMP/courtquest-candidate/"*.log campaign-evidence/
+      - name: Build unmodified baseline APK
+        run: |
+          set -euo pipefail
+          ./gradlew --no-daemon --console=plain :app:assembleDebug
+          test -s app/build/outputs/apk/debug/app-debug.apk
+      - name: Capture baseline and candidate on Android emulator
+        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-boot-timeout: 900
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none -cores 2 -memory 2048
+          script: |
+            set -eu
+            mkdir -p campaign-evidence/screenshots
+            adb install -r app/build/outputs/apk/debug/app-debug.apk
+            adb shell pm clear com.courtquestpro
+            adb shell am start -n com.courtquestpro/.MainActivity
+            sleep 8
+            adb shell screencap -p /sdcard/cq-screen.png
+            adb pull /sdcard/cq-screen.png campaign-evidence/screenshots/baseline.png
+            adb shell am force-stop com.courtquestpro
+            adb install -r "$RUNNER_TEMP/courtquest-candidate/candidate-debug.apk"
+            adb shell pm clear com.courtquestpro
+            adb shell am start -n com.courtquestpro/.MainActivity
+            sleep 8
+            adb shell screencap -p /sdcard/cq-screen.png
+            adb pull /sdcard/cq-screen.png campaign-evidence/screenshots/candidate.png
+            adb shell rm /sdcard/cq-screen.png
+            python3 - <<'PY'
+            import hashlib, json, pathlib, struct
+            result = {"accepted": False, "screenshots": {}}
+            for name in ("baseline", "candidate"):
+                p = pathlib.Path("campaign-evidence/screenshots") / (name + ".png")
+                data = p.read_bytes()
+                assert len(data) > 10000 and data[:8] == bytes.fromhex("89504e470d0a1a0a")
+                width, height = struct.unpack(">II", data[16:24])
+                assert width >= 320 and height >= 600
+                result["screenshots"][name] = {"width":width, "height":height, "sha256":hashlib.sha256(data).hexdigest()}
+            result["pixels_identical_unverified"] = result["screenshots"]["baseline"]["sha256"] == result["screenshots"]["candidate"]["sha256"]
+            pathlib.Path("campaign-evidence/screenshot-manifest.json").write_text(json.dumps(result,indent=2)+"\\n")
+            PY
       - name: Upload candidate diagnostics on failure
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
