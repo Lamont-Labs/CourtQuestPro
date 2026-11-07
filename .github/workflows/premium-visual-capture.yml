@@ -1,13 +1,6 @@
 name: Premium visual refinement - capture baseline
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/premium-visual-capture.yml'
-      - 'scripts/capture_onboarding.py'
-      - 'scripts/capture_stable_first_launch.py'
-      - 'app/src/main/java/com/courtquestpro/AppHeader.kt'
   workflow_dispatch:
     inputs:
       campaign_id:
