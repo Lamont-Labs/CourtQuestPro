@@ -55,7 +55,10 @@ class IsolatedCommitTests(unittest.TestCase):
         self.assertEqual(receipt["preservation"]["candidate_sha"], receipt["candidate_sha"])
         with tempfile.TemporaryDirectory() as directory:
             restored = pathlib.Path(directory) / "restored"
-            subprocess.run(["git", "clone", "-q", str(bundle), str(restored)], check=True)
+            subprocess.run(["git", "init", "-q", str(restored)], check=True)
+            subprocess.run(["git", "fetch", "-q", str(bundle),
+                            "refs/courtquest/checkpoints/" + receipt["candidate_sha"] +
+                            ":refs/heads/restored-candidate"], cwd=restored, check=True)
             # Bundle stores a named checkpoint ref, not a default branch.
             refs = subprocess.check_output(
                 ["git", "show-ref"], cwd=restored, text=True)
