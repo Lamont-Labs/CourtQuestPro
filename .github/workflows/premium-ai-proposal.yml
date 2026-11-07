@@ -100,6 +100,10 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/prepare_refinement_commit.py campaign-evidence/proposal.json campaign-evidence/verification.json campaign-evidence/candidate.diff --repo . --output campaign-evidence/commit-preparation.json
+      - name: Create isolated commit and export portable Git bundle
+        run: |
+          set -euo pipefail
+          python3 scripts/commit_verified_refinement.py campaign-evidence/proposal.json campaign-evidence/verification.json campaign-evidence/candidate.diff --repo . --output campaign-evidence/isolated-commit.json --bundle-output campaign-evidence/verified-candidate.bundle
       - name: Record headless verification status
         run: |
           set -euo pipefail
@@ -113,7 +117,7 @@ jobs:
               "screenshot_capture": "not_required",
               "visual_quality_verified": False,
               "accepted_pass": False,
-              "reason": "Technical verification is not visual acceptance; no automatic source commit."
+              "reason": "Technical verification is not visual acceptance; candidate commit is isolated and unpushed."
           }
           (evidence / "headless-status.json").write_text(json.dumps(result, indent=2) + "\n")
           PY
