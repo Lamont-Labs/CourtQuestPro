@@ -119,16 +119,13 @@ jobs:
             adb shell pm clear com.courtquestpro
             adb shell am start -n com.courtquestpro/.MainActivity
             sleep 8
-            adb shell screencap -p /sdcard/cq-screen.png
-            adb pull /sdcard/cq-screen.png campaign-evidence/screenshots/baseline.png
+            adb exec-out screencap -p > campaign-evidence/screenshots/baseline.png
             adb shell am force-stop com.courtquestpro
             adb install -r "$RUNNER_TEMP/courtquest-candidate/candidate-debug.apk"
             adb shell pm clear com.courtquestpro
             adb shell am start -n com.courtquestpro/.MainActivity
             sleep 8
-            adb shell screencap -p /sdcard/cq-screen.png
-            adb pull /sdcard/cq-screen.png campaign-evidence/screenshots/candidate.png
-            adb shell rm /sdcard/cq-screen.png
+            adb exec-out screencap -p > campaign-evidence/screenshots/candidate.png
             python3 - <<'PY'
             import hashlib, json, pathlib, struct
             result = {"accepted": False, "screenshots": {}}
