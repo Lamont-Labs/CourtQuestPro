@@ -1257,7 +1257,18 @@ private fun ScoreScreen(player: String, opponent: String, playerScore: Int, oppo
             }
         }
         Spacer(Modifier.height(18.dp))
-        OutlinedButton(onClick = onUndo, modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp).height(50.dp), shape = RoundedCornerShape(14.dp)) { Icon(Icons.Default.Undo, null); Spacer(Modifier.width(8.dp)); Text("UNDO LAST POINT") }
+        OutlinedButton(
+            onClick = onUndo,
+            enabled = playerScore + opponentScore > 0,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp).height(54.dp),
+            shape = RoundedCornerShape(16.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, CourtQuestDesign.chipBorder),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = CourtQuestDesign.textPrimary)
+        ) {
+            Icon(Icons.Default.Undo, contentDescription = null)
+            Spacer(Modifier.width(10.dp))
+            Text("UNDO LAST POINT", fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+        }
         Spacer(Modifier.height(8.dp))
         Text("Only tap after a point has actually been scored.", modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp), color = Muted, fontSize = 12.sp, textAlign = TextAlign.Center)
         Spacer(Modifier.weight(1f))
