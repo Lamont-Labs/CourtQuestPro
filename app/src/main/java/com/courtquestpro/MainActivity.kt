@@ -38,11 +38,11 @@ import java.time.ZoneId
 import kotlin.math.max
 import kotlin.random.Random
 
-private val CourtGreen = Color(0xFFFF783D)
+private val CourtGreen = CourtQuestDesign.accentVivid
 private val CourtLight = Color(0xFF322722)
-private val Ink = Color(0xFFF7F3EF)
-private val Orange = Color(0xFFFFA35C)
-private val Muted = Color(0xFFB7ACA6)
+private val Ink = CourtQuestDesign.textPrimary
+private val Orange = CourtQuestDesign.accent
+private val Muted = CourtQuestDesign.textSecondary
 
 // Glass-inspired surface treatment: translucent gradients and restrained highlights.
 // No real-time background blur is used, keeping scrolling predictable on older devices.
