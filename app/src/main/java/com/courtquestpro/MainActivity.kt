@@ -1316,7 +1316,7 @@ private fun MatchRecapScreen(record: MatchRecord, totalXp: Int, onHome: () -> Un
                     Text("${record.player} vs ${record.opponent}. ${record.winner} took the win ${max(record.playerScore, record.opponentScore)}–${kotlin.math.min(record.playerScore, record.opponentScore)}. Keep showing up, work on one skill at a time, and bring that energy to the next run.", color = Muted, lineHeight = 22.sp)
                 }
             }
-            Button(onClick = onHome, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("BACK TO HOME") }
+            CourtQuestPrimaryButton(onClick = onHome, modifier = Modifier.fillMaxWidth().height(56.dp)) { Text("BACK TO HOME", fontWeight = FontWeight.ExtraBold) }
             OutlinedButton(onClick = onCareer, modifier = Modifier.fillMaxWidth()) { Text("VIEW CAREER STATS") }
         }
     }
