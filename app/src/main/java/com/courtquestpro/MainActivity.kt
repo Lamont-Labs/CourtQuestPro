@@ -640,12 +640,8 @@ private fun CourtOnboarding(
                     color = Muted, fontSize = 12.sp, lineHeight = 18.sp
                 )
                 Spacer(Modifier.height(22.dp))
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242022)),
-                    shape = RoundedCornerShape(20.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(Modifier.fillMaxWidth().padding(18.dp),
+                CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("YOUR STARTING PLAN", color = Orange, fontSize = 11.sp,
                             fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
