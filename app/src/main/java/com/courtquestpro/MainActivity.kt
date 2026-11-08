@@ -1376,8 +1376,9 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                                     if (attempts > 0) {
                                         LinearProgressIndicator(
                                             progress = { (successful.toFloat() / attempts).coerceIn(0f, 1f) },
-                                            modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
-                                            color = Orange, trackColor = CourtLight
+                                            modifier = Modifier.fillMaxWidth().height(10.dp).clip(CircleShape),
+                                            color = CourtQuestDesign.accentVivid,
+                                            trackColor = CourtQuestDesign.elevatedSurface
                                         )
                                         Text("${successful * 100 / attempts}% recorded success rate · not a skill rating", color = Muted, fontSize = 12.sp)
                                     }
