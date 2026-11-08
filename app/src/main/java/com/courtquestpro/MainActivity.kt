@@ -1473,12 +1473,25 @@ private fun SettingsScreen(difficulty: String, onDifficulty: (String) -> Unit, o
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text("DIFFICULTY LEVEL", fontWeight = FontWeight.ExtraBold, color = Ink)
             listOf("Beginner", "Intermediate", "Advanced", "Expert", "Elite").forEach { level ->
-                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(if (level == difficulty) CourtLight else Color(0xFF212124)).clickable { onDifficulty(level) }.padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(level, fontWeight = FontWeight.Bold, color = Ink)
-                        Text(difficultyDescription(level), color = Muted, fontSize = 12.sp)
+                val selected = level == difficulty
+                Row(
+                    Modifier.fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(if (selected) CourtQuestDesign.warmSurface else CourtQuestDesign.elevatedSurface)
+                        .border(1.dp, if (selected) CourtQuestDesign.accent else CourtQuestDesign.chipBorder, RoundedCornerShape(16.dp))
+                        .clickable { onDifficulty(level) }
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Text(level, fontWeight = FontWeight.ExtraBold, color = CourtQuestDesign.textPrimary)
+                        Text(difficultyDescription(level), color = CourtQuestDesign.textSecondary, fontSize = 12.sp)
                     }
-                    RadioButton(selected = level == difficulty, onClick = { onDifficulty(level) })
+                    RadioButton(
+                        selected = selected,
+                        onClick = { onDifficulty(level) },
+                        colors = androidx.compose.material3.RadioButtonDefaults.colors(selectedColor = CourtQuestDesign.accent)
+                    )
                 }
             }
             Divider()
