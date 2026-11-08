@@ -675,8 +675,7 @@ private fun CourtOnboarding(
             }
         }
         Spacer(Modifier.height(16.dp))
-        Button(onClick = onNext, modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape = RoundedCornerShape(16.dp)) {
+        CourtQuestPrimaryButton(onClick = onNext, modifier = Modifier.fillMaxWidth().height(56.dp)) {
             Text(if (step == 4) "ENTER MY COURT" else "CONTINUE",
                 fontWeight = FontWeight.ExtraBold)
         }
