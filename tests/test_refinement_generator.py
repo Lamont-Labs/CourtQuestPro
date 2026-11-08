@@ -13,8 +13,8 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "scripts"))
 from generate_refinement_proposal import generate
 
 TARGET = "app/src/main/java/com/courtquestpro/AppHeader.kt"
-ORIGINAL = "package com.courtquestpro\ninternal val padding = 12\n"
-CHANGED = "package com.courtquestpro\ninternal val padding = 16\n"
+ORIGINAL = "package com.courtquestpro\n\ninternal val padding = 12\n"
+CHANGED = "package com.courtquestpro\n\ninternal val padding = 16\n"
 
 class Response:
     def __init__(self, source):
