@@ -794,11 +794,9 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                                 )
                             }
                         }
-                        Button(
+                        CourtQuestPrimaryButton(
                             onClick = onSpin,
-                            modifier = Modifier.fillMaxWidth().height(58.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            contentPadding = PaddingValues(horizontal = 16.dp)
+                            modifier = Modifier.fillMaxWidth().height(58.dp)
                         ) {
                             Icon(if (done >= 6) Icons.Default.EmojiEvents else Icons.Default.PlayArrow, contentDescription = null)
                             Spacer(Modifier.width(9.dp))
