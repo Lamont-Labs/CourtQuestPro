@@ -1309,11 +1309,11 @@ private fun MatchRecapScreen(record: MatchRecord, totalXp: Int, onHome: () -> Un
                 StatCard("MATCH XP", "+${record.xp}", Modifier.weight(1f))
                 StatCard("TOTAL XP", totalXp.toString(), Modifier.weight(1f))
             }
-            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(18.dp)) {
-                Column(Modifier.padding(16.dp)) {
-                    Text("MATCH RECAP", fontWeight = FontWeight.ExtraBold, color = Ink)
-                    Spacer(Modifier.height(7.dp))
-                    Text("${record.player} vs ${record.opponent}. ${record.winner} took the win ${max(record.playerScore, record.opponentScore)}–${kotlin.math.min(record.playerScore, record.opponentScore)}. Keep showing up, work on one skill at a time, and bring that energy to the next run.", color = Muted, lineHeight = 22.sp)
+            CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(20.dp)) {
+                Column(Modifier.fillMaxWidth()) {
+                    Text("MATCH RECAP", fontWeight = FontWeight.ExtraBold, color = CourtQuestDesign.accent, letterSpacing = 1.sp, fontSize = 12.sp)
+                    Spacer(Modifier.height(10.dp))
+                    Text("${record.player} vs ${record.opponent}. ${record.winner} took the win ${max(record.playerScore, record.opponentScore)}–${kotlin.math.min(record.playerScore, record.opponentScore)}. Keep showing up, work on one skill at a time, and bring that energy to the next run.", color = CourtQuestDesign.textPrimary, lineHeight = 23.sp)
                 }
             }
             CourtQuestPrimaryButton(onClick = onHome, modifier = Modifier.fillMaxWidth().height(56.dp)) { Text("BACK TO HOME", fontWeight = FontWeight.ExtraBold) }
