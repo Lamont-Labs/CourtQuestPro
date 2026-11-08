@@ -707,13 +707,12 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
         item { AppHeader(save.playerName.takeIf { it.isNotBlank() }?.let { "$it’s court." } ?: "Your court.", "BUILD YOUR GAME  /  ONE SESSION AT A TIME") }
         item {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242022)),
-                    shape = RoundedCornerShape(24.dp),
-                    modifier = Modifier.fillMaxWidth()
+                CourtQuestPremiumSurface(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(20.dp)
                 ) {
                     Column(
-                        Modifier.fillMaxWidth().padding(20.dp),
+                        Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text("PLAYER PERFORMANCE", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Bold)
