@@ -1036,12 +1036,11 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previo
         item { AppHeader("Training session", "FOCUS / ${drill.category.uppercase()}") }
         item {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242022)),
-                    shape = RoundedCornerShape(26.dp),
-                    modifier = Modifier.fillMaxWidth()
+                CourtQuestPremiumSurface(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(22.dp)
                 ) {
-                    Column(Modifier.fillMaxWidth().padding(22.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
+                    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(13.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("DRILL ${slotNumber.coerceIn(1, 6).toString().padStart(2, '0')} / 06",
                                 color = Orange, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold,
@@ -1138,12 +1137,11 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previo
                 Button(onClick = onVideo, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(15.dp)) {
                     Icon(Icons.Default.PlayCircle, null); Spacer(Modifier.width(8.dp)); Text("WATCH VIDEO DEMONSTRATION")
                 }
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242022)),
-                    shape = RoundedCornerShape(24.dp),
-                    modifier = Modifier.fillMaxWidth()
+                CourtQuestPremiumSurface(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(20.dp)
                 ) {
-                    Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
+                    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(13.dp)) {
                         Text("03 / FINISH YOUR DRILL", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.2.sp)
                         Text(
                             when {
