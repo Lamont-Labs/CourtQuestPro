@@ -1440,8 +1440,12 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                 }
                 CourtSectionTitle("04 /", "MATCH HISTORY")
                 if (save.matches.isEmpty()) {
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124))) {
-                        Text("Your championship results will show up here after your first game.", Modifier.padding(18.dp), color = Muted)
+                    CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(20.dp)) {
+                        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = CourtQuestDesign.accent, modifier = Modifier.size(28.dp))
+                            Text("YOUR FIRST MATCH AWAITS", color = CourtQuestDesign.textPrimary, fontWeight = FontWeight.Black, fontSize = 16.sp)
+                            Text("Your championship results will show up here after your first game.", color = CourtQuestDesign.textSecondary, fontSize = 13.sp, lineHeight = 20.sp)
+                        }
                     }
                 } else save.matches.forEach { m ->
                     CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(18.dp)) {
