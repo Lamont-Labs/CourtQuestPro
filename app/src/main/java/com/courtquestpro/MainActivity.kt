@@ -1470,7 +1470,12 @@ private fun SettingsScreen(difficulty: String, onDifficulty: (String) -> Unit, o
     var name by remember { mutableStateOf("") }
     Column(Modifier.fillMaxSize()) {
         AppHeader("Settings", "Make the app work for your game.")
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text("TRAINING PREFERENCES", fontWeight = FontWeight.Black, fontSize = 12.sp, letterSpacing = 1.5.sp, color = CourtQuestDesign.accent)
+            Text("Choose the level that fits your current game. You can change it at any time.", color = CourtQuestDesign.textSecondary, fontSize = 13.sp, lineHeight = 19.sp)
             Text("DIFFICULTY LEVEL", fontWeight = FontWeight.ExtraBold, color = Ink)
             listOf("Beginner", "Intermediate", "Advanced", "Expert", "Elite").forEach { level ->
                 val selected = level == difficulty
