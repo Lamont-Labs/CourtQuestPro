@@ -1361,11 +1361,11 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                         val results = recorded.filter { result ->
                             drills.any { it.id == result.drillId && it.category == category }
                         }
-                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(18.dp)) {
-                            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                        CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(18.dp)) {
+                            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(9.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(category.uppercase(), color = Ink, fontWeight = FontWeight.ExtraBold, modifier = Modifier.weight(1f))
-                                    Text("${results.size} SESSIONS", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    Text(category.uppercase(), color = CourtQuestDesign.textPrimary, fontWeight = FontWeight.Black, modifier = Modifier.weight(1f))
+                                    Text("${results.size} SESSIONS", color = CourtQuestDesign.accent, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }
                                 if (results.isEmpty()) {
                                     Text("No recorded results yet", color = Muted, fontSize = 12.sp)
