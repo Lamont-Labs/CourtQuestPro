@@ -1224,11 +1224,36 @@ private fun ScoreScreen(player: String, opponent: String, playerScore: Int, oppo
         Text(if (playerScore == 10 && opponentScore == 10) "SUDDEN DEATH" else "TAP THE SCORER AFTER EACH POINT", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = if (playerScore == 10 && opponentScore == 10) Orange else Muted, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
         Spacer(Modifier.height(18.dp))
         Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Button(onClick = { onPoint(true) }, modifier = Modifier.weight(1f).height(112.dp), shape = RoundedCornerShape(20.dp)) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) { Icon(Icons.Default.Add, null, modifier = Modifier.size(32.dp)); Text("+1", fontSize = 29.sp, fontWeight = FontWeight.ExtraBold); Text(player.take(14), fontSize = 12.sp) }
+            Button(
+                onClick = { onPoint(true) },
+                modifier = Modifier.weight(1f).height(120.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = CourtQuestDesign.accentVivid,
+                    contentColor = CourtQuestDesign.background
+                )
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(28.dp))
+                    Text("+1", fontSize = 34.sp, fontWeight = FontWeight.Black)
+                    Text(player.take(14), fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                }
             }
-            Button(onClick = { onPoint(false) }, modifier = Modifier.weight(1f).height(112.dp), colors = ButtonDefaults.buttonColors(containerColor = Orange), shape = RoundedCornerShape(20.dp)) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) { Icon(Icons.Default.Add, null, modifier = Modifier.size(32.dp)); Text("+1", fontSize = 29.sp, fontWeight = FontWeight.ExtraBold); Text(opponent.take(14), fontSize = 12.sp) }
+            Button(
+                onClick = { onPoint(false) },
+                modifier = Modifier.weight(1f).height(120.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = CourtQuestDesign.elevatedSurface,
+                    contentColor = CourtQuestDesign.textPrimary
+                ),
+                border = androidx.compose.foundation.BorderStroke(1.dp, CourtQuestDesign.accent)
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(28.dp))
+                    Text("+1", fontSize = 34.sp, fontWeight = FontWeight.Black)
+                    Text(opponent.take(14), fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                }
             }
         }
         Spacer(Modifier.height(18.dp))
