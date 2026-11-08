@@ -41,9 +41,10 @@ def generate(root, target, phase, number, intent, model):
     for attempt in range(1, 4):
         instruction = prompt
         if attempt > 1:
-            instruction += ("\nRETRY: Previous output was invalid or unchanged. "
-                            "Change one existing UI styling value (spacing, size, or typography) "
-                            "without modifying APIs, identifiers, or logic. Return the full file.")
+            instruction += ("\\nRETRY: Previous output was invalid or unchanged. "
+                            "Make exactly one source edit and preserve all other code. "
+                            "For AppHeader.kt, replace Modifier.size(46.dp) with "
+                            "Modifier.size(48.dp) if present. Return the complete updated Kotlin file.")
         payload = {"model": model, "messages": [
             {"role": "system", "content": "You are an Android Kotlin UI refinement coding agent. Output only complete revised source."},
             {"role": "user", "content": instruction}],
