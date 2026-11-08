@@ -41,7 +41,7 @@ def generate(root, target, phase, number, intent, model):
     for attempt in range(1, 4):
         instruction = prompt
         if attempt > 1:
-            instruction += ("\\nRETRY: Previous output was invalid or unchanged. "
+            instruction += ("\nRETRY: Previous output was invalid or unchanged. "
                             "Change one existing UI styling value (spacing, size, or typography) "
                             "without modifying APIs, identifiers, or logic. Return the full file.")
         payload = {"model": model, "messages": [
@@ -65,8 +65,8 @@ def generate(root, target, phase, number, intent, model):
                 lines = candidate.splitlines()
                 if len(lines) < 3 or lines[-1].strip() != "```":
                     raise ValueError("Incomplete fenced source block")
-                candidate = "\\n".join(lines[1:-1]) + "\\n"
-            if not candidate.lstrip().startswith("package com.courtquestpro"):
+                candidate = "\n".join(lines[1:-1]) + "\n"
+            if "\\n" in candidate and candidate.count("\n") <= 2:\n                raise ValueError("Escaped newline corruption in Kotlin source")\n            if candidate.count("\n") < 2:\n                raise ValueError("Kotlin source collapsed to fewer than three lines")\n            if not candidate.lstrip().startswith("package com.courtquestpro"):
                 raise ValueError("Missing Kotlin package declaration")
             if "".join(candidate.split()) == "".join(original.decode("utf-8").split()):
                 raise ValueError("Model changed only whitespace or returned unchanged source")
