@@ -60,6 +60,14 @@ class ProposalRetryTests(unittest.TestCase):
                 self.run_generator()
         self.assertEqual(call.call_count, 3)
 
+    def test_escaped_newline_source_retries(self):
+        corrupted = CHANGED.replace("\\n", "\\\\n")
+        with patch("generate_refinement_proposal.urllib.request.urlopen",
+                   side_effect=[Response(corrupted), Response(CHANGED)]) as call:
+            result = self.run_generator()
+        self.assertEqual(call.call_count, 2)
+        self.assertEqual(result["changes"][0]["content"], CHANGED.strip())
+
     def test_invalid_response_retries(self):
         with patch("generate_refinement_proposal.urllib.request.urlopen",
                    side_effect=[Response("invalid"), Response(CHANGED)]) as call:
