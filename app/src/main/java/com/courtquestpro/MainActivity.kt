@@ -1471,7 +1471,10 @@ private fun SettingsScreen(difficulty: String, onDifficulty: (String) -> Unit, o
     Column(Modifier.fillMaxSize()) {
         AppHeader("Settings", "Make the app work for your game.")
         Column(
-            Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 20.dp),
+            Modifier.fillMaxWidth()
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 18.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Text("TRAINING PREFERENCES", fontWeight = FontWeight.Black, fontSize = 12.sp, letterSpacing = 1.5.sp, color = CourtQuestDesign.accent)
