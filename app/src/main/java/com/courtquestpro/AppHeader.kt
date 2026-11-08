@@ -30,12 +30,12 @@ internal fun AppHeader(title: String, subtitle: String = "") {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
-                Modifier.size(46.dp).clip(RoundedCornerShape(15.dp))
+                Modifier.size(48.dp).clip(RoundedCornerShape(16.dp))
                     .background(Brush.linearGradient(listOf(CourtQuestDesign.iconGradientStart, CourtQuestDesign.accentVivid))),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Default.SportsBasketball, null,
-                    tint = CourtQuestDesign.iconForeground, modifier = Modifier.size(27.dp))
+                    tint = CourtQuestDesign.iconForeground, modifier = Modifier.size(28.dp))
             }
             Spacer(Modifier.width(13.dp))
             Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
@@ -56,10 +56,10 @@ internal fun AppHeader(title: String, subtitle: String = "") {
                     maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
-        Spacer(Modifier.height(28.dp))
-        Box(Modifier.width(56.dp).height(3.dp).clip(CircleShape)
+        Spacer(Modifier.height(32.dp))
+        Box(Modifier.width(64.dp).height(3.dp).clip(CircleShape)
             .background(Brush.horizontalGradient(listOf(CourtQuestDesign.accent, CourtQuestDesign.accentVivid))))
-        Spacer(Modifier.height(13.dp))
+        Spacer(Modifier.height(16.dp))
         Text(title, color = CourtQuestDesign.textPrimary, fontSize = 32.sp,
             fontWeight = FontWeight.Black, lineHeight = 38.sp,
             maxLines = 2, overflow = TextOverflow.Ellipsis)
