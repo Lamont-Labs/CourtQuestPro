@@ -1444,14 +1444,14 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                         Text("Your championship results will show up here after your first game.", Modifier.padding(18.dp), color = Muted)
                     }
                 } else save.matches.forEach { m ->
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(16.dp)) {
-                        Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f)) {
-                                Text("${m.player} vs ${m.opponent}", color = Ink, fontWeight = FontWeight.Bold)
-                                Text("${m.playerScore}–${m.opponentScore} · ${m.date}", color = Muted, fontSize = 12.sp)
-                                Text("Winner: ${m.winner}", color = CourtGreen, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(18.dp)) {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                Text("${m.player} vs ${m.opponent}", color = CourtQuestDesign.textPrimary, fontWeight = FontWeight.Black)
+                                Text("${m.playerScore}–${m.opponentScore} · ${m.date}", color = CourtQuestDesign.textSecondary, fontSize = 12.sp)
+                                Text("Winner: ${m.winner}", color = CourtQuestDesign.accent, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                             }
-                            Text("+${m.xp} XP", color = CourtGreen, fontWeight = FontWeight.ExtraBold)
+                            Text("+${m.xp} XP", color = CourtQuestDesign.accent, fontWeight = FontWeight.ExtraBold)
                         }
                     }
                 }
