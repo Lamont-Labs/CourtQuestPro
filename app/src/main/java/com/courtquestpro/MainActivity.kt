@@ -1205,7 +1205,7 @@ private fun ChampionshipSetup(playerName: String, opponentName: String, error: S
                     Text("• First player to 11 points wins\n• At 10–10: sudden death, next point wins\n• Score honestly after each point\n• Undo is available for accidental taps", color = Muted, lineHeight = 22.sp)
                 }
             }
-            Button(onClick = onStart, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(15.dp)) { Text("ENTER THE CHAMPIONSHIP", fontWeight = FontWeight.ExtraBold) }
+            CourtQuestPrimaryButton(onClick = onStart, modifier = Modifier.fillMaxWidth().height(56.dp)) { Text("ENTER THE CHAMPIONSHIP", fontWeight = FontWeight.ExtraBold) }
             OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text("Back") }
         }
     }
