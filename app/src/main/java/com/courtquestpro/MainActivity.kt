@@ -954,16 +954,11 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
 
 @Composable
 private fun StatCard(label: String, value: String, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier.clip(RoundedCornerShape(18.dp))
-            .background(GlassFill).border(1.dp, GlassEdge, RoundedCornerShape(18.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        shape = RoundedCornerShape(18.dp)
-    ) {
-        Column(Modifier.padding(vertical = 16.dp, horizontal = 14.dp)) {
-            Text(label, color = Muted, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-            Spacer(Modifier.height(5.dp))
-            Text(value, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+    CourtQuestPremiumSurface(modifier = modifier, contentPadding = PaddingValues(horizontal = 16.dp, vertical = 18.dp)) {
+        Column(Modifier.fillMaxWidth()) {
+            Text(label, color = CourtQuestDesign.textSecondary, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            Spacer(Modifier.height(8.dp))
+            Text(value, color = CourtQuestDesign.textPrimary, fontSize = 23.sp, fontWeight = FontWeight.Black)
         }
     }
 }
