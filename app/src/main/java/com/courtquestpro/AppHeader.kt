@@ -14,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -25,48 +24,48 @@ internal fun AppHeader(title: String, subtitle: String = "") {
     Column(
         Modifier.fillMaxWidth()
             .background(Brush.verticalGradient(listOf(
-                Color(0xFF4B281D), Color(0xFF252127), Color(0xFF121315)
+                CourtQuestDesign.warmSurface, CourtQuestDesign.elevatedSurface, CourtQuestDesign.background
             )))
             .padding(start = 24.dp, end = 24.dp, top = 30.dp, bottom = 34.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 Modifier.size(46.dp).clip(RoundedCornerShape(15.dp))
-                    .background(Brush.linearGradient(listOf(Color(0xFFFFAD71), Color(0xFFFF783D)))),
+                    .background(Brush.linearGradient(listOf(CourtQuestDesign.iconGradientStart, CourtQuestDesign.accentVivid))),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Default.SportsBasketball, null,
-                    tint = Color(0xFF211713), modifier = Modifier.size(27.dp))
+                    tint = CourtQuestDesign.iconForeground, modifier = Modifier.size(27.dp))
             }
             Spacer(Modifier.width(13.dp))
             Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text("COURTQUEST", color = Color(0xFFF7F3EF), fontSize = 14.sp,
+                Text("COURTQUEST", color = CourtQuestDesign.textPrimary, fontSize = 14.sp,
                     fontWeight = FontWeight.Black, letterSpacing = 2.1.sp)
-                Text("PERFORMANCE STUDIO", color = Color(0xFFFFA35C), fontSize = 9.sp,
+                Text("PERFORMANCE STUDIO", color = CourtQuestDesign.accent, fontSize = 9.sp,
                     fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
             }
             Spacer(Modifier.weight(1f))
             Box(
                 Modifier.clip(RoundedCornerShape(50))
-                    .background(Color(0x553A2B29))
-                    .border(1.dp, Color(0x66FFB080), RoundedCornerShape(50))
+                    .background(CourtQuestDesign.chipBackground)
+                    .border(1.dp, CourtQuestDesign.chipBorder, RoundedCornerShape(50))
                     .padding(horizontal = 10.dp, vertical = 7.dp)
             ) {
-                Text("PLAYER LAB", color = Color(0xFFF7F3EF), fontSize = 9.sp,
+                Text("PLAYER LAB", color = CourtQuestDesign.textPrimary, fontSize = 9.sp,
                     fontWeight = FontWeight.ExtraBold, letterSpacing = 0.7.sp,
                     maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
         Spacer(Modifier.height(28.dp))
         Box(Modifier.width(56.dp).height(3.dp).clip(CircleShape)
-            .background(Brush.horizontalGradient(listOf(Color(0xFFFFA35C), Color(0xFFFF783D)))))
+            .background(Brush.horizontalGradient(listOf(CourtQuestDesign.accent, CourtQuestDesign.accentVivid))))
         Spacer(Modifier.height(13.dp))
-        Text(title, color = Color(0xFFF7F3EF), fontSize = 32.sp,
+        Text(title, color = CourtQuestDesign.textPrimary, fontSize = 32.sp,
             fontWeight = FontWeight.Black, lineHeight = 38.sp,
             maxLines = 2, overflow = TextOverflow.Ellipsis)
         if (subtitle.isNotBlank()) {
             Spacer(Modifier.height(11.dp))
-            Text(subtitle, color = Color(0xFFB7ACA6), fontSize = 12.sp,
+            Text(subtitle, color = CourtQuestDesign.textSecondary, fontSize = 12.sp,
                 fontWeight = FontWeight.Medium, letterSpacing = 0.3.sp, lineHeight = 18.sp,
                 maxLines = 3, overflow = TextOverflow.Ellipsis)
         }
