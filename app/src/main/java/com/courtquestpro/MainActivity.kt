@@ -1334,11 +1334,13 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                 Text("PLAYER DEVELOPMENT", color = Ink, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
                 val recorded = save.drillResults.orEmpty()
                 if (recorded.isEmpty()) {
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124))) {
-                        Column(Modifier.padding(18.dp)) {
-                            Text("YOUR BASELINE STARTS HERE", color = Orange, fontWeight = FontWeight.Bold)
-                            Spacer(Modifier.height(6.dp))
-                            Text("Complete a drill and record attempts to start building a real performance history. XP alone is not a skill rating.", color = Muted, fontSize = 13.sp)
+                    CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(22.dp)) {
+                        Column(Modifier.fillMaxWidth()) {
+                            Icon(Icons.Default.Insights, contentDescription = null, tint = CourtQuestDesign.accent, modifier = Modifier.size(30.dp))
+                            Spacer(Modifier.height(12.dp))
+                            Text("YOUR BASELINE STARTS HERE", color = CourtQuestDesign.textPrimary, fontWeight = FontWeight.Black, fontSize = 17.sp)
+                            Spacer(Modifier.height(10.dp))
+                            Text("Complete a drill and record attempts to start building a real performance history. XP alone is not a skill rating.", color = CourtQuestDesign.textSecondary, fontSize = 13.sp, lineHeight = 20.sp)
                         }
                     }
                 } else {
