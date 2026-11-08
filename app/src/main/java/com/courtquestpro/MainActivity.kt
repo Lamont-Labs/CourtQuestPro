@@ -1496,8 +1496,26 @@ private fun SettingsScreen(difficulty: String, onDifficulty: (String) -> Unit, o
             }
             Divider()
             Text("PLAYER NAME", fontWeight = FontWeight.ExtraBold, color = Ink)
-            OutlinedTextField(value = name, onValueChange = { name = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Update saved name") }, singleLine = true)
-            Button(onClick = { if (name.isNotBlank()) { onSaveName(name); name = "" } }, modifier = Modifier.fillMaxWidth()) { Text("SAVE NAME") }
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Update saved name") },
+                singleLine = true,
+                shape = RoundedCornerShape(16.dp),
+                colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = CourtQuestDesign.accent,
+                    unfocusedBorderColor = CourtQuestDesign.chipBorder,
+                    focusedTextColor = CourtQuestDesign.textPrimary,
+                    unfocusedTextColor = CourtQuestDesign.textPrimary,
+                    cursorColor = CourtQuestDesign.accent
+                )
+            )
+            CourtQuestPrimaryButton(
+                onClick = { if (name.isNotBlank()) { onSaveName(name); name = "" } },
+                enabled = name.isNotBlank(),
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("SAVE NAME", fontWeight = FontWeight.ExtraBold) }
             Text("Your progress is saved locally on this phone. Videos require internet.", color = Muted, fontSize = 12.sp)
         }
     }
