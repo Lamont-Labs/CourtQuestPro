@@ -731,7 +731,7 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                             Text("MAKE THIS YOUR COURT", color = Ink, fontWeight = FontWeight.ExtraBold)
                             Text("Add your player name to personalize training and game records. You can change it in Setup later.", color = Muted, fontSize = 12.sp)
                             OutlinedTextField(value = newPlayerName, onValueChange = { newPlayerName = it.take(40) }, label = { Text("Player name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                            Button(onClick = { onSaveName(newPlayerName) }, enabled = newPlayerName.trim().isNotEmpty(), modifier = Modifier.fillMaxWidth()) { Text("SAVE PLAYER NAME") }
+                            CourtQuestPrimaryButton(onClick = { onSaveName(newPlayerName) }, enabled = newPlayerName.trim().isNotEmpty(), modifier = Modifier.fillMaxWidth()) { Text("SAVE PLAYER NAME") }
                         }
                     }
                 }
