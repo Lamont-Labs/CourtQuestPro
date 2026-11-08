@@ -1169,11 +1169,10 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previo
                                 color = Ink, fontSize = 13.sp, modifier = Modifier.weight(1f)
                             )
                         }
-                        Button(
+                        CourtQuestPrimaryButton(
                             onClick = { onComplete(completedCount, attemptedCount) },
                             enabled = !complete && meetsCount && targetConfirmed,
-                            modifier = Modifier.fillMaxWidth().height(58.dp),
-                            shape = RoundedCornerShape(16.dp)
+                            modifier = Modifier.fillMaxWidth().height(58.dp)
                         ) {
                             Icon(Icons.Default.CheckCircle, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
