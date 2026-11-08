@@ -1293,13 +1293,16 @@ private fun MatchRecapScreen(record: MatchRecord, totalXp: Int, onHome: () -> Un
     Column(Modifier.fillMaxSize()) {
         AppHeader("Final buzzer", "Championship complete")
         Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF302722)), shape = RoundedCornerShape(24.dp)) {
-                Column(Modifier.fillMaxWidth().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.EmojiEvents, null, tint = Orange, modifier = Modifier.size(54.dp))
+            CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(24.dp)) {
+                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = CourtQuestDesign.accent, modifier = Modifier.size(56.dp))
+                    Spacer(Modifier.height(12.dp))
+                    Text("CHAMPIONSHIP RESULT", fontSize = 11.sp, letterSpacing = 2.sp, fontWeight = FontWeight.ExtraBold, color = Muted)
                     Spacer(Modifier.height(8.dp))
                     Text("${record.winner} WINS!", fontSize = 26.sp, fontWeight = FontWeight.Black, color = Ink, textAlign = TextAlign.Center)
-                    Text("${record.playerScore}  —  ${record.opponentScore}", fontSize = 38.sp, fontWeight = FontWeight.ExtraBold, color = CourtGreen)
-                    Text("Final score", color = Muted)
+                    Spacer(Modifier.height(12.dp))
+                    Text("${record.playerScore}  —  ${record.opponentScore}", fontSize = 48.sp, fontWeight = FontWeight.Black, color = CourtQuestDesign.accent)
+                    Text("FINAL SCORE", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
