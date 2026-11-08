@@ -1241,13 +1241,13 @@ private fun ScoreScreen(player: String, opponent: String, playerScore: Int, oppo
 }
 @Composable
 private fun ScorePanel(name: String, score: Int, color: Color, modifier: Modifier = Modifier) {
-    Card(modifier, colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(24.dp)) {
-        Column(Modifier.fillMaxWidth().padding(vertical = 22.dp, horizontal = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    CourtQuestPremiumSurface(modifier = modifier, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 22.dp)) {
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             Box(Modifier.size(12.dp).clip(CircleShape).background(color))
             Spacer(Modifier.height(9.dp))
             Text(name, fontSize = 15.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, color = Ink, maxLines = 2)
             Spacer(Modifier.height(12.dp))
-            Text(score.toString(), fontSize = 64.sp, fontWeight = FontWeight.Black, color = color)
+            Text(score.toString(), fontSize = 72.sp, fontWeight = FontWeight.Black, color = color)
         }
     }
 }
