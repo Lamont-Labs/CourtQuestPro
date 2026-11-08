@@ -66,7 +66,11 @@ def generate(root, target, phase, number, intent, model):
                 if len(lines) < 3 or lines[-1].strip() != "```":
                     raise ValueError("Incomplete fenced source block")
                 candidate = "\n".join(lines[1:-1]) + "\n"
-            if "\\n" in candidate and candidate.count("\n") <= 2:\n                raise ValueError("Escaped newline corruption in Kotlin source")\n            if candidate.count("\n") < 2:\n                raise ValueError("Kotlin source collapsed to fewer than three lines")\n            if not candidate.lstrip().startswith("package com.courtquestpro"):
+            if "\\n" in candidate and candidate.count("\n") <= 2:
+                raise ValueError("Escaped newline corruption in Kotlin source")
+            if candidate.count("\n") < 2:
+                raise ValueError("Kotlin source collapsed to fewer than three lines")
+            if not candidate.lstrip().startswith("package com.courtquestpro"):
                 raise ValueError("Missing Kotlin package declaration")
             if "".join(candidate.split()) == "".join(original.decode("utf-8").split()):
                 raise ValueError("Model changed only whitespace or returned unchanged source")
