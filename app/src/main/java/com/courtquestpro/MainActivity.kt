@@ -1399,10 +1399,10 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                         val validForDrill = recorded.filter { it.drillId == id && it.attempted > 0 && it.completed in 0..it.attempted }
                         val personalBest = validForDrill.maxByOrNull { it.completed }
                         val sampleAttempts = validForDrill.sumOf { it.attempted }
-                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(16.dp)) {
-                            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text(title, color = Ink, fontWeight = FontWeight.Bold)
-                                Text("${validForDrill.size} VALID SESSIONS · $sampleAttempts ATTEMPTS", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(18.dp)) {
+                            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                                Text(title, color = CourtQuestDesign.textPrimary, fontWeight = FontWeight.Black, fontSize = 16.sp)
+                                Text("${validForDrill.size} VALID SESSIONS · $sampleAttempts ATTEMPTS", color = CourtQuestDesign.textSecondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 if (personalBest != null) {
                                     Text("PERSONAL RECORD · ${personalBest.completed} SUCCESSFUL", color = CourtGreen, fontWeight = FontWeight.ExtraBold, fontSize = 13.sp)
                                     Text("${personalBest.attempted} attempts · ${personalBest.date}", color = Muted, fontSize = 12.sp)
