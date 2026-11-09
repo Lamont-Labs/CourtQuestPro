@@ -10,7 +10,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.clickable\nimport androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
@@ -1496,7 +1496,11 @@ private fun SettingsScreen(difficulty: String, onDifficulty: (String) -> Unit, o
                         .clip(RoundedCornerShape(16.dp))
                         .background(if (selected) CourtQuestDesign.warmSurface else CourtQuestDesign.elevatedSurface)
                         .border(1.dp, if (selected) CourtQuestDesign.accent else CourtQuestDesign.chipBorder, RoundedCornerShape(16.dp))
-                        .clickable { onDifficulty(level) }
+                        .selectable(
+                            selected = selected,
+                            role = androidx.compose.ui.semantics.Role.RadioButton,
+                            onClick = { onDifficulty(level) }
+                        )
                         .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
