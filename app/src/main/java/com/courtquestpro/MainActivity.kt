@@ -457,14 +457,15 @@ private fun CourtOnboardingChoice(
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth()
-            .semantics { this.selected = selected }
-            .clip(RoundedCornerShape(19.dp))
-            .background(if (selected) Brush.linearGradient(listOf(Color(0xFF513329), Color(0xFF252329))) else GlassFill),
+            .heightIn(min = 88.dp)
+            .semantics { this.selected = selected },
         shape = RoundedCornerShape(19.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected) CourtQuestDesign.warmSurface else CourtQuestDesign.elevatedSurface
+        ),
         border = androidx.compose.foundation.BorderStroke(
             if (selected) 2.dp else 1.dp,
-            if (selected) CourtGreen else Color(0xFF3B3738)
+            if (selected) CourtQuestDesign.accent else CourtQuestDesign.chipBorder
         )
     ) {
         Row(
