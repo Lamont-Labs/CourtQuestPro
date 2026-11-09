@@ -505,10 +505,18 @@ private fun CourtOnboarding(
                 fontWeight = FontWeight.Bold, letterSpacing = 0.7.sp)
         }
         Spacer(Modifier.height(12.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().semantics(mergeDescendants = true) {
+                contentDescription = "Player setup progress: step ${step + 1} of 5"
+            },
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
             repeat(5) { index ->
-                Box(Modifier.weight(1f).height(6.dp).clip(CircleShape)
-                    .background(if (index <= step) CourtGreen else Color(0xFF40332E)))
+                Box(
+                    Modifier.weight(1f).height(8.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(if (index <= step) CourtQuestDesign.accentVivid else CourtQuestDesign.elevatedSurface)
+                )
             }
         }
         Spacer(Modifier.height(26.dp))
