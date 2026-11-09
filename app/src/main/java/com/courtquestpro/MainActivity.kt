@@ -26,6 +26,8 @@ import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -453,7 +455,9 @@ private fun CourtOnboardingChoice(
 ) {
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(19.dp))
+        modifier = Modifier.fillMaxWidth()
+            .semantics { this.selected = selected }
+            .clip(RoundedCornerShape(19.dp))
             .background(if (selected) Brush.linearGradient(listOf(Color(0xFF513329), Color(0xFF252329))) else GlassFill),
         shape = RoundedCornerShape(19.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
@@ -473,7 +477,7 @@ private fun CourtOnboardingChoice(
             Spacer(Modifier.width(10.dp))
             Icon(
                 if (selected) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
-                contentDescription = if (selected) "Selected" else "Not selected",
+                contentDescription = null,
                 tint = if (selected) CourtGreen else Muted
             )
         }
