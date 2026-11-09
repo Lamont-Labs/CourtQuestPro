@@ -591,7 +591,20 @@ private fun CourtOnboarding(
                             label = { Text("Player name") },
                             placeholder = { Text("What should we call you?") },
                             supportingText = { Text("Optional. You can change this later.") },
-                            singleLine = true, modifier = Modifier.fillMaxWidth()
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                                capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.Words,
+                                imeAction = androidx.compose.ui.text.input.ImeAction.Done
+                            ),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = CourtQuestDesign.accent,
+                                unfocusedBorderColor = CourtQuestDesign.chipBorder,
+                                focusedTextColor = CourtQuestDesign.textPrimary,
+                                unfocusedTextColor = CourtQuestDesign.textPrimary,
+                                cursorColor = CourtQuestDesign.accent
+                            )
                         )
                         Text(
                             if (name.isBlank()) "Your dashboard will use a generic player greeting."
