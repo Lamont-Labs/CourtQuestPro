@@ -1468,6 +1468,15 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
 @Composable
 private fun SettingsScreen(difficulty: String, onDifficulty: (String) -> Unit, onSaveName: (String) -> Unit) {
     var name by remember { mutableStateOf("") }
+    val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
+    val savePlayerName = {
+        val trimmed = name.trim()
+        if (trimmed.isNotEmpty()) {
+            onSaveName(trimmed)
+            name = ""
+            keyboard?.hide()
+        }
+    }
     Column(Modifier.fillMaxSize()) {
         AppHeader("Settings", "Make the app work for your game.")
         Column(
@@ -1510,6 +1519,11 @@ private fun SettingsScreen(difficulty: String, onDifficulty: (String) -> Unit, o
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("Update saved name") },
                 singleLine = true,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.Words,
+                    imeAction = androidx.compose.ui.text.input.ImeAction.Done
+                ),
+                keyboardActions = androidx.compose.foundation.text.KeyboardActions(onDone = { savePlayerName() }),
                 shape = RoundedCornerShape(16.dp),
                 colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = CourtQuestDesign.accent,
@@ -1520,7 +1534,7 @@ private fun SettingsScreen(difficulty: String, onDifficulty: (String) -> Unit, o
                 )
             )
             CourtQuestPrimaryButton(
-                onClick = { if (name.isNotBlank()) { onSaveName(name); name = "" } },
+                onClick = savePlayerName,
                 enabled = name.isNotBlank(),
                 modifier = Modifier.fillMaxWidth()
             ) { Text("SAVE NAME", fontWeight = FontWeight.ExtraBold) }
