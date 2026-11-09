@@ -1511,7 +1511,7 @@ private fun SettingsScreen(difficulty: String, onDifficulty: (String) -> Unit, o
                     }
                     RadioButton(
                         selected = selected,
-                        onClick = { onDifficulty(level) },
+                        onClick = null,
                         colors = androidx.compose.material3.RadioButtonDefaults.colors(selectedColor = CourtQuestDesign.accent)
                     )
                 }
