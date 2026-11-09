@@ -636,7 +636,22 @@ private fun CourtOnboarding(
                                     modifier = Modifier
                                         .weight(1f)
                                         .heightIn(min = 48.dp)
-                                        .semantics { contentDescription = "Train on $fullDayName" }
+                                        .semantics { contentDescription = "Train on $fullDayName" },
+                                    shape = RoundedCornerShape(14.dp),
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        containerColor = CourtQuestDesign.elevatedSurface,
+                                        labelColor = CourtQuestDesign.textSecondary,
+                                        selectedContainerColor = CourtQuestDesign.warmSurface,
+                                        selectedLabelColor = CourtQuestDesign.textPrimary
+                                    ),
+                                    border = FilterChipDefaults.filterChipBorder(
+                                        enabled = true,
+                                        selected = dayNumber in days,
+                                        borderColor = CourtQuestDesign.chipBorder,
+                                        selectedBorderColor = CourtQuestDesign.accent,
+                                        borderWidth = 1.dp,
+                                        selectedBorderWidth = 1.dp
+                                    )
                                 )
                             }
                             repeat(4 - rowDays.size) { Spacer(Modifier.weight(1f)) }
