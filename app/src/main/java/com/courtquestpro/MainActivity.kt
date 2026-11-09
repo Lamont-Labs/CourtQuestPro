@@ -627,11 +627,14 @@ private fun CourtOnboarding(
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             rowDays.forEachIndexed { columnIndex, day ->
                                 val dayNumber = rowIndex * 4 + columnIndex + 1
+                                val fullDayName = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")[dayNumber - 1]
                                 FilterChip(
                                     selected = dayNumber in days,
                                     onClick = { onDay(dayNumber) },
                                     label = { Text(day) },
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .semantics { contentDescription = "Train on $fullDayName" }
                                 )
                             }
                             repeat(4 - rowDays.size) { Spacer(Modifier.weight(1f)) }
