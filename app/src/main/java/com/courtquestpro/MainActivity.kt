@@ -635,6 +635,7 @@ private fun CourtOnboarding(
                                     label = { Text(day) },
                                     modifier = Modifier
                                         .weight(1f)
+                                        .heightIn(min = 48.dp)
                                         .semantics { contentDescription = "Train on $fullDayName" }
                                 )
                             }
