@@ -24,8 +24,8 @@ jobs:
         run: |
           mkdir -p visual-evidence
           gh run download 42569656876 --name CourtQuestPro-build-validation-55 --dir apk-input/baseline
-          gh run download 42901658452 --name courtquest-dev-verification --dir apk-input/candidate
-          printf 'baseline=%s\ncandidate=%s\n' d3eca51e4f6b915e753e3f1efd65d0a51bd24292 929d42f6b71b29473fe4ebc872f96317e616c831 > visual-evidence/source-revisions.txt
+          gh run download 42903044001 --name courtquest-dev-verification --dir apk-input/candidate
+          printf 'baseline=%s\ncandidate=%s\n' d3eca51e4f6b915e753e3f1efd65d0a51bd24292 21ff9222edd69f5c65c1999082b751c104d63194 > visual-evidence/source-revisions.txt
       - name: Enable hosted emulator acceleration
         run: |
           if [ -e /dev/kvm ]; then

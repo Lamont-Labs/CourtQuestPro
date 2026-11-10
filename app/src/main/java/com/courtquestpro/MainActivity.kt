@@ -33,6 +33,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -636,44 +637,59 @@ private fun CourtOnboarding(
                     Text("YOUR TRAINING DAYS", color = Orange, fontSize = 11.sp,
                         fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
                     Spacer(Modifier.height(8.dp))
-                    listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-                        .chunked(4).forEachIndexed { rowIndex, rowDays ->
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                rowDays.forEachIndexed { columnIndex, day ->
-                                    val dayNumber = rowIndex * 4 + columnIndex + 1
-                                    val fullDayName = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")[dayNumber - 1]
-                                    FilterChip(
-                                        selected = dayNumber in days,
-                                        onClick = { onDay(dayNumber) },
-                                        label = { Text(day) },
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .heightIn(min = 48.dp)
-                                            .semantics { contentDescription = "Train on $fullDayName" },
-                                        shape = RoundedCornerShape(14.dp),
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            containerColor = CourtQuestDesign.elevatedSurface,
-                                            labelColor = CourtQuestDesign.textSecondary,
-                                            selectedContainerColor = CourtQuestDesign.warmSurface,
-                                            selectedLabelColor = CourtQuestDesign.textPrimary
-                                        ),
-                                        border = FilterChipDefaults.filterChipBorder(
-                                            enabled = true,
+                    val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+                    val fullDayNames = listOf(
+                        "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+                    )
+                    val chipSpacing = CourtQuestDesign.spacingSm
+                    val minimumChipWidth = 24.dp + (42f * LocalDensity.current.fontScale).dp
+                    BoxWithConstraints(Modifier.fillMaxWidth()) {
+                        val columns = (
+                            (maxWidth.value + chipSpacing.value) /
+                                (minimumChipWidth.value + chipSpacing.value)
+                            ).toInt().coerceIn(1, 4)
+                        Column(verticalArrangement = Arrangement.spacedBy(chipSpacing)) {
+                            dayLabels.withIndex().chunked(columns).forEach { rowDays ->
+                                Row(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(chipSpacing)
+                                ) {
+                                    rowDays.forEach { (index, day) ->
+                                        val dayNumber = index + 1
+                                        FilterChip(
                                             selected = dayNumber in days,
-                                            borderColor = CourtQuestDesign.chipBorder,
-                                            selectedBorderColor = CourtQuestDesign.accent,
-                                            borderWidth = 1.dp,
-                                            selectedBorderWidth = 1.dp
+                                            onClick = { onDay(dayNumber) },
+                                            label = { Text(day, maxLines = 1) },
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .heightIn(min = 48.dp)
+                                                .semantics { contentDescription = "Train on ${fullDayNames[index]}" },
+                                            shape = RoundedCornerShape(14.dp),
+                                            colors = FilterChipDefaults.filterChipColors(
+                                                containerColor = CourtQuestDesign.elevatedSurface,
+                                                labelColor = CourtQuestDesign.textSecondary,
+                                                selectedContainerColor = CourtQuestDesign.warmSurface,
+                                                selectedLabelColor = CourtQuestDesign.textPrimary
+                                            ),
+                                            border = FilterChipDefaults.filterChipBorder(
+                                                enabled = true,
+                                                selected = dayNumber in days,
+                                                borderColor = CourtQuestDesign.chipBorder,
+                                                selectedBorderColor = CourtQuestDesign.accent,
+                                                borderWidth = 1.dp,
+                                                selectedBorderWidth = 1.dp
+                                            )
                                         )
-                                    )
+                                    }
+                                    repeat(columns - rowDays.size) { Spacer(Modifier.weight(1f)) }
                                 }
-                                repeat(4 - rowDays.size) { Spacer(Modifier.weight(1f)) }
                             }
                         }
+                    }
                     Spacer(Modifier.height(12.dp))
                     Text(
                         if (days.isEmpty()) "No scheduled days — you can still train anytime."
-                        else "SCHEDULED: " + listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+                        else "SCHEDULED: " + dayLabels
                             .filterIndexed { index, _ -> index + 1 in days }.joinToString(" · "),
                         color = Muted, fontSize = 12.sp, lineHeight = 18.sp
                     )
