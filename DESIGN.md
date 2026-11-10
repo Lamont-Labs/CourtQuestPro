@@ -70,10 +70,34 @@ Use 12 dp control, 16 dp standard surface, and 24 dp hero corner radii as starti
 ## Design workflow
 
 1. **Ground the pass.** Read this file and the current Compose entry point. Identify the journey, state, primary action, exact APK or commit, and what the owner said. Capture the current Android screen and the states the change touches. Use the installed Product Design tools to structure flow review and findings when the task calls for an audit. Native screenshots come from a real device or Android Emulator with `adb`.
-2. **Choose the visual target.** Use the UI/UX Pro Max and Taste references for hierarchy, density, contrast, type, and art direction. Use the Google DESIGN.md format for shared tokens and Figma to compose or review editable screen directions when a material screen redesign benefits from it. Use ImageGen or Product Design ideation for a visual comparison or original brand imagery when useful. Treat generated mockups as art direction and label them as such. Use Dimensional Drawing's approach for exact component measurements when handoff needs a spec.
+2. **Choose the visual target.** Load UI/UX Pro Max and run its relevant design-system and native-stack searches as documented below. Review the matched category and actual output, then use Taste for additional art direction. Use the Google DESIGN.md format for shared tokens and Figma to compose or review editable screen directions when a material screen redesign benefits from it. Use ImageGen or Product Design ideation for a visual comparison or original brand imagery when useful. Treat generated mockups as art direction and label them as such. Use Dimensional Drawing's approach for exact component measurements when handoff needs a spec.
 3. **Build the native slice.** Use the existing Compose and Material 3 stack. Consult official Android samples and Context7 or Android docs for API and version details. Adapt motion guidance from Emil Kowalski's references to Compose, then test its effect on the actual Android interaction. Browser components can inform visual or interaction ideas. Check source licenses before importing code, fonts, or assets.
 4. **Review the rendered result.** Apply an Impeccable-based critique to actual before-and-after captures at matching settings. Use Hallmark as an optional second opinion on whether the layout defaults are too generic. Review composition, first action, visual identity, text hierarchy, tap targets, accessibility semantics, compact width, large text, and meaningful state changes. Walk the interaction on Android and distinguish captured evidence from source observations. Fix the largest issue and capture again.
 5. **Verify and hand off.** Run the project's unit tests, build, and lint. Keep results separate from device and owner visual acceptance. For an authorized APK update, verify the downloaded GitHub release asset's exact hash, package `com.courtquestpro`, compatible signer, and a version code that advances the installed build.
+
+### UI/UX Pro Max application checkpoint
+
+The first direct CourtQuest searches were run on November 10, 2026 using the repo at commit `6ae86f61f520d6ca229d2f40e070410638c908c5`. Its guidance, search scripts, datasets, and MIT license are installed as the reusable `ui-ux-pro-max` skill. The first broad basketball query returned a General fallback. The refined Fitness/Gym App query matched the product and reasoning records, with `reasoning_default` set to `false`. [Pinned upstream source](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/tree/6ae86f61f520d6ca229d2f40e070410638c908c5)
+
+| Search | Verified result | CourtQuest decision |
+| --- | --- | --- |
+| `Fitness/Gym App` with `--design-system` | Fitness/Gym App product and reasoning, Sports/Fitness typography, progress-tracking and workout-plan constraints | Use a state-aware daily-session panel and clear recorded progress. Compare the proposed Barlow Condensed and Barlow pairing in a phone-sized visual target before selecting fonts. |
+| `Material3 Scaffold insets semantics` with `--stack jetpack-compose` | Shared Material 3 theme, semantics, reusable layout patterns | Centralize theme and screen primitives and verify labeled controls and system insets against the project's pinned Compose BOM. The source rows target Compose 1.11.4, so check API compatibility with BOM 2024.12.01 before adopting examples. |
+| `badge chip label wraps` with `--domain ux` | Compact Label Overflow applies to all platforms | Keep short weekday labels whole and make the chip grid reflow with width and text scale. Use the full day name in semantics. |
+| `bottom navigation back behavior` with `--domain ux` | The mobile Back Button record calls for predictable history | Verify Back through the workout, result, and Progress journey. Use native Android history and system insets when adapting the mixed-platform results. |
+| App delivery checklist | Android touch targets, focus order, pressed feedback, contrast, safe areas, and large text | Apply the platform-specific 48 dp target rule and review actual Android captures. |
+
+Run searches from the installed skill so its local datasets resolve correctly. Review proposed system output before saving accepted choices in this file.
+
+```bash
+cq_pro_max_skill="$(rg -l '^name: ui-ux-pro-max$' "${CODEX_HOME:-$HOME/.codex}/skills/remote-skills" -g SKILL.md | head -1)"
+test -n "$cq_pro_max_skill"
+cq_pro_max_search="$(dirname "$cq_pro_max_skill")/scripts/search.py"
+python3 "$cq_pro_max_search" 'Fitness/Gym App' --design-system --json -p 'CourtQuest Pro'
+python3 "$cq_pro_max_search" 'Material3 Scaffold insets semantics' --stack jetpack-compose --json
+python3 "$cq_pro_max_search" 'badge chip label wraps' --domain ux --json
+python3 "$cq_pro_max_search" 'bottom navigation back behavior' --domain ux --json
+```
 
 ### Available tools and when to use them
 
