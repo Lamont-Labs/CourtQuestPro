@@ -4,12 +4,15 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
@@ -24,8 +27,13 @@ import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -37,11 +45,20 @@ import java.time.ZoneId
 import kotlin.math.max
 import kotlin.random.Random
 
-private val CourtGreen = Color(0xFFFF783D)
+private val CourtGreen = CourtQuestDesign.accentVivid
 private val CourtLight = Color(0xFF322722)
-private val Ink = Color(0xFFF7F3EF)
-private val Orange = Color(0xFFFFA35C)
-private val Muted = Color(0xFFB7ACA6)
+private val Ink = CourtQuestDesign.textPrimary
+private val Orange = CourtQuestDesign.accent
+private val Muted = CourtQuestDesign.textSecondary
+
+// Glass-inspired surface treatment: translucent gradients and restrained highlights.
+// No real-time background blur is used, keeping scrolling predictable on older devices.
+private val GlassFill = Brush.linearGradient(listOf(
+    Color(0xD9363033), Color(0xE91D1E23), Color(0xF015171B)
+))
+private val GlassEdge = Brush.linearGradient(listOf(
+    Color(0x8CFFB080), Color(0x354D4345), Color(0x1F89858B)
+))
 
 data class Drill(
     val id: String, val category: String, val title: String, val level: String,
@@ -224,6 +241,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         ) { padding ->
             if (!onboardingComplete) {
                 CourtOnboarding(
+                    modifier = Modifier.padding(padding).consumeWindowInsets(padding),
                     step = onboardingStep,
                     name = onboardingName,
                     level = onboardingLevel,
@@ -427,31 +445,6 @@ private fun updateStreak(s: SaveState, sessionDate: LocalDate, today: String) {
 }
 
 @Composable
-private fun AppHeader(title: String, subtitle: String = "") {
-    Column(
-        Modifier.fillMaxWidth()
-            .background(Brush.verticalGradient(listOf(Color(0xFF382118), Color(0xFF1D1D21), Color(0xFF121315))))
-            .padding(start = 22.dp, end = 22.dp, top = 27.dp, bottom = 25.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(35.dp).clip(RoundedCornerShape(11.dp)).background(CourtGreen), contentAlignment = Alignment.Center) {
-                Icon(Icons.Default.SportsBasketball, null, tint = Color(0xFF171719), modifier = Modifier.size(22.dp))
-            }
-            Spacer(Modifier.width(10.dp))
-            Text("COURTQUEST", color = Ink, fontSize = 12.sp, fontWeight = FontWeight.Black, letterSpacing = 2.5.sp)
-            Spacer(Modifier.weight(1f))
-            Text("PLAYER LAB", color = Orange, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
-        }
-        Spacer(Modifier.height(27.dp))
-        Text(title, color = Ink, fontSize = 34.sp, fontWeight = FontWeight.Black, lineHeight = 37.sp)
-        if (subtitle.isNotBlank()) {
-            Spacer(Modifier.height(9.dp))
-            Text(subtitle, color = Muted, fontSize = 12.sp, letterSpacing = 1.sp)
-        }
-    }
-}
-
-@Composable
 private fun CourtSectionTitle(number: String, title: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(number, color = CourtGreen, fontSize = 11.sp, fontWeight = FontWeight.Black)
@@ -466,14 +459,16 @@ private fun CourtOnboardingChoice(
 ) {
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .heightIn(min = 88.dp)
+            .semantics { this.selected = selected },
         shape = RoundedCornerShape(19.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (selected) Color(0xFF3B2A23) else Color(0xFF242428)
+            containerColor = if (selected) CourtQuestDesign.warmSurface else CourtQuestDesign.elevatedSurface
         ),
         border = androidx.compose.foundation.BorderStroke(
             if (selected) 2.dp else 1.dp,
-            if (selected) CourtGreen else Color(0xFF3B3738)
+            if (selected) CourtQuestDesign.accent else CourtQuestDesign.chipBorder
         )
     ) {
         Row(
@@ -487,7 +482,7 @@ private fun CourtOnboardingChoice(
             Spacer(Modifier.width(10.dp))
             Icon(
                 if (selected) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
-                contentDescription = if (selected) "Selected" else "Not selected",
+                contentDescription = null,
                 tint = if (selected) CourtGreen else Muted
             )
         }
@@ -496,182 +491,259 @@ private fun CourtOnboardingChoice(
 
 @Composable
 private fun CourtOnboarding(
+    modifier: Modifier = Modifier,
     step: Int, name: String, level: String, focus: String, days: List<Int>,
     onName: (String) -> Unit, onLevel: (String) -> Unit, onFocus: (String) -> Unit,
     onDay: (Int) -> Unit, onBack: () -> Unit, onNext: () -> Unit
 ) {
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 22.dp)) {
-        Text("COURTQUEST / PLAYER SETUP", color = Orange, fontSize = 11.sp,
-            fontWeight = FontWeight.ExtraBold, letterSpacing = 1.3.sp)
-        Spacer(Modifier.height(16.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            repeat(5) { index ->
-                Box(Modifier.weight(1f).height(5.dp).clip(CircleShape)
-                    .background(if (index <= step) CourtGreen else Color(0xFF40332E)))
+    val scrollState = rememberScrollState()
+    LaunchedEffect(step) { scrollState.scrollTo(0) }
+    BackHandler(enabled = step > 0, onBack = onBack)
+
+    Column(
+        modifier.fillMaxSize()
+            .imePadding()
+            .padding(horizontal = CourtQuestDesign.spacingXl)
+            .padding(top = CourtQuestDesign.spacingXl)
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(CourtQuestDesign.spacingSm),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "COURTQUEST PRO", Modifier.weight(1f),
+                    color = CourtQuestDesign.accent, fontSize = 11.sp,
+                    lineHeight = 14.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp
+                )
+                Text(
+                    "STEP ${step + 1} OF 5",
+                    color = CourtQuestDesign.textSecondary, fontSize = 11.sp,
+                    lineHeight = 14.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.7.sp
+                )
+            }
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                repeat(5) { index ->
+                    Box(
+                        Modifier.weight(1f).height(4.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(
+                                if (index <= step) CourtQuestDesign.accentVivid
+                                else CourtQuestDesign.elevatedSurface
+                            )
+                    )
+                }
             }
         }
-        Spacer(Modifier.height(26.dp))
-        Text(
-            listOf("Your court starts here.", "Make it yours.", "Find your level.",
-                "Choose your focus.", "Build your routine.")[step],
-            color = Ink, fontSize = 32.sp, lineHeight = 37.sp, fontWeight = FontWeight.Black
-        )
-        Spacer(Modifier.height(12.dp))
-        Text(
-            listOf(
-                "A training plan built around your game. No account or internet required.",
-                "What should we call you? You can change this anytime.",
-                "Choose the level that best matches your current experience.",
-                "Your focus shapes the drills selected for your daily sessions.",
-                "Pick your usual training days. You can adjust them later."
-            )[step], color = Muted, fontSize = 15.sp, lineHeight = 22.sp
-        )
-        Spacer(Modifier.height(24.dp))
-        when (step) {
-            0 -> {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF272022))
-                ) {
-                    Column(
-                        Modifier.fillMaxWidth().padding(24.dp),
-                        verticalArrangement = Arrangement.spacedBy(18.dp)
+
+        Column(
+            Modifier.weight(1f).fillMaxWidth()
+                .verticalScroll(scrollState)
+                .padding(top = 20.dp, bottom = CourtQuestDesign.spacingLg)
+        ) {
+            if (step > 0) {
+                Text(
+                    listOf("Make it yours.", "Find your level.", "Choose your focus.", "Build your routine.")[step - 1],
+                    modifier = Modifier.semantics { heading() },
+                    color = Ink, fontSize = 32.sp, lineHeight = 37.sp, fontWeight = FontWeight.Black
+                )
+                Spacer(Modifier.height(CourtQuestDesign.spacingMd))
+                Text(
+                    listOf(
+                        "What should we call you? You can change this anytime.",
+                        "Choose the level that best matches your current experience.",
+                        "Your focus shapes the drills selected for your daily sessions.",
+                        "Pick your usual training days. You can adjust them later."
+                    )[step - 1], color = Muted, fontSize = 15.sp, lineHeight = 22.sp
+                )
+                Spacer(Modifier.height(CourtQuestDesign.spacingXl))
+            }
+            when (step) {
+                0 -> CourtOnboardingWelcome()
+                1 -> {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(22.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF242428))
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                Modifier.size(76.dp).clip(RoundedCornerShape(22.dp))
-                                    .background(Color(0xFF493025)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(Icons.Default.SportsBasketball, contentDescription = null,
-                                    tint = Orange, modifier = Modifier.size(46.dp))
-                            }
-                            Spacer(Modifier.width(16.dp))
-                            Column {
-                                Text("BUILT FOR THE WORK", color = Orange, fontSize = 10.sp,
-                                    fontWeight = FontWeight.ExtraBold, letterSpacing = 1.2.sp)
-                                Text("One session at a time.", color = Ink, fontSize = 20.sp,
-                                    fontWeight = FontWeight.Black, lineHeight = 25.sp)
-                            }
-                        }
-                        Box(Modifier.fillMaxWidth().height(1.dp).background(Color(0xFF473936)))
-                        Text("YOUR TRAINING. YOUR PROGRESS.", color = Ink, fontSize = 16.sp,
-                            fontWeight = FontWeight.ExtraBold)
-                        Text(
-                            "Choose your level, focus, and training days. CourtQuest builds your starting routine and tracks what you complete.",
-                            color = Muted, fontSize = 13.sp, lineHeight = 20.sp
-                        )
-                        Text("PRIVATE BY DEFAULT  ·  WORKS OFFLINE", color = Orange,
-                            fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.7.sp)
-                    }
-                }
-            }
-            1 -> {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(22.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242428))
-                ) {
-                    Column(Modifier.fillMaxWidth().padding(20.dp),
-                        verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        Text("PLAYER IDENTITY", color = Orange, fontSize = 11.sp,
-                            fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
-                        OutlinedTextField(
-                            value = name, onValueChange = onName,
-                            label = { Text("Player name") },
-                            placeholder = { Text("What should we call you?") },
-                            supportingText = { Text("Optional. You can change this later.") },
-                            singleLine = true, modifier = Modifier.fillMaxWidth()
-                        )
-                        Text(
-                            if (name.isBlank()) "Your dashboard will use a generic player greeting."
-                            else "Your dashboard will welcome ${name.trim()}.",
-                            color = Muted, fontSize = 12.sp, lineHeight = 18.sp
-                        )
-                    }
-                }
-            }
-            2 -> {
-                listOf(
-                    "Beginner" to "Build confidence, fundamentals, and repeatable technique.",
-                    "Intermediate" to "Strengthen consistency, control, and game-ready skills.",
-                    "Advanced" to "Challenge precision, pace, and execution under pressure."
-                ).forEach { (option, description) ->
-                    CourtOnboardingChoice(
-                        title = option, description = description,
-                        selected = level == option, onClick = { onLevel(option) }
-                    )
-                    Spacer(Modifier.height(10.dp))
-                }
-            }
-            3 -> {
-                listOf(
-                    "Balanced" to "Develop a well-rounded game across multiple skills.",
-                    "Shooting" to "Prioritize mechanics, accuracy, and shot repetition.",
-                    "Ball Handling" to "Build dribble control, coordination, and confidence.",
-                    "Finishing" to "Work on controlled scoring around the basket."
-                ).forEach { (option, description) ->
-                    CourtOnboardingChoice(
-                        title = option, description = description,
-                        selected = focus == option, onClick = { onFocus(option) }
-                    )
-                    Spacer(Modifier.height(10.dp))
-                }
-            }
-            4 -> {
-                Text("YOUR TRAINING DAYS", color = Orange, fontSize = 11.sp,
-                    fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
-                Spacer(Modifier.height(8.dp))
-                listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-                    .chunked(4).forEachIndexed { rowIndex, rowDays ->
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            rowDays.forEachIndexed { columnIndex, day ->
-                                val dayNumber = rowIndex * 4 + columnIndex + 1
-                                FilterChip(
-                                    selected = dayNumber in days,
-                                    onClick = { onDay(dayNumber) },
-                                    label = { Text(day) },
-                                    modifier = Modifier.weight(1f)
+                        Column(Modifier.fillMaxWidth().padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                            Text("PLAYER IDENTITY", color = Orange, fontSize = 11.sp,
+                                fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
+                            OutlinedTextField(
+                                value = name, onValueChange = onName,
+                                label = { Text("Player name", color = CourtQuestDesign.textSecondary) },
+                                placeholder = {
+                                    Text("What should we call you?", color = CourtQuestDesign.textSecondary)
+                                },
+                                supportingText = {
+                                    Text("Optional. You can change this later.", color = CourtQuestDesign.textSecondary)
+                                },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                                    capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.Words,
+                                    imeAction = androidx.compose.ui.text.input.ImeAction.Done
+                                ),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = CourtQuestDesign.accent,
+                                    unfocusedBorderColor = CourtQuestDesign.chipBorder,
+                                    focusedTextColor = CourtQuestDesign.textPrimary,
+                                    unfocusedTextColor = CourtQuestDesign.textPrimary,
+                                    cursorColor = CourtQuestDesign.accent
                                 )
-                            }
-                            repeat(4 - rowDays.size) { Spacer(Modifier.weight(1f)) }
+                            )
+                            Text(
+                                if (name.isBlank()) "Your dashboard will use a generic player greeting."
+                                else "Your dashboard will welcome ${name.trim()}.",
+                                color = Muted, fontSize = 12.sp, lineHeight = 18.sp
+                            )
                         }
                     }
-                Spacer(Modifier.height(22.dp))
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242022)),
-                    shape = RoundedCornerShape(20.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(Modifier.fillMaxWidth().padding(18.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("YOUR STARTING PLAN", color = Orange, fontSize = 11.sp,
-                            fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
-                        Text(if (name.isBlank()) "Basketball player" else name.trim(),
-                            color = Ink, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
-                        Text("$level  ·  $focus", color = Ink, fontSize = 14.sp)
-                        Text(
-                            if (days.isEmpty()) "No recurring training days selected"
-                            else "${days.size} training ${if (days.size == 1) "day" else "days"} per week",
-                            color = Muted, fontSize = 13.sp
+                }
+                2 -> {
+                    listOf(
+                        "Beginner" to "Build confidence, fundamentals, and repeatable technique.",
+                        "Intermediate" to "Strengthen consistency, control, and game-ready skills.",
+                        "Advanced" to "Challenge precision, pace, and execution under pressure."
+                    ).forEach { (option, description) ->
+                        CourtOnboardingChoice(
+                            title = option, description = description,
+                            selected = level == option, onClick = { onLevel(option) }
                         )
+                        Spacer(Modifier.height(10.dp))
+                    }
+                }
+                3 -> {
+                    listOf(
+                        "Balanced" to "Develop a well-rounded game across multiple skills.",
+                        "Shooting" to "Prioritize mechanics, accuracy, and shot repetition.",
+                        "Ball Handling" to "Build dribble control, coordination, and confidence.",
+                        "Finishing" to "Work on controlled scoring around the basket."
+                    ).forEach { (option, description) ->
+                        CourtOnboardingChoice(
+                            title = option, description = description,
+                            selected = focus == option, onClick = { onFocus(option) }
+                        )
+                        Spacer(Modifier.height(10.dp))
+                    }
+                }
+                4 -> {
+                    Text("YOUR TRAINING DAYS", color = Orange, fontSize = 11.sp,
+                        fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
+                    Spacer(Modifier.height(8.dp))
+                    val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+                    val fullDayNames = listOf(
+                        "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+                    )
+                    val chipSpacing = CourtQuestDesign.spacingSm
+                    val minimumChipWidth = 24.dp + (42f * LocalDensity.current.fontScale).dp
+                    BoxWithConstraints(Modifier.fillMaxWidth()) {
+                        val columns = (
+                            (maxWidth.value + chipSpacing.value) /
+                                (minimumChipWidth.value + chipSpacing.value)
+                            ).toInt().coerceIn(1, 4)
+                        Column(verticalArrangement = Arrangement.spacedBy(chipSpacing)) {
+                            dayLabels.withIndex().chunked(columns).forEach { rowDays ->
+                                Row(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(chipSpacing)
+                                ) {
+                                    rowDays.forEach { (index, day) ->
+                                        val dayNumber = index + 1
+                                        FilterChip(
+                                            selected = dayNumber in days,
+                                            onClick = { onDay(dayNumber) },
+                                            label = { Text(day, maxLines = 1) },
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .heightIn(min = 48.dp)
+                                                .semantics { contentDescription = "Train on ${fullDayNames[index]}" },
+                                            shape = RoundedCornerShape(14.dp),
+                                            colors = FilterChipDefaults.filterChipColors(
+                                                containerColor = CourtQuestDesign.elevatedSurface,
+                                                labelColor = CourtQuestDesign.textSecondary,
+                                                selectedContainerColor = CourtQuestDesign.warmSurface,
+                                                selectedLabelColor = CourtQuestDesign.textPrimary
+                                            ),
+                                            border = FilterChipDefaults.filterChipBorder(
+                                                enabled = true,
+                                                selected = dayNumber in days,
+                                                borderColor = CourtQuestDesign.chipBorder,
+                                                selectedBorderColor = CourtQuestDesign.accent,
+                                                borderWidth = 1.dp,
+                                                selectedBorderWidth = 1.dp
+                                            )
+                                        )
+                                    }
+                                    repeat(columns - rowDays.size) { Spacer(Modifier.weight(1f)) }
+                                }
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        if (days.isEmpty()) "No scheduled days — you can still train anytime."
+                        else "SCHEDULED: " + dayLabels
+                            .filterIndexed { index, _ -> index + 1 in days }.joinToString(" · "),
+                        color = Muted, fontSize = 12.sp, lineHeight = 18.sp
+                    )
+                    Spacer(Modifier.height(22.dp))
+                    CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("YOUR STARTING PLAN", color = Orange, fontSize = 11.sp,
+                                fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
+                            Text(if (name.isBlank()) "Basketball player" else name.trim(),
+                                color = Ink, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+                            Text("$level  ·  $focus", color = Ink, fontSize = 14.sp)
+                            Text(
+                                if (days.isEmpty()) "No recurring training days selected"
+                                else "${days.size} training ${if (days.size == 1) "day" else "days"} per week",
+                                color = Muted, fontSize = 13.sp
+                            )
+                        }
                     }
                 }
             }
         }
-        Spacer(Modifier.height(36.dp))
-        Button(onClick = onNext, modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape = RoundedCornerShape(16.dp)) {
-            Text(if (step == 4) "ENTER MY COURT" else "CONTINUE",
-                fontWeight = FontWeight.ExtraBold)
-        }
-        if (step > 0) {
-            TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-                Text("BACK", color = Muted)
+
+        Column(
+            Modifier.fillMaxWidth().padding(bottom = CourtQuestDesign.spacingXl),
+            verticalArrangement = Arrangement.spacedBy(CourtQuestDesign.spacingSm)
+        ) {
+            if (step == 0) {
+                Text(
+                    "Works offline. Your plan is saved on this device.",
+                    color = CourtQuestDesign.textSecondary, fontSize = 12.sp, lineHeight = 17.sp,
+                    modifier = Modifier.padding(bottom = 6.dp)
+                )
+            }
+            CourtQuestPrimaryButton(onClick = onNext, modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    if (step == 4) "ENTER MY COURT" else "CONTINUE",
+                    fontSize = 13.sp, fontWeight = FontWeight.Black, letterSpacing = 0.8.sp
+                )
+            }
+            if (step > 0) {
+                TextButton(
+                    onClick = onBack,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                ) {
+                    Icon(
+                        Icons.Default.ArrowBack, contentDescription = null,
+                        tint = Muted, modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(CourtQuestDesign.spacingSm))
+                    Text("PREVIOUS STEP", color = Muted)
+                }
             }
         }
-        Spacer(Modifier.height(20.dp))
     }
 }
 
@@ -690,13 +762,12 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
         item { AppHeader(save.playerName.takeIf { it.isNotBlank() }?.let { "$it’s court." } ?: "Your court.", "BUILD YOUR GAME  /  ONE SESSION AT A TIME") }
         item {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242022)),
-                    shape = RoundedCornerShape(24.dp),
-                    modifier = Modifier.fillMaxWidth()
+                CourtQuestPremiumSurface(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(20.dp)
                 ) {
                     Column(
-                        Modifier.fillMaxWidth().padding(20.dp),
+                        Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text("PLAYER PERFORMANCE", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Bold)
@@ -715,15 +786,27 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                             Text("MAKE THIS YOUR COURT", color = Ink, fontWeight = FontWeight.ExtraBold)
                             Text("Add your player name to personalize training and game records. You can change it in Setup later.", color = Muted, fontSize = 12.sp)
                             OutlinedTextField(value = newPlayerName, onValueChange = { newPlayerName = it.take(40) }, label = { Text("Player name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                            Button(onClick = { onSaveName(newPlayerName) }, enabled = newPlayerName.trim().isNotEmpty(), modifier = Modifier.fillMaxWidth()) { Text("SAVE PLAYER NAME") }
+                            CourtQuestPrimaryButton(onClick = { onSaveName(newPlayerName) }, enabled = newPlayerName.trim().isNotEmpty(), modifier = Modifier.fillMaxWidth()) { Text("SAVE PLAYER NAME") }
                         }
                     }
                 }
-                CourtSectionTitle("01 /", "TODAY’S TRAINING")
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween) {
+                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text("01 / TODAY", color = Orange, fontSize = 10.sp,
+                            fontWeight = FontWeight.ExtraBold, letterSpacing = 1.2.sp)
+                        Text("Your training", color = Ink, fontSize = 22.sp,
+                            fontWeight = FontWeight.Black, lineHeight = 27.sp)
+                    }
+                    Text(if (done >= 6) "COMPLETED" else if (resumable > 0) "IN PROGRESS" else "READY",
+                        color = Orange, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = 0.8.sp)
+                }
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C20)),
+                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                     shape = RoundedCornerShape(26.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(26.dp))
+                        .background(GlassFill).border(1.dp, GlassEdge, RoundedCornerShape(26.dp))
                 ) {
                     Column(
                         Modifier.fillMaxWidth().padding(22.dp),
@@ -746,6 +829,13 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                                 Text("OF 6", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                             }
                         }
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically) {
+                            Text("SESSION PROGRESS", color = Muted, fontSize = 10.sp,
+                                fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
+                            Text("${(progress * 100).toInt().coerceIn(0, 100)}%", color = Orange,
+                                fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
+                        }
                         LinearProgressIndicator(
                             progress = { progress },
                             modifier = Modifier.fillMaxWidth().height(7.dp).clip(CircleShape),
@@ -759,11 +849,9 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                                 )
                             }
                         }
-                        Button(
+                        CourtQuestPrimaryButton(
                             onClick = onSpin,
-                            modifier = Modifier.fillMaxWidth().height(58.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            contentPadding = PaddingValues(horizontal = 16.dp)
+                            modifier = Modifier.fillMaxWidth().height(58.dp)
                         ) {
                             Icon(if (done >= 6) Icons.Default.EmojiEvents else Icons.Default.PlayArrow, contentDescription = null)
                             Spacer(Modifier.width(9.dp))
@@ -773,10 +861,10 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
                             )
                         }
                         Text(
-                            if (done >= 6) "Today's workout is recorded."
+                            if (done >= 6) "Today's workout is recorded. Your next challenge is ready."
                             else if (resumable > 0) "$resumable drill session(s) ready to resume · progress saved"
                             else "Six basketball skill drills · progress saved automatically",
-                            color = Muted, fontSize = 12.sp
+                            color = Muted, fontSize = 12.sp, lineHeight = 18.sp
                         )
                     }
                 }
@@ -922,11 +1010,11 @@ private fun HomeScreen(save: SaveState, onSpin: () -> Unit, onStartChamp: () -> 
 
 @Composable
 private fun StatCard(label: String, value: String, modifier: Modifier = Modifier) {
-    Card(modifier, colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(16.dp)) {
-        Column(Modifier.padding(vertical = 13.dp, horizontal = 10.dp)) {
-            Text(label, color = Muted, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-            Spacer(Modifier.height(5.dp))
-            Text(value, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+    CourtQuestPremiumSurface(modifier = modifier, contentPadding = PaddingValues(horizontal = 16.dp, vertical = 18.dp)) {
+        Column(Modifier.fillMaxWidth()) {
+            Text(label, color = CourtQuestDesign.textSecondary, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            Spacer(Modifier.height(8.dp))
+            Text(value, color = CourtQuestDesign.textPrimary, fontSize = 23.sp, fontWeight = FontWeight.Black)
         }
     }
 }
@@ -996,12 +1084,11 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previo
         item { AppHeader("Training session", "FOCUS / ${drill.category.uppercase()}") }
         item {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242022)),
-                    shape = RoundedCornerShape(26.dp),
-                    modifier = Modifier.fillMaxWidth()
+                CourtQuestPremiumSurface(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(22.dp)
                 ) {
-                    Column(Modifier.fillMaxWidth().padding(22.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
+                    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(13.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("DRILL ${slotNumber.coerceIn(1, 6).toString().padStart(2, '0')} / 06",
                                 color = Orange, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold,
@@ -1098,12 +1185,11 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previo
                 Button(onClick = onVideo, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(15.dp)) {
                     Icon(Icons.Default.PlayCircle, null); Spacer(Modifier.width(8.dp)); Text("WATCH VIDEO DEMONSTRATION")
                 }
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242022)),
-                    shape = RoundedCornerShape(24.dp),
-                    modifier = Modifier.fillMaxWidth()
+                CourtQuestPremiumSurface(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(20.dp)
                 ) {
-                    Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
+                    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(13.dp)) {
                         Text("03 / FINISH YOUR DRILL", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.2.sp)
                         Text(
                             when {
@@ -1134,11 +1220,10 @@ private fun DrillScreen(drill: Drill, slotNumber: Int, complete: Boolean, previo
                                 color = Ink, fontSize = 13.sp, modifier = Modifier.weight(1f)
                             )
                         }
-                        Button(
+                        CourtQuestPrimaryButton(
                             onClick = { onComplete(completedCount, attemptedCount) },
                             enabled = !complete && meetsCount && targetConfirmed,
-                            modifier = Modifier.fillMaxWidth().height(58.dp),
-                            shape = RoundedCornerShape(16.dp)
+                            modifier = Modifier.fillMaxWidth().height(58.dp)
                         ) {
                             Icon(Icons.Default.CheckCircle, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
@@ -1171,7 +1256,7 @@ private fun ChampionshipSetup(playerName: String, opponentName: String, error: S
                     Text("• First player to 11 points wins\n• At 10–10: sudden death, next point wins\n• Score honestly after each point\n• Undo is available for accidental taps", color = Muted, lineHeight = 22.sp)
                 }
             }
-            Button(onClick = onStart, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(15.dp)) { Text("ENTER THE CHAMPIONSHIP", fontWeight = FontWeight.ExtraBold) }
+            CourtQuestPrimaryButton(onClick = onStart, modifier = Modifier.fillMaxWidth().height(56.dp)) { Text("ENTER THE CHAMPIONSHIP", fontWeight = FontWeight.ExtraBold) }
             OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text("Back") }
         }
     }
@@ -1190,15 +1275,51 @@ private fun ScoreScreen(player: String, opponent: String, playerScore: Int, oppo
         Text(if (playerScore == 10 && opponentScore == 10) "SUDDEN DEATH" else "TAP THE SCORER AFTER EACH POINT", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = if (playerScore == 10 && opponentScore == 10) Orange else Muted, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
         Spacer(Modifier.height(18.dp))
         Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Button(onClick = { onPoint(true) }, modifier = Modifier.weight(1f).height(112.dp), shape = RoundedCornerShape(20.dp)) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) { Icon(Icons.Default.Add, null, modifier = Modifier.size(32.dp)); Text("+1", fontSize = 29.sp, fontWeight = FontWeight.ExtraBold); Text(player.take(14), fontSize = 12.sp) }
+            Button(
+                onClick = { onPoint(true) },
+                modifier = Modifier.weight(1f).height(120.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = CourtQuestDesign.accentVivid,
+                    contentColor = CourtQuestDesign.background
+                )
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(28.dp))
+                    Text("+1", fontSize = 34.sp, fontWeight = FontWeight.Black)
+                    Text(player.take(14), fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                }
             }
-            Button(onClick = { onPoint(false) }, modifier = Modifier.weight(1f).height(112.dp), colors = ButtonDefaults.buttonColors(containerColor = Orange), shape = RoundedCornerShape(20.dp)) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) { Icon(Icons.Default.Add, null, modifier = Modifier.size(32.dp)); Text("+1", fontSize = 29.sp, fontWeight = FontWeight.ExtraBold); Text(opponent.take(14), fontSize = 12.sp) }
+            Button(
+                onClick = { onPoint(false) },
+                modifier = Modifier.weight(1f).height(120.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = CourtQuestDesign.elevatedSurface,
+                    contentColor = CourtQuestDesign.textPrimary
+                ),
+                border = androidx.compose.foundation.BorderStroke(1.dp, CourtQuestDesign.accent)
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(28.dp))
+                    Text("+1", fontSize = 34.sp, fontWeight = FontWeight.Black)
+                    Text(opponent.take(14), fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                }
             }
         }
         Spacer(Modifier.height(18.dp))
-        OutlinedButton(onClick = onUndo, modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp).height(50.dp), shape = RoundedCornerShape(14.dp)) { Icon(Icons.Default.Undo, null); Spacer(Modifier.width(8.dp)); Text("UNDO LAST POINT") }
+        OutlinedButton(
+            onClick = onUndo,
+            enabled = playerScore + opponentScore > 0,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp).height(54.dp),
+            shape = RoundedCornerShape(16.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, CourtQuestDesign.chipBorder),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = CourtQuestDesign.textPrimary)
+        ) {
+            Icon(Icons.Default.Undo, contentDescription = null)
+            Spacer(Modifier.width(10.dp))
+            Text("UNDO LAST POINT", fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+        }
         Spacer(Modifier.height(8.dp))
         Text("Only tap after a point has actually been scored.", modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp), color = Muted, fontSize = 12.sp, textAlign = TextAlign.Center)
         Spacer(Modifier.weight(1f))
@@ -1207,13 +1328,13 @@ private fun ScoreScreen(player: String, opponent: String, playerScore: Int, oppo
 }
 @Composable
 private fun ScorePanel(name: String, score: Int, color: Color, modifier: Modifier = Modifier) {
-    Card(modifier, colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(24.dp)) {
-        Column(Modifier.fillMaxWidth().padding(vertical = 22.dp, horizontal = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    CourtQuestPremiumSurface(modifier = modifier, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 22.dp)) {
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             Box(Modifier.size(12.dp).clip(CircleShape).background(color))
             Spacer(Modifier.height(9.dp))
             Text(name, fontSize = 15.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, color = Ink, maxLines = 2)
             Spacer(Modifier.height(12.dp))
-            Text(score.toString(), fontSize = 64.sp, fontWeight = FontWeight.Black, color = color)
+            Text(score.toString(), fontSize = 72.sp, fontWeight = FontWeight.Black, color = color)
         }
     }
 }
@@ -1223,27 +1344,30 @@ private fun MatchRecapScreen(record: MatchRecord, totalXp: Int, onHome: () -> Un
     Column(Modifier.fillMaxSize()) {
         AppHeader("Final buzzer", "Championship complete")
         Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF302722)), shape = RoundedCornerShape(24.dp)) {
-                Column(Modifier.fillMaxWidth().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.EmojiEvents, null, tint = Orange, modifier = Modifier.size(54.dp))
+            CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(24.dp)) {
+                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = CourtQuestDesign.accent, modifier = Modifier.size(56.dp))
+                    Spacer(Modifier.height(12.dp))
+                    Text("CHAMPIONSHIP RESULT", fontSize = 11.sp, letterSpacing = 2.sp, fontWeight = FontWeight.ExtraBold, color = Muted)
                     Spacer(Modifier.height(8.dp))
                     Text("${record.winner} WINS!", fontSize = 26.sp, fontWeight = FontWeight.Black, color = Ink, textAlign = TextAlign.Center)
-                    Text("${record.playerScore}  —  ${record.opponentScore}", fontSize = 38.sp, fontWeight = FontWeight.ExtraBold, color = CourtGreen)
-                    Text("Final score", color = Muted)
+                    Spacer(Modifier.height(12.dp))
+                    Text("${record.playerScore}  —  ${record.opponentScore}", fontSize = 48.sp, fontWeight = FontWeight.Black, color = CourtQuestDesign.accent)
+                    Text("FINAL SCORE", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 StatCard("MATCH XP", "+${record.xp}", Modifier.weight(1f))
                 StatCard("TOTAL XP", totalXp.toString(), Modifier.weight(1f))
             }
-            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(18.dp)) {
-                Column(Modifier.padding(16.dp)) {
-                    Text("MATCH RECAP", fontWeight = FontWeight.ExtraBold, color = Ink)
-                    Spacer(Modifier.height(7.dp))
-                    Text("${record.player} vs ${record.opponent}. ${record.winner} took the win ${max(record.playerScore, record.opponentScore)}–${kotlin.math.min(record.playerScore, record.opponentScore)}. Keep showing up, work on one skill at a time, and bring that energy to the next run.", color = Muted, lineHeight = 22.sp)
+            CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(20.dp)) {
+                Column(Modifier.fillMaxWidth()) {
+                    Text("MATCH RECAP", fontWeight = FontWeight.ExtraBold, color = CourtQuestDesign.accent, letterSpacing = 1.sp, fontSize = 12.sp)
+                    Spacer(Modifier.height(10.dp))
+                    Text("${record.player} vs ${record.opponent}. ${record.winner} took the win ${max(record.playerScore, record.opponentScore)}–${kotlin.math.min(record.playerScore, record.opponentScore)}. Keep showing up, work on one skill at a time, and bring that energy to the next run.", color = CourtQuestDesign.textPrimary, lineHeight = 23.sp)
                 }
             }
-            Button(onClick = onHome, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("BACK TO HOME") }
+            CourtQuestPrimaryButton(onClick = onHome, modifier = Modifier.fillMaxWidth().height(56.dp)) { Text("BACK TO HOME", fontWeight = FontWeight.ExtraBold) }
             OutlinedButton(onClick = onCareer, modifier = Modifier.fillMaxWidth()) { Text("VIEW CAREER STATS") }
         }
     }
@@ -1266,11 +1390,13 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                 Text("PLAYER DEVELOPMENT", color = Ink, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
                 val recorded = save.drillResults.orEmpty()
                 if (recorded.isEmpty()) {
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124))) {
-                        Column(Modifier.padding(18.dp)) {
-                            Text("YOUR BASELINE STARTS HERE", color = Orange, fontWeight = FontWeight.Bold)
-                            Spacer(Modifier.height(6.dp))
-                            Text("Complete a drill and record attempts to start building a real performance history. XP alone is not a skill rating.", color = Muted, fontSize = 13.sp)
+                    CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(22.dp)) {
+                        Column(Modifier.fillMaxWidth()) {
+                            Icon(Icons.Default.Insights, contentDescription = null, tint = CourtQuestDesign.accent, modifier = Modifier.size(30.dp))
+                            Spacer(Modifier.height(12.dp))
+                            Text("YOUR BASELINE STARTS HERE", color = CourtQuestDesign.textPrimary, fontWeight = FontWeight.Black, fontSize = 17.sp)
+                            Spacer(Modifier.height(10.dp))
+                            Text("Complete a drill and record attempts to start building a real performance history. XP alone is not a skill rating.", color = CourtQuestDesign.textSecondary, fontSize = 13.sp, lineHeight = 20.sp)
                         }
                     }
                 } else {
@@ -1291,11 +1417,11 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                         val results = recorded.filter { result ->
                             drills.any { it.id == result.drillId && it.category == category }
                         }
-                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(18.dp)) {
-                            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                        CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(18.dp)) {
+                            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(9.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(category.uppercase(), color = Ink, fontWeight = FontWeight.ExtraBold, modifier = Modifier.weight(1f))
-                                    Text("${results.size} SESSIONS", color = Orange, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    Text(category.uppercase(), color = CourtQuestDesign.textPrimary, fontWeight = FontWeight.Black, modifier = Modifier.weight(1f))
+                                    Text("${results.size} SESSIONS", color = CourtQuestDesign.accent, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }
                                 if (results.isEmpty()) {
                                     Text("No recorded results yet", color = Muted, fontSize = 12.sp)
@@ -1306,8 +1432,9 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                                     if (attempts > 0) {
                                         LinearProgressIndicator(
                                             progress = { (successful.toFloat() / attempts).coerceIn(0f, 1f) },
-                                            modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
-                                            color = Orange, trackColor = CourtLight
+                                            modifier = Modifier.fillMaxWidth().height(10.dp).clip(CircleShape),
+                                            color = CourtQuestDesign.accentVivid,
+                                            trackColor = CourtQuestDesign.elevatedSurface
                                         )
                                         Text("${successful * 100 / attempts}% recorded success rate · not a skill rating", color = Muted, fontSize = 12.sp)
                                     }
@@ -1328,10 +1455,10 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                         val validForDrill = recorded.filter { it.drillId == id && it.attempted > 0 && it.completed in 0..it.attempted }
                         val personalBest = validForDrill.maxByOrNull { it.completed }
                         val sampleAttempts = validForDrill.sumOf { it.attempted }
-                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(16.dp)) {
-                            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text(title, color = Ink, fontWeight = FontWeight.Bold)
-                                Text("${validForDrill.size} VALID SESSIONS · $sampleAttempts ATTEMPTS", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(18.dp)) {
+                            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                                Text(title, color = CourtQuestDesign.textPrimary, fontWeight = FontWeight.Black, fontSize = 16.sp)
+                                Text("${validForDrill.size} VALID SESSIONS · $sampleAttempts ATTEMPTS", color = CourtQuestDesign.textSecondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 if (personalBest != null) {
                                     Text("PERSONAL RECORD · ${personalBest.completed} SUCCESSFUL", color = CourtGreen, fontWeight = FontWeight.ExtraBold, fontSize = 13.sp)
                                     Text("${personalBest.attempted} attempts · ${personalBest.date}", color = Muted, fontSize = 12.sp)
@@ -1369,18 +1496,22 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                 }
                 CourtSectionTitle("04 /", "MATCH HISTORY")
                 if (save.matches.isEmpty()) {
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124))) {
-                        Text("Your championship results will show up here after your first game.", Modifier.padding(18.dp), color = Muted)
+                    CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(20.dp)) {
+                        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = CourtQuestDesign.accent, modifier = Modifier.size(28.dp))
+                            Text("YOUR FIRST MATCH AWAITS", color = CourtQuestDesign.textPrimary, fontWeight = FontWeight.Black, fontSize = 16.sp)
+                            Text("Your championship results will show up here after your first game.", color = CourtQuestDesign.textSecondary, fontSize = 13.sp, lineHeight = 20.sp)
+                        }
                     }
                 } else save.matches.forEach { m ->
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF212124)), shape = RoundedCornerShape(16.dp)) {
-                        Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f)) {
-                                Text("${m.player} vs ${m.opponent}", color = Ink, fontWeight = FontWeight.Bold)
-                                Text("${m.playerScore}–${m.opponentScore} · ${m.date}", color = Muted, fontSize = 12.sp)
-                                Text("Winner: ${m.winner}", color = CourtGreen, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(18.dp)) {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                Text("${m.player} vs ${m.opponent}", color = CourtQuestDesign.textPrimary, fontWeight = FontWeight.Black)
+                                Text("${m.playerScore}–${m.opponentScore} · ${m.date}", color = CourtQuestDesign.textSecondary, fontSize = 12.sp)
+                                Text("Winner: ${m.winner}", color = CourtQuestDesign.accent, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                             }
-                            Text("+${m.xp} XP", color = CourtGreen, fontWeight = FontWeight.ExtraBold)
+                            Text("+${m.xp} XP", color = CourtQuestDesign.accent, fontWeight = FontWeight.ExtraBold)
                         }
                     }
                 }
@@ -1393,23 +1524,80 @@ private fun CareerScreen(save: SaveState, onHome: () -> Unit) {
 @Composable
 private fun SettingsScreen(difficulty: String, onDifficulty: (String) -> Unit, onSaveName: (String) -> Unit) {
     var name by remember { mutableStateOf("") }
+    val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
+    val savePlayerName = {
+        val trimmed = name.trim()
+        if (trimmed.isNotEmpty()) {
+            onSaveName(trimmed)
+            name = ""
+            keyboard?.hide()
+        }
+    }
     Column(Modifier.fillMaxSize()) {
         AppHeader("Settings", "Make the app work for your game.")
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        Column(
+            Modifier.fillMaxWidth()
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 18.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text("TRAINING PREFERENCES", fontWeight = FontWeight.Black, fontSize = 12.sp, letterSpacing = 1.5.sp, color = CourtQuestDesign.accent)
+            Text("Choose the level that fits your current game. You can change it at any time.", color = CourtQuestDesign.textSecondary, fontSize = 13.sp, lineHeight = 19.sp)
             Text("DIFFICULTY LEVEL", fontWeight = FontWeight.ExtraBold, color = Ink)
             listOf("Beginner", "Intermediate", "Advanced", "Expert", "Elite").forEach { level ->
-                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(if (level == difficulty) CourtLight else Color(0xFF212124)).clickable { onDifficulty(level) }.padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(level, fontWeight = FontWeight.Bold, color = Ink)
-                        Text(difficultyDescription(level), color = Muted, fontSize = 12.sp)
+                val selected = level == difficulty
+                Row(
+                    Modifier.fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(if (selected) CourtQuestDesign.warmSurface else CourtQuestDesign.elevatedSurface)
+                        .border(1.dp, if (selected) CourtQuestDesign.accent else CourtQuestDesign.chipBorder, RoundedCornerShape(16.dp))
+                        .selectable(
+                            selected = selected,
+                            role = androidx.compose.ui.semantics.Role.RadioButton,
+                            onClick = { onDifficulty(level) }
+                        )
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Text(level, fontWeight = FontWeight.ExtraBold, color = CourtQuestDesign.textPrimary)
+                        Text(difficultyDescription(level), color = CourtQuestDesign.textSecondary, fontSize = 12.sp)
                     }
-                    RadioButton(selected = level == difficulty, onClick = { onDifficulty(level) })
+                    RadioButton(
+                        selected = selected,
+                        onClick = null,
+                        colors = androidx.compose.material3.RadioButtonDefaults.colors(selectedColor = CourtQuestDesign.accent)
+                    )
                 }
             }
             Divider()
             Text("PLAYER NAME", fontWeight = FontWeight.ExtraBold, color = Ink)
-            OutlinedTextField(value = name, onValueChange = { name = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Update saved name") }, singleLine = true)
-            Button(onClick = { if (name.isNotBlank()) { onSaveName(name); name = "" } }, modifier = Modifier.fillMaxWidth()) { Text("SAVE NAME") }
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Update saved name") },
+                singleLine = true,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.Words,
+                    imeAction = androidx.compose.ui.text.input.ImeAction.Done
+                ),
+                keyboardActions = androidx.compose.foundation.text.KeyboardActions(onDone = { savePlayerName() }),
+                shape = RoundedCornerShape(16.dp),
+                colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = CourtQuestDesign.accent,
+                    unfocusedBorderColor = CourtQuestDesign.chipBorder,
+                    focusedTextColor = CourtQuestDesign.textPrimary,
+                    unfocusedTextColor = CourtQuestDesign.textPrimary,
+                    cursorColor = CourtQuestDesign.accent
+                )
+            )
+            CourtQuestPrimaryButton(
+                onClick = savePlayerName,
+                enabled = name.isNotBlank(),
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("SAVE NAME", fontWeight = FontWeight.ExtraBold) }
             Text("Your progress is saved locally on this phone. Videos require internet.", color = Muted, fontSize = 12.sp)
         }
     }
