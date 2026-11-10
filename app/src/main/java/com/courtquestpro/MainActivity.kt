@@ -575,9 +575,13 @@ private fun CourtOnboarding(
                                 fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
                             OutlinedTextField(
                                 value = name, onValueChange = onName,
-                                label = { Text("Player name") },
-                                placeholder = { Text("What should we call you?") },
-                                supportingText = { Text("Optional. You can change this later.") },
+                                label = { Text("Player name", color = CourtQuestDesign.textSecondary) },
+                                placeholder = {
+                                    Text("What should we call you?", color = CourtQuestDesign.textSecondary)
+                                },
+                                supportingText = {
+                                    Text("Optional. You can change this later.", color = CourtQuestDesign.textSecondary)
+                                },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(16.dp),
