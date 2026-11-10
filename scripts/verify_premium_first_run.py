@@ -42,6 +42,15 @@ def wait_for(predicate, description, seconds=55):
     while time.monotonic() < deadline:
         try:
             root = hierarchy()
+            if contains(root, "Pixel Launcher isn't responding"):
+                close = next(
+                    (node for node in root.iter("node") if "close app" in values(node)),
+                    None,
+                )
+                if close is not None:
+                    tap_node(close)
+                    launch()
+                    continue
             if predicate(root):
                 return root
         except (subprocess.SubprocessError, ET.ParseError) as error:
