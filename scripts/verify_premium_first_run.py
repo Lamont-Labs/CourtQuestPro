@@ -59,6 +59,16 @@ def screen(label):
     return wait_for(lambda root: contains(root, label), label)
 
 
+def home_screen():
+    return wait_for(
+        lambda root: any(
+            "court" in values(node) and node.get("package") == PACKAGE
+            for node in root.iter("node")
+        ),
+        "the visible Court navigation tab",
+    )
+
+
 def tap_node(node):
     match = BOUNDS.fullmatch(node.get("bounds", ""))
     if not match:
@@ -138,7 +148,9 @@ def wizard(folder, exercise_back=False):
             if not contains(root, "Jordan"):
                 raise RuntimeError("Player name disappeared on Android Back")
             tap("CONTINUE")
-    screen("Court dashboard")
+    root = home_screen()
+    if exercise_back and not contains(root, "Jordan’s court."):
+        raise RuntimeError("Home did not show the entered player name")
     capture(folder, "home")
 
 
@@ -159,7 +171,8 @@ wizard(OUT / "after", exercise_back=True)
 
 adb("shell", "am", "force-stop", PACKAGE)
 launch()
-screen("Court dashboard")
+if not contains(home_screen(), "Jordan’s court."):
+    raise RuntimeError("The completed player profile did not survive relaunch")
 tap("START TRAINING", allow_scroll=True)
 wait_for(
     lambda root: any(
@@ -181,7 +194,7 @@ report = {
     "five_step_onboarding": "pass",
     "continue_with_keyboard": "pass",
     "android_back_retains_player_name": "pass",
-    "relaunch_after_setup": "pass",
+    "relaunch_after_setup_retains_player_name": "pass",
     "home_to_first_drill": "pass",
     "five_steps_narrower_display_font_scale_1_3": "pass",
 }
