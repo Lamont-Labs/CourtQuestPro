@@ -11,6 +11,7 @@ internal object CourtQuestDesign {
     val background = Color(0xFF121315)
     val elevatedSurface = Color(0xFF252127)
     val warmSurface = Color(0xFF4B281D)
+    val blueprintShadow = Color(0xFF201A1B)
     val textPrimary = Color(0xFFF7F3EF)
     val textSecondary = Color(0xFFB7ACA6)
     val accent = Color(0xFFFFA35C)

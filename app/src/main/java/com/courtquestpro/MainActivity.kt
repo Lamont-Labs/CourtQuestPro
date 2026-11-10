@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
@@ -27,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.graphics.Brush
@@ -238,7 +240,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         ) { padding ->
             if (!onboardingComplete) {
                 CourtOnboarding(
-                    modifier = Modifier.padding(padding),
+                    modifier = Modifier.padding(padding).consumeWindowInsets(padding),
                     step = onboardingStep,
                     name = onboardingName,
                     level = onboardingLevel,
@@ -493,248 +495,235 @@ private fun CourtOnboarding(
     onName: (String) -> Unit, onLevel: (String) -> Unit, onFocus: (String) -> Unit,
     onDay: (Int) -> Unit, onBack: () -> Unit, onNext: () -> Unit
 ) {
-    Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 22.dp)) {
-        Text("COURTQUEST / PLAYER SETUP", color = Orange, fontSize = 11.sp,
-            fontWeight = FontWeight.ExtraBold, letterSpacing = 1.3.sp)
-        Spacer(Modifier.height(16.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically) {
-            Text("STEP ${step + 1} OF 5", color = Ink, fontSize = 12.sp,
-                fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
-            Text("${(step + 1) * 20}% COMPLETE", color = Muted, fontSize = 11.sp,
-                fontWeight = FontWeight.Bold, letterSpacing = 0.7.sp)
-        }
-        Spacer(Modifier.height(12.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth().semantics(mergeDescendants = true) {
-                contentDescription = "Player setup progress: step ${step + 1} of 5"
-            },
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            repeat(5) { index ->
-                Box(
-                    Modifier.weight(1f).height(8.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(if (index <= step) CourtQuestDesign.accentVivid else CourtQuestDesign.elevatedSurface)
-                )
-            }
-        }
-        Spacer(Modifier.height(26.dp))
-        Text(
-            listOf("Your court starts here.", "Make it yours.", "Find your level.",
-                "Choose your focus.", "Build your routine.")[step],
-            color = Ink, fontSize = 32.sp, lineHeight = 37.sp, fontWeight = FontWeight.Black
-        )
-        Spacer(Modifier.height(12.dp))
-        Text(
-            listOf(
-                "A training plan built around your game. No account or internet required.",
-                "What should we call you? You can change this anytime.",
-                "Choose the level that best matches your current experience.",
-                "Your focus shapes the drills selected for your daily sessions.",
-                "Pick your usual training days. You can adjust them later."
-            )[step], color = Muted, fontSize = 15.sp, lineHeight = 22.sp
-        )
-        Spacer(Modifier.height(24.dp))
-        when (step) {
-            0 -> {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF272022))
-                ) {
-                    Column(
-                        Modifier.fillMaxWidth().padding(24.dp),
-                        verticalArrangement = Arrangement.spacedBy(18.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                Modifier.size(76.dp).clip(RoundedCornerShape(22.dp))
-                                    .background(Color(0xFF493025)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(Icons.Default.SportsBasketball, contentDescription = null,
-                                    tint = Orange, modifier = Modifier.size(46.dp))
-                            }
-                            Spacer(Modifier.width(16.dp))
-                            Column {
-                                Text("BUILT FOR THE WORK", color = Orange, fontSize = 10.sp,
-                                    fontWeight = FontWeight.ExtraBold, letterSpacing = 1.2.sp)
-                                Text("One session at a time.", color = Ink, fontSize = 20.sp,
-                                    fontWeight = FontWeight.Black, lineHeight = 25.sp)
-                            }
-                        }
-                        Box(Modifier.fillMaxWidth().height(1.dp).background(Color(0xFF473936)))
-                        Text("YOUR TRAINING. YOUR PROGRESS.", color = Ink, fontSize = 16.sp,
-                            fontWeight = FontWeight.ExtraBold)
-                        Text(
-                            "Choose your level, focus, and training days. CourtQuest builds your starting routine and tracks what you complete.",
-                            color = Muted, fontSize = 13.sp, lineHeight = 20.sp
-                        )
-                        Text("PRIVATE BY DEFAULT  ·  WORKS OFFLINE", color = Orange,
-                            fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.7.sp)
-                    }
-                }
-            }
-            1 -> {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(22.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242428))
-                ) {
-                    Column(Modifier.fillMaxWidth().padding(20.dp),
-                        verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        Text("PLAYER IDENTITY", color = Orange, fontSize = 11.sp,
-                            fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
-                        OutlinedTextField(
-                            value = name, onValueChange = onName,
-                            label = { Text("Player name") },
-                            placeholder = { Text("What should we call you?") },
-                            supportingText = { Text("Optional. You can change this later.") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                                capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.Words,
-                                imeAction = androidx.compose.ui.text.input.ImeAction.Done
-                            ),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = CourtQuestDesign.accent,
-                                unfocusedBorderColor = CourtQuestDesign.chipBorder,
-                                focusedTextColor = CourtQuestDesign.textPrimary,
-                                unfocusedTextColor = CourtQuestDesign.textPrimary,
-                                cursorColor = CourtQuestDesign.accent
-                            )
-                        )
-                        Text(
-                            if (name.isBlank()) "Your dashboard will use a generic player greeting."
-                            else "Your dashboard will welcome ${name.trim()}.",
-                            color = Muted, fontSize = 12.sp, lineHeight = 18.sp
-                        )
-                    }
-                }
-            }
-            2 -> {
-                listOf(
-                    "Beginner" to "Build confidence, fundamentals, and repeatable technique.",
-                    "Intermediate" to "Strengthen consistency, control, and game-ready skills.",
-                    "Advanced" to "Challenge precision, pace, and execution under pressure."
-                ).forEach { (option, description) ->
-                    CourtOnboardingChoice(
-                        title = option, description = description,
-                        selected = level == option, onClick = { onLevel(option) }
-                    )
-                    Spacer(Modifier.height(10.dp))
-                }
-            }
-            3 -> {
-                listOf(
-                    "Balanced" to "Develop a well-rounded game across multiple skills.",
-                    "Shooting" to "Prioritize mechanics, accuracy, and shot repetition.",
-                    "Ball Handling" to "Build dribble control, coordination, and confidence.",
-                    "Finishing" to "Work on controlled scoring around the basket."
-                ).forEach { (option, description) ->
-                    CourtOnboardingChoice(
-                        title = option, description = description,
-                        selected = focus == option, onClick = { onFocus(option) }
-                    )
-                    Spacer(Modifier.height(10.dp))
-                }
-            }
-            4 -> {
-                Text("YOUR TRAINING DAYS", color = Orange, fontSize = 11.sp,
-                    fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
-                Spacer(Modifier.height(8.dp))
-                listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-                    .chunked(4).forEachIndexed { rowIndex, rowDays ->
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            rowDays.forEachIndexed { columnIndex, day ->
-                                val dayNumber = rowIndex * 4 + columnIndex + 1
-                                val fullDayName = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")[dayNumber - 1]
-                                FilterChip(
-                                    selected = dayNumber in days,
-                                    onClick = { onDay(dayNumber) },
-                                    label = { Text(day) },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .heightIn(min = 48.dp)
-                                        .semantics { contentDescription = "Train on $fullDayName" },
-                                    shape = RoundedCornerShape(14.dp),
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        containerColor = CourtQuestDesign.elevatedSurface,
-                                        labelColor = CourtQuestDesign.textSecondary,
-                                        selectedContainerColor = CourtQuestDesign.warmSurface,
-                                        selectedLabelColor = CourtQuestDesign.textPrimary
-                                    ),
-                                    border = FilterChipDefaults.filterChipBorder(
-                                        enabled = true,
-                                        selected = dayNumber in days,
-                                        borderColor = CourtQuestDesign.chipBorder,
-                                        selectedBorderColor = CourtQuestDesign.accent,
-                                        borderWidth = 1.dp,
-                                        selectedBorderWidth = 1.dp
-                                    )
-                                )
-                            }
-                            repeat(4 - rowDays.size) { Spacer(Modifier.weight(1f)) }
-                        }
-                    }
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    if (days.isEmpty()) "No scheduled days — you can still train anytime."
-                    else "SCHEDULED: " + listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-                        .filterIndexed { index, _ -> index + 1 in days }.joinToString(" · "),
-                    color = Muted, fontSize = 12.sp, lineHeight = 18.sp
-                )
-                Spacer(Modifier.height(22.dp))
-                CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("YOUR STARTING PLAN", color = Orange, fontSize = 11.sp,
-                            fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
-                        Text(if (name.isBlank()) "Basketball player" else name.trim(),
-                            color = Ink, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
-                        Text("$level  ·  $focus", color = Ink, fontSize = 14.sp)
-                        Text(
-                            if (days.isEmpty()) "No recurring training days selected"
-                            else "${days.size} training ${if (days.size == 1) "day" else "days"} per week",
-                            color = Muted, fontSize = 13.sp
-                        )
-                    }
-                }
-            }
-        }
-        Spacer(Modifier.height(36.dp))
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF211F21)),
-            shape = RoundedCornerShape(18.dp)
-        ) {
+    val scrollState = rememberScrollState()
+    LaunchedEffect(step) { scrollState.scrollTo(0) }
+    BackHandler(enabled = step > 0, onBack = onBack)
+
+    Column(
+        modifier.fillMaxSize()
+            .imePadding()
+            .padding(horizontal = CourtQuestDesign.spacingXl)
+            .padding(top = CourtQuestDesign.spacingXl)
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(
-                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 13.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(CourtQuestDesign.spacingSm),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.Lock, contentDescription = null, tint = Orange,
-                    modifier = Modifier.size(18.dp))
-                Text("Saved on this device. You can change your choices later.",
-                    color = Muted, fontSize = 12.sp, lineHeight = 17.sp)
+                Text(
+                    "COURTQUEST PRO", Modifier.weight(1f),
+                    color = CourtQuestDesign.accent, fontSize = 11.sp,
+                    lineHeight = 14.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp
+                )
+                Text(
+                    "STEP ${step + 1} OF 5",
+                    color = CourtQuestDesign.textSecondary, fontSize = 11.sp,
+                    lineHeight = 14.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.7.sp
+                )
+            }
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                repeat(5) { index ->
+                    Box(
+                        Modifier.weight(1f).height(4.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(
+                                if (index <= step) CourtQuestDesign.accentVivid
+                                else CourtQuestDesign.elevatedSurface
+                            )
+                    )
+                }
             }
         }
-        Spacer(Modifier.height(16.dp))
-        CourtQuestPrimaryButton(onClick = onNext, modifier = Modifier.fillMaxWidth().height(56.dp)) {
-            Text(if (step == 4) "ENTER MY COURT" else "CONTINUE",
-                fontWeight = FontWeight.ExtraBold)
-        }
-        if (step > 0) {
-            TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-                Icon(Icons.Default.ArrowBack, contentDescription = null,
-                    tint = Muted, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(8.dp))
-                Text("PREVIOUS STEP", color = Muted)
+
+        Column(
+            Modifier.weight(1f).fillMaxWidth()
+                .verticalScroll(scrollState)
+                .padding(top = 20.dp, bottom = CourtQuestDesign.spacingLg)
+        ) {
+            if (step > 0) {
+                Text(
+                    listOf("Make it yours.", "Find your level.", "Choose your focus.", "Build your routine.")[step - 1],
+                    modifier = Modifier.semantics { heading() },
+                    color = Ink, fontSize = 32.sp, lineHeight = 37.sp, fontWeight = FontWeight.Black
+                )
+                Spacer(Modifier.height(CourtQuestDesign.spacingMd))
+                Text(
+                    listOf(
+                        "What should we call you? You can change this anytime.",
+                        "Choose the level that best matches your current experience.",
+                        "Your focus shapes the drills selected for your daily sessions.",
+                        "Pick your usual training days. You can adjust them later."
+                    )[step - 1], color = Muted, fontSize = 15.sp, lineHeight = 22.sp
+                )
+                Spacer(Modifier.height(CourtQuestDesign.spacingXl))
+            }
+            when (step) {
+                0 -> CourtOnboardingWelcome()
+                1 -> {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(22.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF242428))
+                    ) {
+                        Column(Modifier.fillMaxWidth().padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                            Text("PLAYER IDENTITY", color = Orange, fontSize = 11.sp,
+                                fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
+                            OutlinedTextField(
+                                value = name, onValueChange = onName,
+                                label = { Text("Player name") },
+                                placeholder = { Text("What should we call you?") },
+                                supportingText = { Text("Optional. You can change this later.") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                                    capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.Words,
+                                    imeAction = androidx.compose.ui.text.input.ImeAction.Done
+                                ),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = CourtQuestDesign.accent,
+                                    unfocusedBorderColor = CourtQuestDesign.chipBorder,
+                                    focusedTextColor = CourtQuestDesign.textPrimary,
+                                    unfocusedTextColor = CourtQuestDesign.textPrimary,
+                                    cursorColor = CourtQuestDesign.accent
+                                )
+                            )
+                            Text(
+                                if (name.isBlank()) "Your dashboard will use a generic player greeting."
+                                else "Your dashboard will welcome ${name.trim()}.",
+                                color = Muted, fontSize = 12.sp, lineHeight = 18.sp
+                            )
+                        }
+                    }
+                }
+                2 -> {
+                    listOf(
+                        "Beginner" to "Build confidence, fundamentals, and repeatable technique.",
+                        "Intermediate" to "Strengthen consistency, control, and game-ready skills.",
+                        "Advanced" to "Challenge precision, pace, and execution under pressure."
+                    ).forEach { (option, description) ->
+                        CourtOnboardingChoice(
+                            title = option, description = description,
+                            selected = level == option, onClick = { onLevel(option) }
+                        )
+                        Spacer(Modifier.height(10.dp))
+                    }
+                }
+                3 -> {
+                    listOf(
+                        "Balanced" to "Develop a well-rounded game across multiple skills.",
+                        "Shooting" to "Prioritize mechanics, accuracy, and shot repetition.",
+                        "Ball Handling" to "Build dribble control, coordination, and confidence.",
+                        "Finishing" to "Work on controlled scoring around the basket."
+                    ).forEach { (option, description) ->
+                        CourtOnboardingChoice(
+                            title = option, description = description,
+                            selected = focus == option, onClick = { onFocus(option) }
+                        )
+                        Spacer(Modifier.height(10.dp))
+                    }
+                }
+                4 -> {
+                    Text("YOUR TRAINING DAYS", color = Orange, fontSize = 11.sp,
+                        fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
+                    Spacer(Modifier.height(8.dp))
+                    listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+                        .chunked(4).forEachIndexed { rowIndex, rowDays ->
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                rowDays.forEachIndexed { columnIndex, day ->
+                                    val dayNumber = rowIndex * 4 + columnIndex + 1
+                                    val fullDayName = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")[dayNumber - 1]
+                                    FilterChip(
+                                        selected = dayNumber in days,
+                                        onClick = { onDay(dayNumber) },
+                                        label = { Text(day) },
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .heightIn(min = 48.dp)
+                                            .semantics { contentDescription = "Train on $fullDayName" },
+                                        shape = RoundedCornerShape(14.dp),
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            containerColor = CourtQuestDesign.elevatedSurface,
+                                            labelColor = CourtQuestDesign.textSecondary,
+                                            selectedContainerColor = CourtQuestDesign.warmSurface,
+                                            selectedLabelColor = CourtQuestDesign.textPrimary
+                                        ),
+                                        border = FilterChipDefaults.filterChipBorder(
+                                            enabled = true,
+                                            selected = dayNumber in days,
+                                            borderColor = CourtQuestDesign.chipBorder,
+                                            selectedBorderColor = CourtQuestDesign.accent,
+                                            borderWidth = 1.dp,
+                                            selectedBorderWidth = 1.dp
+                                        )
+                                    )
+                                }
+                                repeat(4 - rowDays.size) { Spacer(Modifier.weight(1f)) }
+                            }
+                        }
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        if (days.isEmpty()) "No scheduled days — you can still train anytime."
+                        else "SCHEDULED: " + listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+                            .filterIndexed { index, _ -> index + 1 in days }.joinToString(" · "),
+                        color = Muted, fontSize = 12.sp, lineHeight = 18.sp
+                    )
+                    Spacer(Modifier.height(22.dp))
+                    CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("YOUR STARTING PLAN", color = Orange, fontSize = 11.sp,
+                                fontWeight = FontWeight.ExtraBold, letterSpacing = 1.1.sp)
+                            Text(if (name.isBlank()) "Basketball player" else name.trim(),
+                                color = Ink, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+                            Text("$level  ·  $focus", color = Ink, fontSize = 14.sp)
+                            Text(
+                                if (days.isEmpty()) "No recurring training days selected"
+                                else "${days.size} training ${if (days.size == 1) "day" else "days"} per week",
+                                color = Muted, fontSize = 13.sp
+                            )
+                        }
+                    }
+                }
             }
         }
-        Spacer(Modifier.height(20.dp))
+
+        Column(
+            Modifier.fillMaxWidth().padding(bottom = CourtQuestDesign.spacingXl),
+            verticalArrangement = Arrangement.spacedBy(CourtQuestDesign.spacingSm)
+        ) {
+            if (step == 0) {
+                Text(
+                    "Works offline. Your plan is saved on this device.",
+                    color = CourtQuestDesign.textSecondary, fontSize = 12.sp, lineHeight = 17.sp,
+                    modifier = Modifier.padding(bottom = 6.dp)
+                )
+            }
+            CourtQuestPrimaryButton(onClick = onNext, modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    if (step == 4) "ENTER MY COURT" else "CONTINUE",
+                    fontSize = 13.sp, fontWeight = FontWeight.Black, letterSpacing = 0.8.sp
+                )
+            }
+            if (step > 0) {
+                TextButton(
+                    onClick = onBack,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                ) {
+                    Icon(
+                        Icons.Default.ArrowBack, contentDescription = null,
+                        tint = Muted, modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(CourtQuestDesign.spacingSm))
+                    Text("PREVIOUS STEP", color = Muted)
+                }
+            }
+        }
     }
 }
 
