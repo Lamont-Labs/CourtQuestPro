@@ -31,6 +31,27 @@ CourtQuest Pro is a basketball performance studio for a player on a phone. It op
 
 The current design direction follows the owner's build 2 feedback. Onboarding improved, with substantial visual and workflow work remaining across the app. Build 2 used app source `21ff9222edd69f5c65c1999082b751c104d63194`, published in release commit `c3e57e93708edcb6e6fa61c43cddc79dae7314f3`. Confirm the current branch, APK version code, and owner feedback at the start of each pass. This file is the active standard. The earlier [design contract](docs/COURTQUEST_PREMIUM_UI_DESIGN_CONTRACT_v1.md) records the initial baseline.
 
+## Owner-selected brand: Signature
+
+Selected by the owner on November 11, 2026 from five icon and wordmark concepts. The owner chose **05 / SIGNATURE** and supplied the same reference image with the feedback, “This is my favorite!!!” This is the selected branding direction for CourtQuest Pro.
+
+Approved visual reference: **CourtQuest Pro Signature Mark.png**. The owner's confirmation attachment is **1000048412.png**. Preserve the reference artwork's character when preparing production assets.
+
+| Element | Selected treatment |
+| --- | --- |
+| App name | CourtQuest Pro |
+| Launcher identity | Vivid orange field with a warm ivory brushstroke CQ monogram |
+| Basketball detail | Dark basketball seams at the lower-right end of the sweeping brushstroke |
+| CourtQuest wordmark | Bold, connected, forward-moving brush-script lettering |
+| PRO | Orange, widely spaced uppercase sans-serif lettering beneath CourtQuest |
+| Supporting palette | Existing orange, charcoal, and warm ivory brand family |
+
+Use the selected CQ mark and wordmark as the reference for launcher artwork, launch branding, onboarding, and appropriate app headers. Preserve the distinctive letter shapes and sweeping composition; a generic script font is not an equivalent replacement. Keep functional labels, instructions, scores, timers, and statistics in readable scalable native type.
+
+Production preparation must separate the CQ icon and wordmark from the presentation board, omit the “05 / SIGNATURE” concept label, and prepare suitable light and dark treatments. Check launcher masking and small-size recognition, then verify the actual Android integration.
+
+**Status:** Owner-selected visual concept. Production asset preparation, Android integration, and a verified APK containing this identity are still pending. This selection does not establish runtime or launcher acceptance.
+
 ## Colors
 
 Keep the palette in sync with [`CourtQuestDesign.kt`](app/src/main/java/com/courtquestpro/CourtQuestDesign.kt). Use near-black for canvas, muted charcoal for utility surfaces, and warm brown selectively for editorial depth. Use vivid orange for the primary action or important active state, with dark ink on filled orange controls. Use soft orange for emphasis and cream for primary text. Give secondary copy adequate contrast against its actual background. Label status with text, iconography, or semantics in addition to color.
