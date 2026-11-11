@@ -40,7 +40,7 @@ This applies across the entire app: launch branding, onboarding, Court, training
 | Area | Required direction |
 | --- | --- |
 | Main canvas | Deep, true black; use black as the dominant app background |
-| Supporting surfaces | Very dark neutral black tones, with subtle separation and clear hierarchy |
+| Supporting surfaces | Polished smoked-black glass layers with glossy reflections, crisp highlighted edges, and clear depth |
 | Orange | Brighter, vivid, saturated orange for primary actions, active states, and brand accents |
 | Text and edges | Crisp high-contrast lettering, sharp artwork edges, and precise alignment |
 | Artwork quality | High-resolution masters or suitable native/vector assets; preserve aspect ratio and avoid visible pixelation, blur, halos, and extraction residue |
@@ -49,6 +49,26 @@ This applies across the entire app: launch branding, onboarding, Court, training
 This direction supersedes the earlier warm-brown and muted-charcoal emphasis. The hex values in the front matter describe the earlier documented palette; the next implementation pass must align shared native tokens and brand exports with this direction. Choose the exact brighter orange against the rendered black UI and Signature artwork rather than treating the older orange token as a locked shade.
 
 “High definition” means clean assets and precise rendering at actual phone sizes and densities. Maintain readable scalable text, accessible contrast, and clear control boundaries on black. Sharpness does not require removing the approved logo's brush-shaped terminals or changing every corner radius.
+
+### Polished glass layers
+
+Added November 11, 2026. The owner also requested “super high quality shiny glassomorphic layers.” Combine this with the deep-black canvas, brighter orange, crisp rendering, and selected Signature branding as one app-wide visual direction.
+
+| Material detail | Required treatment |
+| --- | --- |
+| Glass color | Rich smoked-black translucent layers that preserve the dominant black palette |
+| Shine | Deliberate glossy reflections, fine illuminated edges, and controlled specular highlights |
+| Layering | Visible separation between background, glass surfaces, floating navigation, and overlays |
+| Orange lighting | Bright orange accents and restrained reflected orange light along selected glass edges |
+| Background depth | Subtle court linework or light gradients behind selected glass areas so translucency has visible depth |
+| Surface quality | Smooth gradients, clean corners, precise clipping, and crisp edges at actual device density |
+| Readability | Sharp white or ivory lettering and clearly readable orange actions over the final composited surface |
+
+Apply a coherent glass material to hero panels, training surfaces, navigation, and overlays, with shine and depth scaled to each surface's role. Keep active scorekeeping and drill controls stable, immediate, and easy to read. Render the reflection and translucency behind foreground content; text, scores, icons, and the Signature artwork must stay sharp.
+
+Use controlled light direction and consistent edge treatment to make the layers feel like polished tinted glass. Keep the underlying app predominantly black and preserve clear differences between resting, pressed, selected, and disabled states.
+
+Design reference checked: the installed UI/UX Pro Max **Glassmorphism** style record supports dark mode, translucent layers, light reflections, subtle borders, and depth. Its implementation examples target web frameworks; use the material principles for native Compose and validate actual rendering, contrast, animation settings, and device performance. A blur value from a web example is not an approved native token. Treat blur as an optional part of the material and verify any chosen implementation against the app's supported Android versions.
 
 **Status:** Preference saved as the app-wide visual target. This documentation update does not claim that the installed app or APK already uses the revised palette.
 
@@ -104,7 +124,7 @@ Use the existing 4, 8, 12, 16, 24, 32, and 40 dp spacing scale. Establish an exp
 
 ## Elevation & Depth
 
-Use one strong editorial surface where it helps establish the screen. Let spacing, typography, dividers, and intentional grouping carry the rest. Use existing court linework as a quiet brand cue in the welcome or Court hero. Keep the active drill and scorekeeper visually stable while controls change state. Use motion to explain a transition, confirm a result, or respond to a tap. Keep entry and exit transitions short, support the system animation setting, and preserve immediate feedback on scoring and recording actions.
+Follow the owner-selected polished glass direction above: rich smoked-black translucent surfaces, deliberate glossy reflections, crisp edge highlights, layered depth, and reflected bright-orange accents. Use existing court linework as a quiet brand cue behind selected welcome or Court glass surfaces. Maintain a consistent light direction and precise clipping across shared components. Let spacing, typography, dividers, and grouping keep the hierarchy clear within the layers. Keep the active drill and scorekeeper visually stable while controls change state. Use motion to explain a transition, confirm a result, or respond to a tap. Keep entry and exit transitions short, support the system animation setting, and preserve immediate feedback on scoring and recording actions. Validate glass contrast and rendering performance on actual Android captures.
 
 ## Shapes
 
