@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import date, timedelta
 from xml.etree import ElementTree as ET
 import argparse
 import hashlib
@@ -104,6 +105,15 @@ def seed(variant="normal"):
         for slot in state['slots']:
             slot['complete'] = True
         state['drillDrafts'] = []
+    if variant == 'game-history':
+        state['matches'] = [dict(date='2025-03-10', player='Jordan', opponent=f'Guest {i}',
+                                 playerScore=11, opponentScore=i, winner='Jordan', xp=0) for i in range(8)]
+    if variant in ('previous-unfinished-game', 'previous-completed-game'):
+        state.update(activeDate=(date.fromisoformat(today) - timedelta(days=1)).isoformat(),
+                     matchPlayer='Jordan', matchOpponent='Casey', playerScore=5, opponentScore=2,
+                     pointHistory=[True] * 5 + [False] * 2)
+        if variant == 'previous-completed-game':
+            state.update(championshipDone=True, playerScore=11, opponentScore=2)
     root = ET.Element('map')
     ET.SubElement(root, 'boolean', name='onboarding_complete', value='true')
     ET.SubElement(root, 'string', name='state').text = json.dumps(state)

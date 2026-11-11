@@ -296,5 +296,5 @@ private fun RecordedScoreRow(name: String, score: Int, won: Boolean) {
 }
 
 private fun gameDate(date: String): String = runCatching {
-    LocalDate.parse(date).format(DateTimeFormatter.ofPattern("EEEE, MMMM d"))
+    LocalDate.parse(date).format(DateTimeFormatter.ofPattern("EEE, MMM d, yyyy"))
 }.getOrDefault(date)

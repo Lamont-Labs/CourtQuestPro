@@ -218,6 +218,8 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             save.playerScore = 0
             save.opponentScore = 0
             save.pointHistory = mutableListOf()
+            save.matchPlayer = ""
+            save.matchOpponent = ""
             save.showWarmupDone = false
             refresh()
         } else if (save.slots.isEmpty()) {

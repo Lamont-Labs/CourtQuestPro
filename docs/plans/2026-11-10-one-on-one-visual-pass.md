@@ -67,3 +67,10 @@ needed for this functional native game flow.
 [Native run 42954008362](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/42954008362) built unmodified build-4 application code. Daily-flow assertions passed. The game check scored 5–3, corrected it to 5–2 with the expected saved Undo order, returned to Court and failed because Resume 1-on-1 was unreachable. Artifact 13825849017 retains the current-run baseline and failure evidence. This is the RED result for the resume fix.
 
 Receipt correction: preserve the existing per-day award keys and store the actual XP increase for each new game. Repeated games can record 0 XP. Determine a win from the scores, including when both players enter the same display name.
+
+## Consolidated review corrections
+
+- Independent source review found a daily rollover regression: old names survived the existing score reset. The reset now clears match identity too; native fixtures cover yesterday’s unfinished and finished games.
+- Saved game dates retain the year, so records from multiple seasons remain identifiable.
+- Native game-history coverage now opens an eight-record full list, reaches an older record and uses native Back.
+- Candidate `cbb8b21` compiled, passed all 31 Android tests and lint, and passed the complete daily flow plus scoring/Undo, exit/resume and process restart. Its extended native run `42955538196` stopped at a harness bug: an XML leaf element was tested for truthiness, so the activity recreation resume action was skipped. The harness now checks `is not None`. This was not an application crash or an inferred runtime pass.

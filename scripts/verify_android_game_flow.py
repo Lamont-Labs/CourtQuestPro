@@ -24,7 +24,10 @@ def reachable(text, limit=12):
         ui.shell('input', 'swipe', str(width // 2), str(height - 220),
                  str(width // 2), str(max(100, height // 3)), '300')
         time.sleep(0.4)
-    raise AssertionError(f'Control {text!r} is unreachable')
+    visible = ui.nodes('candidate-game-failure-state')
+    ui.screenshot('candidate-game-failure-state')
+    raise AssertionError(f'Control {text!r} is unreachable; visible: '
+                         f'{[n.get("text") or n.get("content-desc") for n in visible]}')
 
 
 def snap(label):
@@ -96,7 +99,8 @@ def main():
         ui.shell('wm', 'size', f'{width}x{height}')
         ui.shell('settings', 'put', 'system', 'font_scale', font)
         time.sleep(2)
-        ui.tap(reachable('Resume 1-on-1')) if ui.find(ui.nodes(), 'Court') else None
+        if ui.find(ui.nodes(), 'Court') is not None:
+            ui.tap(reachable('Resume 1-on-1'))
         ui.require([reachable('Record point for Jordan')], 'Record point for Jordan')
         reachable('Record point for Casey')
         reachable('Undo last point')
@@ -107,7 +111,7 @@ def main():
     ui.shell('settings', 'put', 'global', 'transition_animation_scale', '0')
     ui.shell('settings', 'put', 'global', 'window_animation_scale', '0')
     time.sleep(2)
-    if ui.find(ui.nodes(), 'Court'):
+    if ui.find(ui.nodes(), 'Court') is not None:
         ui.tap(reachable('Resume 1-on-1'))
     for _ in range(5):
         ui.tap(reachable('Record point for Jordan'))
@@ -155,13 +159,34 @@ def main():
     assert repeated['matches'][0]['playerScore'] == 0 and repeated['matches'][0]['opponentScore'] == 11
     assert repeated['totalXp'] == 200 and repeated['matches'][0]['xp'] == 0
     snap('candidate-game-repeat-receipt')
+    for variant in ('previous-unfinished-game', 'previous-completed-game'):
+        ui.seed(variant)
+        ui.open_app()
+        rolled = state()
+        assert rolled['matchPlayer'] == rolled['matchOpponent'] == '', 'Daily reset must clear stale match identity'
+        assert rolled['playerScore'] == rolled['opponentScore'] == 0
+        assert rolled['pointHistory'] == []
+        ui.tap(reachable('Play 1-on-1'))
+        assert len([n for n in ui.nodes() if n.get('class') == 'android.widget.EditText']) == 2
+    snap('candidate-game-new-day-setup')
+    ui.seed('game-history')
+    ui.open_app()
+    ui.tap(ui.require(ui.nodes(), 'Progress'))
+    ui.tap(ui.require(ui.nodes(), 'Games'))
+    ui.tap(reachable('View all 8 games'))
+    ui.require(ui.nodes(), '8 recorded games')
+    reachable('Guest 7')
+    snap('candidate-game-full-history')
+    ui.shell('input', 'keyevent', 'KEYCODE_BACK')
+    reachable('View all 8 games')
     report = dict(input_apk_sha256=hashlib.sha256(Path(args.apk).read_bytes()).hexdigest(),
                   score_and_undo=True, resume_saved_match=True, resume_after_process_restart=True,
                   sudden_death=True, opponent_win_saved_once=True, actual_match_xp=True,
                   game_history_navigation=True, completed_match_not_resumable=True,
                   compact_controls=True, large_type_controls=True, landscape_controls=True,
                   tablet_controls=True, reduced_motion=True, repeat_game_actual_xp=True,
-                  identical_names_preserve_winner_side=True)
+                  identical_names_preserve_winner_side=True, previous_day_matches_do_not_resume=True,
+                  full_game_history_navigation=True)
     (ui.OUT / 'game-result.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report), flush=True)
 
