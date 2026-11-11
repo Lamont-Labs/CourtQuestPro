@@ -1,7 +1,7 @@
 # CourtQuest Pro: one-on-one visual pass
 
 Base: `6e92997265c862b67c3d388fd30f1bbb88695db9` (published visual build 4).
-Candidate: `dev/premium-game-flow`. Intended delivery: visual build 5.
+Candidate: `dev/premium-game-flow`. Delivered: published visual build 5.
 
 ## Authorized continuation
 
@@ -44,7 +44,7 @@ branch and its work intact. No imported assets or dependencies are needed.
   save-once, correct XP, recap and dated history. Preserve the daily drill flow.
 - [x] Review matched Android renders at 360 dp, 320 dp/130%, critical 200%
   controls, landscape, tablet and disabled system animations. Fix visible issues.
-- [ ] Publish the exact tested APK as build 5 through the existing GitHub URL;
+- [x] Publish the exact tested APK as build 5 through the existing GitHub URL;
   download it and verify hash, version, package and original certificate.
 
 ## Applied references
@@ -88,3 +88,11 @@ The first candidate’s XML reports contain 31 Android tests, zero failures/erro
 APK SHA-256: `d2e6eb32d3d90d93a3be3cbbc08684e5090202746294e2ea0bf3583b5817339b`. Package `com.courtquestpro`, version 1.0 (5), 16949180 bytes; original certificate `25f8007f0a8503b01ded3f4856d02e830c64c823aa2c816da4d347ed5015f27b`. The helper manifest reports emulator testing separately; the candidate-result and game-result reports bind the passing journeys to this exact hash. The publication job combines that evidence before writing the release.
 
 Manually inspected the final receipt, Games view, 200% scoring controls, landscape control capture, tablet scoreboard and full game list. Scores/names/date/year and saved XP are readable, and enlarged controls reflow. Landscape uses vertical scrolling; its capture is a control-reachability check, not acceptance of an optimized landscape composition. All captures use synthetic profiles. Physical-phone operation, owner visual acceptance and full TalkBack traversal remain open.
+
+## Published delivery and continuation
+
+Release commit: `64a86fb96b1d182e2bda2e126a5c7570e3a0a434`. [Publication run 43045952485](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43045952485) succeeded: it downloaded the successful native artifact, verified source/app identity, tests, lint and both exact-binary journey reports before publication, then downloaded and re-verified the released bytes. The actual public GitHub APK URL was independently downloaded locally; size, ZIP integrity, SHA-256 and full-byte comparison to the Android-tested APK all matched.
+
+[Install build 5 over the existing app](https://github.com/Lamont-Labs/CourtQuestPro/releases/download/courtquest-dev-2026-11-05/CourtQuestPro-Android-debug.apk?build=5). The same release retains five build-5 native PNGs and the earlier build-4 comparison images. Application ID, version advance and the original certificate are verified; no signing identity or save schema changed.
+
+No open Critical or Important code-review finding remains in this slice. The rollover finding was fixed and exercised on Android. The history navigation and year-identification review findings were also addressed. Both verification-script issues were corrected before the final successful run. Source/app work and release evidence are saved in GitHub; `main` remains intact. Continue from this release and root DESIGN.md. Owner phone/visual acceptance, full TalkBack traversal and a landscape composition refinement remain open.
