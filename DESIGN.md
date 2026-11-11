@@ -30,13 +30,83 @@ omitted:
 
 ## Overview
 
-CourtQuest Pro is a basketball performance studio for a player on a phone. It opens onto a clear training decision, supports a focused drill or one-on-one game, then makes the recorded result easy to find. The established dark, warm, orange identity is the starting point. Use basketball court geometry, confident typography, and carefully prioritized data to give CourtQuest its own identity. Use calmer, more direct layouts while the player is recording attempts or keeping score.
+CourtQuest Pro is a basketball performance studio for a player on a phone. It opens onto a clear training decision, supports a focused drill or one-on-one game, then makes the recorded result easy to find. The latest owner-selected direction is deep black, brighter orange, polished glass layers, crisp high-definition rendering, and Signature branding. Use basketball court geometry, confident typography, and carefully prioritized data to give CourtQuest its own identity. Use calmer, more direct layouts while the player is recording attempts or keeping score.
 
 This design standard began with the owner's build 2 feedback. Build 5 received positive visual feedback (“Its looking amazing”); build 6 extends that approved system with the Drill Library. Build 2 used app source `21ff9222edd69f5c65c1999082b751c104d63194`, published in release commit `c3e57e93708edcb6e6fa61c43cddc79dae7314f3`. Confirm the current branch, APK version code, and owner feedback at the start of each pass. This file is the active standard. The earlier [design contract](docs/COURTQUEST_PREMIUM_UI_DESIGN_CONTRACT_v1.md) records the initial baseline.
 
+## Latest owner visual direction: deep black and brighter orange
+
+Saved November 11, 2026. Owner instruction: “super dark black and brighter orange” and “Super sharp, crisp and high definition.”
+
+This applies across the entire app: launch branding, onboarding, Court, training, scorekeeping, Progress, and Setup. The selected **Signature** CQ emblem and CourtQuest Pro wordmark remain the brand identity.
+
+| Area | Required direction |
+| --- | --- |
+| Main canvas | Deep, true black; use black as the dominant app background |
+| Supporting surfaces | Polished smoked-black glass layers with glossy reflections, crisp highlighted edges, and clear depth |
+| Orange | Brighter, vivid, saturated orange for primary actions, active states, and brand accents |
+| Text and edges | Crisp high-contrast lettering, sharp artwork edges, and precise alignment |
+| Artwork quality | High-resolution masters or suitable native/vector assets; preserve aspect ratio and avoid visible pixelation, blur, halos, and extraction residue |
+| Signature identity | Preserve the approved brush lettering, CQ silhouette, underline, and basketball detail while adapting the surrounding palette |
+
+This direction supersedes the earlier warm-brown and muted-charcoal emphasis. The hex values in the front matter describe the earlier documented palette; the next implementation pass must align shared native tokens and brand exports with this direction. Choose the exact brighter orange against the rendered black UI and Signature artwork rather than treating the older orange token as a locked shade.
+
+“High definition” means clean assets and precise rendering at actual phone sizes and densities. Maintain readable scalable text, accessible contrast, and clear control boundaries on black. Sharpness does not require removing the approved logo's brush-shaped terminals or changing every corner radius.
+
+### Polished glass layers
+
+Added November 11, 2026. The owner also requested “super high quality shiny glassomorphic layers.” Combine this with the deep-black canvas, brighter orange, crisp rendering, and selected Signature branding as one app-wide visual direction.
+
+| Material detail | Required treatment |
+| --- | --- |
+| Glass color | Rich smoked-black translucent layers that preserve the dominant black palette |
+| Shine | Deliberate glossy reflections, fine illuminated edges, and controlled specular highlights |
+| Layering | Visible separation between background, glass surfaces, floating navigation, and overlays |
+| Orange lighting | Bright orange accents and restrained reflected orange light along selected glass edges |
+| Background depth | Subtle court linework or light gradients behind selected glass areas so translucency has visible depth |
+| Surface quality | Smooth gradients, clean corners, precise clipping, and crisp edges at actual device density |
+| Readability | Sharp white or ivory lettering and clearly readable orange actions over the final composited surface |
+
+Apply a coherent glass material to hero panels, training surfaces, navigation, and overlays, with shine and depth scaled to each surface's role. Keep active scorekeeping and drill controls stable, immediate, and easy to read. Render the reflection and translucency behind foreground content; text, scores, icons, and the Signature artwork must stay sharp.
+
+Use controlled light direction and consistent edge treatment to make the layers feel like polished tinted glass. Keep the underlying app predominantly black and preserve clear differences between resting, pressed, selected, and disabled states.
+
+Design reference checked: the installed UI/UX Pro Max **Glassmorphism** style record supports dark mode, translucent layers, light reflections, subtle borders, and depth. Its implementation examples target web frameworks; use the material principles for native Compose and validate actual rendering, contrast, animation settings, and device performance. A blur value from a web example is not an approved native token. Treat blur as an optional part of the material and verify any chosen implementation against the app's supported Android versions.
+
+**Status:** Preference saved as the app-wide visual target. This documentation update does not claim that the installed app or APK already uses the revised palette.
+
+## Owner-selected brand: Signature
+
+Selected by the owner on November 11, 2026 from five icon and wordmark concepts. The owner chose **05 / SIGNATURE** and supplied the same reference image with the feedback, “This is my favorite!!!” This is the selected branding direction for CourtQuest Pro.
+
+Approved visual reference: **CourtQuest Pro Signature Mark.png**. The owner's confirmation attachment is **1000048412.png**. Preserve the reference artwork's character when preparing production assets.
+
+| Element | Selected treatment |
+| --- | --- |
+| App name | CourtQuest Pro |
+| Launcher identity | Vivid orange field with a warm ivory brushstroke CQ monogram |
+| Basketball detail | Dark basketball seams at the lower-right end of the sweeping brushstroke |
+| CourtQuest wordmark | Bold, connected, forward-moving brush-script lettering |
+| PRO | Orange, widely spaced uppercase sans-serif lettering beneath CourtQuest |
+| Supporting palette | Deep black, brighter orange, and crisp white or ivory brand lettering |
+
+Use the selected CQ mark and wordmark as the reference for launcher artwork, launch branding, onboarding, and appropriate app headers. Preserve the distinctive letter shapes and sweeping composition; a generic script font is not an equivalent replacement. Keep functional labels, instructions, scores, timers, and statistics in readable scalable native type.
+
+Production preparation must separate the CQ icon and wordmark from the presentation board, omit the “05 / SIGNATURE” concept label, and prepare suitable light and dark treatments. Check launcher masking and small-size recognition, then verify the actual Android integration.
+
+**Status:** Owner-selected visual concept. Separate high-resolution launcher artwork and light/dark wordmarks were prepared on November 11, 2026. Android integration and a verified APK containing this identity remain pending. This selection does not establish runtime or launcher acceptance.
+
+### Signature artwork preparation checkpoint
+
+[CourtQuest_Signature_Brand_Pack_v1.zip](https://chatgpt.com/library?file_id=libfile_917d539dbe6c8191b49f05e6635322a1&account_id=personal) contains the original approved reference, a 1254 × 1254 launcher master, two 2172 × 724 wordmark exports, usage notes, and per-file SHA-256 records.
+
+The selected deliverables are **opaque PNGs**. Transparent cream exports showed background-removal residue and were rejected. Do not use the rejected alpha drafts as app resources. The opaque light/dark backgrounds also have slight raster variation; check surface edges before integrating, or prepare clean alpha/vector artwork first.
+
+Generated renditions preserve the selected Signature direction but can vary slightly in letter contours; the included owner-approved reference remains the fidelity anchor. Native work still needs adaptive-icon framing and mask checks, launch branding, onboarding/header integration, and actual Android review. PNG decoding, unchanged-copy hashes, and ZIP CRC integrity were verified. No application source or APK was changed in this artwork-only pass.
+
 ## Colors
 
-Keep the palette in sync with [`CourtQuestDesign.kt`](app/src/main/java/com/courtquestpro/CourtQuestDesign.kt). Use near-black for canvas, muted charcoal for utility surfaces, and warm brown selectively for editorial depth. Use vivid orange for the primary action or important active state, with dark ink on filled orange controls. Use soft orange for emphasis and cream for primary text. Give secondary copy adequate contrast against its actual background. Label status with text, iconography, or semantics in addition to color.
+Follow the latest owner visual direction above and keep the implemented palette in sync with [`CourtQuestDesign.kt`](app/src/main/java/com/courtquestpro/CourtQuestDesign.kt). Use deep black as the dominant canvas and very dark neutral surfaces for supporting content. Use brighter saturated orange for the primary action and important active states, with readable dark ink on filled orange controls. Use crisp white or ivory for primary text and adequately contrasting secondary text. Keep boundaries and states clear on black, and label status with text, iconography, or semantics in addition to color. The older front-matter values are an implementation baseline awaiting this palette pass, not the current visual target.
 
 ## Typography
 
@@ -57,7 +127,7 @@ Use the existing 4, 8, 12, 16, 24, 32, and 40 dp spacing scale. Establish an exp
 
 ## Elevation & Depth
 
-Use one strong editorial surface where it helps establish the screen. Let spacing, typography, dividers, and intentional grouping carry the rest. Use existing court linework as a quiet brand cue in the welcome or Court hero. Keep the active drill and scorekeeper visually stable while controls change state. Use motion to explain a transition, confirm a result, or respond to a tap. Keep entry and exit transitions short, support the system animation setting, and preserve immediate feedback on scoring and recording actions.
+Follow the owner-selected polished glass direction above: rich smoked-black translucent surfaces, deliberate glossy reflections, crisp edge highlights, layered depth, and reflected bright-orange accents. Use existing court linework as a quiet brand cue behind selected welcome or Court glass surfaces. Maintain a consistent light direction and precise clipping across shared components. Let spacing, typography, dividers, and grouping keep the hierarchy clear within the layers. Keep the active drill and scorekeeper visually stable while controls change state. Use motion to explain a transition, confirm a result, or respond to a tap. Keep entry and exit transitions short, support the system animation setting, and preserve immediate feedback on scoring and recording actions. Validate glass contrast and rendering performance on actual Android captures.
 
 ## Shapes
 
@@ -135,6 +205,14 @@ python3 "$cq_pro_max_search" 'bottom navigation back behavior' --domain ux --jso
 | Hallmark | Independent review reference when a candidate still feels like a stock dashboard or card stack. | [Nutlope/hallmark](https://github.com/Nutlope/hallmark) |
 
 Native implementation references include Jetsnack for a custom Compose design system, Jetcaster for distinct yet readable editorial surfaces, and Now in Android for app-wide components and adaptive layout. Use the current project and its pinned dependencies as the implementation authority. [Compose Samples](https://github.com/android/compose-samples) · [Now in Android](https://github.com/android/nowinandroid)
+
+## Owner-approved premium flow toolkit
+
+On November 11, 2026 the owner approved adding the complete researched toolkit. Its active guide is [PREMIUM_FLOW_TOOLKIT.md](docs/tooling/PREMIUM_FLOW_TOOLKIT.md), with immutable upstream pins in [references.lock.json](tools/premium-flow/references.lock.json).
+
+Use Product Design and Figma for the actual journey and editable screen specifications; Context7 for version-correct native APIs; Compose Samples and Now in Android for native patterns; the vendored Impeccable guides for structured review; Maestro for repeatable dedicated-emulator journeys; Intro Showcase and Lottie for purposeful guidance and feedback; and compatible Haze plus native drawing for the glass material work. Verify the readiness and evidence in the toolkit guide before claiming a tool has been exercised.
+
+The source baseline is the verified build-6 lineage, preserving all custom-drill, daily-training and game-flow work. The owner's newer Signature, black/orange and glass preferences above are carried forward from the original design branch. No runtime color or layout change is claimed by this setup checkpoint.
 
 ## First daily-use design pass
 

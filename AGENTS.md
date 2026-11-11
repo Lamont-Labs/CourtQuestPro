@@ -3,6 +3,8 @@
 ## Start here for UI work
 
 - Read [DESIGN.md](DESIGN.md) before designing, implementing, reviewing, or publishing any CourtQuest Pro UI change. It is the active design standard, tool guide, and visual acceptance checklist.
+- Read [the premium flow toolkit](docs/tooling/PREMIUM_FLOW_TOOLKIT.md) for the owner's approved plugins, pinned native references, review guides, installed library versions, and dedicated-emulator verification commands. Keep its readiness status accurate.
+- Use the local Impeccable shape, critique, clarify, and onboard guides in `tools/premium-flow/impeccable/` as reference material for native Android work. Its browser engine is outside this app's native implementation path.
 - Ground each pass in the latest owner feedback, the exact source revision, and the affected Android flow. Start the daily-use redesign with Court → start or resume training → drill result → Progress.
 - For a material UI pass, load the installed `ui-ux-pro-max` guidance and run the relevant design-system, UX, and detected `jetpack-compose` searches. Check category, platform, and version fit before applying the output. Save the selected guidance and the reason for any adaptation in `DESIGN.md`.
 - Use the named design and review sources at the stage where they help. Apply the Impeccable-based review in `DESIGN.md` to actual Android captures for each visually reviewed candidate. Record the tools used, evidence gathered, and remaining gaps.
