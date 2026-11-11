@@ -33,3 +33,5 @@ Incomplete/invalid custom inputs must not write definitions. Edits/archives must
 ## Execution ledger
 
 RED: run 43049795517 on test/spec commit 1f7b1c99 failed at the missing DrillInput/TrainingLibrary/model interfaces before implementation. New optional saved fields and the pure library/practice domain now implement those contracts. The native editor/library, daily selection and extra-practice recording are wired for the first compiled candidate. Official Android documentation confirmed testTagsAsResourceId support since Compose 1.2; semantic resource tags make native form checks stable without changing visible copy.
+
+First compiled implementation `f97f022c` passed Android development checks in run 43051364479, including the existing tests and all new library/practice tests. Native acceptance now checks real custom creation/validation, favorites, safe daily swaps/shuffling, revision preservation while practice is active, relaunch/resume, actual custom goals, practice/daily receipts, archival and compact/enlarged keyboard use.

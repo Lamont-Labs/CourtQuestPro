@@ -42,10 +42,10 @@ jobs:
           run = json.load(open('native-run.json'))
           assert run['conclusion'] == 'success' and run['status'] == 'completed'
           assert run['head_sha'] == request['native_commit']
-          assert run['head_branch'] == 'dev/premium-game-flow'
-          assert run['path'] == '.github/workflows/verify-native-game-flow.yml'
+          assert run['head_branch'] == 'dev/drill-library'
+          assert run['path'] == '.github/workflows/verify-native-library-flow.yml'
           PY
-          gh run download "$run_id" --name courtquest-native-game-flow --dir native-evidence
+          gh run download "$run_id" --name courtquest-native-library-flow --dir native-evidence
       - name: Verify source, tests, native journeys and APK identity
         run: |
           python3 scripts/verify_apk.py --apk native-evidence/app/build/outputs/apk/debug/app-debug.apk --build-tools "${ANDROID_HOME}/build-tools/35.0.1" --output dist
@@ -59,9 +59,11 @@ jobs:
           assert revisions[1] == subprocess.check_output(['git', 'rev-parse', 'HEAD:app/src'], text=True).strip()
           daily = json.loads((root / 'artifacts/android-daily-flow/candidate-result.json').read_text())
           game = json.loads((root / 'artifacts/android-daily-flow/game-result.json').read_text())
+          library = json.loads((root / 'artifacts/android-daily-flow/library-result.json').read_text())
+          assert all(value for value in library.values() if isinstance(value, bool))
           manifest = json.loads(Path('dist/apk-manifest.json').read_text())
-          assert manifest['version_code'] == daily['version_code'] == request['version_code'] == 5
-          assert manifest['apk_sha256'] == daily['input_apk_sha256'] == game['input_apk_sha256']
+          assert manifest['version_code'] == daily['version_code'] == request['version_code'] == 6
+          assert manifest['apk_sha256'] == daily['input_apk_sha256'] == game['input_apk_sha256'] == library['input_apk_sha256']
           assert all(value for value in daily.values() if isinstance(value, bool))
           assert all(value for value in game.values() if isinstance(value, bool))
           suites = [ET.parse(p).getroot() for p in (root / 'app/build/test-results/testDebugUnitTest').glob('TEST-*.xml')]
@@ -72,11 +74,11 @@ jobs:
           errors = sum(i.get('severity') == 'Error' for i in issues)
           warnings = sum(i.get('severity') == 'Warning' for i in issues)
           assert errors == 0
-          manifest.update(native_run_id=request['native_run_id'], native_commit=request['native_commit'], android_unit_tests=count, lint_errors=errors, lint_warnings=warnings, daily_flow=daily, game_flow=game)
+          manifest.update(native_run_id=request['native_run_id'], native_commit=request['native_commit'], android_unit_tests=count, lint_errors=errors, lint_warnings=warnings, daily_flow=daily, game_flow=game, library_flow=library)
           manifest['checks']['emulator_test'] = 'PASS_SAME_APK_SHA256'
           Path('dist/apk-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
-          notes = ['CourtQuest Pro — Visual build 5', '',
-            'New native one-on-one setup, adaptive live scoreboard, saved game receipt and dated game history. Resume an unfinished same-day game from Court with its score and Undo order preserved.', '',
+          notes = ['CourtQuest Pro — Drill Library build 6', '',
+            'Custom drills, personal suggestions, favorites, protected daily swaps and shuffling, and independent extra practice with saved targets and history. Extra practice preserves the existing daily XP rules. Includes the verified build-5 visual system and game flow.', '',
             f"Version: {manifest['version_name']} ({manifest['version_code']})", f"Package: {manifest['package_id']}",
             f"SHA-256: {manifest['apk_sha256']}", f"Certificate SHA-256: {manifest['certificate_sha256']}",
             f'Android unit tests: {count} passed. Lint: {errors} errors, {warnings} warnings.',
@@ -99,13 +101,13 @@ jobs:
           (cd downloaded && sha256sum --check dist/CourtQuestPro-Android-debug.apk.sha256)
           cmp dist/CourtQuestPro-Android-debug.apk downloaded/dist/CourtQuestPro-Android-debug.apk
           python3 scripts/verify_apk.py --apk downloaded/dist/CourtQuestPro-Android-debug.apk --build-tools "${ANDROID_HOME}/build-tools/35.0.1" --output downloaded/verified
-          for spec in 'game-setup:GameSetup' 'game-score:Scoreboard' 'game-receipt:GameResult' 'game-history:GameHistory' 'game-large-type:LargeTypeGame'; do
+          for spec in 'library-home:Library' 'library-editor:Editor' 'library-detail:CustomDrill' 'library-receipt:PracticeResult' 'library-large-type:LargeTypeLibrary'; do
             stem=${spec%:*}
             label=${spec#*:}
-            cp "native-evidence/artifacts/android-daily-flow/candidate-${stem}.png" "dist/CourtQuestPro-Build5-${label}.png"
+            cp "native-evidence/artifacts/android-daily-flow/candidate-${stem}.png" "dist/CourtQuestPro-Build6-${label}.png"
           done
-          gh release upload courtquest-dev-2026-11-05 dist/CourtQuestPro-Build5-*.png --clobber
-          gh release edit courtquest-dev-2026-11-05 --title 'CourtQuest Pro — Visual build 5' --notes-file dist/current-release.md
+          gh release upload courtquest-dev-2026-11-05 dist/CourtQuestPro-Build6-*.png --clobber
+          gh release edit courtquest-dev-2026-11-05 --title 'CourtQuest Pro — Drill Library build 6' --notes-file dist/current-release.md
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:

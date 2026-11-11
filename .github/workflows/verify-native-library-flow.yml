@@ -1,0 +1,92 @@
+name: Verify native library and training flows
+
+on:
+  push:
+    branches: [dev/drill-library]
+    paths:
+      - 'app/**'
+      - 'scripts/verify_android_daily_flow.py'
+      - 'scripts/verify_android_game_flow.py'
+      - 'scripts/verify_android_library_flow.py'
+      - '.github/workflows/verify-native-library-flow.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android-flow:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      COURTQUEST_VERSION_CODE: '6'
+      COURTQUEST_UI_EVIDENCE: artifacts/android-daily-flow
+      ANDROID_AVD_HOME: /tmp/courtquest-avd
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Build the candidate
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon --console=plain :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
+      - name: Prepare Android emulator and preserved build 5
+        run: |
+          test -e /dev/kvm
+          sudo chmod 666 /dev/kvm
+          export ANDROID_SDK_ROOT="$ANDROID_HOME"
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" 'platforms;android-35' 'build-tools;35.0.1' 'system-images;android-35;default;x86_64' 'emulator'
+          test -x "${ANDROID_HOME}/emulator/emulator"
+          "${ANDROID_HOME}/emulator/emulator" -accel-check
+          mkdir -p "$ANDROID_AVD_HOME"
+          printf 'no\n' | "${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager" create avd --name CourtQuest_Visual --package 'system-images;android-35;default;x86_64' --device pixel_2 --path "$ANDROID_AVD_HOME/CourtQuest_Visual.avd"
+          test -s "$ANDROID_AVD_HOME/CourtQuest_Visual.ini"
+          "${ANDROID_HOME}/emulator/emulator" -list-avds
+          git fetch --depth=1 origin 64a86fb96b1d182e2bda2e126a5c7570e3a0a434
+          git worktree add --detach /tmp/courtquest-build5-source 64a86fb96b1d182e2bda2e126a5c7570e3a0a434
+          mkdir -p "$COURTQUEST_UI_EVIDENCE"
+          chmod +x /tmp/courtquest-build5-source/gradlew
+          /tmp/courtquest-build5-source/gradlew -p /tmp/courtquest-build5-source --no-daemon --console=plain :app:assembleDebug > "$COURTQUEST_UI_EVIDENCE/baseline-build.log" 2>&1
+          cp /tmp/courtquest-build5-source/app/build/outputs/apk/debug/app-debug.apk /tmp/courtquest-build5.apk
+          "${ANDROID_HOME}/build-tools/35.0.1/aapt" dump badging /tmp/courtquest-build5.apk > "$COURTQUEST_UI_EVIDENCE/baseline-badging.txt"
+          grep -F "package: name='com.courtquestpro' versionCode='5'" "$COURTQUEST_UI_EVIDENCE/baseline-badging.txt"
+          "${ANDROID_HOME}/build-tools/35.0.1/apksigner" verify --print-certs /tmp/courtquest-build5.apk
+          sha256sum /tmp/courtquest-build5.apk
+      - name: Capture baseline, update in place, and verify the daily flow
+        run: |
+          mkdir -p "$COURTQUEST_UI_EVIDENCE"
+          "${ANDROID_HOME}/platform-tools/adb" start-server
+          "${ANDROID_HOME}/emulator/emulator" -avd CourtQuest_Visual -port 5562 -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect -accel on -cores 2 -memory 2048 > "$COURTQUEST_UI_EVIDENCE/emulator.log" 2>&1 &
+          export COURTQUEST_EMULATOR_PID=$!
+          sleep 10
+          if ! kill -0 "$COURTQUEST_EMULATOR_PID"; then cat "$COURTQUEST_UI_EVIDENCE/emulator.log"; exit 1; fi
+          python3 -u scripts/verify_android_daily_flow.py baseline /tmp/courtquest-build5.apk
+          python3 -u scripts/verify_android_game_flow.py baseline /tmp/courtquest-build5.apk
+          python3 -u scripts/verify_android_daily_flow.py candidate app/build/outputs/apk/debug/app-debug.apk
+          python3 -u scripts/verify_android_game_flow.py candidate app/build/outputs/apk/debug/app-debug.apk
+          python3 -u scripts/verify_android_library_flow.py app/build/outputs/apk/debug/app-debug.apk
+          python3 scripts/verify_apk.py --apk app/build/outputs/apk/debug/app-debug.apk --build-tools "${ANDROID_HOME}/build-tools/35.0.1" --output artifacts/apk-verified
+          git rev-parse HEAD HEAD:app/src > artifacts/source-revisions.txt
+      - name: Capture Android diagnostics
+        if: always()
+        run: |
+          mkdir -p "$COURTQUEST_UI_EVIDENCE"
+          timeout 30 "${ANDROID_HOME}/platform-tools/adb" -s emulator-5562 logcat -d > "$COURTQUEST_UI_EVIDENCE/logcat.txt" 2>&1 || true
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: courtquest-native-library-flow
+          path: |
+            artifacts/android-daily-flow/
+            artifacts/apk-verified/
+            artifacts/source-revisions.txt
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/test-results/testDebugUnitTest/
+            app/build/reports/lint-results-debug.*
+          if-no-files-found: warn
+          retention-days: 14
