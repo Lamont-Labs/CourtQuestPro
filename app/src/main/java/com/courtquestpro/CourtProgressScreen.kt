@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 
@@ -55,12 +56,14 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
         item { AppHeader("Your work, recorded.", "${rankFor(save.totalXp)} · ${save.playerName.ifBlank { "Player development" }}") }
         item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    CourtMetric("Total XP", save.totalXp.toString(), Modifier.weight(1f), accent = true)
-                    CourtMetric(if (showGames) "Games" else "Sessions",
-                        (if (showGames) save.matches.size else recorded.size).toString(), Modifier.weight(1f))
-                    CourtMetric(if (showGames) "Game days" else "Training days",
-                        (if (showGames) save.matches.map { it.date }.distinct().size else valid.map { it.date }.distinct().size).toString(), Modifier.weight(1f))
+                CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(20.dp), highlighted = true) {
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        CourtEyebrow("YOUR TRAINING RECORD")
+                        CourtMetricStrip(listOf("Total XP" to save.totalXp.toString(),
+                            (if (showGames) "Games" else "Sessions") to (if (showGames) save.matches.size else recorded.size).toString(),
+                            (if (showGames) "Game days" else "Training days") to
+                                (if (showGames) save.matches.map { it.date }.distinct().size else valid.map { it.date }.distinct().size).toString()))
+                    }
                 }
                 CourtRule()
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {

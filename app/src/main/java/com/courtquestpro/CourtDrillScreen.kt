@@ -14,6 +14,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -45,15 +47,16 @@ internal fun DrillScreen(
 
     Column(Modifier.fillMaxSize()) {
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 20.dp)) {
-            item { AppHeader(drill.title, if (practice) "Extra practice · ${drill.category}" else "Drill ${slotNumber.coerceIn(1, 6)} of 6 · ${drill.category}") }
+            item { AppHeader(drill.title, if (practice) "Extra practice · ${drill.category}" else "Drill ${slotNumber.coerceIn(1, 6)} of 6 · ${drill.category}", compact = true) }
             item {
                 Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
-                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp)) {
+                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(20.dp), highlighted = true) {
+                      Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             CourtEyebrow("YOUR TARGET · ${drill.minutes} MIN")
                             Text(drill.target, color = CourtQuestDesign.accent, style = MaterialTheme.typography.titleMedium)
                         }
-                    }
+                    CourtRule()
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                         CourtMetric(measurement.successLabel, completedCount.toString(), Modifier.weight(1f), accent = true)
                         CourtMetric(measurement.attemptLabel, attemptedCount.toString(), Modifier.weight(1f))
@@ -79,13 +82,15 @@ internal fun DrillScreen(
                         TextButton(onClick = { if (attemptedCount > completedCount) { attemptedCount--; saveDraft() } },
                             enabled = !complete && attemptedCount > completedCount, modifier = Modifier.heightIn(min = 48.dp)) { Text("− Miss") }
                     }
+                      }
+                    }
                     if (best != null) {
                         Text("Personal best · ${best.completed} successful from ${best.attempted} attempts",
                             color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
                     }
-                    CourtRule()
-                    DrillSessionTimer(drill.minutes, timerSeconds) { timerSeconds = it; saveDraft() }
-                    CourtRule()
+                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(20.dp)) {
+                        DrillSessionTimer(drill.minutes, timerSeconds) { timerSeconds = it; saveDraft() }
+                    }
                     CourtHeading("The drill guide")
                     Text(drill.instructions, color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyLarge)
                     TextButton(onClick = onVideo, modifier = Modifier.heightIn(min = 48.dp)) {
@@ -100,7 +105,8 @@ internal fun DrillScreen(
                 }
             }
         }
-        Surface(color = CourtQuestDesign.surface, shadowElevation = 8.dp) {
+        CourtQuestPremiumSurface(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+            PaddingValues(horizontal = 8.dp, vertical = 4.dp), blurred = true) {
             Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(Modifier.fillMaxWidth().heightIn(min = 48.dp)
@@ -112,6 +118,8 @@ internal fun DrillScreen(
                     Text("Full target and safe technique completed.", color = CourtQuestDesign.textPrimary,
                         style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
                 }
+                if (!complete && !meetsCount) Text("Record ${(requiredCount ?: 0).minus(completedCount).coerceAtLeast(0)} more successful actions to save.",
+                    color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
                 CourtQuestPrimaryButton(onClick = { onComplete(completedCount, attemptedCount) },
                     enabled = !complete && meetsCount && targetConfirmed, modifier = Modifier.fillMaxWidth()) {
                     Text(if (complete) "Drill recorded" else "Save results", Modifier.weight(1f))
@@ -122,6 +130,7 @@ internal fun DrillScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DrillSessionTimer(minutes: Int, initialRemaining: Int, onRemaining: (Int) -> Unit) {
     val initialSeconds = minutes.coerceAtLeast(1) * 60
@@ -139,7 +148,7 @@ private fun DrillSessionTimer(minutes: Int, initialRemaining: Int, onRemaining: 
         CourtEyebrow(if (remaining == 0) "CLOCK FINISHED" else if (running) "CLOCK RUNNING" else "TRAINING CLOCK")
         Text("%02d:%02d".format(remaining / 60, remaining % 60), color = CourtQuestDesign.textPrimary,
             style = MaterialTheme.typography.displayMedium)
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             FilledTonalButton(onClick = {
                 if (remaining == 0) { remaining = initialSeconds; onRemaining(remaining) }
                 running = !running
@@ -156,45 +165,68 @@ private fun DrillSessionTimer(minutes: Int, initialRemaining: Int, onRemaining: 
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun DrillResultScreen(
     drill: Drill, result: DrillResult, earnedXp: Int, completedSlots: Int,
+    nextDrill: Drill? = null,
     onContinue: () -> Unit, onProgress: () -> Unit, onHome: () -> Unit
 ) {
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
-        item { AppHeader(if (result.practice) "Practice recorded." else "Session recorded.", "${drill.category} · ${result.date}") }
-        item {
-            Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                Icon(Icons.Default.CheckCircle, null, tint = CourtQuestDesign.accentVivid, modifier = Modifier.size(56.dp))
-                Text(drill.title, color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineLarge)
-                CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(24.dp)) {
-                    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                        CourtEyebrow("YOUR RECORDED RESULT")
-                        Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                            CourtMetric("Successful", result.completed.toString(), Modifier.weight(1f), accent = true)
-                            CourtMetric("Attempts", result.attempted.toString(), Modifier.weight(1f))
-                        }
-                        CourtRule()
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(if (result.practice) "Extra practice" else "$completedSlots of 6 drills recorded", color = CourtQuestDesign.textSecondary,
-                                style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-                            Text("+$earnedXp XP", color = CourtQuestDesign.accent, style = MaterialTheme.typography.labelLarge)
+    val workoutComplete = !result.practice && completedSlots == 6
+    Column(Modifier.fillMaxSize()) {
+        LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 20.dp)) {
+            item { AppHeader(if (result.practice) "Practice recorded." else "Session recorded.",
+                "${drill.category} · ${result.date}", compact = true) }
+            item {
+                Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(24.dp), highlighted = true) {
+                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                CourtSavedStamp(Modifier.size(36.dp))
+                                CourtEyebrow("SAVED TO PROGRESS", Modifier.weight(1f).semantics { liveRegion = LiveRegionMode.Polite })
+                            }
+                            Text(drill.title, color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineMedium)
+                            Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                                CourtMetric("Successful", result.completed.toString(), Modifier.weight(1f), accent = true)
+                                CourtMetric("Attempts", result.attempted.toString(), Modifier.weight(1f))
+                            }
+                            CourtRule()
+                            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(if (result.practice) "Extra practice" else "$completedSlots of 6 drills recorded",
+                                    color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
+                                Text("+$earnedXp XP", color = CourtQuestDesign.accent, style = MaterialTheme.typography.labelLarge)
+                            }
                         }
                     }
+                    Text(if (result.practice) "Extra practice recorded in Progress. Your daily workout and its XP rules stay separate."
+                        else if (workoutComplete) "Today's six-drill workout is complete. Find the full record in Progress."
+                        else "Your result is saved. Continue your workout or review your training record.",
+                        color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
+                    if (nextDrill != null) {
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            CourtEyebrow("UP NEXT")
+                            Text(nextDrill.title, color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleMedium)
+                            Text("${nextDrill.category} · ${nextDrill.minutes} min", color = CourtQuestDesign.textSecondary,
+                                style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                    if (!workoutComplete) TextButton(onClick = onHome, modifier = Modifier.heightIn(min = 48.dp)) { Text("Back to Court") }
                 }
-                Text(if (result.practice) "Extra practice recorded in Progress. Your daily workout and its XP rules stay separate."
-                    else if (completedSlots == 6) "Today's six-drill workout is complete. Find the full record in Progress."
-                    else "Your result is saved. Continue your workout or review your training record.",
-                    color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyLarge)
-                CourtQuestPrimaryButton(onClick = if (!result.practice && completedSlots == 6) onProgress else onContinue,
+            }
+        }
+        CourtQuestPremiumSurface(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+            PaddingValues(12.dp), blurred = true) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                CourtQuestPrimaryButton(onClick = if (workoutComplete) onProgress else onContinue,
                     modifier = Modifier.fillMaxWidth()) {
-                    Text(if (result.practice) "Back to Drills" else if (completedSlots == 6) "View Progress" else "Continue training", Modifier.weight(1f))
+                    Text(if (result.practice) "Back to Drills" else if (workoutComplete) "View Progress" else "Continue training", Modifier.weight(1f))
                     Icon(Icons.Default.ArrowForward, null)
                 }
-                if (result.practice || completedSlots < 6) {
-                    OutlinedButton(onClick = onProgress, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("View Progress") }
+                TextButton(onClick = if (workoutComplete) onHome else onProgress,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                    Text(if (workoutComplete) "Back to Court" else "View Progress")
                 }
-                TextButton(onClick = onHome, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("Back to Court") }
             }
         }
     }

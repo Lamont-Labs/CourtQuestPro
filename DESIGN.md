@@ -3,18 +3,18 @@ version: alpha
 name: CourtQuest Pro
 description: A native Android basketball training and scorekeeping design system.
 colors:
-  primary: "#FF783D"
-  accent: "#FFA35C"
-  on-primary: "#211713"
-  background: "#121315"
-  surface: "#1B1B1E"
-  surface-elevated: "#252127"
-  border: "#3C3534"
-  control-outline: "#8B7A71"
-  surface-warm: "#4B281D"
-  court-shadow: "#201A1B"
-  text-primary: "#F7F3EF"
-  text-secondary: "#B7ACA6"
+  primary: "#FF650E"
+  accent: "#FF944F"
+  on-primary: "#160C06"
+  background: "#000000"
+  surface: "#101113"
+  surface-elevated: "#202226"
+  border: "#34363B"
+  control-outline: "#92969E"
+  surface-warm: "#321A10"
+  court-shadow: "#090B0E"
+  text-primary: "#F8F5F0"
+  text-secondary: "#B8BBC3"
 omitted:
   - section: typography
     reason: Android typography uses scalable sp values documented in the Typography section.
@@ -49,7 +49,7 @@ This applies across the entire app: launch branding, onboarding, Court, training
 | Artwork quality | High-resolution masters or suitable native/vector assets; preserve aspect ratio and avoid visible pixelation, blur, halos, and extraction residue |
 | Signature identity | Preserve the approved brush lettering, CQ silhouette, underline, and basketball detail while adapting the surrounding palette |
 
-This direction supersedes the earlier warm-brown and muted-charcoal emphasis. The hex values in the front matter describe the earlier documented palette; the next implementation pass must align shared native tokens and brand exports with this direction. Choose the exact brighter orange against the rendered black UI and Signature artwork rather than treating the older orange token as a locked shade.
+This direction supersedes the earlier warm-brown and muted-charcoal emphasis. The front-matter values now match the Signature journey implementation and shared native tokens. Choose the exact brighter orange against the rendered black UI and Signature artwork rather than treating the older orange token as a locked shade.
 
 “High definition” means clean assets and precise rendering at actual phone sizes and densities. Maintain readable scalable text, accessible contrast, and clear control boundaries on black. Sharpness does not require removing the approved logo's brush-shaped terminals or changing every corner radius.
 
@@ -106,7 +106,7 @@ Generated renditions preserve the selected Signature direction but can vary slig
 
 ## Colors
 
-Follow the latest owner visual direction above and keep the implemented palette in sync with [`CourtQuestDesign.kt`](app/src/main/java/com/courtquestpro/CourtQuestDesign.kt). Use deep black as the dominant canvas and very dark neutral surfaces for supporting content. Use brighter saturated orange for the primary action and important active states, with readable dark ink on filled orange controls. Use crisp white or ivory for primary text and adequately contrasting secondary text. Keep boundaries and states clear on black, and label status with text, iconography, or semantics in addition to color. The older front-matter values are an implementation baseline awaiting this palette pass, not the current visual target.
+Follow the latest owner visual direction above and keep the implemented palette in sync with [`CourtQuestDesign.kt`](app/src/main/java/com/courtquestpro/CourtQuestDesign.kt). Use deep black as the dominant canvas and very dark neutral surfaces for supporting content. Use brighter saturated orange for the primary action and important active states, with readable dark ink on filled orange controls. Use crisp white or ivory for primary text and adequately contrasting secondary text. Keep boundaries and states clear on black, and label status with text, iconography, or semantics in addition to color. The front-matter values match the implemented shared tokens; acceptance is tracked in the current pass ledger.
 
 ## Typography
 
@@ -265,3 +265,25 @@ Actual build-6 captures at 320 dp/200% exposed a split brand word and a split Pr
 Build-6 native acceptance is GREEN on source `0ff5e6c5d78ba8b958deef01478475fe5c78f4a0`, app/src tree `57fcba4679745dae0a1b85dff0bd93235b2bc757`, [run 43060242201](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43060242201). The same APK passed 42 Android tests, lint 0 errors/10 warnings and all library/daily/game journeys, including the actual saved-Activity score rollover regression. Final 320 dp/200% captures confirm whole brand/navigation words and a reachable editor footer above the keyboard. The exact artifact's SHA-256 is `00bcd7d1296ac2a71efadad8beb42834e3f9897ff7b5af668c020c731507a3d4`; publication and downloaded-byte verification are recorded in the pass ledger.
 
 Build 6 is published in release commit `e28a28680e397474584c80cd68bb991221cbda8d`. [Release run 43063480763](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43063480763) passed exact-source/artifact checks and verified the downloaded APK's package, version 6, original certificate, v2 signature and alignment. A further independent public download matched the tested 17,047,484-byte APK byte for byte: `00bcd7d1296ac2a71efadad8beb42834e3f9897ff7b5af668c020c731507a3d4`. Normal/compact/enlarged Android screenshots are retained on the existing release. Physical-phone operation, owner visual acceptance of build 6 and full TalkBack traversal remain separate.
+
+
+## Signature journey build 7 — implementation checkpoint
+
+Owner authority: the November 11 request to implement and deliver the entire native Court → start/resume → record attempts → save once → receipt/next drill → Progress journey, starting at `f8089ac614250472c6190ce3fcbd3f67c7455ff1` on `dev/premium-flow-toolkit`. [Plan and live verification ledger](docs/plans/2026-11-11-signature-training-journey.md).
+
+Implemented components: `CourtQuestScene` owns the quiet native court backdrop and shared Haze source; `CourtQuestPremiumSurface` supplies smoked tint, a broad directional reflection and illuminated rim, with optional Haze 1.1.1 child blur and its supported-platform fallback; `CourtQuestPrimaryButton` supplies the orange action treatment; `AppHeader` uses the clean Signature artwork; `CourtQuestNavigation` owns native labeled selection and safe insets. Foreground text and controls are outside the blur. `CourtMetricStrip` reflows three-value summaries at enlarged text sizes. Recording remains immediate; the result has a fixed action area, a real saved-result summary and the actual next drill.
+
+`nextDailySlot` now gives Court and receipts one stable route: a valid current draft first, otherwise the first unfinished slot. The explicit protected shuffle/swap features still choose the workout. This implementation call replaces the old random selection on every Continue tap so the preview cannot disagree with the next screen. The existing result/XP guards, save schema, custom revision handling and game/Undo code remain in place. Six new routing tests failed against the empty implementation and the full suite subsequently passed 48 tests.
+
+Brand production: [source hashes and output hashes](tools/branding/signature-assets.json), [reproduction tool](tools/branding/prepare_signature_vectors.py), and vector masters in `tools/branding/vectors/`. The original owner-approved reference is the contour anchor, including its precise letter shapes, underline and basketball seams. Transparent generative cutouts still showed residue and were rejected. Exact contour masters produce clean transparent xxxhdpi PNG renders for the Android header and launcher; native orange supplies the adaptive-icon background. Adaptive foreground scale is 0.65, preserving safe mask space. Dense brush contours are rasterized once during authoring to avoid runtime path parsing. Normal phone rendering and launcher masks remain part of native review, not inferred acceptance.
+
+References applied in this pass:
+
+- UI/UX Pro Max `Fitness/Gym App` matched Sports/Fitness Barlow/Barlow Condensed and tracking/workout constraints. Keep those relevant results; do not adopt its web landing-page structure or green CTA palette over the owner's direction.
+- Its `bottom navigation back behavior` mobile result informs stable Back and retained drafts. `Scaffold window insets semantics` native results inform shared components and semantics, checked against BOM 2024.12.01 rather than the dataset's newer Compose version.
+- [Pinned Jetsnack Surface](https://github.com/android/compose-samples/blob/25631e8f544a9a1e3f01e296eaf1b4c28428196c/Jetsnack/app/src/main/java/com/example/jetsnack/ui/components/Surface.kt) informs the shared native surface boundary; [pinned Now in Android Navigation](https://github.com/android/nowinandroid/blob/2982e63cb691ad49cd009aab43dc206fee6699c2/core/designsystem/src/main/kotlin/com/google/samples/apps/nowinandroid/core/designsystem/component/Navigation.kt) informs native icon/label/selection slots. No newer adaptive navigation APIs are imported.
+- Context7 returned newer Haze migration material, so actual API use was verified against pinned [Haze 1.1.1 source](https://github.com/chrisbanes/haze/blob/0cd75baaeb728f45a97abbb4e134a96905066528/haze/src/commonMain/kotlin/dev/chrisbanes/haze/HazeChild.kt): `haze`, `hazeChild`, `HazeTint`, fallback tint and an 18 dp blur. No 2.x glass APIs.
+- Impeccable shape/clarify/onboard guidance informs one next action, an explained save requirement, a short saved-state confirmation and contextual hints. A one-shot original Lottie check acknowledges a save; animation scale zero uses a static check. Intro Showcase remains available; no forced tutorial is added over immediate recording controls.
+- Product Design's screenshot-first critique is the rendered-review method. Figma flow-board generation was attempted; it requires a team selection, so the editable source-grounded flow specification remains in the repository and native implementation continues.
+
+Status at implementation checkpoint: local compilation/unit/lint are checked separately from Android rendering. The original GitHub toolkit run is still queued; a local dedicated Android 35 emulator has been prepared to complete runtime evidence. Check the plan ledger for final evidence and release status. Owner visual acceptance and physical-phone operation are separate from emulator checks.

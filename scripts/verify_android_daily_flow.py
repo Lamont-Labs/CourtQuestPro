@@ -233,7 +233,16 @@ def main():
     assert state['drillResults'][-1]['completed'] == state['drillResults'][-1]['attempted'] == 15
     assert state['slots'][0]['complete'] and state['totalXp'] == 150
     assert not state['drillDrafts']
-    tap(require(receipt, 'View Progress'))
+    scroll_to('UP NEXT')
+    scroll_to('Stationary Crossover Control')
+    require(nodes(), 'Stationary Crossover Control')
+    screenshot('candidate-receipt-next')
+    tap(require(nodes(), 'Continue training'))
+    next_drill = nodes('candidate-next-drill')
+    require(next_drill, 'Stationary Crossover Control')
+    screenshot('candidate-next-drill')
+    shell('input', 'keyevent', 'KEYCODE_BACK')
+    tap(require(nodes(), 'Progress'))
     nodes('candidate-progress-after-save')
     screenshot('candidate-progress-after-save')
     scroll_to('15 successful / 15 attempts')
@@ -365,6 +374,7 @@ def main():
     report = dict(input_apk_sha256=hashlib.sha256(Path(args.apk).read_bytes()).hexdigest(),
                   version_code=packaged_version, full_history_navigation=True, large_type_drill=True, large_type_scorekeeping=True, fresh_onboarding=True, empty_progress=True, blank_name=True, long_name=True,
                   completed_workout=True, scorekeeping_and_undo=True, system_back=True,
+                  receipt_next_drill_matches_continue=True,
                   update_retains_saved_state=True, primary_on_first_viewport=True, saved_name_visible=True, immediate_preference_selection=True, result_recorded_once=True,
                   successes=15, attempts=15, xp_awarded=50, relaunch_persistence=True,
                   compact_capture=True, large_type_capture=True)

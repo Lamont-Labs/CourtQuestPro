@@ -8,21 +8,21 @@ import androidx.compose.ui.unit.dp
  * Internal, immutable and dependency-free; no runtime state or persistence.
  */
 internal object CourtQuestDesign {
-    val background = Color(0xFF121315)
-    val surface = Color(0xFF1B1B1E)
-    val border = Color(0xFF3C3534)
-    val controlOutline = Color(0xFF8B7A71)
-    val elevatedSurface = Color(0xFF252127)
-    val warmSurface = Color(0xFF4B281D)
-    val blueprintShadow = Color(0xFF201A1B)
-    val textPrimary = Color(0xFFF7F3EF)
-    val textSecondary = Color(0xFFB7ACA6)
-    val accent = Color(0xFFFFA35C)
-    val accentVivid = Color(0xFFFF783D)
-    val iconGradientStart = Color(0xFFFFAD71)
-    val iconForeground = Color(0xFF211713)
-    val chipBackground = Color(0x553A2B29)
-    val chipBorder = Color(0x66FFB080)
+    val background = Color(0xFF000000)
+    val surface = Color(0xFF101113)
+    val border = Color(0xFF34363B)
+    val controlOutline = Color(0xFF92969E)
+    val elevatedSurface = Color(0xFF202226)
+    val warmSurface = Color(0xFF321A10)
+    val blueprintShadow = Color(0xFF090B0E)
+    val textPrimary = Color(0xFFF8F5F0)
+    val textSecondary = Color(0xFFB8BBC3)
+    val accent = Color(0xFFFF944F)
+    val accentVivid = Color(0xFFFF650E)
+    val iconGradientStart = Color(0xFFFF913D)
+    val iconForeground = Color(0xFF160C06)
+    val chipBackground = Color(0x553B2113)
+    val chipBorder = Color(0x99FF944F)
 
     val spacingXs = 4.dp
     val spacingSm = 8.dp

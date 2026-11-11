@@ -217,13 +217,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     fun openTraining() {
         if (save.slots.all { it.complete }) openMatch()
         else {
-            val candidates = save.slots.indices.filter { !save.slots[it].complete }
-            selectedSlot = candidates.firstOrNull { index ->
-                save.drillDrafts.orEmpty().any { draft ->
-                    draft.date == save.activeDate && draft.slotId == save.slots[index].id &&
-                        draft.drillId == save.slots[index].drillId
-                }
-            } ?: candidates.random()
+            selectedSlot = nextDailySlot(save) ?: return
             screen = "drill"
         }
     }
@@ -277,16 +271,15 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     }
 
     CourtQuestTheme {
+        CourtQuestScene {
         Scaffold(
             modifier = Modifier.semantics { testTagsAsResourceId = true },
             snackbarHost = { SnackbarHost(snackbar) },
-            containerColor = Color(0xFF121315),
+            containerColor = Color.Transparent,
             bottomBar = {
-                if (onboardingComplete && screen in listOf("home", "library", "career", "gameHistory", "settings")) NavigationBar(containerColor = CourtQuestDesign.surface, tonalElevation = 0.dp) {
-                    NavigationBarItem(selected = screen == "home", onClick = { screen = "home" }, icon = { Icon(Icons.Default.SportsBasketball, "Court dashboard") }, label = { CourtNavigationLabel("Court") }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
-                    NavigationBarItem(selected = screen == "library", onClick = { openLibrary() }, icon = { Icon(Icons.Default.FitnessCenter, "Drill library") }, label = { CourtNavigationLabel("Drills") }, colors = NavigationBarItemDefaults.colors(selectedIconColor = CourtQuestDesign.iconForeground, selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
-                    NavigationBarItem(selected = screen in listOf("career", "gameHistory"), onClick = { screen = "career" }, icon = { Icon(Icons.Default.Insights, "Player development") }, label = { CourtNavigationLabel("Progress") }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
-                    NavigationBarItem(selected = screen == "settings", onClick = { screen = "settings" }, icon = { Icon(Icons.Default.Tune, "Player settings") }, label = { CourtNavigationLabel("Setup") }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
+                if (onboardingComplete && screen in listOf("home", "library", "career", "gameHistory", "settings")) {
+                    CourtQuestNavigation(screen, onCourt = { screen = "home" }, onDrills = { openLibrary() },
+                        onProgress = { screen = "career" }, onSetup = { screen = "settings" })
                 }
             }
         ) { padding ->
@@ -311,7 +304,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         else finishOnboarding()
                     }
                 )
-            } else AnimatedContent(targetState = screen, label = "screen-transition", modifier = Modifier.padding(padding)) { target ->
+            } else AnimatedContent(targetState = screen, label = "screen-transition", modifier = Modifier.padding(padding).consumeWindowInsets(padding)) { target ->
                 when (target) {
                     "home" -> HomeContent()
                     "library" -> DrillLibraryScreen(save, librarySlotId,
@@ -405,6 +398,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         if (result != null) {
                             val drill = result.drillSnapshot ?: catalog.firstOrNull { it.id == result.drillId } ?: drills.first()
                             DrillResultScreen(drill, result, recordedXp, save.slots.count { it.complete },
+                                nextDrill = if (result.practice) null else nextDailySlot(save)?.let { i -> catalog.firstOrNull { it.id == save.slots[i].drillId } },
                                 onContinue = { if (result.practice) openLibrary() else openTraining() }, onProgress = { screen = "career" },
                                 onHome = { screen = "home" })
                         } else LaunchedEffect(Unit) { screen = "home" }
@@ -488,16 +482,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             }
         }
     }
-}
-
-/** Keep the four short labels whole at enlarged system text sizes. */
-@Composable
-private fun CourtNavigationLabel(label: String) {
-    val enlarged = androidx.compose.ui.platform.LocalConfiguration.current.fontScale >= 1.5f
-    Text(label, modifier = Modifier.wrapContentWidth(unbounded = true),
-        fontFamily = if (enlarged) CourtDisplay else CourtBody,
-        fontWeight = if (enlarged) FontWeight.ExtraBold else FontWeight.Bold,
-        fontSize = 12.sp, softWrap = false, maxLines = 1)
+    }
 }
 
 private fun updateWeeklyActivity(current: MutableList<String>?, day: Int, kind: String): MutableList<String> {
