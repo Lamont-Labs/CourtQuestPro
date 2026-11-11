@@ -23,7 +23,7 @@ UI/UX Pro Max matched Fitness/Gym App and Sports/Fitness without fallback: retai
 - [x] Domain and compatibility: `TrainingLibrary.kt`, optional model fields in `MainActivity.kt`, target overloads in `DrillTargets.kt`; meaningful tests in `TrainingLibraryTest.kt` cover validation, archival/revisions, legacy JSON, favorite migration, safe replacements and practice idempotency.
 - [x] Native library and editor: `CourtDrillLibraryScreen.kt` and `CourtCustomDrillEditor.kt`, shared tokens and semantic native controls, stable keyed lists, keyboard footer, clear empty/results states.
 - [x] Integrate: Court launch/shuffle/swap/resume, Drills navigation, shared practice recording, real custom targets, historical titles/measurement definitions and honest practice receipt/XP.
-- [ ] Review and verify: full existing unit suite, build, lint; real Android build-5 update plus old daily/game regressions and library create/edit/favorite/suggestion/swap/shuffle/protected-state/practice/history/relaunch cases. Inspect normal, compact, keyboard and 200% captures. Review the complete branch once independently.
+- [x] Review and verify: full existing unit suite, build, lint; real Android build-5 update plus old daily/game regressions and library create/edit/favorite/suggestion/swap/shuffle/protected-state/practice/history/relaunch cases. Inspect normal, compact, keyboard and 200% captures. Review the complete branch once independently.
 - [ ] Release exact tested APK as build 6, verify downloaded identity/hash/certificate, update DESIGN.md/README and this ledger; keep main intact.
 
 ## Review focus
@@ -55,3 +55,18 @@ Native run 43055431111 on `272759aa` passed all three exact-binary journeys with
 The final independent follow-up found an Important restoration edge case: saving the root route also saves a live score screen across process restoration. On the following date, the daily reset cleared the match fields but invalidated only a daily drill route. A restored score route therefore remained live for an expired match. Native regression commit `156aad8d` first checks actual background-process Activity restoration on the same day, then restores it against an expired date and requires Court with no game/XP write. This is separate from the existing force-stop/new-launch rollover checks.
 
 RED confirmed in native run 43058994537: same-day process restoration resumed Jordan/Casey at 2–1, while next-day restoration showed the cleared 0–0 live scoreboard with blank player names. The failing assertion required Court's Start training action. The correction invalidates both daily-drill and score routes during date reset, and gates point/Undo callbacks with the existing same-day valid-match rule. The same native assertion remains the regression test.
+
+The independent follow-up reviewed the final route, callback and enlarged-text corrections and reported no remaining Critical or Important finding. Candidate `0ff5e6c5d78ba8b958deef01478475fe5c78f4a0` (app/src tree `57fcba4679745dae0a1b85dff0bd93235b2bc757`) is undergoing exact-binary verification in native run 43060242201. This candidate supersedes the earlier green artifact; only its completed checks and published-byte verification can authorize the build-6 release.
+
+## Final Android acceptance
+
+Candidate `0ff5e6c5d78ba8b958deef01478475fe5c78f4a0`, app/src tree `57fcba4679745dae0a1b85dff0bd93235b2bc757`, passed [native run 43060242201](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43060242201). Artifact `13872814689` contains the exact 17,047,484-byte APK with SHA-256 `00bcd7d1296ac2a71efadad8beb42834e3f9897ff7b5af668c020c731507a3d4`.
+
+- 42 Android unit tests passed; zero failures, errors or skips. Lint: 0 errors, 10 warnings.
+- All library, daily and one-on-one journey assertions passed against that same APK hash. Installing over the preserved build 5 retained the saved state. Existing profile, history, daily awards and match behavior remain covered.
+- Real background-process restoration resumed a same-day 2–1 match; the same saved score route restored against the next date returned to Court without a match or XP write.
+- Native custom creation/validation, favorites, daily swaps and protected shuffling, practice relaunch/resume, edit revision/goal preservation, exactly-once practice recording, original target in daily recording, archival and history all passed.
+- Actual normal and 320 dp/130% library captures, 200% library/navigation and 200% keyboard/footer captures were reviewed. The full brand and Progress label stay whole; the editor's Save action remains above the keyboard. Practice receipt and original-definition Progress history were inspected.
+- Independent review is closed with no remaining Critical or Important source finding. Physical-phone operation, owner visual acceptance for this candidate and full TalkBack traversal remain separate.
+
+Publication uses this tested artifact without rebuilding. The release gate rechecks its source tree, all three flow reports, test/lint reports, manifest, v2 signature, original certificate and alignment, then downloads the uploaded APK again. Publication outcome and a further public-download checksum follow below after completion.

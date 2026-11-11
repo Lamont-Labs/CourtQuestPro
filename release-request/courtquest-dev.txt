@@ -1,6 +1,8 @@
-CourtQuest Pro visual build 5
-Owner-authorized one-on-one visual continuation and existing development APK update.
-Native source: 67e9776c7983e77ef870146aede6db28927be51b
-Native run: 43043445045
-APK SHA-256: d2e6eb32d3d90d93a3be3cbbc08684e5090202746294e2ea0bf3583b5817339b
-Publish the exact Android-tested artifact; preserve com.courtquestpro and the original signer.
+CourtQuest Pro Drill Library build 6
+Owner-authorized custom drills, personal suggestions, protected daily swaps/shuffling, extra practice and existing APK update.
+Native source: 0ff5e6c5d78ba8b958deef01478475fe5c78f4a0
+Native run: 43060242201
+Native artifact: 13872814689
+APK SHA-256: 00bcd7d1296ac2a71efadad8beb42834e3f9897ff7b5af668c020c731507a3d4
+Verified: 42 Android tests; lint 0 errors/10 warnings; exact-binary library, daily and game flows; build-5 data retention; real Activity/process restoration; normal/compact/200% and keyboard capture review.
+Publish the exact Android-tested APK. Preserve com.courtquestpro, version code 6 and the original development signer. Keep main intact.
