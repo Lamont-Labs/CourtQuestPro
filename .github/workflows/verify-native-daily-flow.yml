@@ -45,6 +45,7 @@ jobs:
           mkdir -p "$COURTQUEST_UI_EVIDENCE"
           "${ANDROID_HOME}/platform-tools/adb" start-server
           "${ANDROID_HOME}/emulator/emulator" -avd CourtQuest_Visual -port 5562 -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect -accel on -cores 2 -memory 2048 > "$COURTQUEST_UI_EVIDENCE/emulator.log" 2>&1 &
+          export COURTQUEST_EMULATOR_PID=$!
           python3 -u scripts/verify_android_daily_flow.py baseline /tmp/courtquest-build2.apk
           python3 -u scripts/verify_android_daily_flow.py candidate app/build/outputs/apk/debug/app-debug.apk
       - name: Capture Android diagnostics

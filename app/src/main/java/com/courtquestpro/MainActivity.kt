@@ -125,7 +125,10 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             runCatching {
                 val raw = prefs.getString("state", null)
                 if (raw == null) SaveState() else gson.fromJson(raw, SaveState::class.java) ?: SaveState()
-            }.getOrDefault(SaveState())
+            }.getOrDefault(SaveState()),
+            // refresh publishes a deep copy of an already-mutated save.
+            // Referential equality keeps preferences and scores observable.
+            referentialEqualityPolicy()
         )
     }
     fun persist() { prefs.edit().putString("state", gson.toJson(save)).apply() }
@@ -746,7 +749,7 @@ private fun ChampionshipSetup(playerName: String, opponentName: String, error: S
             Text("Enter both names to start your match.", color = Muted)
             OutlinedTextField(value = playerName, onValueChange = onPlayerName, modifier = Modifier.fillMaxWidth(), label = { Text("Your name") }, singleLine = true, leadingIcon = { Icon(Icons.Default.Person, null) }, shape = RoundedCornerShape(14.dp))
             OutlinedTextField(value = opponentName, onValueChange = onOpponentName, modifier = Modifier.fillMaxWidth(), label = { Text("Opponent's name (required)") }, singleLine = true, leadingIcon = { Icon(Icons.Default.Group, null) }, shape = RoundedCornerShape(14.dp))
-            if (error.isNotBlank()) Text(error, color = Color(0xFFB3261E), fontWeight = FontWeight.SemiBold)
+            if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold)
             Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF302722)), shape = RoundedCornerShape(18.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     Text("GAME RULES", color = Ink, fontWeight = FontWeight.ExtraBold)
@@ -754,7 +757,7 @@ private fun ChampionshipSetup(playerName: String, opponentName: String, error: S
                     Text("• First player to 11 points wins\n• At 10–10: sudden death, next point wins\n• Score honestly after each point\n• Undo is available for accidental taps", color = Muted, lineHeight = 22.sp)
                 }
             }
-            CourtQuestPrimaryButton(onClick = onStart, modifier = Modifier.fillMaxWidth().height(56.dp)) { Text("ENTER THE CHAMPIONSHIP", fontWeight = FontWeight.ExtraBold) }
+            CourtQuestPrimaryButton(onClick = onStart, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) { Text("ENTER THE CHAMPIONSHIP", fontWeight = FontWeight.ExtraBold) }
             OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text("Back") }
         }
     }
@@ -775,7 +778,7 @@ private fun ScoreScreen(player: String, opponent: String, playerScore: Int, oppo
         Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Button(
                 onClick = { onPoint(true) },
-                modifier = Modifier.weight(1f).height(120.dp),
+                modifier = Modifier.weight(1f).heightIn(min = 120.dp).semantics { contentDescription = "Record point for $player" },
                 shape = RoundedCornerShape(20.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = CourtQuestDesign.accentVivid,
@@ -784,13 +787,13 @@ private fun ScoreScreen(player: String, opponent: String, playerScore: Int, oppo
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(28.dp))
-                    Text("+1", fontSize = 34.sp, fontWeight = FontWeight.Black)
-                    Text(player.take(14), fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    Text("+1", fontFamily = CourtDisplay, fontSize = 34.sp, lineHeight = 38.sp, fontWeight = FontWeight.ExtraBold)
+                    Text(player, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Bold, maxLines = 2, textAlign = TextAlign.Center)
                 }
             }
             Button(
                 onClick = { onPoint(false) },
-                modifier = Modifier.weight(1f).height(120.dp),
+                modifier = Modifier.weight(1f).heightIn(min = 120.dp).semantics { contentDescription = "Record point for $opponent" },
                 shape = RoundedCornerShape(20.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = CourtQuestDesign.elevatedSurface,
@@ -800,8 +803,8 @@ private fun ScoreScreen(player: String, opponent: String, playerScore: Int, oppo
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(28.dp))
-                    Text("+1", fontSize = 34.sp, fontWeight = FontWeight.Black)
-                    Text(opponent.take(14), fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    Text("+1", fontFamily = CourtDisplay, fontSize = 34.sp, lineHeight = 38.sp, fontWeight = FontWeight.ExtraBold)
+                    Text(opponent, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Bold, maxLines = 2, textAlign = TextAlign.Center)
                 }
             }
         }
@@ -809,7 +812,7 @@ private fun ScoreScreen(player: String, opponent: String, playerScore: Int, oppo
         OutlinedButton(
             onClick = onUndo,
             enabled = playerScore + opponentScore > 0,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp).height(54.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp).heightIn(min = 54.dp),
             shape = RoundedCornerShape(16.dp),
             border = androidx.compose.foundation.BorderStroke(1.dp, CourtQuestDesign.chipBorder),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = CourtQuestDesign.textPrimary)
@@ -832,7 +835,7 @@ private fun ScorePanel(name: String, score: Int, color: Color, modifier: Modifie
             Spacer(Modifier.height(9.dp))
             Text(name, fontSize = 15.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, color = Ink, maxLines = 2)
             Spacer(Modifier.height(12.dp))
-            Text(score.toString(), fontFamily = CourtDisplay, fontSize = 72.sp, fontWeight = FontWeight.ExtraBold, color = color)
+            Text(score.toString(), fontFamily = CourtDisplay, fontSize = 72.sp, lineHeight = 76.sp, fontWeight = FontWeight.ExtraBold, color = color)
         }
     }
 }
@@ -865,7 +868,7 @@ private fun MatchRecapScreen(record: MatchRecord, totalXp: Int, onHome: () -> Un
                     Text("${record.player} vs ${record.opponent}. ${record.winner} took the win ${max(record.playerScore, record.opponentScore)}–${kotlin.math.min(record.playerScore, record.opponentScore)}. Keep showing up, work on one skill at a time, and bring that energy to the next run.", color = CourtQuestDesign.textPrimary, lineHeight = 23.sp)
                 }
             }
-            CourtQuestPrimaryButton(onClick = onHome, modifier = Modifier.fillMaxWidth().height(56.dp)) { Text("BACK TO HOME", fontWeight = FontWeight.ExtraBold) }
+            CourtQuestPrimaryButton(onClick = onHome, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) { Text("BACK TO HOME", fontWeight = FontWeight.ExtraBold) }
             OutlinedButton(onClick = onCareer, modifier = Modifier.fillMaxWidth()) { Text("VIEW CAREER STATS") }
         }
     }

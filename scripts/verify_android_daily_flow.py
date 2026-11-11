@@ -44,7 +44,7 @@ def nodes(label=None):
 
 
 def find(items, text):
-    return next((node for node in items if any(text.casefold() == value.strip().casefold()
+    return next((node for node in items if any(text.casefold() in [line.strip().casefold() for line in value.splitlines()]
                  for value in (node.get('text', ''), node.get('content-desc', '')))), None)
 
 
@@ -78,7 +78,7 @@ def prefs():
     return {node.attrib['name']: node for node in root}
 
 
-def seed():
+def seed(variant="normal"):
     today = shell('date', '+%F')
     ids = ['s1', 'b1', 'f1', 'd1', 'r1', 'p1']
     state = dict(playerName='Jordan', difficulty='Intermediate', weeklyPlan='Balanced',
@@ -91,6 +91,16 @@ def seed():
                                dict(date=today, slotId='previous-2', drillId='s1', completed=18, attempted=20)],
                  drillDrafts=[dict(date=today, slotId='slot-0', drillId='s1', successful=0,
                                   attempted=0, targetConfirmed=False, remainingSeconds=360)], showWarmupDone=False)
+    if variant == 'empty':
+        state.update(totalXp=0, currentStreak=0, longestStreak=0, drillResults=[], drillDrafts=[])
+    elif variant == 'blank':
+        state['playerName'] = ''
+    elif variant == 'long':
+        state['playerName'] = 'Alexandria Montgomery-Washington'
+    elif variant == 'complete':
+        for slot in state['slots']:
+            slot['complete'] = True
+        state['drillDrafts'] = []
     root = ET.Element('map')
     ET.SubElement(root, 'boolean', name='onboarding_complete', value='true')
     ET.SubElement(root, 'string', name='state').text = json.dumps(state)
@@ -118,6 +128,12 @@ def main():
     args = parser.parse_args()
     OUT.mkdir(exist_ok=True)
     for attempt in range(100):
+        emulator_pid = os.environ.get('COURTQUEST_EMULATOR_PID')
+        if emulator_pid:
+            try:
+                os.kill(int(emulator_pid), 0)
+            except ProcessLookupError as error:
+                raise RuntimeError('Android Emulator exited before boot; inspect emulator.log') from error
         try:
             if shell('getprop', 'sys.boot_completed', timeout=8) == '1':
                 break
@@ -153,6 +169,19 @@ def main():
     screenshot(f'{args.phase}-setup')
     if args.phase == 'candidate':
         assert any(node.get('class') == 'android.widget.EditText' and node.get('text') == 'Jordan' for node in settings)
+        tap(require(settings, 'Beginner'))
+        changed_settings = nodes('candidate-preference-selected')
+        label = require(changed_settings, 'Beginner')
+        left, top, right, bottom = map(int, re.findall(r'\d+', label.attrib['bounds']))
+        selected = False
+        for node in changed_settings:
+            if node.get('checked') != 'true' and node.get('selected') != 'true':
+                continue
+            bounds = list(map(int, re.findall(r'\d+', node.attrib['bounds'])))
+            if bounds[0] <= left and bounds[1] <= top and bounds[2] >= right and bounds[3] >= bottom:
+                selected = True
+        assert selected, 'The chosen level must visibly select on the first tap'
+        assert json.loads(prefs()['state'].text)['difficulty'] == 'Beginner'
     tap(require(nodes(), 'Court'))
     tap(scroll_to('Resume session'))
     drill_nodes = nodes(f'{args.phase}-drill')
@@ -205,8 +234,73 @@ def main():
         tap(require(large_nodes, 'Setup'))
         nodes('candidate-large-type-setup')
     screenshot('candidate-large-type-setup')
-    assert any(node.get('text') == 'Jordan' for node in nodes())
-    report = dict(update_retains_saved_state=True, primary_on_first_viewport=True, saved_name_visible=True, result_recorded_once=True,
+    scroll_to('Jordan')
+    nodes('candidate-large-type-profile')
+    screenshot('candidate-large-type-profile')
+    shell('wm', 'size', '720x1600')
+    shell('settings', 'put', 'system', 'font_scale', '1.0')
+    seed('empty')
+    open_app()
+    tap(require(nodes(), 'Progress'))
+    require(nodes('candidate-empty-progress'), 'Start your baseline.')
+    screenshot('candidate-empty-progress')
+    seed('blank')
+    open_app()
+    require(nodes('candidate-blank-profile'), 'Your court.')
+    screenshot('candidate-blank-profile')
+    seed('long')
+    open_app()
+    require(nodes('candidate-long-profile'), 'Alexandria Montgomery-Washington’s court.')
+    scroll_to('Resume session')
+    screenshot('candidate-long-profile')
+    seed('complete')
+    open_app()
+    complete_home = nodes('candidate-complete-court')
+    require(complete_home, 'Work put in.')
+    screenshot('candidate-complete-court')
+    tap(require(complete_home, 'Play 1-on-1'))
+    fields = [node for node in nodes() if node.get('class') == 'android.widget.EditText']
+    assert len(fields) == 2
+    tap(fields[1])
+    shell('input', 'text', 'Casey')
+    shell('input', 'keyevent', 'KEYCODE_BACK')
+    tap(scroll_to('ENTER THE CHAMPIONSHIP'))
+    score_nodes = nodes('candidate-scorekeeper')
+    screenshot('candidate-scorekeeper')
+    tap(require(score_nodes, 'Record point for Jordan'))
+    assert json.loads(prefs()['state'].text)['playerScore'] == 1
+    require(nodes(), '1')
+    tap(require(nodes(), 'Record point for Casey'))
+    game = json.loads(prefs()['state'].text)
+    assert game['playerScore'] == game['opponentScore'] == 1
+    tap(require(nodes(), 'UNDO LAST POINT'))
+    game = json.loads(prefs()['state'].text)
+    assert game['playerScore'] == 1 and game['opponentScore'] == 0
+    require(nodes('candidate-scorekeeper-undo'), '0')
+    screenshot('candidate-scorekeeper-undo')
+    shell('input', 'keyevent', 'KEYCODE_BACK')
+    require(nodes(), 'Jordan’s court.')
+    assert 'Success' in shell('pm', 'clear', PACKAGE)
+    open_app()
+    require(nodes('candidate-fresh-onboarding'), 'CONTINUE')
+    screenshot('candidate-fresh-onboarding')
+    tap(require(nodes(), 'CONTINUE'))
+    identity = next(node for node in nodes() if node.get('class') == 'android.widget.EditText')
+    tap(identity)
+    shell('input', 'text', 'Avery')
+    shell('input', 'keyevent', 'KEYCODE_BACK')
+    for _ in range(3):
+        tap(require(nodes(), 'CONTINUE'))
+    nodes('candidate-fresh-week-plan')
+    screenshot('candidate-fresh-week-plan')
+    tap(require(nodes(), 'ENTER MY COURT'))
+    require(nodes('candidate-fresh-court'), 'Avery’s court.')
+    screenshot('candidate-fresh-court')
+    fresh_state = json.loads(prefs()['state'].text)
+    assert fresh_state['playerName'] == 'Avery' and len(fresh_state['slots']) == 6
+    report = dict(fresh_onboarding=True, empty_progress=True, blank_name=True, long_name=True,
+                  completed_workout=True, scorekeeping_and_undo=True, system_back=True,
+                  update_retains_saved_state=True, primary_on_first_viewport=True, saved_name_visible=True, immediate_preference_selection=True, result_recorded_once=True,
                   successes=15, attempts=15, xp_awarded=50, relaunch_persistence=True,
                   compact_capture=True, large_type_capture=True)
     (OUT / 'candidate-result.json').write_text(json.dumps(report, indent=2))
