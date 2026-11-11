@@ -13,6 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,26 +30,27 @@ internal fun AppHeader(title: String, subtitle: String = "") {
             )))
             .padding(start = 24.dp, end = 24.dp, top = 30.dp, bottom = 34.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Box(
                 Modifier.size(48.dp).clip(RoundedCornerShape(16.dp))
                     .background(Brush.linearGradient(listOf(CourtQuestDesign.iconGradientStart, CourtQuestDesign.accentVivid))),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.SportsBasketball, null,
+                Icon(Icons.Default.SportsBasketball, "Basketball",
                     tint = CourtQuestDesign.iconForeground, modifier = Modifier.size(28.dp))
             }
-            Spacer(Modifier.width(13.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Text("COURTQUEST", color = CourtQuestDesign.textPrimary, fontSize = 14.sp,
-                    fontWeight = FontWeight.Black, letterSpacing = 2.1.sp)
+                    fontWeight = FontWeight.Black, letterSpacing = 2.1.sp,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text("PERFORMANCE STUDIO", color = CourtQuestDesign.accent, fontSize = 9.sp,
-                    fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+                    fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
-            Spacer(Modifier.weight(1f))
             Box(
                 Modifier.clip(RoundedCornerShape(50))
                     .background(CourtQuestDesign.chipBackground)
+                    .semantics { contentDescription = "Player Lab" }
                     .border(1.dp, CourtQuestDesign.chipBorder, RoundedCornerShape(50))
                     .padding(horizontal = 10.dp, vertical = 7.dp)
             ) {
