@@ -48,3 +48,16 @@ GitHub workflow `verify-native-daily-flow.yml` runs the preserved build-2 baseli
 - Certificate SHA-256: `25f8007f0a8503b01ded3f4856d02e830c64c823aa2c816da4d347ed5015f27b`.
 - The local and clean CI APK ZIP payloads match except the generated D8 class-checksum metadata in `classes3.dex`; their binary hashes differ. The release checksum above was validated against the actual downloaded GitHub asset. Source trees for app/src, root build, settings, properties and Gradle wrapper match the candidate.
 - Actual Android runtime/visual acceptance is recorded separately below; the successful release job does not establish it.
+
+## Actual Android review and build 4 refinements
+
+Method: design review only (native platform; browser detector does not apply). Applied the directly read Impeccable native audit/critique guidance to matching Android Emulator captures from [run 42946204172](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/42946204172), artifact `13823540747`. Taste's web guidance was considered only for hierarchy, consistent edges and actual product evidence; its website recipes are not a native implementation requirement.
+
+Observed: build 2's training action was below the first viewport; build 3's Resume session was visible. Updating build 2 in place retained the existing profile/results. Setup's saved name and first-tap level selection were verified. The drill recorded 15 successes and one miss. The test needed to scroll inside the actual list bounds to reach its correction action; the first harness stopped before saving, so that run does not prove the full flow.
+
+- P1 fixed in candidate 4: Progress's selected Training chip inherited a purple Material container. Explicit warm secondary/tertiary roles now keep selection and tonal controls in CourtQuest's palette.
+- P2 fixed: the drill had a generic Training display title plus a second large drill title, pushing correction actions down. The drill name is now the single display title. Removed the duplicated plus symbol on the success action.
+- P2 fixed: dated records followed another activity/streak section. They now lead the Training content, ahead of streak summaries. Full history uses individual LazyColumn items with a native Back path.
+- Input/control outlines now use #8B7A71 (4.53:1 against the canvas, 4.19:1 against the utility surface and 3.16:1 against the warm surface). Secondary text on the warm surface is 5.84:1.
+- Ruling: include an original native adaptive basketball launcher mark in this delivery. The baseline had no launcher icon; the new mark uses the existing brand colors and Android masks. This expands the original slice slightly and remains reversible.
+- Owner visual acceptance, TalkBack traversal, physical-phone operation, landscape and tablet layouts remain separate checks. The next native run checks save-once, dated record visibility, relaunch, history Back, fresh onboarding, and compact/200% controls before publication of build 4.
