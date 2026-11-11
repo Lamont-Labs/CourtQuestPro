@@ -154,7 +154,7 @@ The owner authorized implementation and an in-place APK update. The daily flow, 
 
 The published build 3 has the preserved package and certificate, and its downloaded SHA-256 is `1056c917720dd7b5a2265e4a0069db6d0a3f8c78befde19d94b143090981bbda`. Build, unit tests, lint and packaging checks passed. Actual Android screen review and owner visual acceptance must be read from the pass ledger; those are separate claims from a green build. The native workflow uses the pinned build-2 source so replacing the shared release asset does not destroy the comparison baseline.
 
-## Current verified visual build: 4
+## Verified visual build 4 checkpoint
 
 Build 4 is published and its downloaded bytes match the exact APK that passed the full Android journey. Source app/src tree: `600e809779b58d9416834050a2a27a1391386cde`. Candidate: `d7cb1aa9cb56f1548b9ccd139894078815fa3310`; release: `44cc62d363e488d8ca0d20311fe50923ee903be3`. The implementation has a single drill heading, dated records before activity summaries, virtualized full history with native Back, explicit warm Material selection roles, readable control outlines and an original native launcher mark.
 
@@ -167,3 +167,9 @@ Verified: 25 Android tests, 53 repository tests, build, lint (0 errors, 10 warni
 Continue the established native design through game setup, live scoring, the saved game receipt and dated game history. Use a compact game header, a unified scoreboard, 48 dp native controls and an adaptive stacked layout when enlarged text needs it. Keep names, score, Undo order and the same-day resume route bound to actual saved state. Receipts show the XP actually added by the existing award keys. The full game list uses individual LazyColumn items. No new assets or dependencies.
 
 Verified reference searches and the exact RED resume regression are recorded in [the one-on-one pass ledger](docs/plans/2026-11-10-one-on-one-visual-pass.md). Build 4 remains the published APK until the candidate has passed the Android walkthrough, matched capture review and downloaded-file verification. The active candidate branch is `dev/premium-game-flow`; preserve the independent `main` branch.
+
+## Current Android-verified candidate: build 5
+
+Source `67e9776c7983e77ef870146aede6db28927be51b`, app/src tree `c33f5a258704f520f1e95872661134a09bc14aa3`. [Native run 43043445045](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43043445045) passed both the existing daily flow and the expanded one-on-one flow on the exact APK SHA-256 `d2e6eb32d3d90d93a3be3cbbc08684e5090202746294e2ea0bf3583b5817339b`. Android unit tests: 31 passed; lint: 0 errors, 10 warnings.
+
+The game setup, scoreboard, receipt and dated/virtualized game history now use the shared native visual system. Same-day games resume with saved score and Undo order; finished and expired games do not resume. Repeat games report actual awarded XP, and identical names do not change which side won. Normal, compact/130%, critical 200%, landscape and tablet control captures are retained. Physical-phone operation, owner visual acceptance and full TalkBack traversal remain separate. The exact tested APK is staged for the already-authorized in-place development release.

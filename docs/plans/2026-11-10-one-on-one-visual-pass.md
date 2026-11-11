@@ -37,12 +37,12 @@ branch and its work intact. No imported assets or dependencies are needed.
 
 - [x] Capture build-4 setup/scoring in a current native run. Demonstrate the
   missing resume path with a behavioral Android regression check.
-- [ ] Implement shared native setup, scoreboard, game receipt and game history.
+- [x] Implement shared native setup, scoreboard, game receipt and game history.
   Add the resume route using existing same-day saved match state.
-- [ ] Run Android unit tests, build, lint and APK identity/signature checks.
-- [ ] Verify score/Undo, exit/resume, process restart, 10–10 sudden death,
+- [x] Run Android unit tests, build, lint and APK identity/signature checks.
+- [x] Verify score/Undo, exit/resume, process restart, 10–10 sudden death,
   save-once, correct XP, recap and dated history. Preserve the daily drill flow.
-- [ ] Review matched Android renders at 360 dp, 320 dp/130%, critical 200%
+- [x] Review matched Android renders at 360 dp, 320 dp/130%, critical 200%
   controls, landscape, tablet and disabled system animations. Fix visible issues.
 - [ ] Publish the exact tested APK as build 5 through the existing GitHub URL;
   download it and verify hash, version, package and original certificate.
@@ -74,3 +74,17 @@ Receipt correction: preserve the existing per-day award keys and store the actua
 - Saved game dates retain the year, so records from multiple seasons remain identifiable.
 - Native game-history coverage now opens an eight-record full list, reaches an older record and uses native Back.
 - Candidate `cbb8b21` compiled, passed all 31 Android tests and lint, and passed the complete daily flow plus scoring/Undo, exit/resume and process restart. Its extended native run `42955538196` stopped at a harness bug: an XML leaf element was tested for truthiness, so the activity recreation resume action was skipped. The harness now checks `is not None`. This was not an application crash or an inferred runtime pass.
+
+## Rendered review of the first build-5 candidate
+
+Inspected exact Android PNGs from run `42955538196`, artifact `13827875451`, against current-run build-4 reference captures from `42954008362`. The setup reduces the two-line generic header and boxed rules to a compact title, numbered rule rows and a stable Start game footer. With the keyboard open, the active opponent field and Start game are both visible; build 4 hid the action below the keyboard. The live game uses a single score surface and short instruction, with one +1 per action. At 200% text, point actions stack and remain reachable. The Court capture shows Resume 1-on-1 leading the completed-session panel. These are observed refinements, not owner visual acceptance.
+
+The first candidate’s XML reports contain 31 Android tests, zero failures/errors and lint with zero errors / ten warnings. New native verification retains the dated receipt and full-history views and checks landscape, tablet, sudden death, repeated awards, identical names and daily rollover. Publication remains gated on those actual results.
+
+## Final native candidate verified — November 11, 2026
+
+[Run 43043445045](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43043445045) passed the complete daily and game journeys. Source `67e9776c7983e77ef870146aede6db28927be51b`; app/src tree `c33f5a258704f520f1e95872661134a09bc14aa3`. Artifact `13866239034` retains the exact APK, all captures, raw UI hierarchies, both behavioral reports, 31 passing Android tests, lint (0 errors / 10 warnings), package/certificate/ZIP/alignment verification, and source revisions. The downloaded artifact ZIP and APK hashes were checked locally.
+
+APK SHA-256: `d2e6eb32d3d90d93a3be3cbbc08684e5090202746294e2ea0bf3583b5817339b`. Package `com.courtquestpro`, version 1.0 (5), 16949180 bytes; original certificate `25f8007f0a8503b01ded3f4856d02e830c64c823aa2c816da4d347ed5015f27b`. The helper manifest reports emulator testing separately; the candidate-result and game-result reports bind the passing journeys to this exact hash. The publication job combines that evidence before writing the release.
+
+Manually inspected the final receipt, Games view, 200% scoring controls, landscape control capture, tablet scoreboard and full game list. Scores/names/date/year and saved XP are readable, and enlarged controls reflow. Landscape uses vertical scrolling; its capture is a control-reachability check, not acceptance of an optimized landscape composition. All captures use synthetic profiles. Physical-phone operation, owner visual acceptance and full TalkBack traversal remain open.
