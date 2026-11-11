@@ -21,15 +21,21 @@ import kotlinx.coroutines.delay
 internal fun DrillScreen(
     drill: Drill, slotNumber: Int, complete: Boolean, previousResults: List<DrillResult>,
     draft: DrillDraft, onDraft: (DrillDraft) -> Unit, onVideo: () -> Unit,
-    onComplete: (Int, Int) -> Unit, onBack: () -> Unit
+    onComplete: (Int, Int) -> Unit, onBack: () -> Unit,
+    practice: Boolean = false, onDiscard: (() -> Unit)? = null
 ) {
     var completedCount by remember(drill.id, slotNumber) { mutableIntStateOf(draft.successful) }
     var attemptedCount by remember(drill.id, slotNumber) { mutableIntStateOf(draft.attempted) }
     var targetConfirmed by remember(drill.id, slotNumber) { mutableStateOf(draft.targetConfirmed) }
     var timerSeconds by remember(drill.id, slotNumber) { mutableIntStateOf(draft.remainingSeconds) }
     val measurement = measurementFor(drill.category)
-    val requiredCount = DrillTargets.minimum(drill.id)
-    val meetsCount = DrillTargets.eligible(drill.id, completedCount, attemptedCount)
+    val requiredCount = DrillTargets.minimum(drill)
+    val meetsCount = DrillTargets.eligible(drill, completedCount, attemptedCount)
+    var confirmDiscard by remember(drill.id) { mutableStateOf(false) }
+    if (confirmDiscard) AlertDialog(onDismissRequest = { confirmDiscard = false }, title = { Text("Discard this practice?") },
+        text = { Text("Unrecorded attempts will be removed. Your saved results stay in Progress.") },
+        confirmButton = { TextButton({ confirmDiscard = false; onDiscard?.invoke() }) { Text("Discard practice") } },
+        dismissButton = { TextButton({ confirmDiscard = false }) { Text("Keep practicing") } })
     val best = previousResults.filter { it.attempted > 0 && it.completed in 0..it.attempted }.maxByOrNull { it.completed }
 
     fun saveDraft() {
@@ -39,7 +45,7 @@ internal fun DrillScreen(
 
     Column(Modifier.fillMaxSize()) {
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 20.dp)) {
-            item { AppHeader(drill.title, "Drill ${slotNumber.coerceIn(1, 6)} of 6 · ${drill.category}") }
+            item { AppHeader(drill.title, if (practice) "Extra practice · ${drill.category}" else "Drill ${slotNumber.coerceIn(1, 6)} of 6 · ${drill.category}") }
             item {
                 Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
                     CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp)) {
@@ -90,6 +96,7 @@ internal fun DrillScreen(
                     Text("Use a dry, clear court. Warm up first, keep movements controlled, and stop if the surface is slippery or something hurts.",
                         color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
                     TextButton(onClick = onBack, modifier = Modifier.heightIn(min = 48.dp)) { Text("Back to Court") }
+                    if (practice && onDiscard != null) TextButton({ confirmDiscard = true }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Discard practice") }
                 }
             }
         }
@@ -155,7 +162,7 @@ internal fun DrillResultScreen(
     onContinue: () -> Unit, onProgress: () -> Unit, onHome: () -> Unit
 ) {
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
-        item { AppHeader("Session recorded.", "${drill.category} · ${result.date}") }
+        item { AppHeader(if (result.practice) "Practice recorded." else "Session recorded.", "${drill.category} · ${result.date}") }
         item {
             Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                 Icon(Icons.Default.CheckCircle, null, tint = CourtQuestDesign.accentVivid, modifier = Modifier.size(56.dp))
@@ -169,21 +176,22 @@ internal fun DrillResultScreen(
                         }
                         CourtRule()
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("$completedSlots of 6 drills recorded", color = CourtQuestDesign.textSecondary,
+                            Text(if (result.practice) "Extra practice" else "$completedSlots of 6 drills recorded", color = CourtQuestDesign.textSecondary,
                                 style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                             Text("+$earnedXp XP", color = CourtQuestDesign.accent, style = MaterialTheme.typography.labelLarge)
                         }
                     }
                 }
-                Text(if (completedSlots == 6) "Today's six-drill workout is complete. Find the full record in Progress."
+                Text(if (result.practice) "Extra practice recorded in Progress. Your daily workout and its XP rules stay separate."
+                    else if (completedSlots == 6) "Today's six-drill workout is complete. Find the full record in Progress."
                     else "Your result is saved. Continue your workout or review your training record.",
                     color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyLarge)
-                CourtQuestPrimaryButton(onClick = if (completedSlots == 6) onProgress else onContinue,
+                CourtQuestPrimaryButton(onClick = if (!result.practice && completedSlots == 6) onProgress else onContinue,
                     modifier = Modifier.fillMaxWidth()) {
-                    Text(if (completedSlots == 6) "View Progress" else "Continue training", Modifier.weight(1f))
+                    Text(if (result.practice) "Back to Drills" else if (completedSlots == 6) "View Progress" else "Continue training", Modifier.weight(1f))
                     Icon(Icons.Default.ArrowForward, null)
                 }
-                if (completedSlots < 6) {
+                if (result.practice || completedSlots < 6) {
                     OutlinedButton(onClick = onProgress, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("View Progress") }
                 }
                 TextButton(onClick = onHome, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("Back to Court") }

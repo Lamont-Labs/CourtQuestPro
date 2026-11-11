@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGames: Boolean = false) {
+    val drills = TrainingLibrary.catalog(save)
     var showGames by remember(initiallyShowGames) { mutableStateOf(initiallyShowGames) }
     var showAllSessions by remember { mutableStateOf(false) }
     var showAllGames by remember { mutableStateOf(false) }
@@ -45,7 +46,7 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
                     modifier = Modifier.padding(horizontal = 20.dp).heightIn(min = 48.dp)) { Text("Back to Progress") }
             }
             items(recorded.asReversed()) { result ->
-                TrainingSessionCard(result, Modifier.padding(horizontal = 20.dp))
+                TrainingSessionCard(result, drills, Modifier.padding(horizontal = 20.dp))
             }
         }
         return
@@ -96,7 +97,7 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
                 } else {
                     CourtHeading("Recorded sessions")
                     val sessionHistory = recorded.asReversed()
-                    sessionHistory.take(3).forEach { result -> TrainingSessionCard(result) }
+                    sessionHistory.take(3).forEach { result -> TrainingSessionCard(result, drills) }
                     if (sessionHistory.size > 3) {
                         TextButton(onClick = { showAllSessions = true }, modifier = Modifier.heightIn(min = 48.dp)) {
                             Text("View all ${sessionHistory.size} sessions")
@@ -111,7 +112,7 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
                     CourtRule()
                     CourtHeading("By skill")
                     listOf("Shooting", "Ball Handling", "Finishing", "Defense", "Rebounding", "Passing").forEach { category ->
-                        val results = valid.filter { result -> drills.any { it.id == result.drillId && it.category == category } }
+                        val results = valid.filter { result -> result.drillSnapshot?.category == category || drills.any { it.id == result.drillId && it.category == category } }
                         val attempts = results.sumOf { it.attempted }
                         val successful = results.sumOf { it.completed }
                         Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
@@ -162,11 +163,11 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
 }
 
 @Composable
-private fun TrainingSessionCard(result: DrillResult, modifier: Modifier = Modifier) {
+private fun TrainingSessionCard(result: DrillResult, catalog: List<Drill>, modifier: Modifier = Modifier) {
     CourtQuestPremiumSurface(modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            CourtEyebrow(result.date)
-            Text(drills.firstOrNull { it.id == result.drillId }?.title ?: result.drillId,
+            CourtEyebrow(if (result.practice) "${result.date} · Extra practice" else result.date)
+            Text(result.drillSnapshot?.title ?: catalog.firstOrNull { it.id == result.drillId }?.title ?: "Saved drill",
                 color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleMedium)
             Text("${result.completed} successful / ${result.attempted} attempts",
                 color = CourtQuestDesign.accent, style = MaterialTheme.typography.bodyMedium)

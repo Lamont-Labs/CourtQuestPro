@@ -25,11 +25,13 @@ import java.time.format.DateTimeFormatter
 internal fun HomeScreen(
     save: SaveState, onSpin: () -> Unit, onStartChamp: () -> Unit, onCareer: () -> Unit,
     onSaveName: (String) -> Unit, onWeeklyPlan: (String) -> Unit,
-    onTrainingDay: (Int) -> Unit, onActivity: (Int, String) -> Unit
+    onTrainingDay: (Int) -> Unit, onActivity: (Int, String) -> Unit,
+    onLibrary: () -> Unit, onShuffle: () -> Unit, onSwap: (String) -> Unit, onResumePractice: () -> Unit
 ) {
     var showWeeklyEditor by remember { mutableStateOf(false) }
     var newPlayerName by remember { mutableStateOf("") }
     val today = LocalDate.now()
+    val drills = TrainingLibrary.catalog(save)
     val resumeMatch = save.hasResumableMatch(today.toString())
     val done = save.slots.count { it.complete }
     val resumable = save.slots.any { slot ->
@@ -108,7 +110,17 @@ internal fun HomeScreen(
                     CourtMetric("Days this week", "$trainedThisWeek / 3", Modifier.weight(1f))
                 }
                 CourtRule()
+                if (save.practiceSession != null) {
+                    OutlinedButton(onResumePractice, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) { Text("Resume extra practice") }
+                }
                 CourtHeading("Your session", "Progress", onCareer)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onLibrary, modifier = Modifier.heightIn(min = 48.dp)) { Text("Drill library") }
+                    TextButton(onShuffle, enabled = save.slots.any { !TrainingLibrary.locked(save, it) },
+                        modifier = Modifier.heightIn(min = 48.dp)) { Text("Shuffle remaining") }
+                }
+                Text("Completed and started drills stay protected.", style = MaterialTheme.typography.bodySmall,
+                    color = CourtQuestDesign.textSecondary)
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     save.slots.forEachIndexed { index, slot ->
                         val drill = drills.firstOrNull { it.id == slot.drillId }
@@ -125,6 +137,10 @@ internal fun HomeScreen(
                                 if (slot.complete) "Completed" else "Available",
                                 tint = if (slot.complete) CourtQuestDesign.accent else CourtQuestDesign.textSecondary,
                                 modifier = Modifier.size(20.dp))
+                            if (!TrainingLibrary.locked(save, slot)) {
+                                TextButton({ onSwap(slot.id) }, modifier = Modifier.heightIn(min = 48.dp)
+                                    .semantics { contentDescription = "Swap ${drill?.title ?: "daily drill"}" }) { Text("Swap") }
+                            }
                         }
                     }
                 }

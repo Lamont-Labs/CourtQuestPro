@@ -29,3 +29,7 @@ UI/UX Pro Max matched Fitness/Gym App and Sports/Fitness without fallback: retai
 ## Review focus
 
 Incomplete/invalid custom inputs must not write definitions. Edits/archives must preserve old results and queued targets. Shuffling must not create fresh award IDs or erase drafts. A practice save must not duplicate after taps/relaunch. Old JSON and the existing one-on-one flow must remain usable.
+
+## Execution ledger
+
+RED: run 43049795517 on test/spec commit 1f7b1c99 failed at the missing DrillInput/TrainingLibrary/model interfaces before implementation. New optional saved fields and the pure library/practice domain now implement those contracts. The native editor/library, daily selection and extra-practice recording are wired for the first compiled candidate. Official Android documentation confirmed testTagsAsResourceId support since Compose 1.2; semantic resource tags make native form checks stable without changing visible copy.

@@ -40,7 +40,7 @@ def start_game(phase):
     ui.shell('input', 'text', 'Casey')
     snap(f'{phase}-game-keyboard')
     ui.shell('input', 'keyevent', 'KEYCODE_BACK')
-    label = 'ENTER THE CHAMPIONSHIP' if phase == 'baseline' else 'Start game'
+    label = 'Start game' if ui.find(ui.nodes(), 'Start game') is not None else 'ENTER THE CHAMPIONSHIP'
     # During the RED run, the existing build still has the previous label.
     if phase == 'candidate' and ui.find(ui.nodes(), 'Start game') is None:
         label = 'ENTER THE CHAMPIONSHIP'

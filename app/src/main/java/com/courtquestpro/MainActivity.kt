@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,6 +32,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
@@ -52,11 +54,13 @@ private val Muted = CourtQuestDesign.textSecondary
 
 data class Drill(
     val id: String, val category: String, val title: String, val level: String,
-    val minutes: Int, val instructions: String, val target: String, val videoQuery: String
+    val minutes: Int, val instructions: String, val target: String, val videoQuery: String,
+    val minimumSuccesses: Int = 0
 )
 
 data class Slot(val id: String, val drillId: String, var complete: Boolean = false)
-data class DrillResult(val date: String, val slotId: String, val drillId: String, val completed: Int, val attempted: Int)
+data class DrillResult(val date: String, val slotId: String, val drillId: String, val completed: Int, val attempted: Int,
+    val practice: Boolean = false, val drillSnapshot: Drill? = null)
 data class MatchRecord(
     val date: String, val player: String, val opponent: String,
     val playerScore: Int, val opponentScore: Int, val winner: String, val xp: Int
@@ -83,7 +87,10 @@ data class SaveState(
     var awardedKeys: MutableList<String> = mutableListOf(),
     var drillResults: MutableList<DrillResult>? = null,
     var drillDrafts: MutableList<DrillDraft>? = null,
-    var showWarmupDone: Boolean = false
+    var showWarmupDone: Boolean = false,
+    var customDrills: MutableList<UserDrill>? = null,
+    var favoriteDrillIds: MutableList<String>? = null,
+    var practiceSession: PracticeSession? = null
 )
 
 internal val drills = listOf(
@@ -114,6 +121,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 fun CourtQuestApp(openUrl: (String) -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -132,6 +140,11 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     }
     fun persist() { prefs.edit().putString("state", gson.toJson(save)).apply() }
     fun refresh() { save = gson.fromJson(gson.toJson(save), SaveState::class.java); persist() }
+
+    val catalog = TrainingLibrary.catalog(save)
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    fun notice(message: String) { scope.launch { snackbar.showSnackbar(message) } }
 
     val legacyProfileExists = remember { prefs.contains("state") }
     var onboardingComplete by remember {
@@ -173,7 +186,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         save.difficulty = onboardingLevel
         save.weeklyPlan = onboardingFocus
         save.trainingDays = onboardingDays.toMutableList()
-        save.slots = makeDailySlots(save.difficulty, save.weeklyPlan).toMutableList()
+        save.slots = makeDailySlots(save.difficulty, save.weeklyPlan, TrainingLibrary.available(save)).toMutableList()
         save.drillDrafts = mutableListOf()
         refresh()
         prefs.edit().putBoolean("onboarding_complete", true)
@@ -182,6 +195,10 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         onboardingComplete = true
     }
     var screen by remember { mutableStateOf("home") }
+    var librarySlotId by remember { mutableStateOf<String?>(null) }
+    var libraryFocusId by remember { mutableStateOf<String?>(null) }
+    var editingDrillId by remember { mutableStateOf<String?>(null) }
+    var editorCategory by remember { mutableStateOf("Shooting") }
     var selectedSlot by remember { mutableIntStateOf(-1) }
     var playerNameInput by remember { mutableStateOf(save.playerName) }
     var opponentInput by remember { mutableStateOf("") }
@@ -213,7 +230,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         if (save.activeDate != today) {
             save.drillDrafts = mutableListOf()
             save.activeDate = today
-            save.slots = makeDailySlots(save.difficulty, save.weeklyPlan).toMutableList()
+            save.slots = makeDailySlots(save.difficulty, save.weeklyPlan, TrainingLibrary.available(save)).toMutableList()
             save.championshipDone = false
             save.playerScore = 0
             save.opponentScore = 0
@@ -223,12 +240,12 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             save.showWarmupDone = false
             refresh()
         } else if (save.slots.isEmpty()) {
-            save.slots = makeDailySlots(save.difficulty, save.weeklyPlan).toMutableList()
+            save.slots = makeDailySlots(save.difficulty, save.weeklyPlan, TrainingLibrary.available(save)).toMutableList()
             save.drillDrafts = mutableListOf()
             refresh()
         } else {
             val retained = DrillDraftRecovery.prune(save.drillDrafts.orEmpty(), today, save.slots) { id ->
-                drills.firstOrNull { it.id == id }?.minutes?.coerceAtLeast(1)?.times(60)
+                catalog.firstOrNull { it.id == id }?.minutes?.coerceAtLeast(1)?.times(60)
             }
             if (retained != save.drillDrafts.orEmpty()) {
                 save.drillDrafts = retained.toMutableList()
@@ -237,12 +254,34 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         }
     }
 
+    fun openLibrary(slotId: String? = null) {
+        librarySlotId = slotId
+        libraryFocusId = null
+        screen = "library"
+    }
+    @Composable fun HomeContent() {
+        HomeScreen(save, { openTraining() }, { openMatch() }, { screen = "career" },
+            { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() },
+            { plan -> save.weeklyPlan = plan; refresh() },
+            { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() },
+            { day, kind -> save.weeklyActivities = updateWeeklyActivity(save.weeklyActivities, day, kind); refresh() },
+            onLibrary = { openLibrary() }, onSwap = { openLibrary(it) },
+            onShuffle = {
+                val changed = TrainingLibrary.shuffle(save)
+                if (changed > 0) { refresh(); notice("$changed untouched drills shuffled.") }
+                else notice("No suitable alternatives yet. Started and completed drills stay protected.")
+            }, onResumePractice = { screen = "practice" })
+    }
+
     CourtQuestTheme {
         Scaffold(
+            modifier = Modifier.semantics { testTagsAsResourceId = true },
+            snackbarHost = { SnackbarHost(snackbar) },
             containerColor = Color(0xFF121315),
             bottomBar = {
-                if (onboardingComplete && screen in listOf("home", "career", "gameHistory", "settings")) NavigationBar(containerColor = CourtQuestDesign.surface, tonalElevation = 0.dp) {
+                if (onboardingComplete && screen in listOf("home", "library", "career", "gameHistory", "settings")) NavigationBar(containerColor = CourtQuestDesign.surface, tonalElevation = 0.dp) {
                     NavigationBarItem(selected = screen == "home", onClick = { screen = "home" }, icon = { Icon(Icons.Default.SportsBasketball, "Court dashboard") }, label = { Text("Court", fontWeight = FontWeight.Bold, fontSize = 12.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
+                    NavigationBarItem(selected = screen == "library", onClick = { openLibrary() }, icon = { Icon(Icons.Default.FitnessCenter, "Drill library") }, label = { Text("Drills", fontWeight = FontWeight.Bold, fontSize = 12.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = CourtQuestDesign.iconForeground, selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
                     NavigationBarItem(selected = screen in listOf("career", "gameHistory"), onClick = { screen = "career" }, icon = { Icon(Icons.Default.Insights, "Player development") }, label = { Text("Progress", fontWeight = FontWeight.Bold, fontSize = 12.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
                     NavigationBarItem(selected = screen == "settings", onClick = { screen = "settings" }, icon = { Icon(Icons.Default.Tune, "Player settings") }, label = { Text("Setup", fontWeight = FontWeight.Bold, fontSize = 12.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
                 }
@@ -271,16 +310,50 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 )
             } else AnimatedContent(targetState = screen, label = "screen-transition", modifier = Modifier.padding(padding)) { target ->
                 when (target) {
-                    "home" -> HomeScreen(
-                        save = save, onSpin = { openTraining() },
-                        onStartChamp = { openMatch() },
-                        onCareer = { screen = "career" },
-                        onSaveName = { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() },
-                        onWeeklyPlan = { plan -> save.weeklyPlan = plan; refresh() }, onTrainingDay = { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() }, onActivity = { day, kind -> save.weeklyActivities = updateWeeklyActivity(save.weeklyActivities, day, kind); refresh() }
-                    )
+                    "home" -> HomeContent()
+                    "library" -> DrillLibraryScreen(save, librarySlotId,
+                        onNew = {
+                            editingDrillId = null
+                            editorCategory = librarySlotId?.let { id -> save.slots.firstOrNull { it.id == id }?.drillId }
+                                ?.let { id -> catalog.firstOrNull { it.id == id }?.category } ?: "Shooting"
+                            screen = "drillEditor"
+                        }, onEdit = { editingDrillId = it; screen = "drillEditor" },
+                        onArchive = { TrainingLibrary.archive(save, it); refresh(); notice("Drill archived. Saved results are preserved.") },
+                        onFavorite = { TrainingLibrary.toggleFavorite(save, it); refresh() },
+                        onPractice = { id ->
+                            if (save.practiceSession?.drillId == id || TrainingLibrary.startPractice(save, id, today)) {
+                                refresh(); screen = "practice"
+                            } else notice("Resume or finish your saved practice first.")
+                        }, onUse = { id ->
+                            val drill = catalog.firstOrNull { it.id == id }
+                            val slot = drill?.let { TrainingLibrary.swappableSlot(save, it, librarySlotId) }
+                            if (slot != null && TrainingLibrary.swap(save, slot.id, id)) {
+                                refresh(); screen = "home"; notice("Daily drill replaced. Your recorded work is protected.")
+                            } else notice("Choose an untouched slot and a suitable drill.")
+                        }, onResume = { screen = "practice" }, onHome = { screen = "home" }, initialDrillId = libraryFocusId)
+                    "drillEditor" -> CustomDrillEditor(catalog.firstOrNull { it.id == editingDrillId }, editorCategory,
+                        save.difficulty.takeIf { it in TrainingLibrary.levels } ?: "Beginner", onSave = { input ->
+                            val result = TrainingLibrary.saveCustom(save, input, editingDrillId)
+                            if (result == null) TrainingLibrary.validation(input) ?: "This drill is no longer available to edit."
+                            else { libraryFocusId = result.id; refresh(); screen = "library"; notice("Custom drill saved."); null }
+                        }, onBack = { screen = "library" })
+                    "practice" -> {
+                        val session = save.practiceSession
+                        val drill = catalog.firstOrNull { it.id == session?.drillId }
+                        if (session != null && drill != null) {
+                            DrillScreen(drill, 0, false, save.drillResults.orEmpty().filter { it.drillId == drill.id }, session.draft,
+                                onDraft = { if (TrainingLibrary.updatePracticeDraft(save, it)) persist() },
+                                onVideo = { openUrl("https://www.youtube.com/results?search_query=" + Uri.encode(drill.videoQuery)) },
+                                onComplete = { _, _ ->
+                                    val result = TrainingLibrary.finishPractice(save, session.id, today)
+                                    if (result != null) { refresh(); recordedDrill = result; recordedXp = 0; screen = "drillResult" }
+                                }, onBack = { screen = "home" }, practice = true,
+                                onDiscard = { if (TrainingLibrary.discardPractice(save, session.id)) { refresh(); openLibrary() } })
+                        } else LaunchedEffect(Unit) { openLibrary() }
+                    }
                     "drill" -> {
                         val slot = save.slots.getOrNull(selectedSlot)
-                        val drill = drills.firstOrNull { it.id == slot?.drillId } ?: drills.first()
+                        val drill = catalog.firstOrNull { it.id == slot?.drillId } ?: drills.first()
                         DrillScreen(
                             drill = drill, slotNumber = selectedSlot + 1, complete = slot?.complete == true,
                             previousResults = save.drillResults.orEmpty().filter { it.drillId == drill.id },
@@ -302,9 +375,10 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                             },
                             onVideo = { openUrl("https://www.youtube.com/results?search_query=" + Uri.encode(drill.videoQuery)) },
                             onComplete = { completed, attempted ->
-                                if (selectedSlot in save.slots.indices && !save.slots[selectedSlot].complete) {
+                                if (save.activeDate == today && selectedSlot in save.slots.indices && !save.slots[selectedSlot].complete &&
+                                    save.slots[selectedSlot].drillId == drill.id && DrillTargets.eligible(drill, completed, attempted)) {
                                     val xpBefore = save.totalXp
-                                    val result = DrillResult(save.activeDate, save.slots[selectedSlot].id, drill.id, completed, attempted)
+                                    val result = DrillResult(save.activeDate, save.slots[selectedSlot].id, drill.id, completed, attempted, drillSnapshot = drill)
                                     save.drillResults = (save.drillResults.orEmpty() + result).toMutableList()
                                     save.slots[selectedSlot].complete = true
                                     save.drillDrafts = save.drillDrafts.orEmpty().filterNot {
@@ -324,9 +398,9 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     "drillResult" -> {
                         val result = recordedDrill
                         if (result != null) {
-                            val drill = drills.firstOrNull { it.id == result.drillId } ?: drills.first()
+                            val drill = result.drillSnapshot ?: catalog.firstOrNull { it.id == result.drillId } ?: drills.first()
                             DrillResultScreen(drill, result, recordedXp, save.slots.count { it.complete },
-                                onContinue = { openTraining() }, onProgress = { screen = "career" },
+                                onContinue = { if (result.practice) openLibrary() else openTraining() }, onProgress = { screen = "career" },
                                 onHome = { screen = "home" })
                         } else LaunchedEffect(Unit) { screen = "home" }
                     }
@@ -396,13 +470,13 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         canUndo = !save.pointHistory.isNullOrEmpty(),
                         lastScorer = save.pointHistory?.lastOrNull()?.let { if (it) save.matchPlayer else save.matchOpponent }
                     )
-                    "recap" -> recap?.let { MatchRecapScreen(it, save.totalXp, onHome = { screen = "home" }, onCareer = { screen = "gameHistory" }) } ?: HomeScreen(save, { openTraining() }, { openMatch() }, { screen = "career" }, { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() }, { plan -> save.weeklyPlan = plan; refresh() }, { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() }, { day, kind -> save.weeklyActivities = updateWeeklyActivity(save.weeklyActivities, day, kind); refresh() })
+                    "recap" -> recap?.let { MatchRecapScreen(it, save.totalXp, onHome = { screen = "home" }, onCareer = { screen = "gameHistory" }) } ?: HomeContent()
                     "gameHistory" -> CareerScreen(save, onHome = { screen = "home" }, initiallyShowGames = true)
                     "career" -> CareerScreen(save, onHome = { screen = "home" })
                     "settings" -> SettingsScreen(save.playerName, save.difficulty, onDifficulty = { save.difficulty = it; refresh() }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
                     })
-                    else -> HomeScreen(save, { openTraining() }, { openMatch() }, { screen = "career" }, { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() }, { plan -> save.weeklyPlan = plan; refresh() }, { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() }, { day, kind -> save.weeklyActivities = updateWeeklyActivity(save.weeklyActivities, day, kind); refresh() })
+                    else -> HomeContent()
                 }
             }
         }
@@ -421,14 +495,14 @@ private fun toggleTrainingDay(current: MutableList<Int>?, day: Int): MutableList
     return (if (day in days) days.filterNot { it == day } else days + day).sorted().toMutableList()
 }
 
-private fun makeDailySlots(level: String, weeklyPlan: String = "Balanced"): List<Slot> {
+private fun makeDailySlots(level: String, weeklyPlan: String = "Balanced", catalog: List<Drill> = drills): List<Slot> {
     val categories = listOf("Shooting", "Ball Handling", "Finishing", "Defense", "Rebounding", "Passing")
     val focus = weeklyPlan.takeIf { it in categories }
     val levels = listOf("Beginner", "Intermediate", "Advanced", "Expert", "Elite")
     val requestedIndex = levels.indexOf(level).coerceAtLeast(0)
     val dayIndex = LocalDate.now().dayOfYear
     val chosen = categories.map { category ->
-        val options = drills.filter { it.category == category }
+        val options = catalog.filter { it.category == category }
         // A focus prioritizes the selected difficulty; other categories
         // use a lighter tier when available. Never escalate above the setting.
         val targetIndex = if (focus == null || category == focus) requestedIndex
