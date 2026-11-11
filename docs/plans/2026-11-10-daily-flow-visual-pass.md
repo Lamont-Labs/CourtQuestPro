@@ -14,7 +14,8 @@ Rework Court → start/resume drill → save → receipt → Progress, plus Setu
 - Complete: saved result receipt; actual dated records and same-drill comparisons in Progress; current name and level in Setup.
 - Complete: source review of the entire changed branch. No Critical findings. Important finding addressed: exact saved sessions must be visible in Progress; added dated session records with counts and full-history disclosure.
 - Complete: local Android unit tests 25/25, repository tests 53/53, build, lint (0 errors, 6 warnings), package/version, v2 signature and signing continuity, ZIP and 16KB alignment checks.
-- Pending: matched actual Android captures and runtime assertions; final GitHub release update and downloaded-asset verification.
+- Complete: build 3 published to the existing development APK URL, downloaded and verified independently (package, version code 3, preserved signer, ZIP and 16KB alignment, matching published checksum).
+- Pending: matched actual Android captures and runtime assertions. Build 3 release commit `da37913ca060604fdd599adefb2d10481703d7cd`. The application source tree is identical to candidate `3847cd883e12d69afef876a008273386cbb94d33` (`app/src` tree `c19a4983d639a12918a1f0e6ecbbf99aea2ac567`).
 
 ## Decisions and review record
 
@@ -35,3 +36,15 @@ Rework Court → start/resume drill → save → receipt → Progress, plus Setu
 `COURTQUEST_VERSION_CODE=3 python3 scripts/verify_apk.py --apk app/build/outputs/apk/debug/app-debug.apk --build-tools "$ANDROID_HOME/build-tools/35.0.1" --output artifacts/apk-verification`
 
 GitHub workflow `verify-native-daily-flow.yml` runs the preserved build-2 baseline, updates in place to the candidate, captures Court/Drill/Progress/Setup, records and corrects attempts, saves once, verifies XP and preferences, relaunches, and captures compact/enlarged text. Its test profile is synthetic. Owner visual acceptance and physical-phone testing remain separate.
+
+## Published build 3 evidence
+
+- Release commit: `da37913ca060604fdd599adefb2d10481703d7cd`.
+- Release workflow: [42945044187](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/42945044187), successful.
+- Development checks: [42945044267](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/42945044267), successful.
+- Restored UI checks: [42945044170](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/42945044170), successful. The old literal-color guard now checks the shared native token and its orange value.
+- Downloaded APK SHA-256: `1056c917720dd7b5a2265e4a0069db6d0a3f8c78befde19d94b143090981bbda`. Size: 16,914,940 bytes.
+- Package: `com.courtquestpro`. Version: 1.0 (3). Minimum/target SDK: 26/35.
+- Certificate SHA-256: `25f8007f0a8503b01ded3f4856d02e830c64c823aa2c816da4d347ed5015f27b`.
+- The local and clean CI APK ZIP payloads match except the generated D8 class-checksum metadata in `classes3.dex`; their binary hashes differ. The release checksum above was validated against the actual downloaded GitHub asset. Source trees for app/src, root build, settings, properties and Gradle wrapper match the candidate.
+- Actual Android runtime/visual acceptance is recorded separately below; the successful release job does not establish it.

@@ -19,7 +19,7 @@ jobs:
     env:
       COURTQUEST_VERSION_CODE: '3'
       COURTQUEST_UI_EVIDENCE: artifacts/android-daily-flow
-      ANDROID_AVD_HOME: ${{ runner.temp }}/courtquest-avd
+      ANDROID_AVD_HOME: /tmp/courtquest-avd
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:

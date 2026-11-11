@@ -7,7 +7,9 @@ colors:
   accent: "#FFA35C"
   on-primary: "#211713"
   background: "#121315"
-  surface: "#252127"
+  surface: "#1B1B1E"
+  surface-elevated: "#252127"
+  border: "#3C3534"
   surface-warm: "#4B281D"
   court-shadow: "#201A1B"
   text-primary: "#F7F3EF"
@@ -37,7 +39,7 @@ Keep the palette in sync with [`CourtQuestDesign.kt`](app/src/main/java/com/cour
 
 ## Typography
 
-Use Android's scalable text and native font stack until a typeface has been reviewed at phone sizes and its license is confirmed. Use a distinct display title, a clear screen or section heading, readable body copy, and a compact label style. Apply all-caps to short supporting labels. Favor sentence case for guidance and actions that need to scan quickly. Give scores, timers, and counts stable alignment as digits change. Keep body guidance readable at large font settings and allow content to wrap without moving the primary action out of reach.
+Build 3 bundles Barlow Condensed ExtraBold for display typography and Barlow Regular/SemiBold/Bold for body and controls. The font files carry the SIL Open Font License in `app/src/main/res/raw/barlow_ofl.txt`. They were selected from the directly matched UI/UX Pro Max Sports/Fitness guidance. Actual phone-sized, enlarged-text, and owner review are tracked separately in the current pass ledger. Use a distinct display title, a clear screen or section heading, readable body copy, and a compact label style. Apply all-caps to short supporting labels. Favor sentence case for guidance and actions that need to scan quickly. Give scores, timers, and counts stable alignment as digits change. Keep body guidance readable at large font settings and allow content to wrap without moving the primary action out of reach.
 
 ## Layout
 
@@ -65,7 +67,8 @@ Use 12 dp control, 16 dp standard surface, and 24 dp hero corner radii as starti
 - `CourtQuestDesign.kt` owns shared native color and spacing tokens.
 - `AppHeader.kt` and `CourtOnboardingWelcome.kt` provide existing editorial identity and court artwork.
 - `CourtQuestPrimaryButton.kt` and `CourtQuestPremiumSurface.kt` provide shared action and surface primitives. Compose Material 3 supplies semantic, focusable interaction building blocks.
-- `MainActivity.kt` currently hosts Court, drill, progress, onboarding, setup, and scorekeeper screens. Preserve normal navigation, scoring, saved state, history, and training rules through each visual pass. Keep names dynamic and preserve the existing generic labels for blank names.
+- `CourtQuestTheme.kt` owns the shared Material 3 typography and color scheme; `CourtPresentation.kt` owns section, metric and status primitives.
+- `CourtHomeScreen.kt`, `CourtDrillScreen.kt`, `CourtProgressScreen.kt`, and `CourtSettingsScreen.kt` own the daily UI. `MainActivity.kt` coordinates saved state, navigation, onboarding and scorekeeping. Preserve normal navigation, scoring, saved state, history, and training rules through each visual pass. Keep names dynamic and preserve the existing generic labels for blank names.
 
 ## Design workflow
 
@@ -143,3 +146,9 @@ Build 2's Court implementation places the branded header and player performance 
 | Related states | Check a fresh profile, a blank and long player name, a completed workout, no progress history, and active scorekeeping when shared components change. Check TalkBack labels and system animation settings where available. |
 | Technical result | With JDK 17 and Android SDK 35, run `./gradlew --no-daemon --console=plain :app:testDebugUnitTest :app:assembleDebug :app:lintDebug`. For changes to repository tooling, run `python3 -m unittest discover -s tests -v`. |
 | Review result | Record the exact APK and source, the reference and tools used, the issue fixed, any blocked checks, and the owner's visual decision. Count a premium refinement as accepted only after actual Android evidence and owner review. |
+
+## Build 3 implementation checkpoint
+
+The owner authorized implementation and an in-place APK update. The daily flow, actual receipt and dated session history are implemented in native Compose, with saved profile names and measurements. The UI branch is `dev/premium-daily-flow`; the authorized APK release branch remains `dev/scorekeeper-undo-history`. [Current pass and verification evidence](docs/plans/2026-11-10-daily-flow-visual-pass.md).
+
+The published build 3 has the preserved package and certificate, and its downloaded SHA-256 is `1056c917720dd7b5a2265e4a0069db6d0a3f8c78befde19d94b143090981bbda`. Build, unit tests, lint and packaging checks passed. Actual Android screen review and owner visual acceptance must be read from the pass ledger; those are separate claims from a green build. The native workflow uses the pinned build-2 source so replacing the shared release asset does not destroy the comparison baseline.
