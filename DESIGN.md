@@ -27,9 +27,30 @@ omitted:
 
 ## Overview
 
-CourtQuest Pro is a basketball performance studio for a player on a phone. It opens onto a clear training decision, supports a focused drill or one-on-one game, then makes the recorded result easy to find. The established dark, warm, orange identity is the starting point. Use basketball court geometry, confident typography, and carefully prioritized data to give CourtQuest its own identity. Use calmer, more direct layouts while the player is recording attempts or keeping score.
+CourtQuest Pro is a basketball performance studio for a player on a phone. It opens onto a clear training decision, supports a focused drill or one-on-one game, then makes the recorded result easy to find. The latest owner-selected direction is a deep-black app with brighter orange accents and a sharp, crisp, high-definition finish. Use basketball court geometry, confident typography, and carefully prioritized data to give CourtQuest its own identity. Use calmer, more direct layouts while the player is recording attempts or keeping score.
 
 The current design direction follows the owner's build 2 feedback. Onboarding improved, with substantial visual and workflow work remaining across the app. Build 2 used app source `21ff9222edd69f5c65c1999082b751c104d63194`, published in release commit `c3e57e93708edcb6e6fa61c43cddc79dae7314f3`. Confirm the current branch, APK version code, and owner feedback at the start of each pass. This file is the active standard. The earlier [design contract](docs/COURTQUEST_PREMIUM_UI_DESIGN_CONTRACT_v1.md) records the initial baseline.
+
+## Latest owner visual direction: deep black and brighter orange
+
+Saved November 11, 2026. Owner instruction: “super dark black and brighter orange” and “Super sharp, crisp and high definition.”
+
+This applies across the entire app: launch branding, onboarding, Court, training, scorekeeping, Progress, and Setup. The selected **Signature** CQ emblem and CourtQuest Pro wordmark remain the brand identity.
+
+| Area | Required direction |
+| --- | --- |
+| Main canvas | Deep, true black; use black as the dominant app background |
+| Supporting surfaces | Very dark neutral black tones, with subtle separation and clear hierarchy |
+| Orange | Brighter, vivid, saturated orange for primary actions, active states, and brand accents |
+| Text and edges | Crisp high-contrast lettering, sharp artwork edges, and precise alignment |
+| Artwork quality | High-resolution masters or suitable native/vector assets; preserve aspect ratio and avoid visible pixelation, blur, halos, and extraction residue |
+| Signature identity | Preserve the approved brush lettering, CQ silhouette, underline, and basketball detail while adapting the surrounding palette |
+
+This direction supersedes the earlier warm-brown and muted-charcoal emphasis. The hex values in the front matter describe the earlier documented palette; the next implementation pass must align shared native tokens and brand exports with this direction. Choose the exact brighter orange against the rendered black UI and Signature artwork rather than treating the older orange token as a locked shade.
+
+“High definition” means clean assets and precise rendering at actual phone sizes and densities. Maintain readable scalable text, accessible contrast, and clear control boundaries on black. Sharpness does not require removing the approved logo's brush-shaped terminals or changing every corner radius.
+
+**Status:** Preference saved as the app-wide visual target. This documentation update does not claim that the installed app or APK already uses the revised palette.
 
 ## Owner-selected brand: Signature
 
@@ -44,7 +65,7 @@ Approved visual reference: **CourtQuest Pro Signature Mark.png**. The owner's co
 | Basketball detail | Dark basketball seams at the lower-right end of the sweeping brushstroke |
 | CourtQuest wordmark | Bold, connected, forward-moving brush-script lettering |
 | PRO | Orange, widely spaced uppercase sans-serif lettering beneath CourtQuest |
-| Supporting palette | Existing orange, charcoal, and warm ivory brand family |
+| Supporting palette | Deep black, brighter orange, and crisp white or ivory brand lettering |
 
 Use the selected CQ mark and wordmark as the reference for launcher artwork, launch branding, onboarding, and appropriate app headers. Preserve the distinctive letter shapes and sweeping composition; a generic script font is not an equivalent replacement. Keep functional labels, instructions, scores, timers, and statistics in readable scalable native type.
 
@@ -62,7 +83,7 @@ Generated renditions preserve the selected Signature direction but can vary slig
 
 ## Colors
 
-Keep the palette in sync with [`CourtQuestDesign.kt`](app/src/main/java/com/courtquestpro/CourtQuestDesign.kt). Use near-black for canvas, muted charcoal for utility surfaces, and warm brown selectively for editorial depth. Use vivid orange for the primary action or important active state, with dark ink on filled orange controls. Use soft orange for emphasis and cream for primary text. Give secondary copy adequate contrast against its actual background. Label status with text, iconography, or semantics in addition to color.
+Follow the latest owner visual direction above and keep the implemented palette in sync with [`CourtQuestDesign.kt`](app/src/main/java/com/courtquestpro/CourtQuestDesign.kt). Use deep black as the dominant canvas and very dark neutral surfaces for supporting content. Use brighter saturated orange for the primary action and important active states, with readable dark ink on filled orange controls. Use crisp white or ivory for primary text and adequately contrasting secondary text. Keep boundaries and states clear on black, and label status with text, iconography, or semantics in addition to color. The older front-matter values are an implementation baseline awaiting this palette pass, not the current visual target.
 
 ## Typography
 
