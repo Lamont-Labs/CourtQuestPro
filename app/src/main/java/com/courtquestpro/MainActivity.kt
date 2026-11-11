@@ -384,12 +384,12 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         },
                         onBack = { screen = "home" }
                     )
-                    "recap" -> recap?.let { MatchRecapScreen(it, save.totalXp, onHome = { screen = "home" }, onCareer = { screen = "career" }) } ?: HomeScreen(save, { screen = "home" }, { screen = "champSetup" }, { screen = "career" }, { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() }, { plan -> save.weeklyPlan = plan; refresh() }, { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() }, { day, kind -> save.weeklyActivities = updateWeeklyActivity(save.weeklyActivities, day, kind); refresh() })
+                    "recap" -> recap?.let { MatchRecapScreen(it, save.totalXp, onHome = { screen = "home" }, onCareer = { screen = "career" }) } ?: HomeScreen(save, { openTraining() }, { screen = "champSetup" }, { screen = "career" }, { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() }, { plan -> save.weeklyPlan = plan; refresh() }, { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() }, { day, kind -> save.weeklyActivities = updateWeeklyActivity(save.weeklyActivities, day, kind); refresh() })
                     "career" -> CareerScreen(save, onHome = { screen = "home" })
                     "settings" -> SettingsScreen(save.playerName, save.difficulty, onDifficulty = { save.difficulty = it; refresh() }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
                     })
-                    else -> HomeScreen(save, { screen = "home" }, { screen = "champSetup" }, { screen = "career" }, { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() }, { plan -> save.weeklyPlan = plan; refresh() }, { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() }, { day, kind -> save.weeklyActivities = updateWeeklyActivity(save.weeklyActivities, day, kind); refresh() })
+                    else -> HomeScreen(save, { openTraining() }, { screen = "champSetup" }, { screen = "career" }, { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() }, { plan -> save.weeklyPlan = plan; refresh() }, { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() }, { day, kind -> save.weeklyActivities = updateWeeklyActivity(save.weeklyActivities, day, kind); refresh() })
                 }
             }
         }

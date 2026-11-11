@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun CareerScreen(save: SaveState, onHome: () -> Unit) {
     var showGames by remember { mutableStateOf(false) }
+    var showAllSessions by remember { mutableStateOf(false) }
     val recorded = save.drillResults.orEmpty()
     val valid = recorded.filter { it.attempted > 0 && it.completed in 0..it.attempted }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
@@ -70,6 +71,25 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                         StatCard("CURRENT STREAK", "${save.currentStreak} days", Modifier.weight(1f))
                         StatCard("LONGEST STREAK", "${save.longestStreak} days", Modifier.weight(1f))
                     }
+                    CourtHeading("Recorded sessions")
+                    val sessionHistory = recorded.asReversed()
+                    (if (showAllSessions) sessionHistory else sessionHistory.take(3)).forEach { result ->
+                        CourtQuestPremiumSurface(Modifier.fillMaxWidth()) {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                CourtEyebrow(result.date)
+                                Text(drills.firstOrNull { it.id == result.drillId }?.title ?: result.drillId,
+                                    color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleMedium)
+                                Text("${result.completed} successful / ${result.attempted} attempts",
+                                    color = CourtQuestDesign.accent, style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    }
+                    if (sessionHistory.size > 3) {
+                        TextButton(onClick = { showAllSessions = !showAllSessions }, modifier = Modifier.heightIn(min = 48.dp)) {
+                            Text(if (showAllSessions) "Show recent sessions" else "Show all ${sessionHistory.size} sessions")
+                        }
+                    }
+                    CourtRule()
                     CourtHeading("By skill")
                     listOf("Shooting", "Ball Handling", "Finishing", "Defense", "Rebounding", "Passing").forEach { category ->
                         val results = valid.filter { result -> drills.any { it.id == result.drillId && it.category == category } }

@@ -70,7 +70,7 @@ internal fun HomeScreen(
                             resumable -> "Back to work."
                             else -> "Build your game."
                         }, style = MaterialTheme.typography.displaySmall, color = CourtQuestDesign.textPrimary)
-                        Text("${save.difficulty} · ${save.weeklyPlan} · $minutes min",
+                        Text("${save.slots.size} skill drills · $minutes min",
                             style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textSecondary)
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.semantics { contentDescription = "$done of 6 drills completed" }) {

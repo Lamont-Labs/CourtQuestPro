@@ -69,9 +69,9 @@ internal fun DrillScreen(
                         modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp), shape = RoundedCornerShape(16.dp)
                     ) { Text("Record missed / other attempt") }
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = { completedCount--; attemptedCount--; saveDraft() },
+                        TextButton(onClick = { if (completedCount > 0) { completedCount--; attemptedCount--; saveDraft() } },
                             enabled = !complete && completedCount > 0, modifier = Modifier.heightIn(min = 48.dp)) { Text("− Success") }
-                        TextButton(onClick = { attemptedCount--; saveDraft() },
+                        TextButton(onClick = { if (attemptedCount > completedCount) { attemptedCount--; saveDraft() } },
                             enabled = !complete && attemptedCount > completedCount, modifier = Modifier.heightIn(min = 48.dp)) { Text("− Miss") }
                     }
                     if (best != null) {
