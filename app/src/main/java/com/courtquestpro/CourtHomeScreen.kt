@@ -30,6 +30,7 @@ internal fun HomeScreen(
     var showWeeklyEditor by remember { mutableStateOf(false) }
     var newPlayerName by remember { mutableStateOf("") }
     val today = LocalDate.now()
+    val resumeMatch = save.hasResumableMatch(today.toString())
     val done = save.slots.count { it.complete }
     val resumable = save.slots.any { slot ->
         !slot.complete && save.drillDrafts.orEmpty().any {
@@ -84,10 +85,21 @@ internal fun HomeScreen(
                                 color = CourtQuestDesign.textSecondary)
                         }
                         CourtQuestPrimaryButton(onClick = onSpin, modifier = Modifier.fillMaxWidth()) {
-                            Text(if (done == 6) "Play 1-on-1" else if (resumable) "Resume session" else "Start training",
+                            Text(if (done == 6 && resumeMatch) "Resume 1-on-1" else if (done == 6) "Play 1-on-1" else if (resumable) "Resume session" else "Start training",
                                 modifier = Modifier.weight(1f))
                             Icon(Icons.Default.ArrowForward, null, Modifier.size(20.dp))
                         }
+                    }
+                }
+                if (resumeMatch && done != 6) {
+                    OutlinedButton(onClick = onStartChamp, modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp),
+                        shape = RoundedCornerShape(16.dp), contentPadding = PaddingValues(16.dp)) {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("Resume 1-on-1", style = MaterialTheme.typography.titleMedium)
+                            Text("${save.matchPlayer} ${save.playerScore} · ${save.matchOpponent} ${save.opponentScore}",
+                                color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
+                        }
+                        Icon(Icons.Default.ArrowForward, null, Modifier.size(20.dp))
                     }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -185,8 +197,8 @@ internal fun HomeScreen(
                     Icon(Icons.Default.SportsBasketball, null, Modifier.size(28.dp))
                     Spacer(Modifier.width(14.dp))
                     Column(Modifier.weight(1f)) {
-                        Text("Play 1-on-1", style = MaterialTheme.typography.titleMedium)
-                        Text("First to 11 · Live scorekeeping", style = MaterialTheme.typography.bodySmall,
+                        Text(if (resumeMatch) "Resume 1-on-1" else "Play 1-on-1", style = MaterialTheme.typography.titleMedium)
+                        Text(if (resumeMatch) "${save.matchPlayer} ${save.playerScore} · ${save.matchOpponent} ${save.opponentScore}" else "First to 11 · Live scorekeeping", style = MaterialTheme.typography.bodySmall,
                             color = CourtQuestDesign.textSecondary)
                     }
                     Icon(Icons.Default.ChevronRight, null)

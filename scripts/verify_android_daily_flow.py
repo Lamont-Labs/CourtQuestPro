@@ -1,6 +1,7 @@
 from pathlib import Path
 from xml.etree import ElementTree as ET
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -97,6 +98,8 @@ def seed(variant="normal"):
         state['playerName'] = ''
     elif variant == 'long':
         state['playerName'] = 'Alexandria Montgomery-Washington'
+    elif variant == 'history':
+        state['drillResults'] = [dict(date=today, slotId=f'history-{i}', drillId='s1', completed=10 + i % 3, attempted=20) for i in range(150)]
     elif variant == 'complete':
         for slot in state['slots']:
             slot['complete'] = True
@@ -116,7 +119,15 @@ def scroll_to(text, limit=10):
         node = find(items, text)
         if node is not None:
             return node
-        shell('input', 'swipe', '360', '1230', '360', '480', '350')
+        scrollables = [node for node in items if node.get('scrollable') == 'true']
+        assert scrollables, f'No scrollable content can reach {text!r}'
+        def bounds(node):
+            return list(map(int, re.findall(r'\d+', node.attrib['bounds'])))
+        scrollable = max(scrollables, key=lambda node: (bounds(node)[2] - bounds(node)[0]) * (bounds(node)[3] - bounds(node)[1]))
+        left, top, right, bottom = bounds(scrollable)
+        x = (left + right) // 2
+        height = bottom - top
+        shell('input', 'swipe', str(x), str(top + height * 4 // 5), str(x), str(top + height // 4), '350')
         time.sleep(0.5)
     raise AssertionError(f'Control {text!r} was not reachable by scrolling')
 
@@ -156,6 +167,9 @@ def main():
     if before_update is not None:
         assert prefs()['state'].text == before_update, 'APK update must retain existing player data'
         print('Update retained the existing profile and results.', flush=True)
+    packaged_version = int(re.search(r'versionCode=(\d+)', shell('dumpsys', 'package', PACKAGE)).group(1))
+    if args.phase == 'candidate':
+        assert packaged_version == int(os.environ.get('COURTQUEST_VERSION_CODE', '4'))
     seed()
     open_app()
     home = nodes(f'{args.phase}-court')
@@ -192,11 +206,11 @@ def main():
         return
 
     assert action_visible, 'Resume session must be in the first viewport'
-    success = require(drill_nodes, 'Record successful attempt')
+    success = scroll_to('Record successful attempt')
     for _ in range(15):
         tap(success)
-    tap(require(nodes(), 'Record missed / other attempt'))
-    tap(require(nodes(), '− Miss'))
+    tap(scroll_to('Record missed / other attempt'))
+    tap(scroll_to('− Miss'))
     confirmation = next(node for node in nodes() if node.get('checkable') == 'true')
     tap(confirmation)
     screenshot('candidate-drill-target-met')
@@ -244,6 +258,29 @@ def main():
     tap(require(nodes(), 'Progress'))
     require(nodes('candidate-empty-progress'), 'Start your baseline.')
     screenshot('candidate-empty-progress')
+    seed('history')
+    open_app()
+    tap(require(nodes(), 'Progress'))
+    tap(scroll_to('View all 150 sessions'))
+    require(nodes('candidate-full-history'), 'Training history')
+    screenshot('candidate-full-history')
+    shell('input', 'keyevent', 'KEYCODE_BACK')
+    require(nodes(), 'Your work, recorded.')
+    shell('input', 'keyevent', 'KEYCODE_BACK')
+    require(nodes(), 'Jordan’s court.')
+    shell('wm', 'size', '640x1440')
+    shell('settings', 'put', 'system', 'font_scale', '2.0')
+    seed()
+    open_app()
+    tap(scroll_to('Resume session'))
+    tap(scroll_to('Record successful attempt'))
+    tap(scroll_to('Record missed / other attempt'))
+    draft_state = json.loads(prefs()['state'].text)
+    assert draft_state['drillDrafts'][0]['successful'] == 1 and draft_state['drillDrafts'][0]['attempted'] == 2
+    require(nodes('candidate-large-type-drill'), 'Save results')
+    screenshot('candidate-large-type-drill')
+    shell('settings', 'put', 'system', 'font_scale', '1.0')
+    shell('wm', 'size', '720x1600')
     seed('blank')
     open_app()
     require(nodes('candidate-blank-profile'), 'Your court.')
@@ -264,7 +301,7 @@ def main():
     tap(fields[1])
     shell('input', 'text', 'Casey')
     shell('input', 'keyevent', 'KEYCODE_BACK')
-    tap(scroll_to('ENTER THE CHAMPIONSHIP'))
+    tap(scroll_to('Start game'))
     score_nodes = nodes('candidate-scorekeeper')
     screenshot('candidate-scorekeeper')
     tap(require(score_nodes, 'Record point for Jordan'))
@@ -280,6 +317,23 @@ def main():
     screenshot('candidate-scorekeeper-undo')
     shell('input', 'keyevent', 'KEYCODE_BACK')
     require(nodes(), 'Jordan’s court.')
+    shell('wm', 'size', '640x1440')
+    shell('settings', 'put', 'system', 'font_scale', '2.0')
+    seed('complete')
+    open_app()
+    tap(scroll_to('Play 1-on-1'))
+    tap(scroll_to("Opponent's name (required)"))
+    shell('input', 'text', 'Casey')
+    shell('input', 'keyevent', 'KEYCODE_BACK')
+    tap(scroll_to('Start game'))
+    tap(scroll_to('Record point for Jordan'))
+    assert json.loads(prefs()['state'].text)['playerScore'] == 1
+    tap(scroll_to('UNDO LAST POINT'))
+    assert json.loads(prefs()['state'].text)['playerScore'] == 0
+    nodes('candidate-large-type-scorekeeper')
+    screenshot('candidate-large-type-scorekeeper')
+    shell('settings', 'put', 'system', 'font_scale', '1.0')
+    shell('wm', 'size', '720x1600')
     assert 'Success' in shell('pm', 'clear', PACKAGE)
     open_app()
     require(nodes('candidate-fresh-onboarding'), 'CONTINUE')
@@ -298,7 +352,8 @@ def main():
     screenshot('candidate-fresh-court')
     fresh_state = json.loads(prefs()['state'].text)
     assert fresh_state['playerName'] == 'Avery' and len(fresh_state['slots']) == 6
-    report = dict(fresh_onboarding=True, empty_progress=True, blank_name=True, long_name=True,
+    report = dict(input_apk_sha256=hashlib.sha256(Path(args.apk).read_bytes()).hexdigest(),
+                  version_code=packaged_version, full_history_navigation=True, large_type_drill=True, large_type_scorekeeping=True, fresh_onboarding=True, empty_progress=True, blank_name=True, long_name=True,
                   completed_workout=True, scorekeeping_and_undo=True, system_back=True,
                   update_retains_saved_state=True, primary_on_first_viewport=True, saved_name_visible=True, immediate_preference_selection=True, result_recorded_once=True,
                   successes=15, attempts=15, xp_awarded=50, relaunch_persistence=True,

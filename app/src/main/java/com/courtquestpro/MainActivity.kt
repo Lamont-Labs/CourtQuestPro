@@ -35,7 +35,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.gson.Gson
@@ -192,8 +191,12 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     var recordedXp by remember { mutableIntStateOf(0) }
 
     val today = LocalDate.now(ZoneId.systemDefault()).toString()
+    fun openMatch() {
+        error = ""
+        screen = if (save.hasResumableMatch(today)) "score" else "champSetup"
+    }
     fun openTraining() {
-        if (save.slots.all { it.complete }) screen = "champSetup"
+        if (save.slots.all { it.complete }) openMatch()
         else {
             val candidates = save.slots.indices.filter { !save.slots[it].complete }
             selectedSlot = candidates.firstOrNull { index ->
@@ -236,9 +239,9 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         Scaffold(
             containerColor = Color(0xFF121315),
             bottomBar = {
-                if (onboardingComplete && screen in listOf("home", "career", "settings")) NavigationBar(containerColor = CourtQuestDesign.surface, tonalElevation = 0.dp) {
+                if (onboardingComplete && screen in listOf("home", "career", "gameHistory", "settings")) NavigationBar(containerColor = CourtQuestDesign.surface, tonalElevation = 0.dp) {
                     NavigationBarItem(selected = screen == "home", onClick = { screen = "home" }, icon = { Icon(Icons.Default.SportsBasketball, "Court dashboard") }, label = { Text("Court", fontWeight = FontWeight.Bold, fontSize = 12.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
-                    NavigationBarItem(selected = screen == "career", onClick = { screen = "career" }, icon = { Icon(Icons.Default.Insights, "Player development") }, label = { Text("Progress", fontWeight = FontWeight.Bold, fontSize = 12.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
+                    NavigationBarItem(selected = screen in listOf("career", "gameHistory"), onClick = { screen = "career" }, icon = { Icon(Icons.Default.Insights, "Player development") }, label = { Text("Progress", fontWeight = FontWeight.Bold, fontSize = 12.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
                     NavigationBarItem(selected = screen == "settings", onClick = { screen = "settings" }, icon = { Icon(Icons.Default.Tune, "Player settings") }, label = { Text("Setup", fontWeight = FontWeight.Bold, fontSize = 12.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
                 }
             }
@@ -268,7 +271,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 when (target) {
                     "home" -> HomeScreen(
                         save = save, onSpin = { openTraining() },
-                        onStartChamp = { screen = "champSetup" },
+                        onStartChamp = { openMatch() },
                         onCareer = { screen = "career" },
                         onSaveName = { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() },
                         onWeeklyPlan = { plan -> save.weeklyPlan = plan; refresh() }, onTrainingDay = { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() }, onActivity = { day, kind -> save.weeklyActivities = updateWeeklyActivity(save.weeklyActivities, day, kind); refresh() }
@@ -327,7 +330,8 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     }
                     "champSetup" -> ChampionshipSetup(
                         playerName = playerNameInput, opponentName = opponentInput, error = error,
-                        onPlayerName = { playerNameInput = it }, onOpponentName = { opponentInput = it },
+                        onPlayerName = { playerNameInput = it.take(40); error = "" },
+                        onOpponentName = { opponentInput = it.take(40); error = "" },
                         onStart = {
                             if (playerNameInput.trim().isBlank()) error = "Enter your name first."
                             else if (opponentInput.trim().isBlank()) error = "Enter your opponent's name."
@@ -358,11 +362,12 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                                 save.opponentScore = updated.opponent
                                 save.pointHistory = updated.history?.toMutableList()
                                 if (save.playerScore >= 11 || save.opponentScore >= 11) {
-                                    val winner = if (save.playerScore > save.opponentScore) save.matchPlayer else save.matchOpponent
-                                    val won = winner == save.matchPlayer
-                                    val matchXp = 100 + if (won) 50 else 0
+                                    val won = save.playerScore > save.opponentScore
+                                    val winner = if (won) save.matchPlayer else save.matchOpponent
+                                    val previousXp = save.totalXp
                                     award(save, "champ_${save.activeDate}", 100)
                                     if (won) award(save, "win_${save.activeDate}", 50)
+                                    val matchXp = save.totalXp - previousXp
                                     save.championshipDone = true
                                     val record = MatchRecord(save.activeDate, save.matchPlayer, save.matchOpponent,
                                         save.playerScore, save.opponentScore, winner, matchXp)
@@ -385,14 +390,17 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                                 refresh()
                             }
                         },
-                        onBack = { screen = "home" }
+                        onBack = { screen = "home" },
+                        canUndo = !save.pointHistory.isNullOrEmpty(),
+                        lastScorer = save.pointHistory?.lastOrNull()?.let { if (it) save.matchPlayer else save.matchOpponent }
                     )
-                    "recap" -> recap?.let { MatchRecapScreen(it, save.totalXp, onHome = { screen = "home" }, onCareer = { screen = "career" }) } ?: HomeScreen(save, { openTraining() }, { screen = "champSetup" }, { screen = "career" }, { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() }, { plan -> save.weeklyPlan = plan; refresh() }, { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() }, { day, kind -> save.weeklyActivities = updateWeeklyActivity(save.weeklyActivities, day, kind); refresh() })
+                    "recap" -> recap?.let { MatchRecapScreen(it, save.totalXp, onHome = { screen = "home" }, onCareer = { screen = "gameHistory" }) } ?: HomeScreen(save, { openTraining() }, { openMatch() }, { screen = "career" }, { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() }, { plan -> save.weeklyPlan = plan; refresh() }, { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() }, { day, kind -> save.weeklyActivities = updateWeeklyActivity(save.weeklyActivities, day, kind); refresh() })
+                    "gameHistory" -> CareerScreen(save, onHome = { screen = "home" }, initiallyShowGames = true)
                     "career" -> CareerScreen(save, onHome = { screen = "home" })
                     "settings" -> SettingsScreen(save.playerName, save.difficulty, onDifficulty = { save.difficulty = it; refresh() }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
                     })
-                    else -> HomeScreen(save, { openTraining() }, { screen = "champSetup" }, { screen = "career" }, { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() }, { plan -> save.weeklyPlan = plan; refresh() }, { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() }, { day, kind -> save.weeklyActivities = updateWeeklyActivity(save.weeklyActivities, day, kind); refresh() })
+                    else -> HomeScreen(save, { openTraining() }, { openMatch() }, { screen = "career" }, { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() }, { plan -> save.weeklyPlan = plan; refresh() }, { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() }, { day, kind -> save.weeklyActivities = updateWeeklyActivity(save.weeklyActivities, day, kind); refresh() })
                 }
             }
         }
@@ -737,139 +745,6 @@ private fun CourtOnboarding(
                     Text("PREVIOUS STEP", color = Muted)
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun ChampionshipSetup(playerName: String, opponentName: String, error: String, onPlayerName: (String) -> Unit, onOpponentName: (String) -> Unit, onStart: () -> Unit, onBack: () -> Unit) {
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        AppHeader("Championship setup", "Two players. One court. First to 11.")
-        Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text("Enter both names to start your match.", color = Muted)
-            OutlinedTextField(value = playerName, onValueChange = onPlayerName, modifier = Modifier.fillMaxWidth(), label = { Text("Your name") }, singleLine = true, leadingIcon = { Icon(Icons.Default.Person, null) }, shape = RoundedCornerShape(14.dp))
-            OutlinedTextField(value = opponentName, onValueChange = onOpponentName, modifier = Modifier.fillMaxWidth(), label = { Text("Opponent's name (required)") }, singleLine = true, leadingIcon = { Icon(Icons.Default.Group, null) }, shape = RoundedCornerShape(14.dp))
-            if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold)
-            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF302722)), shape = RoundedCornerShape(18.dp)) {
-                Column(Modifier.padding(16.dp)) {
-                    Text("GAME RULES", color = Ink, fontWeight = FontWeight.ExtraBold)
-                    Spacer(Modifier.height(6.dp))
-                    Text("• First player to 11 points wins\n• At 10–10: sudden death, next point wins\n• Score honestly after each point\n• Undo is available for accidental taps", color = Muted, lineHeight = 22.sp)
-                }
-            }
-            CourtQuestPrimaryButton(onClick = onStart, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) { Text("ENTER THE CHAMPIONSHIP", fontWeight = FontWeight.ExtraBold) }
-            OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text("Back") }
-        }
-    }
-}
-
-@Composable
-private fun ScoreScreen(player: String, opponent: String, playerScore: Int, opponentScore: Int, onPoint: (Boolean) -> Unit, onUndo: () -> Unit, onBack: () -> Unit) {
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        AppHeader("Championship", if (playerScore == 10 && opponentScore == 10) "SUDDEN DEATH · NEXT POINT WINS" else "FIRST TO 11 WINS")
-        Spacer(Modifier.height(16.dp))
-        Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            ScorePanel(player, playerScore, CourtGreen, Modifier.weight(1f))
-            ScorePanel(opponent, opponentScore, Orange, Modifier.weight(1f))
-        }
-        Spacer(Modifier.height(20.dp))
-        Text(if (playerScore == 10 && opponentScore == 10) "SUDDEN DEATH" else "TAP THE SCORER AFTER EACH POINT", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = if (playerScore == 10 && opponentScore == 10) Orange else Muted, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
-        Spacer(Modifier.height(18.dp))
-        Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Button(
-                onClick = { onPoint(true) },
-                modifier = Modifier.weight(1f).heightIn(min = 120.dp).semantics { contentDescription = "Record point for $player" },
-                shape = RoundedCornerShape(20.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = CourtQuestDesign.accentVivid,
-                    contentColor = CourtQuestDesign.background
-                )
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(28.dp))
-                    Text("+1", fontFamily = CourtDisplay, fontSize = 34.sp, lineHeight = 38.sp, fontWeight = FontWeight.ExtraBold)
-                    Text(player, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Bold, maxLines = 2, textAlign = TextAlign.Center)
-                }
-            }
-            Button(
-                onClick = { onPoint(false) },
-                modifier = Modifier.weight(1f).heightIn(min = 120.dp).semantics { contentDescription = "Record point for $opponent" },
-                shape = RoundedCornerShape(20.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = CourtQuestDesign.elevatedSurface,
-                    contentColor = CourtQuestDesign.textPrimary
-                ),
-                border = androidx.compose.foundation.BorderStroke(1.dp, CourtQuestDesign.accent)
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(28.dp))
-                    Text("+1", fontFamily = CourtDisplay, fontSize = 34.sp, lineHeight = 38.sp, fontWeight = FontWeight.ExtraBold)
-                    Text(opponent, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Bold, maxLines = 2, textAlign = TextAlign.Center)
-                }
-            }
-        }
-        Spacer(Modifier.height(18.dp))
-        OutlinedButton(
-            onClick = onUndo,
-            enabled = playerScore + opponentScore > 0,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp).heightIn(min = 54.dp),
-            shape = RoundedCornerShape(16.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, CourtQuestDesign.chipBorder),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = CourtQuestDesign.textPrimary)
-        ) {
-            Icon(Icons.Default.Undo, contentDescription = null)
-            Spacer(Modifier.width(10.dp))
-            Text("UNDO LAST POINT", fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
-        }
-        Spacer(Modifier.height(8.dp))
-        Text("Only tap after a point has actually been scored.", modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp), color = Muted, fontSize = 12.sp, textAlign = TextAlign.Center)
-        Spacer(Modifier.height(16.dp))
-        TextButton(onClick = onBack, modifier = Modifier.align(Alignment.CenterHorizontally)) { Text("Exit scorekeeper") }
-    }
-}
-@Composable
-private fun ScorePanel(name: String, score: Int, color: Color, modifier: Modifier = Modifier) {
-    CourtQuestPremiumSurface(modifier = modifier, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 22.dp)) {
-        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(Modifier.size(12.dp).clip(CircleShape).background(color))
-            Spacer(Modifier.height(9.dp))
-            Text(name, fontSize = 15.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, color = Ink, maxLines = 2)
-            Spacer(Modifier.height(12.dp))
-            Text(score.toString(), fontFamily = CourtDisplay, fontSize = 72.sp, lineHeight = 76.sp, fontWeight = FontWeight.ExtraBold, color = color)
-        }
-    }
-}
-
-@Composable
-private fun MatchRecapScreen(record: MatchRecord, totalXp: Int, onHome: () -> Unit, onCareer: () -> Unit) {
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        AppHeader("Final buzzer", "Championship complete")
-        Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(24.dp)) {
-                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = CourtQuestDesign.accent, modifier = Modifier.size(56.dp))
-                    Spacer(Modifier.height(12.dp))
-                    Text("CHAMPIONSHIP RESULT", fontSize = 11.sp, letterSpacing = 2.sp, fontWeight = FontWeight.ExtraBold, color = Muted)
-                    Spacer(Modifier.height(8.dp))
-                    Text("${record.winner} WINS!", fontSize = 26.sp, fontWeight = FontWeight.Black, color = Ink, textAlign = TextAlign.Center)
-                    Spacer(Modifier.height(12.dp))
-                    Text("${record.playerScore}  —  ${record.opponentScore}", fontSize = 48.sp, fontWeight = FontWeight.Black, color = CourtQuestDesign.accent)
-                    Text("FINAL SCORE", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                StatCard("MATCH XP", "+${record.xp}", Modifier.weight(1f))
-                StatCard("TOTAL XP", totalXp.toString(), Modifier.weight(1f))
-            }
-            CourtQuestPremiumSurface(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(20.dp)) {
-                Column(Modifier.fillMaxWidth()) {
-                    Text("MATCH RECAP", fontWeight = FontWeight.ExtraBold, color = CourtQuestDesign.accent, letterSpacing = 1.sp, fontSize = 12.sp)
-                    Spacer(Modifier.height(10.dp))
-                    Text("${record.player} vs ${record.opponent}. ${record.winner} took the win ${max(record.playerScore, record.opponentScore)}–${kotlin.math.min(record.playerScore, record.opponentScore)}. Keep showing up, work on one skill at a time, and bring that energy to the next run.", color = CourtQuestDesign.textPrimary, lineHeight = 23.sp)
-                }
-            }
-            CourtQuestPrimaryButton(onClick = onHome, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) { Text("BACK TO HOME", fontWeight = FontWeight.ExtraBold) }
-            OutlinedButton(onClick = onCareer, modifier = Modifier.fillMaxWidth()) { Text("VIEW CAREER STATS") }
         }
     }
 }

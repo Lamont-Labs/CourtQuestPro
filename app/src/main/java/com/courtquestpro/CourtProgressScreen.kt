@@ -14,11 +14,27 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun CareerScreen(save: SaveState, onHome: () -> Unit) {
-    var showGames by remember { mutableStateOf(false) }
+internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGames: Boolean = false) {
+    var showGames by remember(initiallyShowGames) { mutableStateOf(initiallyShowGames) }
     var showAllSessions by remember { mutableStateOf(false) }
+    var showAllGames by remember { mutableStateOf(false) }
     val recorded = save.drillResults.orEmpty()
     val valid = recorded.filter { it.attempted > 0 && it.completed in 0..it.attempted }
+    if (showAllGames) {
+        BackHandler { showAllGames = false }
+        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            item { AppHeader("Game history", "${save.matches.size} recorded games") }
+            item {
+                TextButton(onClick = { showAllGames = false },
+                    modifier = Modifier.padding(horizontal = 20.dp).heightIn(min = 48.dp)) { Text("Back to Progress") }
+            }
+            items(save.matches) { match ->
+                RecordedGameCard(match, Modifier.padding(horizontal = 20.dp))
+            }
+        }
+        return
+    }
     if (showAllSessions) {
         BackHandler { showAllSessions = false }
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp),
@@ -40,8 +56,10 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit) {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     CourtMetric("Total XP", save.totalXp.toString(), Modifier.weight(1f), accent = true)
-                    CourtMetric("Sessions", recorded.size.toString(), Modifier.weight(1f))
-                    CourtMetric("Training days", valid.map { it.date }.distinct().size.toString(), Modifier.weight(1f))
+                    CourtMetric(if (showGames) "Games" else "Sessions",
+                        (if (showGames) save.matches.size else recorded.size).toString(), Modifier.weight(1f))
+                    CourtMetric(if (showGames) "Game days" else "Training days",
+                        (if (showGames) save.matches.map { it.date }.distinct().size else valid.map { it.date }.distinct().size).toString(), Modifier.weight(1f))
                 }
                 CourtRule()
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -60,17 +78,10 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                             }
                         }
                     }
-                    save.matches.forEach { match ->
-                        CourtQuestPremiumSurface(Modifier.fillMaxWidth()) {
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                CourtEyebrow(match.date)
-                                Text("${match.player} vs ${match.opponent}", color = CourtQuestDesign.textPrimary,
-                                    style = MaterialTheme.typography.titleMedium)
-                                Text("${match.playerScore} — ${match.opponentScore}", color = CourtQuestDesign.accent,
-                                    style = MaterialTheme.typography.displaySmall)
-                                Text("${match.winner} won · +${match.xp} XP", color = CourtQuestDesign.textSecondary,
-                                    style = MaterialTheme.typography.bodyMedium)
-                            }
+                    save.matches.take(3).forEach { match -> RecordedGameCard(match) }
+                    if (save.matches.size > 3) {
+                        TextButton(onClick = { showAllGames = true }, modifier = Modifier.heightIn(min = 48.dp)) {
+                            Text("View all ${save.matches.size} games")
                         }
                     }
                 } else if (recorded.isEmpty()) {

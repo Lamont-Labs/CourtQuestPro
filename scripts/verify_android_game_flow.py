@@ -3,7 +3,6 @@ from pathlib import Path
 import argparse
 import hashlib
 import json
-import os
 import re
 import time
 
@@ -136,12 +135,33 @@ def main():
     game = state()
     assert len(game['matches']) == 1 and game['totalXp'] == 200
     assert ui.find(ui.nodes(), 'Resume 1-on-1') is None
+    # Existing per-day awards must not be presented as new XP on a repeat game.
+    # Identical display names must not turn an opponent win into a player win.
+    ui.tap(reachable('Play 1-on-1'))
+    fields = [n for n in ui.nodes() if n.get('class') == 'android.widget.EditText']
+    ui.tap(fields[1])
+    if fields[1].get('text'):
+        ui.shell('input', 'keyevent', 'KEYCODE_MOVE_END')
+        ui.shell('input', 'keyevent', *(['KEYCODE_DEL'] * len(fields[1].get('text'))))
+    ui.shell('input', 'text', 'Jordan')
+    ui.shell('input', 'keyevent', 'KEYCODE_BACK')
+    ui.tap(reachable('Start game'))
+    for _ in range(11):
+        buttons = [n for n in ui.nodes() if n.get('content-desc') == 'Record point for Jordan']
+        assert len(buttons) == 2
+        ui.tap(buttons[1])
+    repeated = state()
+    assert len(repeated['matches']) == 2
+    assert repeated['matches'][0]['playerScore'] == 0 and repeated['matches'][0]['opponentScore'] == 11
+    assert repeated['totalXp'] == 200 and repeated['matches'][0]['xp'] == 0
+    snap('candidate-game-repeat-receipt')
     report = dict(input_apk_sha256=hashlib.sha256(Path(args.apk).read_bytes()).hexdigest(),
                   score_and_undo=True, resume_saved_match=True, resume_after_process_restart=True,
                   sudden_death=True, opponent_win_saved_once=True, actual_match_xp=True,
                   game_history_navigation=True, completed_match_not_resumable=True,
                   compact_controls=True, large_type_controls=True, landscape_controls=True,
-                  tablet_controls=True, reduced_motion=True)
+                  tablet_controls=True, reduced_motion=True, repeat_game_actual_xp=True,
+                  identical_names_preserve_winner_side=True)
     (ui.OUT / 'game-result.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report), flush=True)
 

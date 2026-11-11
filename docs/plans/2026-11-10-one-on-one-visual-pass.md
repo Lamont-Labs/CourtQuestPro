@@ -35,7 +35,7 @@ branch and its work intact. No imported assets or dependencies are needed.
 
 ## Plan and verification ledger
 
-- [ ] Capture build-4 setup/scoring in a current native run. Demonstrate the
+- [x] Capture build-4 setup/scoring in a current native run. Demonstrate the
   missing resume path with a behavioral Android regression check.
 - [ ] Implement shared native setup, scoreboard, game receipt and game history.
   Add the resume route using existing same-day saved match state.
@@ -61,3 +61,9 @@ Apply the saved Impeccable review questions to real captures: hierarchy,
 unnecessary surfaces, clear first action, stable controls, text/outline contrast,
 semantics, enlarged text, keyboard and system insets. No generated image is
 needed for this functional native game flow.
+
+## Behavioral regression confirmed
+
+[Native run 42954008362](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/42954008362) built unmodified build-4 application code. Daily-flow assertions passed. The game check scored 5–3, corrected it to 5–2 with the expected saved Undo order, returned to Court and failed because Resume 1-on-1 was unreachable. Artifact 13825849017 retains the current-run baseline and failure evidence. This is the RED result for the resume fix.
+
+Receipt correction: preserve the existing per-day award keys and store the actual XP increase for each new game. Repeated games can record 0 XP. Determine a win from the scores, including when both players enter the same display name.
