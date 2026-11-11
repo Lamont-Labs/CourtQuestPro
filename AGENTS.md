@@ -1,5 +1,9 @@
 # CourtQuest Pro repository instructions
 
+## Active development line
+
+The owner-approved premium flow toolkit and current build-6 source continue on [`dev/premium-flow-toolkit`](https://github.com/Lamont-Labs/CourtQuestPro/tree/dev/premium-flow-toolkit). Read that branch's `AGENTS.md`, `DESIGN.md`, [toolkit guide](https://github.com/Lamont-Labs/CourtQuestPro/blob/dev/premium-flow-toolkit/docs/tooling/PREMIUM_FLOW_TOOLKIT.md) and [verification record](https://github.com/Lamont-Labs/CourtQuestPro/blob/dev/premium-flow-toolkit/docs/tooling/PREMIUM_FLOW_VERIFICATION.md) before new UI work. This original documentation branch retains older app source; preserve the newer Drill Library, daily-flow and game-flow work when continuing. Follow a newer owner-specified branch when supplied.
+
 ## Start here for UI work
 
 - Read [DESIGN.md](DESIGN.md) before designing, implementing, reviewing, or publishing any CourtQuest Pro UI change. It is the active design standard, tool guide, and visual acceptance checklist.
