@@ -10,6 +10,7 @@ colors:
   surface: "#1B1B1E"
   surface-elevated: "#252127"
   border: "#3C3534"
+  control-outline: "#8B7A71"
   surface-warm: "#4B281D"
   court-shadow: "#201A1B"
   text-primary: "#F7F3EF"
@@ -152,3 +153,11 @@ Build 2's Court implementation places the branded header and player performance 
 The owner authorized implementation and an in-place APK update. The daily flow, actual receipt and dated session history are implemented in native Compose, with saved profile names and measurements. The UI branch is `dev/premium-daily-flow`; the authorized APK release branch remains `dev/scorekeeper-undo-history`. [Current pass and verification evidence](docs/plans/2026-11-10-daily-flow-visual-pass.md).
 
 The published build 3 has the preserved package and certificate, and its downloaded SHA-256 is `1056c917720dd7b5a2265e4a0069db6d0a3f8c78befde19d94b143090981bbda`. Build, unit tests, lint and packaging checks passed. Actual Android screen review and owner visual acceptance must be read from the pass ledger; those are separate claims from a green build. The native workflow uses the pinned build-2 source so replacing the shared release asset does not destroy the comparison baseline.
+
+## Current verified visual build: 4
+
+Build 4 is published and its downloaded bytes match the exact APK that passed the full Android journey. Source app/src tree: `600e809779b58d9416834050a2a27a1391386cde`. Candidate: `d7cb1aa9cb56f1548b9ccd139894078815fa3310`; release: `44cc62d363e488d8ca0d20311fe50923ee903be3`. The implementation has a single drill heading, dated records before activity summaries, virtualized full history with native Back, explicit warm Material selection roles, readable control outlines and an original native launcher mark.
+
+Verified: 25 Android tests, 53 repository tests, build, lint (0 errors, 10 warnings), APK identity/signature/ZIP/alignment and an actual Android update/walkthrough. Captures cover matching 360 dp baseline/candidate, 320 dp at 130%, and critical Setup/Drill/Score controls at 200%. The published checksum is `e6003261be06548f82d1aee916a48101ce5d97958c006c9a5f10178b8ebf5b89`.
+
+[Native flow evidence](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/42948474947) · [Downloaded release verification](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/42949879530) · [Repository tests](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/42949653284). The same release retains Court, Drill, Result, Progress, Setup and enlarged-text PNGs, using synthetic profiles. Continue to use UI/UX Pro Max's native guidance and the actual rendered-review workflow. Owner visual acceptance, physical-phone operation, TalkBack traversal, landscape and tablet review remain open.
