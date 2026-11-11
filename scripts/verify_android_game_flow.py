@@ -14,20 +14,14 @@ def state():
 
 
 def reachable(text, limit=12):
-    for _ in range(limit):
-        items = ui.nodes()
-        node = ui.find(items, text)
-        if node is not None:
-            return node
-        sizes = re.findall(r'(\d+)x(\d+)', ui.shell('wm', 'size'))
-        width, height = map(int, sizes[-1])
-        ui.shell('input', 'swipe', str(width // 2), str(height - 220),
-                 str(width // 2), str(max(100, height // 3)), '300')
-        time.sleep(0.4)
-    visible = ui.nodes('candidate-game-failure-state')
-    ui.screenshot('candidate-game-failure-state')
-    raise AssertionError(f'Control {text!r} is unreachable; visible: '
-                         f'{[n.get("text") or n.get("content-desc") for n in visible]}')
+    try:
+        # Use actual scrollable bounds, including short landscape viewports.
+        return ui.scroll_to(text, limit)
+    except AssertionError as error:
+        visible = ui.nodes('candidate-game-failure-state')
+        ui.screenshot('candidate-game-failure-state')
+        raise AssertionError(f'Control {text!r} is unreachable; visible: '
+                             f'{[n.get("text") or n.get("content-desc") for n in visible]}') from error
 
 
 def snap(label):
