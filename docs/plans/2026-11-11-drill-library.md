@@ -20,9 +20,9 @@ UI/UX Pro Max matched Fitness/Gym App and Sports/Fitness without fallback: retai
 
 ## Implementation tasks
 
-- [ ] Domain and compatibility: `TrainingLibrary.kt`, optional model fields in `MainActivity.kt`, target overloads in `DrillTargets.kt`; meaningful tests in `TrainingLibraryTest.kt` cover validation, archival/revisions, legacy JSON, favorite migration, safe replacements and practice idempotency.
-- [ ] Native library and editor: `CourtDrillLibraryScreen.kt` and `CourtCustomDrillEditor.kt`, shared tokens and semantic native controls, stable keyed lists, keyboard footer, clear empty/results states.
-- [ ] Integrate: Court launch/shuffle/swap/resume, Drills navigation, shared practice recording, real custom targets, historical titles/measurement definitions and honest practice receipt/XP.
+- [x] Domain and compatibility: `TrainingLibrary.kt`, optional model fields in `MainActivity.kt`, target overloads in `DrillTargets.kt`; meaningful tests in `TrainingLibraryTest.kt` cover validation, archival/revisions, legacy JSON, favorite migration, safe replacements and practice idempotency.
+- [x] Native library and editor: `CourtDrillLibraryScreen.kt` and `CourtCustomDrillEditor.kt`, shared tokens and semantic native controls, stable keyed lists, keyboard footer, clear empty/results states.
+- [x] Integrate: Court launch/shuffle/swap/resume, Drills navigation, shared practice recording, real custom targets, historical titles/measurement definitions and honest practice receipt/XP.
 - [ ] Review and verify: full existing unit suite, build, lint; real Android build-5 update plus old daily/game regressions and library create/edit/favorite/suggestion/swap/shuffle/protected-state/practice/history/relaunch cases. Inspect normal, compact, keyboard and 200% captures. Review the complete branch once independently.
 - [ ] Release exact tested APK as build 6, verify downloaded identity/hash/certificate, update DESIGN.md/README and this ledger; keep main intact.
 
@@ -39,3 +39,19 @@ First compiled implementation `f97f022c` passed Android development checks in ru
 Independent review: no Critical finding; one Important finding was route loss on Activity recreation. Root route IDs and editor arguments now use saved instance state, selected daily slot and result receipt identity are retained, and game setup inputs survive configuration changes. The native acceptance verifies unsaved new input through font-scale recreation and edited input through rotation, with no premature definition write. Daily recording returns to Court if the daily rollover invalidates its old slot. No other blocking source finding was reported.
 
 Native run 43052379477 passed daily/game assertions and exercised custom creation, favorites, daily swap/shuffle protection, edit revision and saved practice resumption. Its receipt assertion failed: AnimatedContent briefly recomposed the outgoing practice after the session cleared, and the missing-session redirect overrode the receipt. The redirect now runs only while the current route is still practice. This failure is the RED reproduction of the transition fix. The library scenario now runs first after a verified build-5 in-place update, followed by the unchanged daily/game journeys; all three exact-binary reports remain mandatory for publication.
+
+Local tooling: `git diff --check` and Python bytecode compilation passed for the daily/game/library native-flow drivers and APK verifier. This Android branch has no root `tests/` directory; the earlier historical Python repository suite belongs to a separate source tree. The Android unit suite and real-emulator workflows are the current acceptance gates.
+
+## Owner walkthrough
+
+1. Open **Drills → Create custom drill**. Set the name, skill, difficulty, planned minutes, successful-action target and instructions, then save.
+2. Open the saved drill to favorite it, start extra practice, or use it in a suitable untouched daily slot. The Court screen also offers **Swap** beside eligible slots and **Shuffle remaining**.
+3. Leave a practice and relaunch the app. **Resume extra practice** restores attempts and the training clock. Finish the target, confirm it and save; Progress labels the result **Extra practice**.
+4. Edit a custom drill while its earlier version is queued. The queued workout and saved practice keep the earlier name, instructions and goal; the edited version is available for future selection.
+5. Archive a custom drill when finished with it. Its results and queued work remain available. Existing daily XP and game rewards retain their previous rules.
+
+Native run 43055431111 on `272759aa` passed all three exact-binary journeys with 42 Android tests and lint 0 errors/10 warnings. APK SHA-256: `b40501501f54c45cd635cc8308b50da60083cfbe074f86c9fcb1db40d484deba`. The practice receipt transition is GREEN. Actual captures confirm normal/compact library, detail, shuffle, practice receipt/history and the keyboard-aware editor. The 200% capture exposed inside-word wrapping in the brand and Progress navigation label; the next candidate makes the brand row wrap as one group and uses the already bundled condensed typeface for enlarged navigation labels without reducing text scale.
+
+The final independent follow-up found an Important restoration edge case: saving the root route also saves a live score screen across process restoration. On the following date, the daily reset cleared the match fields but invalidated only a daily drill route. A restored score route therefore remained live for an expired match. Native regression commit `156aad8d` first checks actual background-process Activity restoration on the same day, then restores it against an expired date and requires Court with no game/XP write. This is separate from the existing force-stop/new-launch rollover checks.
+
+RED confirmed in native run 43058994537: same-day process restoration resumed Jordan/Casey at 2–1, while next-day restoration showed the cleared 0–0 live scoreboard with blank player names. The failing assertion required Court's Start training action. The correction invalidates both daily-drill and score routes during date reset, and gates point/Undo callbacks with the existing same-day valid-match rule. The same native assertion remains the regression test.

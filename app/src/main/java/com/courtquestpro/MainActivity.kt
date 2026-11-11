@@ -240,7 +240,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             save.matchPlayer = ""
             save.matchOpponent = ""
             save.showWarmupDone = false
-            if (screen == "drill") screen = "home"
+            if (screen == "drill" || screen == "score") screen = "home"
             refresh()
         } else if (save.slots.isEmpty()) {
             save.slots = makeDailySlots(save.difficulty, save.weeklyPlan, TrainingLibrary.available(save)).toMutableList()
@@ -283,10 +283,10 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             containerColor = Color(0xFF121315),
             bottomBar = {
                 if (onboardingComplete && screen in listOf("home", "library", "career", "gameHistory", "settings")) NavigationBar(containerColor = CourtQuestDesign.surface, tonalElevation = 0.dp) {
-                    NavigationBarItem(selected = screen == "home", onClick = { screen = "home" }, icon = { Icon(Icons.Default.SportsBasketball, "Court dashboard") }, label = { Text("Court", fontWeight = FontWeight.Bold, fontSize = 12.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
-                    NavigationBarItem(selected = screen == "library", onClick = { openLibrary() }, icon = { Icon(Icons.Default.FitnessCenter, "Drill library") }, label = { Text("Drills", fontWeight = FontWeight.Bold, fontSize = 12.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = CourtQuestDesign.iconForeground, selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
-                    NavigationBarItem(selected = screen in listOf("career", "gameHistory"), onClick = { screen = "career" }, icon = { Icon(Icons.Default.Insights, "Player development") }, label = { Text("Progress", fontWeight = FontWeight.Bold, fontSize = 12.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
-                    NavigationBarItem(selected = screen == "settings", onClick = { screen = "settings" }, icon = { Icon(Icons.Default.Tune, "Player settings") }, label = { Text("Setup", fontWeight = FontWeight.Bold, fontSize = 12.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
+                    NavigationBarItem(selected = screen == "home", onClick = { screen = "home" }, icon = { Icon(Icons.Default.SportsBasketball, "Court dashboard") }, label = { CourtNavigationLabel("Court") }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
+                    NavigationBarItem(selected = screen == "library", onClick = { openLibrary() }, icon = { Icon(Icons.Default.FitnessCenter, "Drill library") }, label = { CourtNavigationLabel("Drills") }, colors = NavigationBarItemDefaults.colors(selectedIconColor = CourtQuestDesign.iconForeground, selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
+                    NavigationBarItem(selected = screen in listOf("career", "gameHistory"), onClick = { screen = "career" }, icon = { Icon(Icons.Default.Insights, "Player development") }, label = { CourtNavigationLabel("Progress") }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
+                    NavigationBarItem(selected = screen == "settings", onClick = { screen = "settings" }, icon = { Icon(Icons.Default.Tune, "Player settings") }, label = { CourtNavigationLabel("Setup") }, colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF151515), selectedTextColor = Orange, indicatorColor = CourtGreen, unselectedIconColor = Muted, unselectedTextColor = Muted))
                 }
             }
         ) { padding ->
@@ -434,7 +434,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         player = save.matchPlayer, opponent = save.matchOpponent,
                         playerScore = save.playerScore, opponentScore = save.opponentScore,
                         onPoint = { playerPoint ->
-                            if (save.playerScore < 11 && save.opponentScore < 11) {
+                            if (save.hasResumableMatch(today)) {
                                 val updated = Scorekeeper.point(
                                     Scorekeeper.Score(save.playerScore, save.opponentScore, save.pointHistory),
                                     playerPoint
@@ -461,14 +461,16 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                             }
                         },
                         onUndo = {
-                            val updated = Scorekeeper.undo(
-                                Scorekeeper.Score(save.playerScore, save.opponentScore, save.pointHistory)
-                            )
-                            if (updated.player != save.playerScore || updated.opponent != save.opponentScore) {
-                                save.playerScore = updated.player
-                                save.opponentScore = updated.opponent
-                                save.pointHistory = updated.history?.toMutableList()
-                                refresh()
+                            if (save.hasResumableMatch(today)) {
+                                val updated = Scorekeeper.undo(
+                                    Scorekeeper.Score(save.playerScore, save.opponentScore, save.pointHistory)
+                                )
+                                if (updated.player != save.playerScore || updated.opponent != save.opponentScore) {
+                                    save.playerScore = updated.player
+                                    save.opponentScore = updated.opponent
+                                    save.pointHistory = updated.history?.toMutableList()
+                                    refresh()
+                                }
                             }
                         },
                         onBack = { screen = "home" },
@@ -486,6 +488,16 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             }
         }
     }
+}
+
+/** Keep the four short labels whole at enlarged system text sizes. */
+@Composable
+private fun CourtNavigationLabel(label: String) {
+    val enlarged = androidx.compose.ui.platform.LocalConfiguration.current.fontScale >= 1.5f
+    Text(label, modifier = Modifier.wrapContentWidth(unbounded = true),
+        fontFamily = if (enlarged) CourtDisplay else CourtBody,
+        fontWeight = if (enlarged) FontWeight.ExtraBold else FontWeight.Bold,
+        fontSize = 12.sp, softWrap = false, maxLines = 1)
 }
 
 private fun updateWeeklyActivity(current: MutableList<String>?, day: Int, kind: String): MutableList<String> {

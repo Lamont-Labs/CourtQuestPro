@@ -37,7 +37,7 @@ def restore_saved_score():
         time.sleep(2)
         ui.shell('am', 'kill', ui.PACKAGE)
         time.sleep(1)
-        assert not ui.shell('sh', '-c', f'pidof {ui.PACKAGE} || true'), 'Saved-state test must kill the background process'
+        assert not ui.shell(f'pidof {ui.PACKAGE} || true'), 'Saved-state test must kill the background process'
 
     background_and_kill()
     ui.open_app()
