@@ -1,5 +1,6 @@
 """Native custom drill, protected workout and independent-practice acceptance."""
 from pathlib import Path
+from datetime import date, timedelta
 from xml.etree import ElementTree as ET
 import hashlib
 import json
@@ -19,6 +20,46 @@ def seed_state(value):
     ui.shell('am', 'force-stop', ui.PACKAGE)
     ui.shell(f'run-as {ui.PACKAGE} sh -c "cat > shared_prefs/court_quest_pro.xml"', data=ET.tostring(root, encoding='utf-8'))
     ui.open_app()
+
+
+def restore_saved_score():
+    """Exercise Android's saved Activity state, not a force-stop/new launch."""
+    ui.seed('empty')
+    fixture = state()
+    fixture.update(matchPlayer='Jordan', matchOpponent='Casey', playerScore=2,
+                   opponentScore=1, pointHistory=[True, False, True])
+    seed_state(fixture)
+    click('Resume 1-on-1')
+    ui.require(ui.nodes(), 'Record point for Jordan')
+
+    def background_and_kill():
+        ui.shell('input', 'keyevent', 'KEYCODE_HOME')
+        time.sleep(2)
+        ui.shell('am', 'kill', ui.PACKAGE)
+        time.sleep(1)
+        assert not ui.shell('sh', '-c', f'pidof {ui.PACKAGE} || true'), 'Saved-state test must kill the background process'
+
+    background_and_kill()
+    ui.open_app()
+    ui.require(ui.nodes(), 'Record point for Jordan')
+    assert (state()['playerScore'], state()['opponentScore']) == (2, 1)
+    snap('same-day-restored-game')
+
+    background_and_kill()
+    expired = state()
+    expired['activeDate'] = (date.fromisoformat(ui.shell('date', '+%F')) - timedelta(days=1)).isoformat()
+    root = ET.Element('map')
+    ET.SubElement(root, 'boolean', name='onboarding_complete', value='true')
+    ET.SubElement(root, 'string', name='state').text = json.dumps(expired)
+    ui.shell(f'run-as {ui.PACKAGE} sh -c "cat > shared_prefs/court_quest_pro.xml"', data=ET.tostring(root, encoding='utf-8'))
+    ui.open_app()
+    snap('expired-restored-game')
+    ui.require(ui.nodes(), 'Start training')
+    rolled = state()
+    assert rolled['matchPlayer'] == rolled['matchOpponent'] == ''
+    assert rolled['playerScore'] == rolled['opponentScore'] == 0 and not rolled['pointHistory']
+    assert not rolled['matches'] and rolled['totalXp'] == 0 and not rolled['awardedKeys']
+    assert rolled['activeDate'] == ui.shell('date', '+%F')
 
 
 def snap(name):
@@ -74,6 +115,7 @@ def main():
     ui.shell('wm', 'size', '720x1600')
     ui.shell('wm', 'density', '320')
     ui.shell('settings', 'put', 'system', 'font_scale', '1.0')
+    restore_saved_score()
     ui.seed('empty')
     ui.open_app()
     click('Drills')
@@ -215,7 +257,7 @@ def main():
         click('Discard changes')
     ui.shell('wm', 'size', '720x1600')
     ui.shell('settings', 'put', 'system', 'font_scale', '1.0')
-    report = dict(input_apk_sha256=hashlib.sha256(apk.read_bytes()).hexdigest(), update_from_build5=True, custom_creation=True,
+    report = dict(input_apk_sha256=hashlib.sha256(apk.read_bytes()).hexdigest(), update_from_build5=True, same_day_score_restoration=True, expired_score_restoration_exits=True, custom_creation=True,
                   form_validation=True, new_editor_recreation=True, existing_editor_recreation=True, favorites=True, custom_workout_swap=True, actual_shuffle=True,
                   completed_and_started_protected=True, slot_identity_preserved=True, practice_resume=True,
                   practice_recorded_once=True, custom_target_works=True, revision_preserves_queued_target=True,
