@@ -36,3 +36,7 @@ name: Fresh profile and primary navigation
     clearState: false
 - assertVisible: Start training
 - assertNotVisible: ENTER MY COURT
+- tapOn: ".*Player settings.*"
+- assertVisible: CourtQuest QA
+- tapOn: ".*Court dashboard.*"
+- assertVisible: Start training
