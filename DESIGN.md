@@ -50,7 +50,15 @@ Use the selected CQ mark and wordmark as the reference for launcher artwork, lau
 
 Production preparation must separate the CQ icon and wordmark from the presentation board, omit the “05 / SIGNATURE” concept label, and prepare suitable light and dark treatments. Check launcher masking and small-size recognition, then verify the actual Android integration.
 
-**Status:** Owner-selected visual concept. Production asset preparation, Android integration, and a verified APK containing this identity are still pending. This selection does not establish runtime or launcher acceptance.
+**Status:** Owner-selected visual concept. Separate high-resolution launcher artwork and light/dark wordmarks were prepared on November 11, 2026. Android integration and a verified APK containing this identity remain pending. This selection does not establish runtime or launcher acceptance.
+
+### Signature artwork preparation checkpoint
+
+[CourtQuest_Signature_Brand_Pack_v1.zip](https://chatgpt.com/library?file_id=libfile_917d539dbe6c8191b49f05e6635322a1&account_id=personal) contains the original approved reference, a 1254 × 1254 launcher master, two 2172 × 724 wordmark exports, usage notes, and per-file SHA-256 records.
+
+The selected deliverables are **opaque PNGs**. Transparent cream exports showed background-removal residue and were rejected. Do not use the rejected alpha drafts as app resources. The opaque light/dark backgrounds also have slight raster variation; check surface edges before integrating, or prepare clean alpha/vector artwork first.
+
+Generated renditions preserve the selected Signature direction but can vary slightly in letter contours; the included owner-approved reference remains the fidelity anchor. Native work still needs adaptive-icon framing and mask checks, launch branding, onboarding/header integration, and actual Android review. PNG decoding, unchanged-copy hashes, and ZIP CRC integrity were verified. No application source or APK was changed in this artwork-only pass.
 
 ## Colors
 
