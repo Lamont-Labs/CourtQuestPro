@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
@@ -194,18 +195,19 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             .remove("onboarding_focus").remove("onboarding_days").apply()
         onboardingComplete = true
     }
-    var screen by remember { mutableStateOf("home") }
-    var librarySlotId by remember { mutableStateOf<String?>(null) }
-    var libraryFocusId by remember { mutableStateOf<String?>(null) }
-    var editingDrillId by remember { mutableStateOf<String?>(null) }
-    var editorCategory by remember { mutableStateOf("Shooting") }
-    var selectedSlot by remember { mutableIntStateOf(-1) }
-    var playerNameInput by remember { mutableStateOf(save.playerName) }
-    var opponentInput by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf("") }
+    var screen by rememberSaveable { mutableStateOf("home") }
+    var librarySlotId by rememberSaveable { mutableStateOf<String?>(null) }
+    var libraryFocusId by rememberSaveable { mutableStateOf<String?>(null) }
+    var editingDrillId by rememberSaveable { mutableStateOf<String?>(null) }
+    var editorCategory by rememberSaveable { mutableStateOf("Shooting") }
+    var selectedSlot by rememberSaveable { mutableIntStateOf(-1) }
+    var playerNameInput by rememberSaveable { mutableStateOf(save.playerName) }
+    var opponentInput by rememberSaveable { mutableStateOf("") }
+    var error by rememberSaveable { mutableStateOf("") }
     var recap by remember { mutableStateOf<MatchRecord?>(null) }
-    var recordedDrill by remember { mutableStateOf<DrillResult?>(null) }
-    var recordedXp by remember { mutableIntStateOf(0) }
+    var recordedDrillId by rememberSaveable { mutableStateOf<String?>(null) }
+    val recordedDrill = save.drillResults.orEmpty().lastOrNull { it.slotId == recordedDrillId }
+    var recordedXp by rememberSaveable { mutableIntStateOf(0) }
 
     val today = LocalDate.now(ZoneId.systemDefault()).toString()
     fun openMatch() {
@@ -238,6 +240,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             save.matchPlayer = ""
             save.matchOpponent = ""
             save.showWarmupDone = false
+            if (screen == "drill") screen = "home"
             refresh()
         } else if (save.slots.isEmpty()) {
             save.slots = makeDailySlots(save.difficulty, save.weeklyPlan, TrainingLibrary.available(save)).toMutableList()
@@ -346,7 +349,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                                 onVideo = { openUrl("https://www.youtube.com/results?search_query=" + Uri.encode(drill.videoQuery)) },
                                 onComplete = { _, _ ->
                                     val result = TrainingLibrary.finishPractice(save, session.id, today)
-                                    if (result != null) { refresh(); recordedDrill = result; recordedXp = 0; screen = "drillResult" }
+                                    if (result != null) { refresh(); recordedDrillId = result.slotId; recordedXp = 0; screen = "drillResult" }
                                 }, onBack = { screen = "home" }, practice = true,
                                 onDiscard = { if (TrainingLibrary.discardPractice(save, session.id)) { refresh(); openLibrary() } })
                         } else LaunchedEffect(Unit) { openLibrary() }
@@ -387,7 +390,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                                     award(save, "drill_${save.activeDate}_${save.slots[selectedSlot].id}", 50)
                                     if (save.slots.all { it.complete }) award(save, "six_${save.activeDate}", 100)
                                     refresh()
-                                    recordedDrill = result
+                                    recordedDrillId = result.slotId
                                     recordedXp = save.totalXp - xpBefore
                                     screen = "drillResult"
                                 }
@@ -470,7 +473,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         canUndo = !save.pointHistory.isNullOrEmpty(),
                         lastScorer = save.pointHistory?.lastOrNull()?.let { if (it) save.matchPlayer else save.matchOpponent }
                     )
-                    "recap" -> recap?.let { MatchRecapScreen(it, save.totalXp, onHome = { screen = "home" }, onCareer = { screen = "gameHistory" }) } ?: HomeContent()
+                    "recap" -> (recap ?: save.matches.firstOrNull())?.let { MatchRecapScreen(it, save.totalXp, onHome = { screen = "home" }, onCareer = { screen = "gameHistory" }) } ?: HomeContent()
                     "gameHistory" -> CareerScreen(save, onHome = { screen = "home" }, initiallyShowGames = true)
                     "career" -> CareerScreen(save, onHome = { screen = "home" })
                     "settings" -> SettingsScreen(save.playerName, save.difficulty, onDifficulty = { save.difficulty = it; refresh() }, onSaveName = {

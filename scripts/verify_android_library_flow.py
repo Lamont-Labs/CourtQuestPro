@@ -37,8 +37,9 @@ def tagged(name):
         def bounds(n): return list(map(int, re.findall(r'\d+', n.get('bounds'))))
         region = max(regions, key=lambda n: (bounds(n)[2]-bounds(n)[0])*(bounds(n)[3]-bounds(n)[1]))
         left, top, right, bottom = bounds(region)
-        ui.shell('input', 'swipe', str((left+right)//2), str(top+(bottom-top)*4//5),
-                 str((left+right)//2), str(top+(bottom-top)//4), '350')
+        start, end = ((top+(bottom-top)//4, top+(bottom-top)*4//5) if name == 'custom-title'
+                      else (top+(bottom-top)*4//5, top+(bottom-top)//4))
+        ui.shell('input', 'swipe', str((left+right)//2), str(start), str((left+right)//2), str(end), '350')
         time.sleep(0.4)
     snap('missing-control')
     raise AssertionError(f'Missing native resource {name}')
@@ -80,6 +81,13 @@ def main():
     fill('custom-minutes', '4')
     fill('custom-goal', '5')
     fill('custom-instructions', 'Set your feet and make controlled shots from the corner.')
+    ui.shell('settings', 'put', 'system', 'font_scale', '1.1')
+    time.sleep(2)
+    assert 'Corner Touch' in tagged('custom-title').get('text', '')
+    assert 'controlled shots' in tagged('custom-instructions').get('text', '')
+    assert not state().get('customDrills'), 'Recreation must not prematurely save the form'
+    ui.shell('settings', 'put', 'system', 'font_scale', '1.0')
+    time.sleep(2)
     snap('editor')
     click('Save drill')
     created = state()['customDrills'][-1]['drill']
@@ -127,6 +135,13 @@ def main():
     click('Edit custom drill')
     fill('custom-title', 'Corner Touch Plus')
     fill('custom-goal', '8')
+    ui.shell('wm', 'size', '1600x720')
+    time.sleep(2)
+    assert 'Corner Touch Plus' in tagged('custom-title').get('text', '')
+    assert tagged('custom-goal').get('text') == '8'
+    assert len(state()['customDrills']) == 1
+    ui.shell('wm', 'size', '720x1600')
+    time.sleep(2)
     click('Save drill')
     revised = state()['customDrills'][-1]['drill']
     assert revised['id'] != old_id and revised['minimumSuccesses'] == 8
@@ -196,7 +211,7 @@ def main():
     ui.shell('wm', 'size', '720x1600')
     ui.shell('settings', 'put', 'system', 'font_scale', '1.0')
     report = dict(input_apk_sha256=hashlib.sha256(apk.read_bytes()).hexdigest(), custom_creation=True,
-                  form_validation=True, favorites=True, custom_workout_swap=True, actual_shuffle=True,
+                  form_validation=True, new_editor_recreation=True, existing_editor_recreation=True, favorites=True, custom_workout_swap=True, actual_shuffle=True,
                   completed_and_started_protected=True, slot_identity_preserved=True, practice_resume=True,
                   practice_recorded_once=True, custom_target_works=True, revision_preserves_queued_target=True,
                   original_definition_in_history=True, favorite_revision_migration=True, extra_practice_xp_unchanged=True,
