@@ -39,10 +39,9 @@ internal fun DrillScreen(
 
     Column(Modifier.fillMaxSize()) {
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 20.dp)) {
-            item { AppHeader("Training", "Drill ${slotNumber.coerceIn(1, 6)} of 6 · ${drill.category}") }
+            item { AppHeader(drill.title, "Drill ${slotNumber.coerceIn(1, 6)} of 6 · ${drill.category}") }
             item {
                 Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
-                    Text(drill.title, style = MaterialTheme.typography.headlineLarge, color = CourtQuestDesign.textPrimary)
                     CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp)) {
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             CourtEyebrow("YOUR TARGET · ${drill.minutes} MIN")
@@ -62,7 +61,7 @@ internal fun DrillScreen(
                     ) {
                         Icon(Icons.Default.Add, null)
                         Spacer(Modifier.width(8.dp))
-                        Text(measurement.successButton.lowercase().replaceFirstChar { it.uppercase() })
+                        Text(measurement.successButton.removePrefix("+").trim().lowercase().replaceFirstChar { it.uppercase() })
                     }
                     OutlinedButton(
                         onClick = { attemptedCount++; saveDraft() }, enabled = !complete,

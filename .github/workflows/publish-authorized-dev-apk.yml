@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
   release:
@@ -44,3 +45,71 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           gh release upload courtquest-dev-2026-11-05 dist/CourtQuestPro-Android-debug.apk dist/CourtQuestPro-Android-debug.apk.sha256 --clobber
+
+      - name: Verify downloaded APK against the Android-tested binary
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir -p downloaded/dist
+          gh release download courtquest-dev-2026-11-05 --pattern 'CourtQuestPro-Android-debug.apk*' --dir downloaded/dist --clobber
+          (cd downloaded && sha256sum --check dist/CourtQuestPro-Android-debug.apk.sha256)
+          cmp dist/CourtQuestPro-Android-debug.apk downloaded/dist/CourtQuestPro-Android-debug.apk
+          python3 scripts/verify_apk.py --apk downloaded/dist/CourtQuestPro-Android-debug.apk --build-tools "${ANDROID_HOME}/build-tools/35.0.1" --output downloaded/verified
+          gh run download 42948474947 --name courtquest-native-daily-flow --dir native-evidence
+          python3 - <<'PY'
+          import json, os, xml.etree.ElementTree as ET
+          from pathlib import Path
+          root = Path('downloaded/verified')
+          manifest = json.loads((root / 'apk-manifest.json').read_text())
+          native = json.loads(Path('native-evidence/artifacts/android-daily-flow/candidate-result.json').read_text())
+          assert manifest['apk_sha256'] == native['input_apk_sha256'], 'Released APK differs from Android-tested binary'
+          assert manifest['version_code'] == native['version_code'] == 4
+          assert all(value for value in native.values() if isinstance(value, bool))
+          cases = [ET.parse(p).getroot() for p in Path('app/build/test-results/testDebugUnitTest').glob('TEST-*.xml')]
+          count = sum(int(c.get('tests')) for c in cases)
+          failures = sum(int(c.get('failures')) + int(c.get('errors')) for c in cases)
+          assert count == 25 and failures == 0
+          issues = ET.parse('app/build/reports/lint-results-debug.xml').getroot().findall('issue')
+          errors = sum(i.get('severity') == 'Error' for i in issues)
+          warnings = sum(i.get('severity') == 'Warning' for i in issues)
+          assert errors == 0
+          manifest['checks']['emulator_test'] = 'PASS_SAME_APK_SHA256'
+          manifest.update(native_flow=native, native_run_id=42948474947, android_unit_tests=count, lint_errors=errors, lint_warnings=warnings)
+          (root / 'apk-manifest.json').write_text(json.dumps(manifest, indent=2) + chr(10))
+          print('PUBLISHED_APK_VERIFICATION=' + json.dumps(manifest, sort_keys=True))
+          notes = [
+              'CourtQuest Pro visual build 4', '',
+              'Court, training, saved results, Progress and Setup now share the dark/orange visual system and bundled Barlow typography. Includes dated session records, full-history navigation, scalable recording/score controls and a native launcher icon.', '',
+              'Android walkthrough passed on the exact APK hash published here: update preserves data, one result and correct XP, relaunch, history/Back, fresh onboarding, blank/long names, completed workouts, score/Undo, compact width and enlarged text.', '',
+              f"Version: {manifest['version_name']} ({manifest['version_code']})",
+              f"Package: {manifest['package_id']}",
+              f"SHA-256: {manifest['apk_sha256']}",
+              f"Certificate SHA-256: {manifest['certificate_sha256']}",
+              'Android unit tests: 25 passed. Lint: ' + str(errors) + ' errors, ' + str(warnings) + ' warnings.',
+              'Source commit: ' + os.environ['GITHUB_SHA'],
+              'Android evidence: https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/42948474947', '',
+              'Install CourtQuestPro-Android-debug.apk over the current app. The package and original development signer are preserved.',
+              'The PNG previews use synthetic emulator profiles. Physical-phone and owner visual acceptance remain pending.'
+          ]
+          (root / 'current-release.md').write_text(chr(10).join(notes) + chr(10))
+          PY
+          for spec in 'court:Court' 'drill:Drill' 'result:Result' 'progress-after-save:Progress' 'setup:Setup' 'large-type-drill:LargeTypeDrill' 'large-type-scorekeeper:LargeTypeScore'; do
+            stem=${spec%:*}
+            label=${spec#*:}
+            cp "native-evidence/artifacts/android-daily-flow/candidate-${stem}.png" "dist/CourtQuestPro-Build4-${label}.png"
+          done
+          gh release upload courtquest-dev-2026-11-05 dist/CourtQuestPro-Build4-*.png --clobber
+          gh release edit courtquest-dev-2026-11-05 --title "CourtQuest Pro — Visual build 4" --notes-file downloaded/verified/current-release.md
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: courtquest-published-build-verification
+          path: |
+            downloaded/verified/*.json
+            downloaded/verified/*.txt
+            downloaded/verified/current-release.md
+            app/build/test-results/testDebugUnitTest/
+            app/build/reports/lint-results-debug.xml
+          if-no-files-found: warn
+          retention-days: 14

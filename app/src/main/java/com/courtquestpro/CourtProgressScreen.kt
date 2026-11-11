@@ -1,7 +1,9 @@
 package com.courtquestpro
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -17,6 +19,21 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit) {
     var showAllSessions by remember { mutableStateOf(false) }
     val recorded = save.drillResults.orEmpty()
     val valid = recorded.filter { it.attempted > 0 && it.completed in 0..it.attempted }
+    if (showAllSessions) {
+        BackHandler { showAllSessions = false }
+        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            item { AppHeader("Training history", "${recorded.size} recorded sessions") }
+            item {
+                TextButton(onClick = { showAllSessions = false },
+                    modifier = Modifier.padding(horizontal = 20.dp).heightIn(min = 48.dp)) { Text("Back to Progress") }
+            }
+            items(recorded.asReversed()) { result ->
+                TrainingSessionCard(result, Modifier.padding(horizontal = 20.dp))
+            }
+        }
+        return
+    }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
         item { AppHeader("Your work, recorded.", "${rankFor(save.totalXp)} · ${save.playerName.ifBlank { "Player development" }}") }
         item {
@@ -66,28 +83,19 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                         }
                     }
                 } else {
-                    CourtHeading("Training activity")
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        StatCard("CURRENT STREAK", "${save.currentStreak} days", Modifier.weight(1f))
-                        StatCard("LONGEST STREAK", "${save.longestStreak} days", Modifier.weight(1f))
-                    }
                     CourtHeading("Recorded sessions")
                     val sessionHistory = recorded.asReversed()
-                    (if (showAllSessions) sessionHistory else sessionHistory.take(3)).forEach { result ->
-                        CourtQuestPremiumSurface(Modifier.fillMaxWidth()) {
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                CourtEyebrow(result.date)
-                                Text(drills.firstOrNull { it.id == result.drillId }?.title ?: result.drillId,
-                                    color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleMedium)
-                                Text("${result.completed} successful / ${result.attempted} attempts",
-                                    color = CourtQuestDesign.accent, style = MaterialTheme.typography.bodyMedium)
-                            }
+                    sessionHistory.take(3).forEach { result -> TrainingSessionCard(result) }
+                    if (sessionHistory.size > 3) {
+                        TextButton(onClick = { showAllSessions = true }, modifier = Modifier.heightIn(min = 48.dp)) {
+                            Text("View all ${sessionHistory.size} sessions")
                         }
                     }
-                    if (sessionHistory.size > 3) {
-                        TextButton(onClick = { showAllSessions = !showAllSessions }, modifier = Modifier.heightIn(min = 48.dp)) {
-                            Text(if (showAllSessions) "Show recent sessions" else "Show all ${sessionHistory.size} sessions")
-                        }
+                    CourtRule()
+                    CourtHeading("Training activity")
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        StatCard("CURRENT STREAK", "${save.currentStreak} ${if (save.currentStreak == 1) "day" else "days"}", Modifier.weight(1f))
+                        StatCard("LONGEST STREAK", "${save.longestStreak} ${if (save.longestStreak == 1) "day" else "days"}", Modifier.weight(1f))
                     }
                     CourtRule()
                     CourtHeading("By skill")
@@ -138,6 +146,19 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit) {
                 }
                 TextButton(onClick = onHome, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("Back to Court") }
             }
+        }
+    }
+}
+
+@Composable
+private fun TrainingSessionCard(result: DrillResult, modifier: Modifier = Modifier) {
+    CourtQuestPremiumSurface(modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            CourtEyebrow(result.date)
+            Text(drills.firstOrNull { it.id == result.drillId }?.title ?: result.drillId,
+                color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleMedium)
+            Text("${result.completed} successful / ${result.attempted} attempts",
+                color = CourtQuestDesign.accent, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
