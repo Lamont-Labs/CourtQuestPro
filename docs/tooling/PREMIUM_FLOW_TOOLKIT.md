@@ -69,7 +69,11 @@ This complements the existing deeper daily/game/library scripts. The smoke flow 
 - Four Impeccable guides and their license/notice copied into the repository.
 - Three runtime libraries declared with fixed versions.
 - Maestro installer and emulator-only runner added.
-- CI build, Android tests, lint and Maestro execution: **pending**.
+- Local Android build: **PASS**; 42 unit tests passed; lint 0 errors / 6 warnings.
+- Local APK identity, original signing continuity, v2 signature and alignment: **PASS**.
+- Maestro device execution and remote CI: **pending** while GitHub run 43096106238 is queued.
 - No app source, save schema, package ID, signing identity, release APK or version code changed by this toolkit pass.
 
-Exact test evidence and remaining work will be recorded here after the CI run.
+Exact local evidence and remaining checks: [PREMIUM_FLOW_VERIFICATION.md](PREMIUM_FLOW_VERIFICATION.md). The three libraries resolved at the selected versions; runtime/test-tool repository pins match their corresponding release tags.
+
+Next-chat handoff: [NEXT_CHAT_PROMPT.md](../NEXT_CHAT_PROMPT.md).

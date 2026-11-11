@@ -52,34 +52,38 @@
     {
       "id": "maestro",
       "repository": "mobile-dev-inc/Maestro",
-      "url": "https://github.com/mobile-dev-inc/Maestro/tree/aaa248d7fd4ca4924444dc027af9c7a62a9be348",
+      "url": "https://github.com/mobile-dev-inc/Maestro/tree/67d8a677029261fa424a45a10d08eacd6aa0deed",
       "role": "test-tool",
       "purpose": "CLI 2.12.1, dedicated-emulator flow checks; not bundled in the APK.",
-      "commit": "aaa248d7fd4ca4924444dc027af9c7a62a9be348"
+      "commit": "67d8a677029261fa424a45a10d08eacd6aa0deed",
+      "tag": "cli-2.12.1"
     },
     {
       "id": "intro-showcase",
       "repository": "canopas/compose-intro-showcase",
-      "url": "https://github.com/canopas/compose-intro-showcase/tree/a520a4733d7a85ebb1a74a88a1acf5d9e9f6b0cc",
+      "url": "https://github.com/canopas/compose-intro-showcase/tree/60877db836569fad7b6d63ce6278af180d59728e",
       "role": "android-library",
       "purpose": "Contextual first-use guidance; com.canopas.intro-showcase-view:introshowcaseview:2.0.2.",
-      "commit": "a520a4733d7a85ebb1a74a88a1acf5d9e9f6b0cc"
+      "commit": "60877db836569fad7b6d63ce6278af180d59728e",
+      "tag": "2.0.2"
     },
     {
       "id": "lottie",
       "repository": "airbnb/lottie-android",
-      "url": "https://github.com/airbnb/lottie-android/tree/05ea92e90381eb8a8ae06855ea2b74f322bebbec",
+      "url": "https://github.com/airbnb/lottie-android/tree/c8addcb776f6cd940abaf55ae6b471e55b626eb9",
       "role": "android-library",
       "purpose": "Purposeful completion and feedback animation; com.airbnb.android:lottie-compose:6.7.1.",
-      "commit": "05ea92e90381eb8a8ae06855ea2b74f322bebbec"
+      "commit": "c8addcb776f6cd940abaf55ae6b471e55b626eb9",
+      "tag": "v6.7.1"
     },
     {
       "id": "haze",
       "repository": "chrisbanes/haze",
-      "url": "https://github.com/chrisbanes/haze/tree/86c29d451f48795177873065ab073d3bdcbb3fc7",
+      "url": "https://github.com/chrisbanes/haze/tree/0cd75baaeb728f45a97abbb4e134a96905066528",
       "role": "android-library",
       "purpose": "Compatible backdrop-blur foundation; dev.chrisbanes.haze:haze:1.1.1.",
-      "commit": "86c29d451f48795177873065ab073d3bdcbb3fc7"
+      "commit": "0cd75baaeb728f45a97abbb4e134a96905066528",
+      "tag": "1.1.1"
     }
   ],
   "maestro": {
@@ -100,5 +104,20 @@
       "haze": "1.1.1"
     }
   },
-  "status": "configured; CI verification pending"
+  "status": "toolkit added; local Android verification passed; Maestro device smoke pending CI runner",
+  "verification": {
+    "android_unit_tests": {
+      "passed": 42,
+      "failed": 0
+    },
+    "apk_build": "passed",
+    "lint": {
+      "errors": 0,
+      "warnings": 6
+    },
+    "apk_identity_and_signing": "passed",
+    "maestro_cli": "2.12.1 verified",
+    "maestro_device_smoke": "pending; GitHub run 43096106238 queued",
+    "evidence": "docs/tooling/PREMIUM_FLOW_VERIFICATION.md"
+  }
 }

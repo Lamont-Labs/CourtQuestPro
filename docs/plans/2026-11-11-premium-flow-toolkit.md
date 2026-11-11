@@ -34,20 +34,21 @@
 
 ### Task 1: Connect the approved references and Android libraries
 
-- [ ] Pin Compose Samples, Now in Android, Impeccable, Maestro, Intro Showcase, Lottie and Haze in `tools/premium-flow/references.lock.json`.
-- [ ] Add the selected Impeccable review guides with the upstream license and notice.
-- [ ] Add the three version-pinned Android libraries to `app/build.gradle.kts`.
-- [ ] Carry the newer owner branding/palette/glass decisions into the build-6 DESIGN.md without replacing its newer implementation evidence.
-- [ ] Link the toolkit from AGENTS.md and document each tool's actual role and readiness.
-- [ ] Verify JSON, copied-source hashes and Gradle resolution/build through CI.
+- [x] Pin Compose Samples, Now in Android, Impeccable, Maestro, Intro Showcase, Lottie and Haze in `tools/premium-flow/references.lock.json`.
+- [x] Add the selected Impeccable review guides with the upstream license and notice.
+- [x] Add the three version-pinned Android libraries to `app/build.gradle.kts`.
+- [x] Carry the newer owner branding/palette/glass decisions into the build-6 DESIGN.md without replacing its newer implementation evidence.
+- [x] Link the toolkit from AGENTS.md and document each tool's actual role and readiness.
+- [x] Verify JSON, copied-source hashes and Gradle dependency resolution/build locally; remote CI remains queued.
 
 ### Task 2: Install and exercise Maestro tooling
 
-- [ ] Add the official checksum-pinned Maestro 2.12.1 installer and ignored local cache.
-- [ ] Add a dedicated-emulator smoke flow covering fresh onboarding, the four navigation destinations and preserved profile after relaunch.
-- [ ] Add an emulator-only runner and a manually runnable / branch-triggered CI workflow.
-- [ ] Verify installer syntax and CLI version; run the native build, unit tests, lint and smoke flow in CI.
-- [ ] Record exact evidence, any blocked checks, and a next-chat handoff.
+- [x] Add the official checksum-pinned Maestro 2.12.1 installer and ignored local cache.
+- [x] Add a dedicated-emulator smoke flow covering fresh onboarding, the four navigation destinations and preserved profile after relaunch.
+- [x] Add an emulator-only runner and a manually runnable / branch-triggered CI workflow.
+- [x] Verify installer syntax and CLI version; run native build, 42 unit tests and lint locally.
+- [ ] Run the Maestro device smoke in CI; run 43096106238 is still queued without a runner.
+- [x] Record exact evidence, any blocked checks, and a next-chat handoff.
 
 ## Execution ledger
 
@@ -58,3 +59,7 @@
 - Final review: independent read-only review found no Critical/Important production issue and confirmed source preservation, source pins, attribution and tooling guards. Native/build verification remains a separate CI gate.
 - Ruling: strengthen the smoke flow's post-relaunch profile assertion before acceptance. The reviewer called this minor, but the promised profile-continuity check must detect a lost player name. Cost: one additional Setup round trip in the test; no app behavior changes.
 - Local tooling evidence: Maestro 2.12.1 installed; release ZIP SHA-256 matches the pinned official digest; shell/JSON/YAML checks pass; physical-device and wrong-AVD guards refuse execution before data reset.
+
+- Local native verification: BUILD SUCCESSFUL, 42/42 unit tests, lint 0 errors/6 warnings; diagnostic APK package/signing/alignment checks PASS. All three library versions resolved with the existing BOM.
+- Ruling: GitHub has not assigned a runner, so use the verified local SDK/Gradle build as dependency/unit/lint evidence and retain the emulator smoke as pending. Cost: the new Maestro selectors and UI journey are not accepted until that separate device check runs.
+- Branch retained for the owner's requested new-chat continuation; no merge into the release branch and no APK publication in this tooling pass.
