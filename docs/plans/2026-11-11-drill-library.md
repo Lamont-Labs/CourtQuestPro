@@ -24,7 +24,7 @@ UI/UX Pro Max matched Fitness/Gym App and Sports/Fitness without fallback: retai
 - [x] Native library and editor: `CourtDrillLibraryScreen.kt` and `CourtCustomDrillEditor.kt`, shared tokens and semantic native controls, stable keyed lists, keyboard footer, clear empty/results states.
 - [x] Integrate: Court launch/shuffle/swap/resume, Drills navigation, shared practice recording, real custom targets, historical titles/measurement definitions and honest practice receipt/XP.
 - [x] Review and verify: full existing unit suite, build, lint; real Android build-5 update plus old daily/game regressions and library create/edit/favorite/suggestion/swap/shuffle/protected-state/practice/history/relaunch cases. Inspect normal, compact, keyboard and 200% captures. Review the complete branch once independently.
-- [ ] Release exact tested APK as build 6, verify downloaded identity/hash/certificate, update DESIGN.md/README and this ledger; keep main intact.
+- [x] Release exact tested APK as build 6, verify downloaded identity/hash/certificate, update DESIGN.md/README and this ledger; keep main intact.
 
 ## Review focus
 
@@ -56,7 +56,7 @@ The final independent follow-up found an Important restoration edge case: saving
 
 RED confirmed in native run 43058994537: same-day process restoration resumed Jordan/Casey at 2–1, while next-day restoration showed the cleared 0–0 live scoreboard with blank player names. The failing assertion required Court's Start training action. The correction invalidates both daily-drill and score routes during date reset, and gates point/Undo callbacks with the existing same-day valid-match rule. The same native assertion remains the regression test.
 
-The independent follow-up reviewed the final route, callback and enlarged-text corrections and reported no remaining Critical or Important finding. Candidate `0ff5e6c5d78ba8b958deef01478475fe5c78f4a0` (app/src tree `57fcba4679745dae0a1b85dff0bd93235b2bc757`) is undergoing exact-binary verification in native run 43060242201. This candidate supersedes the earlier green artifact; only its completed checks and published-byte verification can authorize the build-6 release.
+The independent follow-up reviewed the final route, callback and enlarged-text corrections and reported no remaining Critical or Important finding. Candidate `0ff5e6c5d78ba8b958deef01478475fe5c78f4a0` (app/src tree `57fcba4679745dae0a1b85dff0bd93235b2bc757`) completed exact-binary verification in native run 43060242201. This candidate supersedes the earlier green artifact; only its completed checks and published-byte verification can authorize the build-6 release.
 
 ## Final Android acceptance
 
@@ -70,3 +70,9 @@ Candidate `0ff5e6c5d78ba8b958deef01478475fe5c78f4a0`, app/src tree `57fcba467974
 - Independent review is closed with no remaining Critical or Important source finding. Physical-phone operation, owner visual acceptance for this candidate and full TalkBack traversal remain separate.
 
 Publication uses this tested artifact without rebuilding. The release gate rechecks its source tree, all three flow reports, test/lint reports, manifest, v2 signature, original certificate and alignment, then downloads the uploaded APK again. Publication outcome and a further public-download checksum follow below after completion.
+
+## Published checkpoint
+
+Build 6 is published on the existing development release. Release commit `e28a28680e397474584c80cd68bb991221cbda8d` and [release run 43063480763](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43063480763) passed source/test/journey/identity verification, uploaded the exact native-tested APK and verified the downloaded release again. The original package `com.courtquestpro`, certificate `25f8007f0a8503b01ded3f4856d02e830c64c823aa2c816da4d347ed5015f27b` and existing asset URL are preserved.
+
+A further independent public download of `CourtQuestPro-Android-debug.apk?build=6` matched the tested APK byte for byte: 17,047,484 bytes, SHA-256 `00bcd7d1296ac2a71efadad8beb42834e3f9897ff7b5af668c020c731507a3d4`. ZIP integrity passed. The release contains five named build-6 Android captures. README and DESIGN.md now identify this as the published checkpoint. Main was not changed. Owner phone/visual acceptance and full TalkBack traversal remain open.
