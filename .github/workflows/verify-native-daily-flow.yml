@@ -19,6 +19,7 @@ jobs:
     env:
       COURTQUEST_VERSION_CODE: '3'
       COURTQUEST_UI_EVIDENCE: artifacts/android-daily-flow
+      ANDROID_AVD_HOME: /tmp/courtquest-avd
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -36,11 +37,24 @@ jobs:
         run: |
           test -e /dev/kvm
           sudo chmod 666 /dev/kvm
+          export ANDROID_SDK_ROOT="$ANDROID_HOME"
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" 'platforms;android-35' 'build-tools;35.0.1' 'system-images;android-35;default;x86_64' 'emulator'
+          test -x "${ANDROID_HOME}/emulator/emulator"
           "${ANDROID_HOME}/emulator/emulator" -accel-check
-          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-35' 'build-tools;35.0.1' 'system-images;android-35;default;x86_64' 'emulator'
-          printf 'no\n' | "${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager" create avd --name CourtQuest_Visual --package 'system-images;android-35;default;x86_64' --device pixel_2
-          curl --fail --location --retry 3 'https://github.com/Lamont-Labs/CourtQuestPro/releases/download/courtquest-dev-2026-11-05/CourtQuestPro-Android-debug.apk' -o /tmp/courtquest-build2.apk
-          printf 'b4b9b218b932d3bf97fe6b66cfbb2687535da9b840621dae1d5be6e3099edee2  /tmp/courtquest-build2.apk\n' | sha256sum --check
+          mkdir -p "$ANDROID_AVD_HOME"
+          printf 'no\n' | "${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager" create avd --name CourtQuest_Visual --package 'system-images;android-35;default;x86_64' --device pixel_2 --path "$ANDROID_AVD_HOME/CourtQuest_Visual.avd"
+          test -s "$ANDROID_AVD_HOME/CourtQuest_Visual.ini"
+          "${ANDROID_HOME}/emulator/emulator" -list-avds
+          git fetch --depth=1 origin c3e57e93708edcb6e6fa61c43cddc79dae7314f3
+          git worktree add --detach /tmp/courtquest-build2-source c3e57e93708edcb6e6fa61c43cddc79dae7314f3
+          mkdir -p "$COURTQUEST_UI_EVIDENCE"
+          chmod +x /tmp/courtquest-build2-source/gradlew
+          /tmp/courtquest-build2-source/gradlew -p /tmp/courtquest-build2-source --no-daemon --console=plain :app:assembleDebug > "$COURTQUEST_UI_EVIDENCE/baseline-build.log" 2>&1
+          cp /tmp/courtquest-build2-source/app/build/outputs/apk/debug/app-debug.apk /tmp/courtquest-build2.apk
+          "${ANDROID_HOME}/build-tools/35.0.1/aapt" dump badging /tmp/courtquest-build2.apk > "$COURTQUEST_UI_EVIDENCE/baseline-badging.txt"
+          grep -F "package: name='com.courtquestpro' versionCode='2'" "$COURTQUEST_UI_EVIDENCE/baseline-badging.txt"
+          "${ANDROID_HOME}/build-tools/35.0.1/apksigner" verify --print-certs /tmp/courtquest-build2.apk
+          sha256sum /tmp/courtquest-build2.apk
       - name: Capture baseline, update in place, and verify the daily flow
         run: |
           mkdir -p "$COURTQUEST_UI_EVIDENCE"
