@@ -352,7 +352,9 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                                     if (result != null) { refresh(); recordedDrillId = result.slotId; recordedXp = 0; screen = "drillResult" }
                                 }, onBack = { screen = "home" }, practice = true,
                                 onDiscard = { if (TrainingLibrary.discardPractice(save, session.id)) { refresh(); openLibrary() } })
-                        } else LaunchedEffect(Unit) { openLibrary() }
+                        } else if (screen == "practice") LaunchedEffect(Unit) {
+                            if (screen == "practice") openLibrary()
+                        }
                     }
                     "drill" -> {
                         val slot = save.slots.getOrNull(selectedSlot)

@@ -66,6 +66,11 @@ def confirm_target():
 def main():
     import sys
     apk = Path(sys.argv[1])
+    previous_version = int(re.search(r'versionCode=(\d+)', ui.shell('dumpsys', 'package', ui.PACKAGE)).group(1))
+    assert previous_version == 5, 'The update baseline must be the preserved build 5'
+    before_update = ui.prefs()['state'].text
+    assert 'Success' in ui.adb('install', '-r', str(apk.resolve()), timeout=180).decode()
+    assert ui.prefs()['state'].text == before_update, 'Build-5 profile must survive the in-place update'
     ui.shell('wm', 'size', '720x1600')
     ui.shell('wm', 'density', '320')
     ui.shell('settings', 'put', 'system', 'font_scale', '1.0')
@@ -210,7 +215,7 @@ def main():
         click('Discard changes')
     ui.shell('wm', 'size', '720x1600')
     ui.shell('settings', 'put', 'system', 'font_scale', '1.0')
-    report = dict(input_apk_sha256=hashlib.sha256(apk.read_bytes()).hexdigest(), custom_creation=True,
+    report = dict(input_apk_sha256=hashlib.sha256(apk.read_bytes()).hexdigest(), update_from_build5=True, custom_creation=True,
                   form_validation=True, new_editor_recreation=True, existing_editor_recreation=True, favorites=True, custom_workout_swap=True, actual_shuffle=True,
                   completed_and_started_protected=True, slot_identity_preserved=True, practice_resume=True,
                   practice_recorded_once=True, custom_target_works=True, revision_preserves_queued_target=True,
