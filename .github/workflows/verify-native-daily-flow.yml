@@ -19,6 +19,7 @@ jobs:
     env:
       COURTQUEST_VERSION_CODE: '3'
       COURTQUEST_UI_EVIDENCE: artifacts/android-daily-flow
+      ANDROID_AVD_HOME: ${{ runner.temp }}/courtquest-avd
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -40,7 +41,10 @@ jobs:
           "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" 'platforms;android-35' 'build-tools;35.0.1' 'system-images;android-35;default;x86_64' 'emulator'
           test -x "${ANDROID_HOME}/emulator/emulator"
           "${ANDROID_HOME}/emulator/emulator" -accel-check
-          printf 'no\n' | "${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager" create avd --name CourtQuest_Visual --package 'system-images;android-35;default;x86_64' --device pixel_2
+          mkdir -p "$ANDROID_AVD_HOME"
+          printf 'no\n' | "${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager" create avd --name CourtQuest_Visual --package 'system-images;android-35;default;x86_64' --device pixel_2 --path "$ANDROID_AVD_HOME/CourtQuest_Visual.avd"
+          test -s "$ANDROID_AVD_HOME/CourtQuest_Visual.ini"
+          "${ANDROID_HOME}/emulator/emulator" -list-avds
           git fetch --depth=1 origin c3e57e93708edcb6e6fa61c43cddc79dae7314f3
           git worktree add --detach /tmp/courtquest-build2-source c3e57e93708edcb6e6fa61c43cddc79dae7314f3
           mkdir -p "$COURTQUEST_UI_EVIDENCE"
