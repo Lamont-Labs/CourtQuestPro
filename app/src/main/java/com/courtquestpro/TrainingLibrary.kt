@@ -103,7 +103,7 @@ internal object TrainingLibrary {
             }) }
     }
     fun startPractice(save: SaveState, drillId: String, date: String): Boolean {
-        if (save.practiceSession != null || runCatching { LocalDate.parse(date) }.isFailure) return false
+        if (MissionTraining.active(save) != null || save.practiceSession != null || runCatching { LocalDate.parse(date) }.isFailure) return false
         val drill = available(save).firstOrNull { it.id == drillId } ?: return false
         val id = "practice_${UUID.randomUUID()}"
         save.practiceSession = PracticeSession(id, drillId, date,
@@ -124,7 +124,7 @@ internal object TrainingLibrary {
         if (runCatching { LocalDate.parse(date) }.isFailure || !draft.targetConfirmed ||
             !DrillTargets.eligible(drill, draft.successful, draft.attempted) ||
             save.drillResults.orEmpty().any { it.slotId == sessionId }) return null
-        val result = DrillResult(date, sessionId, drill.id, draft.successful, draft.attempted, true, drill)
+        val result = MissionTraining.legacyEvidence(save, DrillResult(date, sessionId, drill.id, draft.successful, draft.attempted, true, drill), java.time.Instant.now().toString())
         save.drillResults = (save.drillResults.orEmpty() + result).toMutableList()
         save.practiceSession = null
         return result

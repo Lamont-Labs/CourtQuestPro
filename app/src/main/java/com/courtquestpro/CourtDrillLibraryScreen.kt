@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 internal fun DrillLibraryScreen(
     save: SaveState, swapSlotId: String?, onNew: () -> Unit, onEdit: (String) -> Unit,
     onArchive: (String) -> Unit, onFavorite: (String) -> Unit, onPractice: (String) -> Unit,
-    onUse: (String) -> Unit, onResume: () -> Unit, onHome: () -> Unit, initialDrillId: String? = null
+    onUse: (String) -> Unit, onResume: () -> Unit, onHome: () -> Unit, initialDrillId: String? = null, onMissionBuilder: () -> Unit
 ) {
     var selectedId by rememberSaveable(initialDrillId) { mutableStateOf(initialDrillId) }
     var query by rememberSaveable { mutableStateOf("") }
@@ -60,6 +60,7 @@ internal fun DrillLibraryScreen(
                 CourtQuestPrimaryButton(onNew, Modifier.fillMaxWidth()) {
                     Icon(Icons.Default.Add, null, Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text("Create custom drill")
                 }
+                if (swapSlotId == null) OutlinedButton(onMissionBuilder, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Build a Mission") }
                 if (save.practiceSession != null) {
                     OutlinedButton(onResume, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
                         Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(8.dp)); Text("Resume practice")

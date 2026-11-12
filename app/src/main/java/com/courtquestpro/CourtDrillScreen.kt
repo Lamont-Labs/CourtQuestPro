@@ -24,19 +24,20 @@ internal fun DrillScreen(
     drill: Drill, slotNumber: Int, complete: Boolean, previousResults: List<DrillResult>,
     draft: DrillDraft, onDraft: (DrillDraft) -> Unit, onVideo: () -> Unit,
     onComplete: (Int, Int) -> Unit, onBack: () -> Unit,
-    practice: Boolean = false, onDiscard: (() -> Unit)? = null
+    practice: Boolean = false, onDiscard: (() -> Unit)? = null,
+    sessionLabel: String? = null, frozenMeasurement: MissionMeasurement? = null
 ) {
-    var completedCount by remember(drill.id, slotNumber) { mutableIntStateOf(draft.successful) }
-    var attemptedCount by remember(drill.id, slotNumber) { mutableIntStateOf(draft.attempted) }
-    var targetConfirmed by remember(drill.id, slotNumber) { mutableStateOf(draft.targetConfirmed) }
-    var timerSeconds by remember(drill.id, slotNumber) { mutableIntStateOf(draft.remainingSeconds) }
-    val measurement = measurementFor(drill.category)
-    val requiredCount = DrillTargets.minimum(drill)
-    val meetsCount = DrillTargets.eligible(drill, completedCount, attemptedCount)
+    var completedCount by remember(draft.slotId) { mutableIntStateOf(draft.successful) }
+    var attemptedCount by remember(draft.slotId) { mutableIntStateOf(draft.attempted) }
+    var targetConfirmed by remember(draft.slotId) { mutableStateOf(draft.targetConfirmed) }
+    var timerSeconds by remember(draft.slotId) { mutableIntStateOf(draft.remainingSeconds) }
+    val measurement = frozenMeasurement?.vocabulary() ?: measurementFor(drill.category)
+    val requiredCount = frozenMeasurement?.minimumSuccesses ?: DrillTargets.minimum(drill)
+    val meetsCount = requiredCount != null && completedCount >= requiredCount && attemptedCount >= completedCount
     var confirmDiscard by remember(drill.id) { mutableStateOf(false) }
-    if (confirmDiscard) AlertDialog(onDismissRequest = { confirmDiscard = false }, title = { Text("Discard this practice?") },
+    if (confirmDiscard) AlertDialog(onDismissRequest = { confirmDiscard = false }, title = { Text(if (sessionLabel != null) "Discard this Mission session?" else "Discard this practice?") },
         text = { Text("Unrecorded attempts will be removed. Your saved results stay in Progress.") },
-        confirmButton = { TextButton({ confirmDiscard = false; onDiscard?.invoke() }) { Text("Discard practice") } },
+        confirmButton = { TextButton({ confirmDiscard = false; onDiscard?.invoke() }) { Text(if (sessionLabel != null) "Discard Mission session" else "Discard practice") } },
         dismissButton = { TextButton({ confirmDiscard = false }) { Text("Keep practicing") } })
     val best = previousResults.filter { it.attempted > 0 && it.completed in 0..it.attempted }.maxByOrNull { it.completed }
 
@@ -47,7 +48,7 @@ internal fun DrillScreen(
 
     Column(Modifier.fillMaxSize()) {
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 20.dp)) {
-            item { AppHeader(drill.title, if (practice) "Extra practice · ${drill.category}" else "Drill ${slotNumber.coerceIn(1, 6)} of 6 · ${drill.category}", compact = true) }
+            item { AppHeader(drill.title, sessionLabel ?: if (practice) "Extra practice · ${drill.category}" else "Drill ${slotNumber.coerceIn(1, 6)} of 6 · ${drill.category}", compact = true) }
             item {
                 Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
                     CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(20.dp), highlighted = true) {
@@ -99,7 +100,7 @@ internal fun DrillScreen(
                     Text("Use a dry, clear court. Warm up first, keep movements controlled, and stop if the surface is slippery or something hurts.",
                         color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
                     TextButton(onClick = onBack, modifier = Modifier.heightIn(min = 48.dp)) { Text("Back to Court") }
-                    if (practice && onDiscard != null) TextButton({ confirmDiscard = true }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Discard practice") }
+                    if (practice && onDiscard != null) TextButton({ confirmDiscard = true }, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (sessionLabel != null) "Discard Mission session" else "Discard practice") }
                 }
             }
         }
