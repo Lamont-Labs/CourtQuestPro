@@ -3,7 +3,27 @@ from pathlib import Path
 import hashlib, json, re, sys, time
 import verify_android_daily_flow as ui
 from verify_android_library_flow import state, snap
-from verify_android_mission_flow import click, top
+from verify_android_mission_flow import click as click_control, top
+
+
+TABS = ('Court', 'Train', 'Quests', 'Progress', 'Me')
+
+
+def open_navigation():
+    items = ui.nodes()
+    opener = next((n for n in items if n.get('resource-id', '').endswith('nav-open-handle')), None)
+    if opener is not None:
+        ui.tap(opener)
+
+
+def click(label):
+    if label in TABS:
+        open_navigation()
+        node = ui.find(ui.nodes(), label)
+        assert node is not None, f'Navigation destination {label!r} unavailable after opening drawer'
+        ui.tap(node)
+    else:
+        click_control(label)
 
 
 def back():
@@ -34,7 +54,7 @@ def main():
     original = state()
     for tab, heading in [('Train', 'Train your way.'), ('Quests', "TODAY'S DAILY QUEST"),
                          ('Progress', 'Your work, recorded.'), ('Me', 'Edit profile')]:
-        click(tab); ui.require(ui.nodes(), heading); snap('navigation-' + tab.lower())
+        click(tab); top(); ui.require(ui.nodes(), heading); snap('navigation-' + tab.lower())
         back(); ui.require(ui.nodes(), 'Start training')
     assert state() == original, 'Browsing must not award XP or create evidence'
     click('Train'); click('Create custom drill'); replace_text('Abandoned edit')
@@ -68,8 +88,10 @@ def main():
         ui.shell('settings', 'put', 'system', 'font_scale', scale); time.sleep(2)
         for tab in ['Court','Train','Quests','Progress','Me']:
             click(tab)
-            for visible_tab in ['Court','Train','Quests','Progress','Me']:
+            open_navigation()
+            for visible_tab in TABS:
                 ui.require(ui.nodes(), visible_tab)
+            click(tab)
             snap('navigation-' + label + '-' + tab.lower())
         click('Edit profile')
         ui.tap(ui.scroll_to('Draft Player', 25)); snap('navigation-' + label + '-keyboard')
