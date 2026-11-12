@@ -25,7 +25,11 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -283,14 +287,18 @@ private fun NavigationSpriteArtwork(atlas: ImageBitmap, cell: Int, modifier: Mod
 @Composable
 private fun rememberNavigationAtlas(): ImageBitmap? {
     val context = LocalContext.current.applicationContext
-    return produceState<ImageBitmap?>(initialValue = cachedNavigationAtlas, key1 = context) {
+    var atlas by remember(context) { mutableStateOf(cachedNavigationAtlas) }
+    LaunchedEffect(context) {
         val loaded = withContext(Dispatchers.IO) {
-            cachedNavigationAtlas ?: synchronized(navigationAtlasLock) {
-                cachedNavigationAtlas ?: context.assets.open(NAV_ATLAS_FILE).use { stream ->
-                    BitmapFactory.decodeStream(stream)?.asImageBitmap()
-                }.also { cachedNavigationAtlas = it }
-            }
+            runCatching {
+                cachedNavigationAtlas ?: synchronized(navigationAtlasLock) {
+                    cachedNavigationAtlas ?: context.assets.open(NAV_ATLAS_FILE).use { stream ->
+                        BitmapFactory.decodeStream(stream)?.asImageBitmap()
+                    }.also { cachedNavigationAtlas = it }
+                }
+            }.getOrNull()
         }
-        value = loaded
-    }.value
+        atlas = loaded
+    }
+    return atlas
 }
