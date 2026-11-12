@@ -78,6 +78,7 @@ data class MatchRecord(
 )
 data class SaveState(
     var playerName: String = "",
+    var jersey: PlayerJersey? = null,
     var difficulty: String = "Intermediate",
     var weeklyPlan: String = "Balanced",
     var trainingDays: MutableList<Int>? = null,
@@ -592,7 +593,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     "career" -> CareerScreen(save, onHome = { navigate("home") }, onMissionReceipt = { missionReceiptId = it; navigate("missionReceipt") })
                     "quests" -> QuestsScreen(save, today, onTraining = { openTraining() }, onBuild = { openMissionBuilder() },
                         onResumeMission = { openMission() }, onProgress = { navigate("career") })
-                    "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") })
+                    "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") }, onSaveJersey = { save.jersey = it; refresh() })
                     "settings" -> SettingsScreen(save.playerName, save.difficulty, onBack = { goBack() }, onDifficulty = { save.difficulty = it; refresh() }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
                     })
@@ -605,7 +606,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             }
         }
         if (onboardingComplete && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")) {
-            CourtQuestNavigation(PlayerNavigation.tab(routeHistory)) { tab ->
+            CourtQuestNavigation(PlayerNavigation.tab(routeHistory), save.jersey ?: PlayerJersey()) { tab ->
                 if (tab == PlayerTab.TRAIN && librarySlotId != null) {
                     librarySlotId = null
                     librarySelectedId = null
