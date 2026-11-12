@@ -349,20 +349,11 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 missionStartPending?.let { startMission(it) }
             }) { Text("Discard and start Mission") } }, dismissButton = { TextButton({ confirmMissionDiscard = false }) { Text("Keep session") } })
         CourtQuestScene {
+        Box(Modifier.fillMaxSize()) {
         Scaffold(
             modifier = Modifier.semantics { testTagsAsResourceId = true },
             snackbarHost = { SnackbarHost(snackbar) },
-            containerColor = Color.Transparent,
-            bottomBar = {
-                if (onboardingComplete && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")) {
-                    CourtQuestNavigation(PlayerNavigation.tab(routeHistory)) { tab ->
-                        if (tab == PlayerTab.TRAIN) {
-                            if (librarySlotId != null) { librarySlotId = null; librarySelectedId = null }
-                            navigate(tab.route)
-                        } else navigate(tab.route)
-                    }
-                }
-            }
+            containerColor = Color.Transparent
         ) { padding ->
             if (!onboardingComplete) {
                 CourtOnboarding(
@@ -608,6 +599,16 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     destinationState.SaveableStateProvider(target) { DestinationContent() }
                 } else DestinationContent()
             }
+        }
+        if (onboardingComplete && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")) {
+            CourtQuestNavigation(PlayerNavigation.tab(routeHistory)) { tab ->
+                if (tab == PlayerTab.TRAIN && librarySlotId != null) {
+                    librarySlotId = null
+                    librarySelectedId = null
+                }
+                navigate(tab.route)
+            }
+        }
         }
     }
     }
