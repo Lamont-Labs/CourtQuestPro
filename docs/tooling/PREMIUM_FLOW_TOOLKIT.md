@@ -42,7 +42,7 @@ Glass work can combine the compatible blur foundation with native tint, crisp ed
 6. Run the existing native daily, game and library verification scripts plus the complementary Maestro smoke flow.
 7. Review actual Android captures before calling a visual improvement accepted.
 
-The owner-selected Signature identity, deep black, brighter orange and polished glass direction are in DESIGN.md. Keep the logo/artwork fidelity anchor and pending transparency work visible when integrating brand assets.
+The owner-selected Signature identity, deep black, brighter orange and polished glass direction are in DESIGN.md. The clean native assets now follow the original reference contours; source/output hashes and reproduction instructions are recorded in DESIGN.md and tools/branding/. Preserve those chosen letterforms.
 
 ## Maestro installation and execution
 
@@ -62,7 +62,11 @@ The pinned CLI is stored in ignored `.tooling/`; no binary or downloaded ZIP is 
 
 This complements the existing deeper daily/game/library scripts. The smoke flow alone is not evidence that recording, Undo, all saved results or app updates work.
 
-## Readiness and verification
+## Current journey verification
+
+Signature build-7 source has completed [native run 43136062719](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43136062719), [toolkit/Maestro 43136062726](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43136062726) and [development checks 43136062758](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43136062758). Results: 48 Android unit tests, 3 selector regressions, 0 lint errors/11 warnings, complete library/daily/game journeys and guarded Maestro PASS. Haze, Lottie, shared Signature surfaces/header/navigation and actual receipt/next-drill routing are integrated. Exact-binary publication is tracked separately in [the master tracker](../MASTER_SPEC_IMPLEMENTATION.md).
+
+## Historical toolkit-only readiness
 
 - All four plugin installations confirmed.
 - Seven upstream repositories pinned.

@@ -37,30 +37,34 @@
 - [x] Read required documents and actual screen/state/save code.
 - [x] Inspect original Signature reference, wordmark and launcher.
 - [x] Check previous run 43096106238: still queued with no assigned job at task start.
-- [ ] Complete dedicated-emulator baseline captures and guarded Maestro execution, locally or in GitHub.
-- [ ] Prepare clean Signature native assets and document source fidelity.
+- [x] Complete dedicated-emulator baseline captures and guarded Maestro execution, locally or in GitHub.
+- [x] Prepare clean Signature native assets and document source fidelity.
 
 ### 2. Shared components and complete journey
 
-- [ ] Add `TrainingJourney.kt` and meaningful unit tests for deterministic draft/next-slot routing before implementation.
-- [ ] Update `CourtQuestDesign.kt`, `CourtQuestPremiumSurface.kt`, `CourtQuestPrimaryButton.kt`, `AppHeader.kt`, theme and navigation.
-- [ ] Apply the components to Court, drill recording/timer, receipt with named next drill, and Progress with dated history.
-- [ ] Keep persistence, scoring and custom-drill logic intact; exercise actual saved data.
-- [ ] Use Context7 and pinned-source APIs, and record applicable sample/review guidance in DESIGN.md.
+- [x] Add `TrainingJourney.kt` and meaningful unit tests for deterministic draft/next-slot routing before implementation.
+- [x] Update `CourtQuestDesign.kt`, `CourtQuestPremiumSurface.kt`, `CourtQuestPrimaryButton.kt`, `AppHeader.kt`, theme and navigation.
+- [x] Apply the components to Court, drill recording/timer, receipt with named next drill, and Progress with dated history.
+- [x] Keep persistence, scoring and custom-drill logic intact; exercise actual saved data.
+- [x] Use Context7 and pinned-source APIs, and record applicable sample/review guidance in DESIGN.md.
 
 ### 3. Android verification and rendered review
 
-- [ ] Run Android unit tests, assemble and lint; inspect results separately.
-- [ ] Exercise existing daily/library/game scripts and guarded Maestro; strengthen only selectors/setup that legitimately change.
-- [ ] Review real normal/compact/large-text captures, fresh/existing/blank/long profiles, empty/completed states, keyboard/insets and motion settings.
-- [ ] Fix observed issues; retain exact candidate evidence and independent code review.
+- [x] Run Android unit tests, assemble and lint; inspect results separately.
+- [x] Exercise existing daily/library/game scripts and guarded Maestro; strengthen only selectors/setup that legitimately change.
+- [x] Review real normal/compact/large-text captures, fresh/existing/blank/long profiles, empty/completed states, keyboard/insets and motion settings.
+- [x] Fix observed issues; retain exact candidate evidence and independent code review.
 
 ### 4. Exact-binary delivery and checkpoint
 
-- [ ] Advance version, verify package/signer/ZIP/alignment, and update existing development release through its authorized path.
+- [ ] Advance version, verify package/signer/ZIP/alignment, and update existing development release through its authorized path. (Version and native APK checks passed; publication pending.)
 - [ ] Download the public APK and verify its hash/version/package/certificate against the tested binary.
 - [ ] Commit source, evidence ledger, completed checks and remaining limitations; provide the direct GitHub APK URL.
 
 ## Execution ledger
 
 This document records implementation decisions under the owner's autonomy instruction. Device, build and owner visual acceptance are separate claims. Update this ledger with observed results before handoff.
+
+## Final native acceptance
+
+Source `375a607fd7be33bf30ad56c2337cf9acf3ae2253`, app/src `839a30e17949d0b7d9dbe9284999637e2117aa34`: [full native run 43136062719](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43136062719) succeeded. 48 Android unit tests, 3 selector regressions, 0 lint errors/11 warnings, all library/daily/game checks and guarded Maestro (1/1) passed. [Exact native evidence](../tooling/evidence/signature-build7-native.json). Device captures confirm whole recording/correction labels, readable clock/Start/Reset at 200%, reachable result actions and an editor footer above the keyboard. The 200% recording capture is scrolled to controls; it does not show the entire metric panel in one frame. Publication and independent downloaded-byte verification remain the delivery gates.

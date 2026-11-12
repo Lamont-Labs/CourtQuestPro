@@ -1,6 +1,14 @@
 # Premium flow toolkit verification
 
-Date: November 11, 2026.
+Date: November 11, 2026; native acceptance update November 12 UTC.
+
+## Superseding current-source verification
+
+The historical setup record below describes the original 42-test checkpoint. Current source `375a607fd7be33bf30ad56c2337cf9acf3ae2253` passes [native run 43136062719](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43136062719): 48 Android unit tests, 3 selector regressions, 0 lint errors/11 warnings, library/daily/game flows and guarded Maestro (1/1). [Current toolkit run 43136062726](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43136062726) also passes its dedicated-emulator journey. Haze/Lottie and the Signature components are now integrated. APK identity/signing/alignment passed after the native artifact was downloaded independently. Publication remains a separate gate; see [the master tracker](../MASTER_SPEC_IMPLEMENTATION.md) and [exact-binary ledger](evidence/signature-build7-native.json).
+
+The original 43096106238/43096106289 runs remain queued; no success is attributed to them. Fresh successful executions finish the outstanding smoke verification. Physical-device and wrong-AVD guards still fail closed before reset/install. Maestro uses relative screenshot names and exact visible native navigation labels.
+
+## Historical setup handoff
 
 ## Source and preservation
 

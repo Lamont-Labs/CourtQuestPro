@@ -56,14 +56,17 @@ jobs:
           root = Path('native-evidence')
           revisions = (root / 'artifacts/source-revisions.txt').read_text().splitlines()
           assert revisions[0] == request['native_commit']
-          assert revisions[1] == subprocess.check_output(['git', 'rev-parse', 'HEAD:app/src'], text=True).strip()
+          assert revisions[1] == request['app_src_tree'] == subprocess.check_output(['git', 'rev-parse', 'HEAD:app/src'], text=True).strip()
           daily = json.loads((root / 'artifacts/android-daily-flow/candidate-result.json').read_text())
           game = json.loads((root / 'artifacts/android-daily-flow/game-result.json').read_text())
           library = json.loads((root / 'artifacts/android-daily-flow/library-result.json').read_text())
           assert all(value for value in library.values() if isinstance(value, bool))
           manifest = json.loads(Path('dist/apk-manifest.json').read_text())
           assert manifest['version_code'] == daily['version_code'] == request['version_code'] == 7
-          assert manifest['apk_sha256'] == daily['input_apk_sha256'] == game['input_apk_sha256'] == library['input_apk_sha256']
+          assert manifest['apk_sha256'] == request['apk_sha256'] == daily['input_apk_sha256'] == game['input_apk_sha256'] == library['input_apk_sha256']
+          assert manifest['certificate_sha256'] == request['certificate_sha256']
+          assert manifest['package_id'] == request['package_id']
+          assert manifest['apk_size_bytes'] == request['apk_size_bytes']
           assert all(value for value in daily.values() if isinstance(value, bool))
           assert all(value for value in game.values() if isinstance(value, bool))
           suites = [ET.parse(p).getroot() for p in (root / 'app/build/test-results/testDebugUnitTest').glob('TEST-*.xml')]

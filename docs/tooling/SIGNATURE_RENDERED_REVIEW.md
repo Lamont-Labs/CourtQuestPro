@@ -21,7 +21,13 @@ The first candidate's normal flow is visually coherent. The enlarged-label defec
 
 ## Corrected candidate acceptance
 
-Current candidate adds the receipt evidence label, vertically reflowing paired metrics, shorter confirmation/save guidance and explicit enlarged receipt/clock captures. Final current-source Android results and exact-binary publication are recorded in the implementation tracker and release evidence after they finish.
+Final native source `375a607fd7be33bf30ad56c2337cf9acf3ae2253`, app/src `839a30e17949d0b7d9dbe9284999637e2117aa34`, [successful run 43136062719](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43136062719), artifact `13908407333`. Exact APK SHA-256 `1e0c5b24bc6f1087733014a1acaaba6b72e04435a758f9631b8f3e51b7b58767`.
+
+Reviewed the final Court, drill, receipt, next drill, Progress and compact Court captures. Normal 360 dp presents the resume action in the first viewport, readable target/counts, 15/15 with actual +50 XP and the expected next drill. At 320 dp/130%, Signature lettering and navigation words remain whole and the primary action is reachable. At 200%, the recording/correction labels wrap at word boundaries, all save guidance and the disabled Save action remain readable, the clock/Start/Reset fit their scrolled panel, and both fixed receipt actions remain complete. The editor footer is above the open keyboard. The final enlarged game capture retains point controls and Undo with actual names/scores.
+
+The enlarged recording capture is scrolled to the attempt controls; its upper metrics are outside that viewport. It does not visually prove every metric at once. Paired metrics now reflow in code, and persisted successful/attempted counts were asserted after actual taps. This distinction is retained rather than claiming an uncaptured full-panel review.
+
+The current exact APK passes every native suite and guarded Maestro. Publication/download verification is the final delivery step. Owner visual acceptance remains separate.
 
 ## Evidence limits
 
