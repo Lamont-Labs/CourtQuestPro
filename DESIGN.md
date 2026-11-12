@@ -326,3 +326,15 @@ The correction uses a 56dp smoked-glass dock with 4dp outer vertical spacing, on
 Applied UI/UX Pro Max touch/navigation/semantics guidance: preserve generous native targets, understandable names, selected state and Scaffold clearance. The data set's newer Compose APIs are not imported. Existing Material3 tooltip and Foundation selectable/semantics APIs follow official Android documentation and compile against the pinned BOM. No font-scale cap, second row, new dependency or brand asset is introduced. Actual 360dp/100%, 360dp/150%, 320dp/130%, 320dp/200% and landscape captures/bounds are required before delivery.
 
 Baseline reproducibility: build9 is pinned to the immutable successful native-run artifact 43251979732 and SHA-256 68b3b1d1f2cd08084b65973ae07544b74c2a795db27994f2b9a2b975a7785c5a, so replacing the public development APK cannot break future regression runs.
+
+## Approved future navigation direction — Edge Navigation v1 (2026-11-12)
+
+The owner approved replacing the oversized persistent bottom navigation with a compact, **left-edge collapsible navigation rail** based on their hand-drawn sketch. This is a design requirement, not evidence that the Android implementation has changed.
+
+- **Collapsed:** Only a slim, clearly visible pull tab protrudes from the middle-left screen edge. Its visible surface is **bright glowing orange** using the existing saturated CourtQuest orange (`#FF650E`), with a controlled luminous halo, glossy highlight, sharp chevron, and premium smoked-glass material. Keep the touch target accessible despite the narrow visual footprint.
+- **Open:** Tapping the tab expands a vertical rail with all five existing destinations in their existing order: Court, Train, Quests, Progress, Me. Preserve current icons, routes, selection semantics and app state; indicate the current tab.
+- **Close:** Automatically collapse immediately after a destination is chosen, including the currently selected destination. Also dismiss on outside tap, Back, or closing swipe. Avoid trapping focus and provide clear accessibility labels.
+- **Motion:** Short approximately 180–220ms transition; respect reduced-motion settings. Glow should be vivid but localized to the pull tab, not a distracting screen-wide bloom.
+- **Placement:** Keep the handle near the middle-left edge while respecting system gesture regions, screen sizes, orientation and active drill/scorekeeper controls. Do not obstruct critical recording actions.
+- **Preservation:** Do not redesign other screens, alter Signature branding, change the black/orange palette, erase player data, modify signing, or break existing workflows. Maintain responsive behavior at enlarged text and narrow widths.
+- **Acceptance:** Verify collapsed/expanded layout on device, accessible touch target, all five routes, auto-dismiss, outside tap/Back, resume behavior, gesture compatibility, visual glow, and build/lint/tests before an APK is presented as verified.
