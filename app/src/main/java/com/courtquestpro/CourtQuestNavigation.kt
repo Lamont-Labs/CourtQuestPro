@@ -25,7 +25,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
@@ -119,12 +118,17 @@ internal fun CourtQuestNavigation(selected: PlayerTab, onSelect: (PlayerTab) -> 
                                 Icon(
                                     icon,
                                     contentDescription = null,
-                                    tint = Color.Black.copy(alpha = 0.45f),
-                                    modifier = Modifier.size(30.dp).alpha(0.35f)
+                                    tint = Color.Black.copy(alpha = 0.55f),
+                                    modifier = Modifier.size(30.dp).offset(x = 1.dp, y = 2.dp)
+                                )
+                                Icon(
+                                    icon,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(27.dp)
                                 )
                             }
-                            Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(27.dp).offset(y = (-35).dp))
-                            Spacer(Modifier.height((-22).dp))
+                            Spacer(Modifier.height(5.dp))
                             Text(
                                 text = tab.label,
                                 color = if (active) accent else Color(0xFFF3F7FF),
