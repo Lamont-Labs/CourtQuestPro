@@ -60,7 +60,11 @@ private val Muted = CourtQuestDesign.textSecondary
 data class Drill(
     val id: String, val category: String, val title: String, val level: String,
     val minutes: Int, val instructions: String, val target: String, val videoQuery: String,
-    val minimumSuccesses: Int = 0
+    val minimumSuccesses: Int = 0,
+    val minimumPlayers: Int = when (id) {
+        "d3", "r3", "p1", "p2", "p3" -> 2
+        else -> 1
+    }
 )
 
 data class Slot(val id: String, val drillId: String, var complete: Boolean = false)
