@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.dp
  * Does not consume layout height or replace the five existing PlayerTab routes.
  */
 @Composable
-internal fun CourtQuestNavigation(selected: PlayerTab, onSelect: (PlayerTab) -> Unit) {
+internal fun CourtQuestNavigation(selected: PlayerTab, jersey: PlayerJersey, onSelect: (PlayerTab) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     BackHandler(expanded) { expanded = false }
     val orange = CourtQuestDesign.accentVivid
@@ -107,18 +107,22 @@ internal fun CourtQuestNavigation(selected: PlayerTab, onSelect: (PlayerTab) -> 
                                     .border(1.dp, if (active) orange else Color(0xFF595B60), RoundedCornerShape(13.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(
-                                    icon,
-                                    contentDescription = null,
-                                    tint = Color.Black.copy(alpha = 0.55f),
-                                    modifier = Modifier.size(30.dp).offset(x = 1.dp, y = 2.dp)
-                                )
-                                Icon(
-                                    icon,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(27.dp)
-                                )
+                                if (tab == PlayerTab.ME) {
+                                    PlayerJerseyArt(jersey, Modifier.size(38.dp))
+                                } else {
+                                    Icon(
+                                        icon,
+                                        contentDescription = null,
+                                        tint = Color.Black.copy(alpha = 0.55f),
+                                        modifier = Modifier.size(30.dp).offset(x = 1.dp, y = 2.dp)
+                                    )
+                                    Icon(
+                                        icon,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(27.dp)
+                                    )
+                                }
                             }
                             Spacer(Modifier.height(5.dp))
                             Text(
