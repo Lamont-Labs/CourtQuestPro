@@ -623,6 +623,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         }
     }
 }
+}
 
 private fun updateWeeklyActivity(current: MutableList<String>?, day: Int, kind: String): MutableList<String> {
     if (day !in 1..7 || kind !in listOf("Practice", "Game")) return current ?: mutableListOf()
