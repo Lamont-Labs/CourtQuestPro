@@ -52,13 +52,13 @@
 
 - [x] Add a dedicated-emulator builder-to-receipt journey before implementation: select/reorder/remove, generate/lock, save/reopen/revise, interrupt/resume, repeated save, receipts/Progress and legacy conflict.
 - [x] Implement shared Signature components, scrollable keyboard-safe forms, labeled 48dp move buttons, one clear primary action and concise durable-save feedback.
-- [ ] Verify normal/320dp-130%/critical200%/keyboard/reduced-motion captures; run existing library/daily/game/Maestro regressions on the exact candidate.
+- [x] Verify normal/320dp-130%/critical200%/keyboard/reduced-motion captures; run existing library/daily/game/Maestro regressions on the exact candidate.
 
 ### Task 4: Review, exact-binary delivery and checkpoint
 
 **Files:** workflows/native verification and authorized publication guard; master tracker, evidence ledger and next-chat handoff.
 
 - [x] Review whole diff against migration/snapshot/idempotency contract and fix blocking issues.
-- [ ] Confirm unit/build/lint, all native journeys and APK package/original certificate/version8/alignment.
+- [x] Confirm unit/build/lint, all native journeys and APK package/original certificate/version8/alignment.
 - [ ] Publish only the successful native-tested APK through existing development release; independently download/check bytes.
 - [ ] Record exact source/run/APK evidence and any unverified device/accessibility limits. Keep main intact.
