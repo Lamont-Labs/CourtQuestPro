@@ -57,7 +57,7 @@ internal fun CourtQuestNavigation(selected: PlayerTab, onSelect: (PlayerTab) -> 
                     Modifier.width(66.dp)
                         .shadow(14.dp, shape, ambientColor = orange.copy(alpha = 0.35f), spotColor = orange.copy(alpha = 0.25f))
                         .clip(shape)
-                        .background(CourtQuestDesign.surfaceElevated)
+                        .background(CourtQuestDesign.elevatedSurface)
                         .border(1.dp, orange.copy(alpha = 0.65f), shape)
                         .pointerInput(Unit) {
                             var dragged = 0f
