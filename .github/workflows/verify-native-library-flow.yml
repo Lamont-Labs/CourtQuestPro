@@ -9,6 +9,7 @@ on:
       - 'scripts/verify_android_game_flow.py'
       - 'scripts/verify_android_library_flow.py'
       - 'scripts/verify_android_mission_flow.py'
+      - 'scripts/verify_android_navigation_flow.py'
       - '.github/workflows/verify-native-library-flow.yml'
   workflow_dispatch:
 
@@ -20,7 +21,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     env:
-      COURTQUEST_VERSION_CODE: '8'
+      COURTQUEST_VERSION_CODE: '9'
       COURTQUEST_UI_EVIDENCE: artifacts/android-daily-flow
       ANDROID_AVD_HOME: /tmp/courtquest-avd
     steps:
@@ -77,6 +78,7 @@ jobs:
           python3 -u scripts/verify_android_game_flow.py baseline /tmp/courtquest-build5.apk
           python3 -u scripts/verify_android_library_flow.py app/build/outputs/apk/debug/app-debug.apk
           python3 -u scripts/verify_android_mission_flow.py app/build/outputs/apk/debug/app-debug.apk
+          python3 -u scripts/verify_android_navigation_flow.py app/build/outputs/apk/debug/app-debug.apk
           python3 -u scripts/verify_android_daily_flow.py candidate app/build/outputs/apk/debug/app-debug.apk
           python3 -u scripts/verify_android_game_flow.py candidate app/build/outputs/apk/debug/app-debug.apk
           bash scripts/run_premium_flow_checks.sh emulator-5562 app/build/outputs/apk/debug/app-debug.apk

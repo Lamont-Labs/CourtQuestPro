@@ -1,0 +1,158 @@
+name: Publish authorized CourtQuest development APK
+
+on:
+  push:
+    branches: [dev/scorekeeper-undo-history]
+    paths: ['release-request/courtquest-dev.txt']
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: courtquest-authorized-development-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install pinned APK verification tools
+        run: |
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" "build-tools;35.0.1"
+      - name: Retrieve the successful Android-tested binary
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          run_id=$(python3 -c "import json; print(json.load(open('release-request/courtquest-dev-evidence.json'))['native_run_id'])")
+          [[ "$run_id" =~ ^[0-9]+$ ]]
+          gh api "repos/${GH_REPO}/actions/runs/${run_id}" > native-run.json
+          python3 - <<'PY'
+          import json
+          request = json.load(open('release-request/courtquest-dev-evidence.json'))
+          run = json.load(open('native-run.json'))
+          assert run['conclusion'] == 'success' and run['status'] == 'completed'
+          assert run['head_sha'] == request['native_commit']
+          assert run['head_branch'] == 'dev/premium-flow-toolkit'
+          assert run['path'] == '.github/workflows/finish-player-build9-verification.yml'
+          PY
+          gh run download "$run_id" --name courtquest-native-library-flow --dir native-evidence
+      - name: Verify source, tests, native journeys and APK identity
+        run: |
+          python3 scripts/verify_apk.py --apk native-evidence/app/build/outputs/apk/debug/app-debug.apk --build-tools "${ANDROID_HOME}/build-tools/35.0.1" --output dist
+          python3 - <<'PY'
+          import json, subprocess, xml.etree.ElementTree as ET
+          from pathlib import Path
+          request = json.load(open('release-request/courtquest-dev-evidence.json'))
+          root = Path('native-evidence')
+          revisions = (root / 'artifacts/source-revisions.txt').read_text().splitlines()
+          assert revisions[0] == request['native_commit']
+          assert revisions[1] == request['app_src_tree'] == subprocess.check_output(['git', 'rev-parse', 'HEAD:app/src'], text=True).strip()
+          daily = json.loads((root / 'artifacts/android-daily-flow/candidate-result.json').read_text())
+          game = json.loads((root / 'artifacts/android-daily-flow/game-result.json').read_text())
+          library = json.loads((root / 'artifacts/android-daily-flow/library-result.json').read_text())
+          mission = json.loads((root / 'artifacts/android-daily-flow/mission-result.json').read_text())
+          navigation = json.loads((root / 'artifacts/android-daily-flow/navigation-result.json').read_text())
+          keyboard = json.loads((root / 'artifacts/android-daily-flow/keyboard-result.json').read_text())
+          assert keyboard['large_type_keyboard_full_save_target'] is True and keyboard['explicit_keyboard_open_name_save'] is True
+          assert keyboard['input_apk_sha256'] == request['apk_sha256']
+          lineage = json.loads((root / 'artifacts/completion-lineage.json').read_text())
+          assert lineage['frozen_apk_sha256'] == request['apk_sha256']
+          assert lineage['completion_source'] == request['native_commit']
+          assert lineage['app_src_tree'] == request['app_src_tree']
+          assert all(value for value in navigation.values() if isinstance(value, bool))
+          for key in ['five_usable_destinations', 'root_back_to_court', 'builder_back_to_train', 'library_tab_state', 'profile_draft_tab_state', 'profile_draft_process_restore', 'name_save_explicit', 'navigation_does_not_award_xp', 'normal_compact_large_keyboard_captured', 'discarded_editor_is_new', 'progress_filter_retained']:
+              assert navigation[key] is True, key
+          assert all(value for value in mission.values() if isinstance(value, bool))
+          for key in ['builder_order_remove', 'multi_step_next_drill', 'saved_reopen', 'immutable_revision', 'interrupted_resume', 'exact_once_results', 'version_linked_receipt', 'progress_receipt', 'legacy_practice_protected', 'solo_xp_unchanged', 'normal_compact_large_keyboard_captured']:
+              assert mission[key] is True, key
+          assert all(value for value in library.values() if isinstance(value, bool))
+          manifest = json.loads(Path('dist/apk-manifest.json').read_text())
+          assert manifest['version_code'] == daily['version_code'] == request['version_code'] == 9
+          assert manifest['apk_sha256'] == request['apk_sha256'] == daily['input_apk_sha256'] == game['input_apk_sha256'] == library['input_apk_sha256'] == mission['input_apk_sha256'] == navigation['input_apk_sha256']
+          assert manifest['certificate_sha256'] == request['certificate_sha256']
+          assert manifest['package_id'] == request['package_id']
+          assert manifest['apk_size_bytes'] == request['apk_size_bytes']
+          assert all(value for value in daily.values() if isinstance(value, bool))
+          assert all(value for value in game.values() if isinstance(value, bool))
+          suites = [ET.parse(p).getroot() for p in (root / 'app/build/test-results/testDebugUnitTest').glob('TEST-*.xml')]
+          count = sum(int(s.get('tests')) for s in suites)
+          assert count >= 72
+          assert not sum(int(s.get('failures')) + int(s.get('errors')) + int(s.get('skipped')) for s in suites)
+          issues = ET.parse(root / 'app/build/reports/lint-results-debug.xml').getroot().findall('issue')
+          errors = sum(i.get('severity') == 'Error' for i in issues)
+          warnings = sum(i.get('severity') == 'Warning' for i in issues)
+          assert errors == 0
+          smoke = ET.parse(root / 'artifacts/premium-flow-toolkit/report.xml').getroot()
+          smoke_suites = [smoke] if smoke.tag == 'testsuite' else list(smoke.iter('testsuite'))
+          assert sum(int(s.get('tests', 0)) for s in smoke_suites) >= 1
+          assert not sum(int(s.get('failures', 0)) + int(s.get('errors', 0)) + int(s.get('skipped', 0)) for s in smoke_suites)
+          manifest.update(completion_lineage=lineage, keyboard_flow=keyboard, maestro_smoke='PASS', native_run_id=request['native_run_id'], native_commit=request['native_commit'], android_unit_tests=count, lint_errors=errors, lint_warnings=warnings, daily_flow=daily, game_flow=game, library_flow=library, mission_flow=mission, navigation_flow=navigation)
+          manifest['checks']['emulator_test'] = 'PASS_SAME_APK_SHA256'
+          Path('dist/apk-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+          notes = ['CourtQuest Pro — Player navigation build 9', '',
+            'Court, Train, Quests, Progress and Me. Return to the right screen with Back; retain drill filters and profile drafts across tab switching and Android restoration. Quests shows actual daily training and completed Missions. Preserves Mission Builder, Signature branding, daily training, custom drills, extra practice, scoring, Undo, original signer and existing saves.', '',
+            f"Version: {manifest['version_name']} ({manifest['version_code']})", f"Package: {manifest['package_id']}",
+            f"SHA-256: {manifest['apk_sha256']}", f"Certificate SHA-256: {manifest['certificate_sha256']}",
+            f'Android unit tests: {count} passed. Lint: {errors} errors, {warnings} warnings.',
+            f"Native source: {request['native_commit']}", f"Android evidence: https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/{request['native_run_id']}", '',
+            'The APK is the exact binary exercised on Android. The original package and development signer are preserved.',
+            'Emulator captures use synthetic profiles. Owner visual acceptance, physical-phone operation and full TalkBack traversal remain separate.']
+          Path('dist/current-release.md').write_text('\n'.join(notes) + '\n')
+          print(json.dumps(manifest, sort_keys=True))
+          PY
+          cp native-evidence/app/build/outputs/apk/debug/app-debug.apk dist/CourtQuestPro-Android-debug.apk
+          sha256sum dist/CourtQuestPro-Android-debug.apk > dist/CourtQuestPro-Android-debug.apk.sha256
+      - name: Publish and verify the downloaded development update
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release upload courtquest-dev-2026-11-05 dist/CourtQuestPro-Android-debug.apk dist/CourtQuestPro-Android-debug.apk.sha256 --clobber
+          mkdir -p downloaded/dist
+          gh release download courtquest-dev-2026-11-05 --pattern 'CourtQuestPro-Android-debug.apk*' --dir downloaded/dist --clobber
+          (cd downloaded && sha256sum --check dist/CourtQuestPro-Android-debug.apk.sha256)
+          cmp dist/CourtQuestPro-Android-debug.apk downloaded/dist/CourtQuestPro-Android-debug.apk
+          python3 scripts/verify_apk.py --apk downloaded/dist/CourtQuestPro-Android-debug.apk --build-tools "${ANDROID_HOME}/build-tools/35.0.1" --output downloaded/verified
+          curl --fail --location --retry 3 "https://github.com/${GH_REPO}/releases/download/courtquest-dev-2026-11-05/CourtQuestPro-Android-debug.apk?verification=${GITHUB_RUN_ID}" --output downloaded/public-CourtQuestPro.apk
+          cmp dist/CourtQuestPro-Android-debug.apk downloaded/public-CourtQuestPro.apk
+          python3 scripts/verify_apk.py --apk downloaded/public-CourtQuestPro.apk --build-tools "${ANDROID_HOME}/build-tools/35.0.1" --output downloaded/public-verified
+          for spec in 'court:Court' 'drill:Drill' 'result:Result' 'progress-after-save:Progress' 'compact-court:CompactCourt' 'large-type-drill:LargeTypeDrill'; do
+            stem=${spec%:*}
+            label=${spec#*:}
+            cp "native-evidence/artifacts/android-daily-flow/candidate-${stem}.png" "dist/CourtQuestPro-Build9-${label}.png"
+          done
+          for spec in 'builder-empty:MissionBuilder' 'saved-definition:SavedMission' 'resumed-recording:MissionResume' 'drill-receipt:MissionDrillReceipt' 'completion:MissionComplete' 'progress-receipt:MissionProgress' 'compact:MissionCompact' 'large-type:MissionLargeType' 'large-type-keyboard:MissionKeyboard' 'large-type-recorder:MissionRecorderLargeType'; do
+            stem=${spec%:*}
+            label=${spec#*:}
+            cp "native-evidence/artifacts/android-daily-flow/candidate-library-mission-${stem}.png" "dist/CourtQuestPro-Build9-${label}.png"
+          done
+          for spec in 'normal-court:CourtTabs' 'normal-train:Train' 'normal-quests:Quests' 'normal-progress:ProgressTabs' 'normal-me:Me' 'compact-me:MeCompact' 'large-type-me:MeLargeText' 'large-type-keyboard:MeKeyboard'; do
+            stem=${spec%:*}
+            label=${spec#*:}
+            cp "native-evidence/artifacts/android-daily-flow/candidate-library-navigation-${stem}.png" "dist/CourtQuestPro-Build9-${label}.png"
+          done
+          gh release upload courtquest-dev-2026-11-05 dist/CourtQuestPro-Build9-*.png --clobber
+          gh release edit courtquest-dev-2026-11-05 --title 'CourtQuest Pro — Player navigation build 9' --notes-file dist/current-release.md
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: courtquest-published-build-verification
+          path: |
+            dist/apk-manifest.json
+            dist/current-release.md
+            downloaded/verified/*.json
+            downloaded/verified/*.txt
+            downloaded/public-verified/*.json
+            downloaded/public-verified/*.txt
+          if-no-files-found: warn
+          retention-days: 30

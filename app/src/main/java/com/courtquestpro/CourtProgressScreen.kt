@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
@@ -17,9 +18,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGames: Boolean = false, onMissionReceipt: (String) -> Unit = {}) {
     val drills = TrainingLibrary.catalog(save)
-    var showGames by remember(initiallyShowGames) { mutableStateOf(initiallyShowGames) }
-    var showAllSessions by remember { mutableStateOf(false) }
-    var showAllGames by remember { mutableStateOf(false) }
+    var showGames by rememberSaveable(initiallyShowGames) { mutableStateOf(initiallyShowGames) }
+    var showAllSessions by rememberSaveable { mutableStateOf(false) }
+    var showAllGames by rememberSaveable { mutableStateOf(false) }
     val recorded = save.drillResults.orEmpty()
     val valid = recorded.filter { it.attempted > 0 && it.completed in 0..it.attempted }
     if (showAllGames) {

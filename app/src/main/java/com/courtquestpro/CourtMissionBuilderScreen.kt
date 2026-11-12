@@ -22,7 +22,7 @@ import kotlin.random.Random
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun MissionBuilderScreen(save: SaveState, onChange: () -> Unit, onStart: (String) -> Unit,
-    onResume: () -> Unit, onHome: () -> Unit) {
+    onResume: () -> Unit, onHome: () -> Unit, backLabel: String = "Back to Court") {
     val draft = MissionBuilder.ensureDraft(save)
     val saved = MissionBuilder.savedVersion(save)
     var query by rememberSaveable { mutableStateOf("") }
@@ -43,7 +43,7 @@ internal fun MissionBuilderScreen(save: SaveState, onChange: () -> Unit, onStart
         item { AppHeader("Build your Mission.", "Your drills. Your order. Your next session.") }
         item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                TextButton(onHome, Modifier.heightIn(min = 48.dp)) { Text("Back to Court") }
+                TextButton(onHome, Modifier.heightIn(min = 48.dp)) { Text(backLabel) }
                 if (MissionTraining.active(save) != null) {
                     CourtQuestPrimaryButton(onResume, Modifier.fillMaxWidth()) { Text("Resume Mission") }
                     Text("Your active session keeps its saved version while you edit this draft.", style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)

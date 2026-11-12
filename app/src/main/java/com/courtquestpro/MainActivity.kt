@@ -3,6 +3,8 @@ package com.courtquestpro
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -24,6 +26,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
@@ -202,9 +205,13 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             .remove("onboarding_focus").remove("onboarding_days").apply()
         onboardingComplete = true
     }
-    var screen by rememberSaveable { mutableStateOf("home") }
+    var routeHistory by rememberSaveable { mutableStateOf(listOf("home")) }
+    val screen = PlayerNavigation.restore(routeHistory).last()
+    val destinationState = rememberSaveableStateHolder()
+    fun navigate(route: String) { routeHistory = PlayerNavigation.open(routeHistory, route) }
+    fun goBack() { routeHistory = PlayerNavigation.back(routeHistory) }
     var librarySlotId by rememberSaveable { mutableStateOf<String?>(null) }
-    var libraryFocusId by rememberSaveable { mutableStateOf<String?>(null) }
+    var librarySelectedId by rememberSaveable { mutableStateOf<String?>(null) }
     var editingDrillId by rememberSaveable { mutableStateOf<String?>(null) }
     var editorCategory by rememberSaveable { mutableStateOf("Shooting") }
     var selectedSlot by rememberSaveable { mutableIntStateOf(-1) }
@@ -220,34 +227,48 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     var confirmMissionDiscard by rememberSaveable { mutableStateOf(false) }
     fun openMission() {
         val session = MissionTraining.active(save) ?: return
-        if (MissionTraining.resume(save, session.id)) { refresh(); screen = "mission" }
+        if (MissionTraining.resume(save, session.id)) { refresh(); navigate("mission") }
     }
     fun leaveMission() {
         MissionTraining.active(save)?.let { MissionTraining.pause(save, it.id) }
-        refresh(); screen = "home"
+        refresh(); goBack()
     }
-    fun openMissionBuilder() { MissionBuilder.ensureDraft(save); refresh(); screen = "missionBuilder" }
+    fun openMissionBuilder() { MissionBuilder.ensureDraft(save); refresh(); navigate("missionBuilder") }
     fun startMission(versionId: String) {
         if (MissionTraining.start(save, versionId, Instant.now().toString()) != null) {
-            missionStartPending = null; refresh(); screen = "mission"
+            missionStartPending = null; refresh(); navigate("mission")
         } else missionStartPending = versionId
     }
 
-    val today = LocalDate.now(ZoneId.systemDefault()).toString()
+    var today by remember { mutableStateOf(PlayerCalendar.today(Instant.now(), ZoneId.systemDefault())) }
+    DisposableEffect(context) {
+        val lifecycle = (context as? ComponentActivity)?.lifecycle
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) today = PlayerCalendar.today(Instant.now(), ZoneId.systemDefault())
+        }
+        lifecycle?.addObserver(observer)
+        onDispose { lifecycle?.removeObserver(observer) }
+    }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(PlayerCalendar.nextRefreshMillis(Instant.now(), ZoneId.systemDefault()))
+            today = PlayerCalendar.today(Instant.now(), ZoneId.systemDefault())
+        }
+    }
     fun openMatch() {
         error = ""
-        screen = if (save.hasResumableMatch(today)) "score" else "champSetup"
+        navigate(if (save.hasResumableMatch(today)) "score" else "champSetup")
     }
     fun openTraining() {
         if (MissionTraining.active(save) != null) { openMission(); notice("Resume or finish your Mission before daily training."); return }
         if (save.slots.all { it.complete }) openMatch()
         else {
             selectedSlot = nextDailySlot(save) ?: return
-            screen = "drill"
+            navigate("drill")
         }
     }
     BackHandler(enabled = onboardingComplete && screen != "home") {
-        if (screen == "mission") leaveMission() else screen = "home"
+        if (screen == "mission") leaveMission() else goBack()
     }
     LaunchedEffect(today) {
         if (save.activeDate != today) {
@@ -261,7 +282,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             save.matchPlayer = ""
             save.matchOpponent = ""
             save.showWarmupDone = false
-            if (screen == "drill" || screen == "score") screen = "home"
+            if (screen == "drill" || screen == "score") navigate("home")
             refresh()
         } else if (save.slots.isEmpty()) {
             save.slots = makeDailySlots(save.difficulty, save.weeklyPlan, TrainingLibrary.available(save)).toMutableList()
@@ -280,11 +301,11 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
 
     fun openLibrary(slotId: String? = null) {
         librarySlotId = slotId
-        libraryFocusId = null
-        screen = "library"
+        librarySelectedId = null
+        navigate("library")
     }
     @Composable fun HomeContent() {
-        HomeScreen(save, { openTraining() }, { openMatch() }, { screen = "career" },
+        HomeScreen(save, { openTraining() }, { openMatch() }, { navigate("career") },
             { name -> save.playerName = name.trim(); playerNameInput = save.playerName; refresh() },
             { plan -> save.weeklyPlan = plan; refresh() },
             { day -> save.trainingDays = toggleTrainingDay(save.trainingDays, day); refresh() },
@@ -294,7 +315,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 val changed = TrainingLibrary.shuffle(save)
                 if (changed > 0) { refresh(); notice("$changed untouched drills shuffled.") }
                 else notice("No suitable alternatives yet. Started and completed drills stay protected.")
-            }, onResumePractice = { screen = "practice" }, onMissionBuilder = { openMissionBuilder() }, onResumeMission = { openMission() })
+            }, onResumePractice = { navigate("practice") }, onMissionBuilder = { openMissionBuilder() }, onResumeMission = { openMission() })
     }
 
     CourtQuestTheme {
@@ -306,7 +327,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 text = { Text("Your unfinished attempts are safe. Resume that session, or explicitly discard its unfinished work before starting this Mission. Saved results stay in Progress.") },
                 confirmButton = { TextButton({
                     missionStartPending = null
-                    when { active != null -> openMission(); practice != null -> screen = "practice"; daily != null -> openTraining() }
+                    when { active != null -> openMission(); practice != null -> navigate("practice"); daily != null -> openTraining() }
                 }) { Text(when { active != null -> "Resume Mission"; practice != null -> "Resume extra practice"; else -> "Resume daily training" }) } },
                 dismissButton = { Column {
                     TextButton({ missionStartPending = null }) { Text("Keep building") }
@@ -333,9 +354,13 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             snackbarHost = { SnackbarHost(snackbar) },
             containerColor = Color.Transparent,
             bottomBar = {
-                if (onboardingComplete && screen in listOf("home", "library", "career", "gameHistory", "settings")) {
-                    CourtQuestNavigation(screen, onCourt = { screen = "home" }, onDrills = { openLibrary() },
-                        onProgress = { screen = "career" }, onSetup = { screen = "settings" })
+                if (onboardingComplete && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")) {
+                    CourtQuestNavigation(PlayerNavigation.tab(routeHistory)) { tab ->
+                        if (tab == PlayerTab.TRAIN) {
+                            if (librarySlotId != null) { librarySlotId = null; librarySelectedId = null }
+                            navigate(tab.route)
+                        } else navigate(tab.route)
+                    }
                 }
             }
         ) { padding ->
@@ -361,6 +386,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     }
                 )
             } else AnimatedContent(targetState = screen, label = "screen-transition", modifier = Modifier.padding(padding).consumeWindowInsets(padding)) { target ->
+                @Composable fun DestinationContent() {
                 when (target) {
                     "home" -> HomeContent()
                     "library" -> DrillLibraryScreen(save, librarySlotId,
@@ -368,24 +394,24 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                             editingDrillId = null
                             editorCategory = librarySlotId?.let { id -> save.slots.firstOrNull { it.id == id }?.drillId }
                                 ?.let { id -> catalog.firstOrNull { it.id == id }?.category } ?: "Shooting"
-                            screen = "drillEditor"
-                        }, onEdit = { editingDrillId = it; screen = "drillEditor" },
+                            navigate("drillEditor")
+                        }, onEdit = { editingDrillId = it; navigate("drillEditor") },
                         onArchive = { TrainingLibrary.archive(save, it); refresh(); notice("Drill archived. Saved results are preserved.") },
                         onFavorite = { TrainingLibrary.toggleFavorite(save, it); refresh() },
                         onPractice = { id ->
                             if (MissionTraining.active(save) != null) { openMission(); notice("Resume or finish your Mission before extra practice.") }
                             else if (save.practiceSession?.drillId == id || TrainingLibrary.startPractice(save, id, today)) {
-                                refresh(); screen = "practice"
+                                refresh(); navigate("practice")
                             } else notice("Resume or finish your saved practice first.")
                         }, onUse = { id ->
                             val drill = catalog.firstOrNull { it.id == id }
                             val slot = drill?.let { TrainingLibrary.swappableSlot(save, it, librarySlotId) }
                             if (slot != null && TrainingLibrary.swap(save, slot.id, id)) {
-                                refresh(); screen = "home"; notice("Daily drill replaced. Your recorded work is protected.")
+                                refresh(); navigate("home"); notice("Daily drill replaced. Your recorded work is protected.")
                             } else notice("Choose an untouched slot and a suitable drill.")
-                        }, onResume = { screen = "practice" }, onHome = { screen = "home" }, initialDrillId = libraryFocusId, onMissionBuilder = { openMissionBuilder() })
+                        }, onResume = { navigate("practice") }, onHome = { navigate("home") }, selectedId = librarySelectedId, onSelect = { librarySelectedId = it }, onMissionBuilder = { openMissionBuilder() })
                     "missionBuilder" -> MissionBuilderScreen(save, onChange = { refresh() }, onStart = { startMission(it) },
-                        onResume = { openMission() }, onHome = { screen = "home" })
+                        onResume = { openMission() }, onHome = { goBack() }, backLabel = PlayerNavigation.backLabel(routeHistory))
                     "mission" -> {
                         val session = MissionTraining.active(save)
                         val version = session?.let { MissionTraining.version(save, it) }
@@ -402,30 +428,30 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                                         val completedAt = Instant.now()
                                         val completedDate = completedAt.atZone(ZoneId.systemDefault()).toLocalDate().toString()
                                         val result = MissionTraining.finishStep(save, session.id, step.id, completedDate, completedAt.toString())
-                                        if (result != null) { refresh(); recordedDrillId = result.slotId; recordedXp = 0; screen = "missionStepReceipt" }
+                                        if (result != null) { refresh(); recordedDrillId = result.slotId; recordedXp = 0; navigate("missionStepReceipt") }
                                     }, onBack = { leaveMission() }, practice = true,
                                     onDiscard = { if (MissionTraining.discard(save, session.id)) { refresh(); openMissionBuilder() } },
                                     sessionLabel = "${version.title} · Drill ${index + 1} of ${version.steps.size}", frozenMeasurement = step.measurement)
                             }
-                        } else if (screen == "mission") LaunchedEffect(Unit) { if (screen == "mission") screen = "home" }
+                        } else if (screen == "mission") LaunchedEffect(Unit) { if (screen == "mission") navigate("home") }
                     }
                     "missionStepReceipt" -> {
                         val result = recordedDrill
                         if (result != null) MissionStepReceiptScreen(save, result, onNext = { openMission() },
-                            onSummary = { missionReceiptId = it; screen = "missionReceipt" }, onHome = { screen = "home" }, onProgress = { screen = "career" })
-                        else if (screen == "missionStepReceipt") LaunchedEffect(Unit) { if (screen == "missionStepReceipt") screen = "home" }
+                            onSummary = { missionReceiptId = it; navigate("missionReceipt") }, onHome = { navigate("home") }, onProgress = { navigate("career") })
+                        else if (screen == "missionStepReceipt") LaunchedEffect(Unit) { if (screen == "missionStepReceipt") navigate("home") }
                     }
                     "missionReceipt" -> {
                         val receipt = save.missionReceipts.orEmpty().firstOrNull { it.id == missionReceiptId }
-                        if (receipt != null) MissionReceiptScreen(save, receipt, onHome = { screen = "home" }, onProgress = { screen = "career" })
-                        else if (screen == "missionReceipt") LaunchedEffect(Unit) { if (screen == "missionReceipt") screen = "career" }
+                        if (receipt != null) MissionReceiptScreen(save, receipt, onHome = { navigate("home") }, onProgress = { navigate("career") })
+                        else if (screen == "missionReceipt") LaunchedEffect(Unit) { if (screen == "missionReceipt") navigate("career") }
                     }
                     "drillEditor" -> CustomDrillEditor(catalog.firstOrNull { it.id == editingDrillId }, editorCategory,
                         save.difficulty.takeIf { it in TrainingLibrary.levels } ?: "Beginner", onSave = { input ->
                             val result = TrainingLibrary.saveCustom(save, input, editingDrillId)
                             if (result == null) TrainingLibrary.validation(input) ?: "This drill is no longer available to edit."
-                            else { libraryFocusId = result.id; refresh(); screen = "library"; notice("Custom drill saved."); null }
-                        }, onBack = { screen = "library" })
+                            else { librarySelectedId = result.id; refresh(); navigate("library"); notice("Custom drill saved."); null }
+                        }, onBack = { goBack() })
                     "practice" -> {
                         val session = save.practiceSession
                         val drill = catalog.firstOrNull { it.id == session?.drillId }
@@ -436,9 +462,9 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                                 onComplete = { _, _ ->
                                     val result = TrainingLibrary.finishPractice(save, session.id, today)
                                     if (result != null) {
-                                        refresh(); recordedDrillId = result.slotId; recordedXp = 0; screen = "drillResult"
+                                        refresh(); recordedDrillId = result.slotId; recordedXp = 0; navigate("drillResult")
                                     }
-                                }, onBack = { screen = "home" }, practice = true,
+                                }, onBack = { goBack() }, practice = true,
                                 onDiscard = { if (TrainingLibrary.discardPractice(save, session.id)) { refresh(); openLibrary() } })
                         } else if (screen == "practice") LaunchedEffect(Unit) {
                             if (screen == "practice") openLibrary()
@@ -482,10 +508,10 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                                     refresh()
                                     recordedDrillId = result.slotId
                                     recordedXp = save.totalXp - xpBefore
-                                    screen = "drillResult"
+                                    navigate("drillResult")
                                 }
                             },
-                            onBack = { screen = "home" }
+                            onBack = { goBack() }
                         )
                     }
                     "drillResult" -> {
@@ -494,9 +520,9 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                             val drill = result.drillSnapshot ?: catalog.firstOrNull { it.id == result.drillId } ?: drills.first()
                             DrillResultScreen(drill, result, recordedXp, save.slots.count { it.complete },
                                 nextDrill = if (result.practice) null else nextDailySlot(save)?.let { i -> catalog.firstOrNull { it.id == save.slots[i].drillId } },
-                                onContinue = { if (result.practice) openLibrary() else openTraining() }, onProgress = { screen = "career" },
-                                onHome = { screen = "home" })
-                        } else LaunchedEffect(Unit) { screen = "home" }
+                                onContinue = { if (result.practice) openLibrary() else openTraining() }, onProgress = { navigate("career") },
+                                onHome = { navigate("home") })
+                        } else LaunchedEffect(Unit) { navigate("home") }
                     }
                     "champSetup" -> ChampionshipSetup(
                         playerName = playerNameInput, opponentName = opponentInput, error = error,
@@ -514,10 +540,10 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                                 save.championshipDone = false
                                 refresh()
                                 error = ""
-                                screen = "score"
+                                navigate("score")
                             }
                         },
-                        onBack = { screen = "home" }
+                        onBack = { goBack() }
                     )
                     "score" -> ScoreScreen(
                         player = save.matchPlayer, opponent = save.matchOpponent,
@@ -545,7 +571,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                                     updateStreak(save, LocalDate.parse(save.activeDate), LocalDate.now(ZoneId.systemDefault()).toString())
                                     recap = record
                                     refresh()
-                                    screen = "recap"
+                                    navigate("recap")
                                 } else refresh()
                             }
                         },
@@ -562,18 +588,25 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                                 }
                             }
                         },
-                        onBack = { screen = "home" },
+                        onBack = { goBack() },
                         canUndo = !save.pointHistory.isNullOrEmpty(),
                         lastScorer = save.pointHistory?.lastOrNull()?.let { if (it) save.matchPlayer else save.matchOpponent }
                     )
-                    "recap" -> (recap ?: save.matches.firstOrNull())?.let { MatchRecapScreen(it, save.totalXp, onHome = { screen = "home" }, onCareer = { screen = "gameHistory" }) } ?: HomeContent()
-                    "gameHistory" -> CareerScreen(save, onHome = { screen = "home" }, initiallyShowGames = true)
-                    "career" -> CareerScreen(save, onHome = { screen = "home" }, onMissionReceipt = { missionReceiptId = it; screen = "missionReceipt" })
-                    "settings" -> SettingsScreen(save.playerName, save.difficulty, onDifficulty = { save.difficulty = it; refresh() }, onSaveName = {
+                    "recap" -> (recap ?: save.matches.firstOrNull())?.let { MatchRecapScreen(it, save.totalXp, onHome = { navigate("home") }, onCareer = { navigate("gameHistory") }) } ?: HomeContent()
+                    "gameHistory" -> CareerScreen(save, onHome = { navigate("home") }, initiallyShowGames = true)
+                    "career" -> CareerScreen(save, onHome = { navigate("home") }, onMissionReceipt = { missionReceiptId = it; navigate("missionReceipt") })
+                    "quests" -> QuestsScreen(save, today, onTraining = { openTraining() }, onBuild = { openMissionBuilder() },
+                        onResumeMission = { openMission() }, onProgress = { navigate("career") })
+                    "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") })
+                    "settings" -> SettingsScreen(save.playerName, save.difficulty, onBack = { goBack() }, onDifficulty = { save.difficulty = it; refresh() }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
                     })
                     else -> HomeContent()
                 }
+                }
+                if (PlayerNavigation.retainsState(target)) {
+                    destinationState.SaveableStateProvider(target) { DestinationContent() }
+                } else DestinationContent()
             }
         }
     }

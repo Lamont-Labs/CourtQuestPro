@@ -1,9 +1,4 @@
-CourtQuest Pro Mission Builder build 8 / CQ-PLAYER-002
-Owner-authorized master-spec solo Mission foundation: ordered builder, immutable versions, seeded constrained generation, safe interruption/resume, exact-once results and Mission receipts in Progress.
-Native source: f6db205d3b8d7a10621acd3b39bc6fda0f576ecc
-Native app/src: 826dc7c4f6eecbd0147b04e2cbc50a107ed4d089
-Native run: 43147187632
-Native artifact: 13913082538
-APK SHA-256: 7bee93ac1870911008db5973c9a374f0d4eb8db6e05ed917ba0df0db144ca04d
-Verified: 61 Android unit tests, 7 Python verification regressions, lint 0 errors/11 warnings, same-binary library/daily/game/Mission/guarded Maestro PASS. Native normal/320dp-130%/critical200%/keyboard captures reviewed with limits recorded.
-Publish the exact tested APK. Preserve com.courtquestpro, version code 8, the original development signer, local saves and Signature art. Update the existing development release; keep main intact.
+Publish authorized CourtQuest Pro Player navigation build 9.
+Use the exact 21,136,122-byte APK accepted by native completion run 43251979732.
+SHA-256: 68b3b1d1f2cd08084b65973ae07544b74c2a795db27994f2b9a2b975a7785c5a
+Retain the original package, signer and fixed public APK download path.

@@ -23,9 +23,8 @@ import androidx.compose.ui.unit.dp
 internal fun DrillLibraryScreen(
     save: SaveState, swapSlotId: String?, onNew: () -> Unit, onEdit: (String) -> Unit,
     onArchive: (String) -> Unit, onFavorite: (String) -> Unit, onPractice: (String) -> Unit,
-    onUse: (String) -> Unit, onResume: () -> Unit, onHome: () -> Unit, initialDrillId: String? = null, onMissionBuilder: () -> Unit
+    onUse: (String) -> Unit, onResume: () -> Unit, onHome: () -> Unit, selectedId: String?, onSelect: (String?) -> Unit, onMissionBuilder: () -> Unit
 ) {
-    var selectedId by rememberSaveable(initialDrillId) { mutableStateOf(initialDrillId) }
     var query by rememberSaveable { mutableStateOf("") }
     var filter by rememberSaveable { mutableStateOf("All") }
     var category by rememberSaveable(swapSlotId) { mutableStateOf(
@@ -36,11 +35,11 @@ internal fun DrillLibraryScreen(
     val selected = catalog.firstOrNull { it.id == selectedId }
     val favorites = save.favoriteDrillIds.orEmpty()
     if (selected != null) {
-        BackHandler { selectedId = null }
-        DrillLibraryDetail(selected, save, swapSlotId, onBack = { selectedId = null },
+        BackHandler { onSelect(null) }
+        DrillLibraryDetail(selected, save, swapSlotId, onBack = { onSelect(null) },
             onFavorite = { onFavorite(selected.id) }, onPractice = { onPractice(selected.id) },
             onUse = { onUse(selected.id) }, onEdit = { onEdit(selected.id) },
-            onArchive = { onArchive(selected.id); selectedId = null }, onResume = onResume)
+            onArchive = { onArchive(selected.id); onSelect(null) }, onResume = onResume)
         return
     }
     val available = TrainingLibrary.available(save)
@@ -53,7 +52,7 @@ internal fun DrillLibraryScreen(
     val suggestions = TrainingLibrary.suggestions(save)
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        item { AppHeader(if (swapSlotId == null) "Drill library." else "Make the swap.",
+        item { AppHeader(if (swapSlotId == null) "Train your way." else "Make the swap.",
             if (swapSlotId == null) "Find a drill. Make it yours. Put in the work." else "Choose a suitable drill for your untouched daily slot.") }
         item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -92,13 +91,13 @@ internal fun DrillLibraryScreen(
             item {
                 LazyRow(contentPadding = PaddingValues(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(suggestions, key = { it.drill.id }) { suggestion ->
-                        CourtQuestPremiumSurface(Modifier.width(264.dp).clickable { selectedId = suggestion.drill.id }, PaddingValues(20.dp)) {
+                        CourtQuestPremiumSurface(Modifier.width(264.dp).clickable { onSelect(suggestion.drill.id) }, PaddingValues(20.dp)) {
                             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 CourtEyebrow(suggestion.drill.category)
                                 Text(suggestion.drill.title, color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleLarge)
                                 Text(suggestion.reason, color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
                                 Text("${suggestion.drill.level} · ${suggestion.drill.minutes} min", color = CourtQuestDesign.accent, style = MaterialTheme.typography.labelMedium)
-                                TextButton({ selectedId = suggestion.drill.id }, modifier = Modifier.heightIn(min = 48.dp)) { Text("View drill") }
+                                TextButton({ onSelect(suggestion.drill.id) }, modifier = Modifier.heightIn(min = 48.dp)) { Text("View drill") }
                             }
                         }
                     }
@@ -128,7 +127,7 @@ internal fun DrillLibraryScreen(
                     Text(drill.title, style = MaterialTheme.typography.titleLarge, color = CourtQuestDesign.textPrimary)
                     Text("${drill.level} · ${drill.minutes} min · ${DrillTargets.minimum(drill)} successful actions",
                         style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)
-                    OutlinedButton({ selectedId = drill.id }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                    OutlinedButton({ onSelect(drill.id) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                         Text("View ${drill.title}", Modifier.weight(1f)); Icon(Icons.AutoMirrored.Filled.ArrowForward, null, Modifier.size(18.dp))
                     }
                 }

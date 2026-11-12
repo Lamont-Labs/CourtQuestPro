@@ -11,6 +11,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,9 +25,9 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun SettingsScreen(playerName: String, difficulty: String, onDifficulty: (String) -> Unit, onSaveName: (String) -> Unit) {
-    var name by remember(playerName) { mutableStateOf(playerName) }
-    var savedNotice by remember { mutableStateOf(false) }
+internal fun SettingsScreen(playerName: String, difficulty: String, onDifficulty: (String) -> Unit, onSaveName: (String) -> Unit, onBack: () -> Unit) {
+    var name by rememberSaveable(playerName) { mutableStateOf(playerName) }
+    var savedNotice by rememberSaveable { mutableStateOf(false) }
     val keyboard = LocalSoftwareKeyboardController.current
     val saveName = {
         if (name.isNotBlank()) {
@@ -39,6 +40,7 @@ internal fun SettingsScreen(playerName: String, difficulty: String, onDifficulty
         AppHeader("Make it yours.", "Your player profile and training preferences.")
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)) {
+            TextButton(onBack, Modifier.heightIn(min = 48.dp)) { Text("Back to Me") }
             CourtEyebrow("PLAYER IDENTITY")
             OutlinedTextField(value = name, onValueChange = { name = it.take(40); savedNotice = false },
                 label = { Text("Player name") }, singleLine = true, modifier = Modifier.fillMaxWidth(),
