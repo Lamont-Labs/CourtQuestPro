@@ -612,8 +612,6 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     destinationState.SaveableStateProvider(target) { DestinationContent() }
                 } else DestinationContent()
             }
-                }
-            }
         }
         if (onboardingComplete && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")) {
             CourtQuestNavigation(
