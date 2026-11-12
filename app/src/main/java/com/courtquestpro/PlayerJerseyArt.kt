@@ -40,9 +40,9 @@ internal val jerseyColors = listOf(
 @Composable
 internal fun PlayerJerseyArt(jersey: PlayerJersey, modifier: Modifier = Modifier) {
     val uniform = jersey.sanitized()
-    val base = Color(uniform.primary)
-    val trim = Color(uniform.secondary)
-    val ink = Color(uniform.lettering)
+    val base = Color(uniform.primary.toInt())
+    val trim = Color(uniform.secondary.toInt())
+    val ink = Color(uniform.lettering.toInt())
     Canvas(modifier) {
         val w=size.width; val h=size.height
         val outline=Path().apply {
