@@ -48,10 +48,26 @@ internal fun DrillCourtReference(drill: Drill) {
                 cubicTo(w*.06f,h*.78f,w*.94f,h*.78f,w*.88f,h*.035f)
             }
             drawPath(arc,line.copy(alpha=.65f),style=Stroke(1.5.dp.toPx()))
+            // Each built-in drill has its own movement reference, not a category-wide template.
             val positions = when(drill.id) {
                 "s1" -> listOf(.19f to .22f,.32f to .47f,.50f to .54f,.68f to .47f,.81f to .22f)
-                "d3" -> listOf(.33f to .55f,.67f to .55f)
-                "r3","p1","p2","p3" -> listOf(.32f to .46f,.68f to .65f)
+                "s2" -> listOf(.67f to .64f,.67f to .47f)
+                "s3" -> listOf(.79f to .67f,.65f to .46f,.51f to .38f)
+                "b1" -> listOf(.43f to .66f,.57f to .66f,.43f to .66f)
+                "b2" -> listOf(.24f to .84f,.24f to .60f,.24f to .33f)
+                "b3" -> listOf(.76f to .78f,.65f to .63f,.54f to .44f,.46f to .26f)
+                "f1" -> listOf(.20f to .59f,.38f to .34f,.48f to .17f)
+                "f2" -> listOf(.76f to .68f,.64f to .48f,.49f to .17f)
+                "f3" -> listOf(.27f to .42f,.45f to .19f,.62f to .19f)
+                "d1" -> listOf(.25f to .67f,.75f to .67f,.25f to .67f)
+                "d2" -> listOf(.51f to .81f,.51f to .57f,.65f to .42f)
+                "d3" -> listOf(.32f to .58f,.68f to .58f)
+                "r1" -> listOf(.50f to .47f,.42f to .31f,.50f to .20f)
+                "r2" -> listOf(.50f to .22f,.59f to .35f,.78f to .61f)
+                "r3" -> listOf(.76f to .52f,.53f to .25f,.42f to .34f)
+                "p1" -> listOf(.26f to .62f,.74f to .62f)
+                "p2" -> listOf(.27f to .68f,.73f to .68f,.50f to .34f)
+                "p3" -> listOf(.50f to .23f,.59f to .39f,.78f to .68f)
                 else -> when(drill.category) {
                     "Defense" -> listOf(.30f to .52f,.50f to .65f,.70f to .52f)
                     "Passing" -> listOf(.27f to .55f,.73f to .55f)
@@ -83,7 +99,7 @@ internal fun DrillCourtReference(drill: Drill) {
                 }
             }
         }
-        Text("Orange markers show suggested positions and movement. Diagram is illustrative; follow the written instructions for the exact drill.",
+        Text("Orange markers trace the drill-specific reference sequence. Follow the written instructions for footwork, timing and safety.",
             color=Color(0xFFB7C0CC),style=MaterialTheme.typography.bodySmall)
     }
 }
