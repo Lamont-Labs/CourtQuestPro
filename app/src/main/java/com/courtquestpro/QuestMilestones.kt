@@ -6,13 +6,17 @@ package com.courtquestpro
  * Recompute from receipts rather than trusting mutable XP, streak or UI flags.
  */
 internal object QuestMilestones {
+    private fun validDate(value: String): Boolean = runCatching {
+        java.time.LocalDate.parse(value).toString() == value
+    }.getOrDefault(false)
+
     const val RULESET_VERSION = 1
 
     data class Milestone(val id: String, val title: String, val description: String, val achieved: Boolean, val evidenceCount: Int)
 
     fun evaluate(save: SaveState): List<Milestone> {
         val validDrills = save.drillResults.orEmpty().filter {
-            it.date.isNotBlank() && it.drillId.isNotBlank() && it.slotId.isNotBlank() &&
+            validDate(it.date) && it.drillId.isNotBlank() && it.slotId.isNotBlank() &&
                 it.attempted > 0 && it.completed in 0..it.attempted
         }.distinctBy { result ->
             // A completed step may be represented by a daily or a Mission identity.
@@ -23,7 +27,7 @@ internal object QuestMilestones {
         val uniqueDates = validDrills.map { it.date }.distinct().size
         val missionCount = save.missionReceipts.orEmpty()
             .filter { it.id.isNotBlank() && MissionTraining.receiptValid(save, it) }
-            .map { it.id }.distinct().size
+            .map { it.sessionId }.distinct().size
         return listOf(
             Milestone("first_recorded_drill_v1", "First rep recorded", "Save your first drill result.", validDrills.isNotEmpty(), validDrills.size),
             Milestone("five_recorded_drills_v1", "Five on the board", "Record five distinct drill results.", validDrills.size >= 5, validDrills.size),
