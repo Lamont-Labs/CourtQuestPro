@@ -42,8 +42,6 @@ internal fun CourtQuestNavigation(selected: PlayerTab, onSelect: (PlayerTab) -> 
     BackHandler(expanded) { expanded = false }
     val orange = CourtQuestDesign.accentVivid
     val shape = RoundedCornerShape(topEnd = 22.dp, bottomEnd = 22.dp)
-    val ice = Color(0xFF69C9FF)
-    val gold = Color(0xFFFFC36B)
     Box(Modifier.fillMaxSize().testTag("player-navigation-overlay")) {
         if (expanded) {
             Box(
@@ -63,7 +61,7 @@ internal fun CourtQuestNavigation(selected: PlayerTab, onSelect: (PlayerTab) -> 
                         .shadow(20.dp, shape, ambientColor = orange.copy(alpha = 0.36f), spotColor = orange.copy(alpha = 0.30f))
                         .clip(shape)
                         .background(Brush.horizontalGradient(listOf(Color(0xE90B1019), Color(0xC71B222E), Color(0xAF0C1119))))
-                        .border(1.dp, Brush.verticalGradient(listOf(ice.copy(alpha = 0.75f), Color.White.copy(alpha = 0.17f), orange.copy(alpha = 0.70f))), shape)
+                        .border(1.dp, Brush.verticalGradient(listOf(orange.copy(alpha = 0.70f), Color.White.copy(alpha = 0.17f), orange.copy(alpha = 0.55f))), shape)
                         .pointerInput(Unit) {
                             var dragged = 0f
                             detectHorizontalDragGestures(
@@ -86,18 +84,12 @@ internal fun CourtQuestNavigation(selected: PlayerTab, onSelect: (PlayerTab) -> 
                             PlayerTab.PROGRESS -> Icons.Rounded.QueryStats
                             PlayerTab.ME -> Icons.Rounded.AccountCircle
                         }
-                        val accent = when (tab) {
-                            PlayerTab.COURT -> orange
-                            PlayerTab.TRAIN -> ice
-                            PlayerTab.QUESTS -> gold
-                            PlayerTab.PROGRESS -> Color(0xFF83DDFF)
-                            PlayerTab.ME -> Color(0xFFB6BFFF)
-                        }
+                        val accent = orange
                         Column(
                             Modifier.width(74.dp).height(78.dp)
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(Brush.verticalGradient(listOf(accent.copy(alpha = if (active) 0.29f else 0.13f), Color(0xDA0A0E16))))
-                                .border(1.dp, Brush.verticalGradient(listOf(accent.copy(alpha = if (active) 0.95f else 0.55f), accent.copy(alpha = 0.12f), accent.copy(alpha = 0.48f))), RoundedCornerShape(16.dp))
+                                .background(if (active) orange.copy(alpha = 0.12f) else Color.Transparent)
+                                .border(1.dp, if (active) orange.copy(alpha = 0.70f) else Color.White.copy(alpha = 0.10f), RoundedCornerShape(16.dp))
                                 .selectable(selected = active, role = Role.Tab) {
                                     expanded = false
                                     onSelect(tab)
@@ -109,10 +101,10 @@ internal fun CourtQuestNavigation(selected: PlayerTab, onSelect: (PlayerTab) -> 
                         ) {
                             Box(
                                 Modifier.size(44.dp)
-                                    .shadow(if (active) 12.dp else 5.dp, RoundedCornerShape(13.dp), ambientColor = accent.copy(alpha = 0.65f), spotColor = accent.copy(alpha = 0.55f))
+                                    .shadow(if (active) 10.dp else 3.dp, RoundedCornerShape(13.dp), ambientColor = orange.copy(alpha = 0.50f), spotColor = orange.copy(alpha = 0.35f))
                                     .clip(RoundedCornerShape(13.dp))
-                                    .background(Brush.linearGradient(listOf(accent.copy(alpha = if (active) 1f else 0.55f), Color(0xFF121A29), Color(0xFF080C12))))
-                                    .border(1.dp, accent.copy(alpha = 0.85f), RoundedCornerShape(13.dp)),
+                                    .background(Brush.linearGradient(listOf(Color(0xFF3A1B0D), Color(0xFF101115), Color(0xFF08090D))))
+                                    .border(1.dp, if (active) orange else Color(0xFF595B60), RoundedCornerShape(13.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
@@ -131,7 +123,7 @@ internal fun CourtQuestNavigation(selected: PlayerTab, onSelect: (PlayerTab) -> 
                             Spacer(Modifier.height(5.dp))
                             Text(
                                 text = tab.label,
-                                color = if (active) accent else Color(0xFFF3F7FF),
+                                color = if (active) orange else Color(0xFFF3F7FF),
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1
