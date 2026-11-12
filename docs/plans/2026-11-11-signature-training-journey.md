@@ -57,9 +57,9 @@
 
 ### 4. Exact-binary delivery and checkpoint
 
-- [ ] Advance version, verify package/signer/ZIP/alignment, and update existing development release through its authorized path. (Version and native APK checks passed; publication pending.)
-- [ ] Download the public APK and verify its hash/version/package/certificate against the tested binary.
-- [ ] Commit source, evidence ledger, completed checks and remaining limitations; provide the direct GitHub APK URL.
+- [x] Advance version, verify package/signer/ZIP/alignment, and update existing development release through its authorized path.
+- [x] Download the public APK and verify its hash/version/package/certificate against the tested binary.
+- [x] Commit source, evidence ledger, completed checks and remaining limitations; provide the direct GitHub APK URL.
 
 ## Execution ledger
 
@@ -67,4 +67,10 @@ This document records implementation decisions under the owner's autonomy instru
 
 ## Final native acceptance
 
-Source `375a607fd7be33bf30ad56c2337cf9acf3ae2253`, app/src `839a30e17949d0b7d9dbe9284999637e2117aa34`: [full native run 43136062719](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43136062719) succeeded. 48 Android unit tests, 3 selector regressions, 0 lint errors/11 warnings, all library/daily/game checks and guarded Maestro (1/1) passed. [Exact native evidence](../tooling/evidence/signature-build7-native.json). Device captures confirm whole recording/correction labels, readable clock/Start/Reset at 200%, reachable result actions and an editor footer above the keyboard. The 200% recording capture is scrolled to controls; it does not show the entire metric panel in one frame. Publication and independent downloaded-byte verification remain the delivery gates.
+Source `375a607fd7be33bf30ad56c2337cf9acf3ae2253`, app/src `839a30e17949d0b7d9dbe9284999637e2117aa34`: [full native run 43136062719](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43136062719) succeeded. 48 Android unit tests, 3 selector regressions, 0 lint errors/11 warnings, all library/daily/game checks and guarded Maestro (1/1) passed. [Exact native evidence](../tooling/evidence/signature-build7-native.json). Device captures confirm whole recording/correction labels, readable clock/Start/Reset at 200%, reachable result actions and an editor footer above the keyboard. The 200% recording capture is scrolled to controls; it does not show the entire metric panel in one frame. Publication and independent public downloaded-byte verification passed in the delivery below.
+
+## Published delivery
+
+Build 7 is published by `a431a69254b9d896d2a76640f5af363530f0dfa6` in [release run 43138905997](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43138905997). The public 20,988,666-byte APK matches the native artifact byte for byte, SHA-256 `1e0c5b24bc6f1087733014a1acaaba6b72e04435a758f9631b8f3e51b7b58767`. Independent public download passed the original certificate, package, version 7, v2 signature, ZIP and 16 KB alignment checks. [Public-download evidence](../tooling/evidence/signature-build7-public-download.json). [Direct APK](https://github.com/Lamont-Labs/CourtQuestPro/releases/download/courtquest-dev-2026-11-05/CourtQuestPro-Android-debug.apk?build=7).
+
+Main remains separate. The next scoped master-spec issue is CQ-PLAYER-002; physical-phone/owner acceptance, full TalkBack, API 26–30 fallback and alternate launcher masks remain explicit limits. A legacy release palette sentinel was updated to match the approved vivid orange; its follow-up restored-UI run 43139207885 and development run 43139206837 passed. This is a tooling-only change, not a new APK.

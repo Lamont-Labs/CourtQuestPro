@@ -4,48 +4,48 @@ Native Android basketball training and one-on-one scorekeeping, built with Kotli
 
 ## Install the current development build
 
-[Download CourtQuestPro-Android-debug.apk — build 6](https://github.com/Lamont-Labs/CourtQuestPro/releases/download/courtquest-dev-2026-11-05/CourtQuestPro-Android-debug.apk?build=6)
+[Download CourtQuestPro-Android-debug.apk — Signature build 7](https://github.com/Lamont-Labs/CourtQuestPro/releases/download/courtquest-dev-2026-11-05/CourtQuestPro-Android-debug.apk?build=7)
 
-Open the APK on an Android 8.0 or newer phone and choose Install/Update over the existing app. Version 1.0, version code **6**. The package and original signing identity are preserved. The Android build-5 update test retained its player profile and local history.
+Open the APK on Android 8.0 or newer and choose Install/Update over the existing app. Version **1.0 (7)**; 20,988,666 bytes. The original package `com.courtquestpro` and development signer are preserved. The in-place Android update test retained its profile and saved history.
 
-## Drill Library build 6
+## Signature training journey
 
-The new **Drills** destination includes:
+Court → start/resume → record attempts/corrections → save once → receipt/actual next drill → Progress now shares the clean Signature identity, deep black canvas, vivid orange actions and smoked-glass surfaces. The header and native navigation are reusable. Foreground counters and controls remain sharp; a saved-result acknowledgement respects disabled system animation.
 
-- Custom drills with a name, skill, difficulty, planned minutes, successful-action target and instructions.
-- Search, skill filters, My drills and Favorites.
-- Suggestions based on the selected level, weekly focus, favorites and recent training, with a short explanation.
-- Daily-workout swaps and **Shuffle remaining**, preserving completed drills, saved drafts, slot identities and existing award rules.
-- Independent extra practice with saved attempts, timer resumption, a recorded-result receipt and labeled Progress history.
+Receipts show actual successful/attempted counts, awarded XP, the named next drill and explicit self-recorded/local-save provenance. Continue uses the same deterministic recovery route as its preview. Existing saves, dynamic names, daily XP, one-on-one scoring, Undo and history remain intact.
 
-Open **Drills → Create custom drill** to add one. Targets accept 1–500 successful actions; planned minutes accept 1–60 and remain the training clock. Completion requires the saved action target and confirmation. Use a suitable drill in an untouched daily slot, or start extra practice. An unfinished practice must be resumed, completed or explicitly discarded before another replaces it.
-
-Editing creates a new definition while queued workouts and earlier results retain their original instructions and targets. Favorites follow the edited version. Archiving removes a drill from future selection while preserving saved history and queued work. Extra practice records activity in Progress; daily XP and streak rules retain their existing behavior.
-
-The approved dark/orange Barlow visual system continues across Court, recording, receipts, Progress, Setup and one-on-one play. Names and results come from saved state. Same-day games resume with scores and Undo order. Restoring an expired score Activity returns to Court, and score writes reject expired matches.
-
-The active design standard is [DESIGN.md](DESIGN.md); [AGENTS.md](AGENTS.md) directs future sessions to it. Implementation, review, native regressions and the owner walkthrough are recorded in [the Drill Library ledger](docs/plans/2026-11-11-drill-library.md).
+The **Drills** destination retains custom drills, search/skill filters, favorites, explained suggestions, protected swaps/shuffling and independent extra practice. Custom targets accept 1–500 successful actions; planned minutes accept 1–60 and remain the training clock. Editing creates a new definition; queued work and history preserve the original target/instructions. Archival removes future selection while retaining saved work. An unfinished practice must be resumed, finished or explicitly discarded before replacement.
 
 ## Verification
 
-| Check | Published build 6 result |
+| Check | Published build 7 |
 | --- | --- |
-| Android unit tests | 42 passed; no failures, errors or skips |
-| APK build | Passed |
-| Android lint | 0 errors; 10 warnings retained in the verification artifact |
-| Exact-binary Android journeys | Library, existing daily flow and full one-on-one flow passed in [native run 43060242201](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43060242201) |
-| Existing saved data | Preserved by the in-place build-5 → build-6 update |
-| Activity/process restoration | Same-day 2–1 game resumed; expired saved score route returned to Court without a match/XP write |
-| Rendered screens | Normal, 320 dp/130%, critical 200% and keyboard/footer captures reviewed |
-| Package, version, v2 signature, original signer, ZIP and 16KB alignment | Passed on the downloaded release |
-| Public download | Independently downloaded; byte for byte identical to the Android-tested APK |
-| Physical phone, owner visual acceptance for build 6 and full TalkBack traversal | Pending |
+| Android unit tests | 48 passed; no failures/errors/skips |
+| Selector regression tests | 3 passed |
+| Compilation and lint | Passed; 0 lint errors/11 warnings |
+| Exact-binary native journeys | Library, daily training and game/Undo passed in [run 43136062719](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43136062719) |
+| Guarded Maestro | 1/1 passed on the dedicated QA emulator; [toolkit run](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43136062726) also passed |
+| Saved data/restoration | Build-5 in-place update, custom revisions, practice, same-day/expired Activity and process restart checked |
+| Actual rendered review | Normal 360 dp, 320 dp/130%, critical 200%, keyboard/insets and game captures reviewed |
+| Package/version/signature/signer/ZIP/16 KB alignment | Passed on the independently downloaded public APK |
+| Exact public bytes | Byte for byte identical to the native-tested artifact |
+| Release-branch checks | [Restored UI 43139207885](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43139207885) and [development 43139206837](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43139206837) passed |
 
-Native checks use synthetic profiles. Library coverage includes validation, favorites, swaps/shuffling, locked drafts/completions, editor recreation, revision preservation, practice relaunch and recording once, real custom goals, original target in the queued daily drill, archival and history. Existing daily checks cover onboarding, names, attempts, XP, preferences, history, Back and relaunch. Game checks cover scoring/Undo, resumption, sudden death, repeated-game XP, identical names, rollover, history, compact/large-text/landscape/tablet controls and reduced motion.
+Native checks use synthetic profiles. Physical-phone operation/performance, owner visual acceptance, full TalkBack, API 26–30 blur fallback and alternate launcher masks remain unverified. Enlarged controls/clock/receipt captures are scrolled viewports; they do not show every metric at once. [Rendered review](docs/tooling/SIGNATURE_RENDERED_REVIEW.md) records the actual scope.
 
-## Build
+Native source: `375a607fd7be33bf30ad56c2337cf9acf3ae2253`; app/src tree: `839a30e17949d0b7d9dbe9284999637e2117aa34`. Release commit: `a431a69254b9d896d2a76640f5af363530f0dfa6`; [publication/download verification](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43138905997) passed. [Native ledger](docs/tooling/evidence/signature-build7-native.json), [public-download ledger](docs/tooling/evidence/signature-build7-public-download.json), [implementation plan](docs/plans/2026-11-11-signature-training-journey.md).
 
-JDK 17, Android SDK 35, build-tools 35.0.1, Gradle 8.9, Android Gradle Plugin 8.7.3, Kotlin 2.0.21, Compose BOM 2024.12.01. Application ID: `com.courtquestpro`; minimum SDK 26.
+APK SHA-256:
+
+`1e0c5b24bc6f1087733014a1acaaba6b72e04435a758f9631b8f3e51b7b58767`
+
+## Master specification
+
+CQ-PREMIUM-001, the first native journey, is delivered. Next is the versioned Mission foundation/builder, followed by Player navigation, evidence-backed Quests and comparable Progress. Team/coach authorization and connected assignments are later phases. [Master specification](docs/specs/CourtQuest_Pro_Master_Product_UX_Engineering_Spec_v1.md), [implementation tracker](docs/MASTER_SPEC_IMPLEMENTATION.md), [next issue/migration contract](docs/plans/2026-11-11-player-mode-sequence.md).
+
+## Build and preservation
+
+JDK 17, SDK 35/build-tools 35.0.1, Gradle 8.9, AGP 8.7.3, Kotlin 2.0.21, Compose BOM 2024.12.01, minimum SDK 26. Haze 1.1.1, Lottie Compose 6.7.1 and Intro Showcase 2.0.2 remain pinned.
 
 ```bash
 ./gradlew --no-daemon --console=plain :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
@@ -55,20 +55,12 @@ python3 scripts/verify_apk.py \
   --output artifacts/apk-verification
 ```
 
-Application work is checkpointed in `dev/drill-library`. The authorized release branch remains `dev/scorekeeper-undo-history`; `main` remains independent. Publishing uses the exact successful native artifact, without rebuilding it, and checks that its app source tree matches the release source.
+Active implementation: `dev/premium-flow-toolkit`. Authorized delivery: `dev/scorekeeper-undo-history`. Main remains separate. The publisher checks successful native provenance and matching app source, then uploads the exact tested artifact without rebuilding it.
 
-## Saved data and assets
+Profiles, plans, XP, custom definitions/favorites, practice, drafts/results, matches and corrections are stored locally. No connected sync or independently verified skill is implied. Drill demonstrations open external YouTube searches. Barlow fonts retain their SIL Open Font License in `app/src/main/res/raw/barlow_ofl.txt`. Clean Signature contours/renders and their source hashes are in `tools/branding/`.
 
-Player profile, plans, XP, custom definitions, favorites, practice sessions, drill drafts/results, matches and scoring corrections are stored locally. Existing saved JSON remains readable. Drill demonstrations open external YouTube searches. Bundled Barlow fonts retain their SIL Open Font License in `app/src/main/res/raw/barlow_ofl.txt`.
-
-The preserved development signing certificate has SHA-256:
+The preserved development certificate SHA-256 is:
 
 `25f8007f0a8503b01ded3f4856d02e830c64c823aa2c816da4d347ed5015f27b`
 
-`signing/debug.keystore` is the existing development identity. Production signing is a separate release task. Do not regenerate the development key or change the package during an APK update.
-
-The tested APK was published and downloaded again in [release run 43063480763](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43063480763). Actual build-6 Library, Editor, Custom Drill, Practice Result and enlarged-text PNGs are assets on the same release. Native source: `0ff5e6c5d78ba8b958deef01478475fe5c78f4a0`; release commit: `e28a28680e397474584c80cd68bb991221cbda8d`.
-
-Published APK: 17,047,484 bytes. SHA-256:
-
-`00bcd7d1296ac2a71efadad8beb42834e3f9897ff7b5af668c020c731507a3d4`
+Do not regenerate the existing development identity or change the package during an update. Production signing is a separate release task. [DESIGN.md](DESIGN.md) and [AGENTS.md](AGENTS.md) guide future work.
