@@ -206,6 +206,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         onboardingComplete = true
     }
     var routeHistory by rememberSaveable { mutableStateOf(listOf("home")) }
+    var navigationExpanded by rememberSaveable { mutableStateOf(false) }
     val screen = PlayerNavigation.restore(routeHistory).last()
     val destinationState = rememberSaveableStateHolder()
     fun navigate(route: String) { routeHistory = PlayerNavigation.open(routeHistory, route) }
@@ -267,7 +268,8 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             navigate("drill")
         }
     }
-    BackHandler(enabled = onboardingComplete && screen != "home") {
+    BackHandler(enabled = onboardingComplete && navigationExpanded) { navigationExpanded = false }
+    BackHandler(enabled = onboardingComplete && !navigationExpanded && screen != "home") {
         if (screen == "mission") leaveMission() else goBack()
     }
     LaunchedEffect(today) {
@@ -364,6 +366,29 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 }
             }
         ) { padding ->
+            if (onboardingComplete && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")) {
+                Box(Modifier.fillMaxSize()) {
+                    Box(Modifier.fillMaxSize().padding(start = if (navigationExpanded) 120.dp else 0.dp)) {
+                        ScreenContent
+                    }
+                    CourtQuestNavigation(
+                        selected = PlayerNavigation.tab(routeHistory),
+                        jerseyNumber = save.jerseyNumber,
+                        expanded = navigationExpanded,
+                        onExpandedChange = { navigationExpanded = it },
+                        onSelect = { tab ->
+                            navigationExpanded = false
+                            if (tab == PlayerTab.TRAIN && librarySlotId != null) {
+                                librarySlotId = null
+                                librarySelectedId = null
+                            }
+                            navigate(tab.route)
+                        }
+                    )
+                }
+            } else {
+                ScreenContent
+            }
             if (!onboardingComplete) {
                 CourtOnboarding(
                     modifier = Modifier.padding(padding).consumeWindowInsets(padding),
