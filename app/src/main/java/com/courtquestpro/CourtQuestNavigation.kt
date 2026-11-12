@@ -57,7 +57,7 @@ internal fun CourtQuestNavigation(selected: PlayerTab, jersey: PlayerJersey, onS
                 exit = shrinkHorizontally(animationSpec = tween(180), shrinkTowards = Alignment.Start)
             ) {
                 Column(
-                    Modifier.width(88.dp)
+                    Modifier.width(98.dp)
                         .shadow(20.dp, shape, ambientColor = orange.copy(alpha = 0.36f), spotColor = orange.copy(alpha = 0.30f))
                         .clip(shape)
                         .background(Brush.horizontalGradient(listOf(Color(0xE90B1019), Color(0xC71B222E), Color(0xAF0C1119))))
@@ -69,11 +69,11 @@ internal fun CourtQuestNavigation(selected: PlayerTab, jersey: PlayerJersey, onS
                                 onDragEnd = { if (dragged < -35f) expanded = false }
                             ) { change, amount -> change.consume(); dragged += amount }
                         }
-                        .padding(vertical = 16.dp, horizontal = 7.dp)
+                        .padding(vertical = 12.dp, horizontal = 7.dp)
                         .selectableGroup()
                         .testTag("player-navigation-dock"),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.spacedBy(7.dp)
                 ) {
                     PlayerTab.entries.forEach { tab ->
                         val active = tab == selected
@@ -86,10 +86,10 @@ internal fun CourtQuestNavigation(selected: PlayerTab, jersey: PlayerJersey, onS
                         }
                         val accent = orange
                         Column(
-                            Modifier.width(74.dp).height(78.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(if (active) orange.copy(alpha = 0.12f) else Color.Transparent)
-                                .border(1.dp, if (active) orange.copy(alpha = 0.70f) else Color.White.copy(alpha = 0.10f), RoundedCornerShape(16.dp))
+                            Modifier.width(84.dp).height(91.dp)
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(Brush.verticalGradient(listOf(Color(0xFF24262C), Color(0xFF101114), Color(0xFF06070A))))
+                                .border(1.dp, if (active) orange.copy(alpha = 0.90f) else Color.White.copy(alpha = 0.30f), RoundedCornerShape(16.dp))
                                 .selectable(selected = active, role = Role.Tab) {
                                     expanded = false
                                     onSelect(tab)
@@ -100,27 +100,27 @@ internal fun CourtQuestNavigation(selected: PlayerTab, jersey: PlayerJersey, onS
                             verticalArrangement = Arrangement.Center
                         ) {
                             Box(
-                                Modifier.size(44.dp)
-                                    .shadow(if (active) 10.dp else 3.dp, RoundedCornerShape(13.dp), ambientColor = orange.copy(alpha = 0.50f), spotColor = orange.copy(alpha = 0.35f))
+                                Modifier.size(59.dp)
+                                    .shadow(if (active) 10.dp else 3.dp, RoundedCornerShape(17.dp), ambientColor = orange.copy(alpha = 0.50f), spotColor = orange.copy(alpha = 0.35f))
                                     .clip(RoundedCornerShape(13.dp))
-                                    .background(Brush.linearGradient(listOf(Color(0xFF3A1B0D), Color(0xFF101115), Color(0xFF08090D))))
-                                    .border(1.dp, if (active) orange else Color(0xFF595B60), RoundedCornerShape(13.dp)),
+                                    .background(Brush.linearGradient(listOf(Color(0xFF30343C), Color(0xFF111318), Color(0xFF050609))))
+                                    .border(1.dp, if (active) orange else Color(0xFF777B82), RoundedCornerShape(13.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (tab == PlayerTab.ME) {
-                                    PlayerJerseyArt(jersey, Modifier.size(38.dp))
+                                    PlayerJerseyArt(jersey, Modifier.size(51.dp))
                                 } else {
                                     Icon(
                                         icon,
                                         contentDescription = null,
                                         tint = Color.Black.copy(alpha = 0.55f),
-                                        modifier = Modifier.size(30.dp).offset(x = 1.dp, y = 2.dp)
+                                        modifier = Modifier.size(43.dp).offset(x = 1.dp, y = 2.dp)
                                     )
                                     Icon(
                                         icon,
                                         contentDescription = null,
                                         tint = Color.White,
-                                        modifier = Modifier.size(27.dp)
+                                        modifier = Modifier.size(40.dp)
                                     )
                                 }
                             }
@@ -128,7 +128,7 @@ internal fun CourtQuestNavigation(selected: PlayerTab, jersey: PlayerJersey, onS
                             Text(
                                 text = tab.label,
                                 color = if (active) orange else Color(0xFFF3F7FF),
-                                fontSize = 10.sp,
+                                fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1
                             )
