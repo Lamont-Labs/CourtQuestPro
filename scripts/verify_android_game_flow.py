@@ -13,6 +13,29 @@ def state():
     return json.loads(ui.prefs()['state'].text)
 
 
+def daily_reset_complete(value, today):
+    return (value.get('activeDate') == today and
+            value.get('matchPlayer') == value.get('matchOpponent') == '' and
+            value.get('playerScore') == value.get('opponentScore') == 0 and
+            value.get('pointHistory') == [])
+
+
+def wait_for_daily_reset(today, label, timeout=30):
+    started = time.monotonic()
+    last = None
+    while time.monotonic() - started < timeout:
+        last = state()
+        if daily_reset_complete(last, today):
+            elapsed = round(time.monotonic() - started, 3)
+            (ui.OUT / f'{label}-reset.json').write_text(json.dumps(dict(wait_seconds=elapsed, state=last), indent=2) + '\n')
+            print(f'{label}: complete persisted daily reset after {elapsed}s', flush=True)
+            return last
+        time.sleep(0.2)
+    (ui.OUT / f'{label}-reset-timeout.json').write_text(json.dumps(last, indent=2) + '\n')
+    snap(f'{label}-reset-timeout')
+    raise AssertionError(f'Daily reset did not persist within {timeout}s: {last}')
+
+
 def reachable(text, limit=12):
     try:
         # Use actual scrollable bounds, including short landscape viewports.
@@ -155,8 +178,10 @@ def main():
     snap('candidate-game-repeat-receipt')
     for variant in ('previous-unfinished-game', 'previous-completed-game'):
         ui.seed(variant)
+        seeded = state()
+        assert seeded['activeDate'] != ui.shell('date', '+%F') and seeded['matchPlayer'] == 'Jordan'
         ui.open_app()
-        rolled = state()
+        rolled = wait_for_daily_reset(ui.shell('date', '+%F'), variant)
         assert rolled['matchPlayer'] == rolled['matchOpponent'] == '', 'Daily reset must clear stale match identity'
         assert rolled['playerScore'] == rolled['opponentScore'] == 0
         assert rolled['pointHistory'] == []

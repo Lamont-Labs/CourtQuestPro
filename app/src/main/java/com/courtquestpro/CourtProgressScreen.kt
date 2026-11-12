@@ -15,7 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGames: Boolean = false) {
+internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGames: Boolean = false, onMissionReceipt: (String) -> Unit = {}) {
     val drills = TrainingLibrary.catalog(save)
     var showGames by remember(initiallyShowGames) { mutableStateOf(initiallyShowGames) }
     var showAllSessions by remember { mutableStateOf(false) }
@@ -63,6 +63,20 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
                             (if (showGames) "Games" else "Sessions") to (if (showGames) save.matches.size else recorded.size).toString(),
                             (if (showGames) "Game days" else "Training days") to
                                 (if (showGames) save.matches.map { it.date }.distinct().size else valid.map { it.date }.distinct().size).toString()))
+                    }
+                }
+                if (save.missionReceipts.orEmpty().isNotEmpty() && !showGames) {
+                    CourtHeading("Completed Missions")
+                    save.missionReceipts.orEmpty().asReversed().forEach { receipt ->
+                        val version = save.missionVersions.orEmpty().firstOrNull { it.id == receipt.missionVersionId }
+                        CourtQuestPremiumSurface(Modifier.fillMaxWidth()) {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(version?.title ?: "Saved Mission", style = MaterialTheme.typography.titleLarge, color = CourtQuestDesign.textPrimary)
+                                Text("Version ${version?.version ?: "?"} · ${receipt.resultIds.size} recorded drills · Self-recorded",
+                                    style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)
+                                TextButton({ onMissionReceipt(receipt.id) }, Modifier.heightIn(min = 48.dp)) { Text("View Mission receipt") }
+                            }
+                        }
                     }
                 }
                 CourtRule()
@@ -169,7 +183,7 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
 private fun TrainingSessionCard(result: DrillResult, catalog: List<Drill>, modifier: Modifier = Modifier) {
     CourtQuestPremiumSurface(modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            CourtEyebrow(if (result.practice) "${result.date} · Extra practice" else result.date)
+            CourtEyebrow(if (result.missionSessionId?.startsWith("mission-session_") == true) "${result.date} · Mission" else if (result.practice) "${result.date} · Extra practice" else result.date)
             Text(result.drillSnapshot?.title ?: catalog.firstOrNull { it.id == result.drillId }?.title ?: "Saved drill",
                 color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleMedium)
             Text("${result.completed} successful / ${result.attempted} attempts",

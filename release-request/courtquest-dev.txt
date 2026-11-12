@@ -1,9 +1,9 @@
-CourtQuest Pro Signature training build 7 / CQ-PREMIUM-001
-Owner-authorized master-spec Phase 1: Court → resume/record → save once → receipt/actual next drill → Progress.
-Native source: 375a607fd7be33bf30ad56c2337cf9acf3ae2253
-Native app/src: 839a30e17949d0b7d9dbe9284999637e2117aa34
-Native run: 43136062719
-Native artifact: 13908407333
-APK SHA-256: 1e0c5b24bc6f1087733014a1acaaba6b72e04435a758f9631b8f3e51b7b58767
-Verified: 48 Android unit tests, 3 selector regressions; lint 0 errors/11 warnings; same-binary library, daily, game and guarded Maestro PASS; 320 dp/130%, critical 200%, keyboard and reduced-motion evidence reviewed.
-Publish the exact Android-tested APK. Preserve com.courtquestpro, version code 7 and the original development signer. Update the existing development release; keep main intact.
+CourtQuest Pro Mission Builder build 8 / CQ-PLAYER-002
+Owner-authorized master-spec solo Mission foundation: ordered builder, immutable versions, seeded constrained generation, safe interruption/resume, exact-once results and Mission receipts in Progress.
+Native source: f6db205d3b8d7a10621acd3b39bc6fda0f576ecc
+Native app/src: 826dc7c4f6eecbd0147b04e2cbc50a107ed4d089
+Native run: 43147187632
+Native artifact: 13913082538
+APK SHA-256: 7bee93ac1870911008db5973c9a374f0d4eb8db6e05ed917ba0df0db144ca04d
+Verified: 61 Android unit tests, 7 Python verification regressions, lint 0 errors/11 warnings, same-binary library/daily/game/Mission/guarded Maestro PASS. Native normal/320dp-130%/critical200%/keyboard captures reviewed with limits recorded.
+Publish the exact tested APK. Preserve com.courtquestpro, version code 8, the original development signer, local saves and Signature art. Update the existing development release; keep main intact.

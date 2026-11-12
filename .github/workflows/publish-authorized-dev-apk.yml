@@ -60,10 +60,14 @@ jobs:
           daily = json.loads((root / 'artifacts/android-daily-flow/candidate-result.json').read_text())
           game = json.loads((root / 'artifacts/android-daily-flow/game-result.json').read_text())
           library = json.loads((root / 'artifacts/android-daily-flow/library-result.json').read_text())
+          mission = json.loads((root / 'artifacts/android-daily-flow/mission-result.json').read_text())
+          assert all(value for value in mission.values() if isinstance(value, bool))
+          for key in ['builder_order_remove', 'multi_step_next_drill', 'saved_reopen', 'immutable_revision', 'interrupted_resume', 'exact_once_results', 'version_linked_receipt', 'progress_receipt', 'legacy_practice_protected', 'solo_xp_unchanged', 'normal_compact_large_keyboard_captured']:
+              assert mission[key] is True, key
           assert all(value for value in library.values() if isinstance(value, bool))
           manifest = json.loads(Path('dist/apk-manifest.json').read_text())
-          assert manifest['version_code'] == daily['version_code'] == request['version_code'] == 7
-          assert manifest['apk_sha256'] == request['apk_sha256'] == daily['input_apk_sha256'] == game['input_apk_sha256'] == library['input_apk_sha256']
+          assert manifest['version_code'] == daily['version_code'] == request['version_code'] == 8
+          assert manifest['apk_sha256'] == request['apk_sha256'] == daily['input_apk_sha256'] == game['input_apk_sha256'] == library['input_apk_sha256'] == mission['input_apk_sha256']
           assert manifest['certificate_sha256'] == request['certificate_sha256']
           assert manifest['package_id'] == request['package_id']
           assert manifest['apk_size_bytes'] == request['apk_size_bytes']
@@ -71,7 +75,7 @@ jobs:
           assert all(value for value in game.values() if isinstance(value, bool))
           suites = [ET.parse(p).getroot() for p in (root / 'app/build/test-results/testDebugUnitTest').glob('TEST-*.xml')]
           count = sum(int(s.get('tests')) for s in suites)
-          assert count >= 48
+          assert count >= 61
           assert not sum(int(s.get('failures')) + int(s.get('errors')) + int(s.get('skipped')) for s in suites)
           issues = ET.parse(root / 'app/build/reports/lint-results-debug.xml').getroot().findall('issue')
           errors = sum(i.get('severity') == 'Error' for i in issues)
@@ -81,11 +85,11 @@ jobs:
           smoke_suites = [smoke] if smoke.tag == 'testsuite' else list(smoke.iter('testsuite'))
           assert sum(int(s.get('tests', 0)) for s in smoke_suites) >= 1
           assert not sum(int(s.get('failures', 0)) + int(s.get('errors', 0)) + int(s.get('skipped', 0)) for s in smoke_suites)
-          manifest.update(maestro_smoke='PASS', native_run_id=request['native_run_id'], native_commit=request['native_commit'], android_unit_tests=count, lint_errors=errors, lint_warnings=warnings, daily_flow=daily, game_flow=game, library_flow=library)
+          manifest.update(maestro_smoke='PASS', native_run_id=request['native_run_id'], native_commit=request['native_commit'], android_unit_tests=count, lint_errors=errors, lint_warnings=warnings, daily_flow=daily, game_flow=game, library_flow=library, mission_flow=mission)
           manifest['checks']['emulator_test'] = 'PASS_SAME_APK_SHA256'
           Path('dist/apk-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
-          notes = ['CourtQuest Pro — Signature training build 7', '',
-            'Deep black, brighter orange and polished smoked glass through Court, training, saved receipts and Progress. Clean Signature branding, a shared header/navigation, a named next drill, and a fixed result action area. Preserves custom drills, protected shuffle, extra practice, game scoring, Undo and existing saves.', '',
+          notes = ['CourtQuest Pro — Mission Builder build 8', '',
+            'Build, save and reopen ordered Missions. Resume interrupted drills, preserve versioned instructions and targets, and review exact-once Mission receipts in Progress. Deterministic generation respects time, skill, equipment, space and level. Preserves Signature branding, daily training, custom drills, extra practice, game scoring, Undo, original signer and existing saves.', '',
             f"Version: {manifest['version_name']} ({manifest['version_code']})", f"Package: {manifest['package_id']}",
             f"SHA-256: {manifest['apk_sha256']}", f"Certificate SHA-256: {manifest['certificate_sha256']}",
             f'Android unit tests: {count} passed. Lint: {errors} errors, {warnings} warnings.',
@@ -111,10 +115,15 @@ jobs:
           for spec in 'court:Court' 'drill:Drill' 'result:Result' 'progress-after-save:Progress' 'compact-court:CompactCourt' 'large-type-drill:LargeTypeDrill'; do
             stem=${spec%:*}
             label=${spec#*:}
-            cp "native-evidence/artifacts/android-daily-flow/candidate-${stem}.png" "dist/CourtQuestPro-Build7-${label}.png"
+            cp "native-evidence/artifacts/android-daily-flow/candidate-${stem}.png" "dist/CourtQuestPro-Build8-${label}.png"
           done
-          gh release upload courtquest-dev-2026-11-05 dist/CourtQuestPro-Build7-*.png --clobber
-          gh release edit courtquest-dev-2026-11-05 --title 'CourtQuest Pro — Signature training build 7' --notes-file dist/current-release.md
+          for spec in 'builder-empty:MissionBuilder' 'saved-definition:SavedMission' 'resumed-recording:MissionResume' 'drill-receipt:MissionDrillReceipt' 'completion:MissionComplete' 'progress-receipt:MissionProgress' 'compact:MissionCompact' 'large-type:MissionLargeType' 'large-type-keyboard:MissionKeyboard' 'large-type-recorder:MissionRecorderLargeType'; do
+            stem=${spec%:*}
+            label=${spec#*:}
+            cp "native-evidence/artifacts/android-daily-flow/candidate-library-mission-${stem}.png" "dist/CourtQuestPro-Build8-${label}.png"
+          done
+          gh release upload courtquest-dev-2026-11-05 dist/CourtQuestPro-Build8-*.png --clobber
+          gh release edit courtquest-dev-2026-11-05 --title 'CourtQuest Pro — Mission Builder build 8' --notes-file dist/current-release.md
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:

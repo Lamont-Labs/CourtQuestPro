@@ -26,7 +26,7 @@ internal fun HomeScreen(
     save: SaveState, onSpin: () -> Unit, onStartChamp: () -> Unit, onCareer: () -> Unit,
     onSaveName: (String) -> Unit, onWeeklyPlan: (String) -> Unit,
     onTrainingDay: (Int) -> Unit, onActivity: (Int, String) -> Unit,
-    onLibrary: () -> Unit, onShuffle: () -> Unit, onSwap: (String) -> Unit, onResumePractice: () -> Unit
+    onLibrary: () -> Unit, onShuffle: () -> Unit, onSwap: (String) -> Unit, onResumePractice: () -> Unit, onMissionBuilder: () -> Unit, onResumeMission: () -> Unit
 ) {
     var showWeeklyEditor by remember { mutableStateOf(false) }
     var newPlayerName by remember { mutableStateOf("") }
@@ -58,6 +58,20 @@ internal fun HomeScreen(
         }
         item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                val activeMission = MissionTraining.active(save)
+                if (activeMission != null) {
+                    val version = MissionTraining.version(save, activeMission)
+                    val next = MissionTraining.currentIndex(save, activeMission)
+                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(24.dp), highlighted = true) {
+                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            CourtEyebrow("MISSION IN PROGRESS")
+                            Text(version?.title ?: "Your Mission", style = MaterialTheme.typography.headlineLarge, color = CourtQuestDesign.textPrimary)
+                            Text("${next ?: 0} of ${version?.steps?.size ?: 0} drills recorded · Version ${version?.version ?: "?"}",
+                                style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textSecondary)
+                            CourtQuestPrimaryButton(onResumeMission, Modifier.fillMaxWidth()) { Text("Resume Mission") }
+                        }
+                    }
+                } else {
                 CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(0.dp), highlighted = true) {
                   Box(Modifier.fillMaxWidth()) {
                     Icon(painterResource(R.drawable.courtquest_half_court), contentDescription = null,
@@ -94,6 +108,7 @@ internal fun HomeScreen(
                     }
                   }
                 }
+                }
                 if (resumeMatch && done != 6) {
                     OutlinedButton(onClick = onStartChamp, modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp),
                         shape = RoundedCornerShape(16.dp), contentPadding = PaddingValues(16.dp)) {
@@ -112,6 +127,14 @@ internal fun HomeScreen(
                 CourtRule()
                 if (save.practiceSession != null) {
                     OutlinedButton(onResumePractice, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) { Text("Resume extra practice") }
+                }
+                CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(20.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        CourtEyebrow("YOUR GAME PLAN")
+                        Text("A session built around you.", style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
+                        Text("Choose your drills, set their order, and save a Mission you can return to.", style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textSecondary)
+                        OutlinedButton(onMissionBuilder, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Build a Mission") }
+                    }
                 }
                 CourtHeading("Your session", "Progress", onCareer)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
