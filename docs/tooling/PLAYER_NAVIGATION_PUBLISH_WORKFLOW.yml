@@ -43,7 +43,7 @@ jobs:
           assert run['conclusion'] == 'success' and run['status'] == 'completed'
           assert run['head_sha'] == request['native_commit']
           assert run['head_branch'] == 'dev/premium-flow-toolkit'
-          assert run['path'] == '.github/workflows/verify-native-library-flow.yml'
+          assert run['path'] == '.github/workflows/finish-player-build9-verification.yml'
           PY
           gh run download "$run_id" --name courtquest-native-library-flow --dir native-evidence
       - name: Verify source, tests, native journeys and APK identity
@@ -62,6 +62,13 @@ jobs:
           library = json.loads((root / 'artifacts/android-daily-flow/library-result.json').read_text())
           mission = json.loads((root / 'artifacts/android-daily-flow/mission-result.json').read_text())
           navigation = json.loads((root / 'artifacts/android-daily-flow/navigation-result.json').read_text())
+          keyboard = json.loads((root / 'artifacts/android-daily-flow/keyboard-result.json').read_text())
+          assert keyboard['large_type_keyboard_full_save_target'] is True and keyboard['explicit_keyboard_open_name_save'] is True
+          assert keyboard['input_apk_sha256'] == request['apk_sha256']
+          lineage = json.loads((root / 'artifacts/completion-lineage.json').read_text())
+          assert lineage['frozen_apk_sha256'] == request['apk_sha256']
+          assert lineage['completion_source'] == request['native_commit']
+          assert lineage['app_src_tree'] == request['app_src_tree']
           assert all(value for value in navigation.values() if isinstance(value, bool))
           for key in ['five_usable_destinations', 'root_back_to_court', 'builder_back_to_train', 'library_tab_state', 'profile_draft_tab_state', 'profile_draft_process_restore', 'name_save_explicit', 'navigation_does_not_award_xp', 'normal_compact_large_keyboard_captured', 'discarded_editor_is_new', 'progress_filter_retained']:
               assert navigation[key] is True, key
@@ -89,7 +96,7 @@ jobs:
           smoke_suites = [smoke] if smoke.tag == 'testsuite' else list(smoke.iter('testsuite'))
           assert sum(int(s.get('tests', 0)) for s in smoke_suites) >= 1
           assert not sum(int(s.get('failures', 0)) + int(s.get('errors', 0)) + int(s.get('skipped', 0)) for s in smoke_suites)
-          manifest.update(maestro_smoke='PASS', native_run_id=request['native_run_id'], native_commit=request['native_commit'], android_unit_tests=count, lint_errors=errors, lint_warnings=warnings, daily_flow=daily, game_flow=game, library_flow=library, mission_flow=mission, navigation_flow=navigation)
+          manifest.update(completion_lineage=lineage, keyboard_flow=keyboard, maestro_smoke='PASS', native_run_id=request['native_run_id'], native_commit=request['native_commit'], android_unit_tests=count, lint_errors=errors, lint_warnings=warnings, daily_flow=daily, game_flow=game, library_flow=library, mission_flow=mission, navigation_flow=navigation)
           manifest['checks']['emulator_test'] = 'PASS_SAME_APK_SHA256'
           Path('dist/apk-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
           notes = ['CourtQuest Pro — Player navigation build 9', '',
