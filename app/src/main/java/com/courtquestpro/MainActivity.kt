@@ -612,22 +612,23 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     destinationState.SaveableStateProvider(target) { DestinationContent() }
                 } else DestinationContent()
             }
-        }
-        if (onboardingComplete && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")) {
-            CourtQuestNavigation(
-                selected = PlayerNavigation.tab(routeHistory),
-                jerseyNumber = save.jerseyNumber,
-                expanded = navigationExpanded,
-                onExpandedChange = { navigationExpanded = it },
-                onSelect = { tab ->
-                    navigationExpanded = false
-                    if (tab == PlayerTab.TRAIN && librarySlotId != null) {
-                        librarySlotId = null
-                        librarySelectedId = null
+            }
+            if (onboardingComplete && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")) {
+                CourtQuestNavigation(
+                    selected = PlayerNavigation.tab(routeHistory),
+                    jerseyNumber = save.jerseyNumber,
+                    expanded = navigationExpanded,
+                    onExpandedChange = { navigationExpanded = it },
+                    onSelect = { tab ->
+                        navigationExpanded = false
+                        if (tab == PlayerTab.TRAIN && librarySlotId != null) {
+                            librarySlotId = null
+                            librarySelectedId = null
+                        }
+                        navigate(tab.route)
                     }
-                    navigate(tab.route)
-                }
-            )
+                )
+            }
         }
     }
 }
