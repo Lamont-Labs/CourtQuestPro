@@ -22,7 +22,7 @@ internal object QuestMilestones {
         }
         val uniqueDates = validDrills.map { it.date }.distinct().size
         val missionCount = save.missionReceipts.orEmpty()
-            .filter { it.id.isNotBlank() }
+            .filter { it.id.isNotBlank() && MissionTraining.receiptValid(save, it) }
             .map { it.id }.distinct().size
         return listOf(
             Milestone("first_recorded_drill_v1", "First rep recorded", "Save your first drill result.", validDrills.isNotEmpty(), validDrills.size),
