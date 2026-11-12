@@ -65,6 +65,37 @@ internal fun QuestsScreen(save: SaveState, today: String, onTraining: () -> Unit
                     }
                 }
                 CourtRule()
+                CourtHeading("Milestones")
+                Text("Based on saved results on this phone · Rule set v1 · Self-recorded, not a verified skill rating",
+                    style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textSecondary)
+                QuestMilestones.evaluate(save).forEach { milestone ->
+                    val state = QuestReceiptStatus.resolve(save, milestone)
+                    val verifiedLocal = state == QuestReceiptStatus.State.VERIFIED_LOCAL
+                    val evidenceIssue = state == QuestReceiptStatus.State.EVIDENCE_REVIEW
+                    val status = QuestReceiptStatus.label(state, milestone.evidenceCount)
+                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp), highlighted = verifiedLocal) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                when {
+                                    evidenceIssue -> Icons.Default.Warning
+                                    verifiedLocal -> Icons.Default.CheckCircle
+                                    else -> Icons.Default.Lock
+                                },
+                                contentDescription = status,
+                                tint = if (verifiedLocal) CourtQuestDesign.accentVivid else CourtQuestDesign.textSecondary
+                            )
+                            Column(Modifier.weight(1f)) {
+                                Text(milestone.title, style = MaterialTheme.typography.titleMedium,
+                                    color = CourtQuestDesign.textPrimary)
+                                Text(milestone.description, style = MaterialTheme.typography.bodyMedium,
+                                    color = CourtQuestDesign.textSecondary)
+                                Text(status,
+                                    style = MaterialTheme.typography.labelMedium, color = CourtQuestDesign.accent)
+                            }
+                        }
+                    }
+                }
+                CourtRule()
                 CourtHeading("Make your own Mission")
                 Text("Choose a short session or build a longer lineup. Saved versions keep the same drills and targets.",
                     style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textSecondary)

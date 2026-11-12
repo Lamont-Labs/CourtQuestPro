@@ -27,6 +27,7 @@ internal fun DrillLibraryScreen(
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var filter by rememberSaveable { mutableStateOf("All") }
+    var playerCount by rememberSaveable { mutableIntStateOf(1) }
     var category by rememberSaveable(swapSlotId) { mutableStateOf(
         swapSlotId?.let { id -> save.slots.firstOrNull { it.id == id }?.drillId }
             ?.let { id -> TrainingLibrary.catalog(save).firstOrNull { it.id == id }?.category } ?: "All skills") }
@@ -42,7 +43,7 @@ internal fun DrillLibraryScreen(
             onArchive = { onArchive(selected.id); onSelect(null) }, onResume = onResume)
         return
     }
-    val available = TrainingLibrary.available(save)
+    val available = TrainingLibrary.byPlayerCount(TrainingLibrary.available(save), playerCount)
     val shown = available.filter { drill ->
         (category == "All skills" || drill.category == category) &&
             (filter != "Mine" || drill.id.startsWith("custom_")) &&
@@ -74,6 +75,18 @@ internal fun DrillLibraryScreen(
                         FilterChip(filter == value, { filter = value }, label = { Text(value) }, modifier = Modifier.heightIn(min = 48.dp))
                     }
                 }
+                Text("Players available", color = CourtQuestDesign.textPrimary,
+                    style = MaterialTheme.typography.labelLarge)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(1 to "Solo", 2 to "2 players", 3 to "3+ players").forEach { (count, label) ->
+                        FilterChip(
+                            selected = playerCount == count,
+                            onClick = { playerCount = count },
+                            label = { Text(label) },
+                            modifier = Modifier.heightIn(min = 48.dp).testTag("library-players-$count")
+                        )
+                    }
+                }
                 Box {
                     OutlinedButton({ categoryMenu = true }, modifier = Modifier.heightIn(min = 48.dp)) {
                         Icon(Icons.Default.FilterList, null); Spacer(Modifier.width(8.dp)); Text(category)
@@ -90,7 +103,7 @@ internal fun DrillLibraryScreen(
             item { Box(Modifier.padding(horizontal = 20.dp)) { CourtHeading("Suggested for you") } }
             item {
                 LazyRow(contentPadding = PaddingValues(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    items(suggestions, key = { it.drill.id }) { suggestion ->
+                    items(suggestions.filter { it.drill.minimumPlayers <= playerCount }, key = { it.drill.id }) { suggestion ->
                         CourtQuestPremiumSurface(Modifier.width(264.dp).clickable { onSelect(suggestion.drill.id) }, PaddingValues(20.dp)) {
                             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 CourtEyebrow(suggestion.drill.category)
@@ -111,7 +124,7 @@ internal fun DrillLibraryScreen(
                     style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
                 Text(if (filter == "Favorites") "Tap the star on a drill to keep it here." else "Clear a filter or create a drill with your own instructions and target.",
                     style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textSecondary)
-                TextButton({ query = ""; category = "All skills"; filter = "All" }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Show all drills") }
+                TextButton({ query = ""; category = "All skills"; filter = "All"; playerCount = 3 }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Show all drills") }
             }
         }
         items(shown, key = { it.id }) { drill ->
@@ -125,7 +138,7 @@ internal fun DrillLibraryScreen(
                         }
                     }
                     Text(drill.title, style = MaterialTheme.typography.titleLarge, color = CourtQuestDesign.textPrimary)
-                    Text("${drill.level} · ${drill.minutes} min · ${DrillTargets.minimum(drill)} successful actions",
+                    Text("${TrainingLibrary.playerRequirement(drill)} · ${drill.level} · ${drill.minutes} min · ${DrillTargets.minimum(drill)} successful actions",
                         style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)
                     OutlinedButton({ onSelect(drill.id) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                         Text("View ${drill.title}", Modifier.weight(1f)); Icon(Icons.AutoMirrored.Filled.ArrowForward, null, Modifier.size(18.dp))
@@ -161,6 +174,8 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                         Text(drill.target, color = CourtQuestDesign.accent, style = MaterialTheme.typography.titleLarge)
                     }
                 }
+                CourtHeading("Visual drill reference")
+                DrillCourtReference(drill)
                 CourtHeading("The drill guide")
                 Text(drill.instructions, color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyLarge)
                 CourtQuestPrimaryButton(onPractice, Modifier.fillMaxWidth(), canPractice) { Text(if (samePractice) "Resume practice" else "Start extra practice") }

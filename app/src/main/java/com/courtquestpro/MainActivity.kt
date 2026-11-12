@@ -60,7 +60,11 @@ private val Muted = CourtQuestDesign.textSecondary
 data class Drill(
     val id: String, val category: String, val title: String, val level: String,
     val minutes: Int, val instructions: String, val target: String, val videoQuery: String,
-    val minimumSuccesses: Int = 0
+    val minimumSuccesses: Int = 0,
+    val minimumPlayers: Int = when (id) {
+        "d3", "r3", "p1", "p2", "p3" -> 2
+        else -> 1
+    }
 )
 
 data class Slot(val id: String, val drillId: String, var complete: Boolean = false)
@@ -74,6 +78,7 @@ data class MatchRecord(
 )
 data class SaveState(
     var playerName: String = "",
+    var jersey: PlayerJersey? = null,
     var difficulty: String = "Intermediate",
     var weeklyPlan: String = "Balanced",
     var trainingDays: MutableList<Int>? = null,
@@ -92,6 +97,7 @@ data class SaveState(
     var matchOpponent: String = "",
     var matches: MutableList<MatchRecord> = mutableListOf(),
     var awardedKeys: MutableList<String> = mutableListOf(),
+    var questAwardReceipts: MutableList<QuestAwardReceipt>? = null,
     var drillResults: MutableList<DrillResult>? = null,
     var drillDrafts: MutableList<DrillDraft>? = null,
     var showWarmupDone: Boolean = false,
@@ -150,7 +156,11 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         )
     }
     fun persist() { prefs.edit().putString("state", gson.toJson(save)).apply() }
-    fun refresh() { save = gson.fromJson(gson.toJson(save), SaveState::class.java); persist() }
+    fun refresh() {
+        QuestAwards.reconcile(save, java.time.Instant.now().toString())
+        save = gson.fromJson(gson.toJson(save), SaveState::class.java)
+        persist()
+    }
 
     val catalog = TrainingLibrary.catalog(save)
     val snackbar = remember { SnackbarHostState() }
@@ -349,20 +359,11 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 missionStartPending?.let { startMission(it) }
             }) { Text("Discard and start Mission") } }, dismissButton = { TextButton({ confirmMissionDiscard = false }) { Text("Keep session") } })
         CourtQuestScene {
+        Box(Modifier.fillMaxSize()) {
         Scaffold(
             modifier = Modifier.semantics { testTagsAsResourceId = true },
             snackbarHost = { SnackbarHost(snackbar) },
-            containerColor = Color.Transparent,
-            bottomBar = {
-                if (onboardingComplete && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")) {
-                    CourtQuestNavigation(PlayerNavigation.tab(routeHistory)) { tab ->
-                        if (tab == PlayerTab.TRAIN) {
-                            if (librarySlotId != null) { librarySlotId = null; librarySelectedId = null }
-                            navigate(tab.route)
-                        } else navigate(tab.route)
-                    }
-                }
-            }
+            containerColor = Color.Transparent
         ) { padding ->
             if (!onboardingComplete) {
                 CourtOnboarding(
@@ -597,7 +598,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     "career" -> CareerScreen(save, onHome = { navigate("home") }, onMissionReceipt = { missionReceiptId = it; navigate("missionReceipt") })
                     "quests" -> QuestsScreen(save, today, onTraining = { openTraining() }, onBuild = { openMissionBuilder() },
                         onResumeMission = { openMission() }, onProgress = { navigate("career") })
-                    "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") })
+                    "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") }, onSaveJersey = { save.jersey = it; refresh() })
                     "settings" -> SettingsScreen(save.playerName, save.difficulty, onBack = { goBack() }, onDifficulty = { save.difficulty = it; refresh() }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
                     })
@@ -608,6 +609,16 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     destinationState.SaveableStateProvider(target) { DestinationContent() }
                 } else DestinationContent()
             }
+        }
+        if (onboardingComplete && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")) {
+            CourtQuestNavigation(PlayerNavigation.tab(routeHistory), save.jersey ?: PlayerJersey()) { tab ->
+                if (tab == PlayerTab.TRAIN && librarySlotId != null) {
+                    librarySlotId = null
+                    librarySelectedId = null
+                }
+                navigate(tab.route)
+            }
+        }
         }
     }
     }
