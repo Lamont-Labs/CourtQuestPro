@@ -49,6 +49,18 @@ class QuestMilestonesTest {
         assertFalse(milestones.getValue("first_mission_receipt_v1").achieved)
     }
 
+    @Test fun nonCanonicalDatesCannotCreateTrainingDayAwards() {
+        val save = SaveState(drillResults = mutableListOf(
+            drill("2026-02-30", "invalid-calendar"),
+            drill("2026-11-12extra", "invalid-suffix"),
+            drill("2026-11-12", "valid")
+        ))
+        val milestones = QuestMilestones.evaluate(save).associateBy { it.id }
+        assertEquals(1, milestones.getValue("first_recorded_drill_v1").evidenceCount)
+        assertEquals(1, milestones.getValue("three_training_days_v1").evidenceCount)
+        assertFalse(milestones.getValue("three_training_days_v1").achieved)
+    }
+
     @Test fun forgedMissionReceiptDoesNotEarnMilestone() {
         val fake = MissionReceipt("fake", "missing-session", "missing-version",
             emptyList(), "not-a-hash", "2026-11-12T12:00:00Z")
