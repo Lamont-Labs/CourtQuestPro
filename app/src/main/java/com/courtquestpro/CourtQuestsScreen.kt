@@ -69,15 +69,10 @@ internal fun QuestsScreen(save: SaveState, today: String, onTraining: () -> Unit
                 Text("Based on saved results on this phone · Rule set v1 · Self-recorded, not a verified skill rating",
                     style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textSecondary)
                 QuestMilestones.evaluate(save).forEach { milestone ->
-                    val receipt = save.questAwardReceipts.orEmpty().firstOrNull { it.id == milestone.id }
-                    val verifiedLocal = receipt != null && QuestAwards.receiptValid(save, receipt)
-                    val evidenceIssue = receipt != null && !verifiedLocal
-                    val status = when {
-                        evidenceIssue -> "Evidence needs review · Saved receipt no longer matches"
-                        verifiedLocal -> "Saved receipt checked · Local evidence matches"
-                        milestone.achieved -> "Goal reached · Receipt pending save"
-                        else -> "In progress · ${milestone.evidenceCount} recorded"
-                    }
+                    val state = QuestReceiptStatus.resolve(save, milestone)
+                    val verifiedLocal = state == QuestReceiptStatus.State.VERIFIED_LOCAL
+                    val evidenceIssue = state == QuestReceiptStatus.State.EVIDENCE_REVIEW
+                    val status = QuestReceiptStatus.label(state, milestone.evidenceCount)
                     CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp), highlighted = verifiedLocal) {
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                             Icon(
