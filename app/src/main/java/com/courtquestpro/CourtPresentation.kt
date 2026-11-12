@@ -39,7 +39,8 @@ internal fun CourtMetric(label: String, value: String, modifier: Modifier = Modi
 internal fun CourtMetricStrip(metrics: List<Pair<String, String>>, modifier: Modifier = Modifier) {
     val fontScale = LocalConfiguration.current.fontScale
     BoxWithConstraints(modifier.fillMaxWidth()) {
-        if (maxWidth.value / fontScale < (if (metrics.size > 2) 235f else 160f)) {
+        val reflowThreshold = if (metrics.size > 2) 235f else 160f
+        if ((maxWidth.value / fontScale) < reflowThreshold) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 metrics.forEachIndexed { index, (label, value) ->
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
