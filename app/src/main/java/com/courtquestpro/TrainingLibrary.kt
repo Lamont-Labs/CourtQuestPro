@@ -14,6 +14,19 @@ internal object TrainingLibrary {
     val categories = listOf("Shooting", "Ball Handling", "Finishing", "Defense", "Rebounding", "Passing")
     val levels = listOf("Beginner", "Intermediate", "Advanced", "Expert", "Elite")
 
+    /** Player count is a minimum; 3+ is represented by a minimum of three. */
+    fun byPlayerCount(items: List<Drill>, players: Int): List<Drill> {
+        require(players >= 1) { "Player count must be positive." }
+        return items.filter { it.minimumPlayers.coerceAtLeast(1) <= players }
+    }
+
+    fun playerRequirement(drill: Drill): String = when (drill.minimumPlayers.coerceAtLeast(1)) {
+        1 -> "Solo"
+        2 -> "2 players"
+        else -> "${drill.minimumPlayers} players minimum"
+    }
+
+
     fun validation(input: DrillInput): String? = when {
         input.title.trim().length !in 1..60 -> "Give your drill a name of 1–60 characters."
         input.category !in categories -> "Choose a skill category."
