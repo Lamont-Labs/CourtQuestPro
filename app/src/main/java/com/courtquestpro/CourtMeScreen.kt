@@ -16,32 +16,6 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
         item { AppHeader("Your game. Your way.", "Your player profile and training setup.") }
         item {
-            CourtQuestPremiumSurface(
-                Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-                PaddingValues(14.dp),
-                highlighted = true
-            ) {
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    CourtQuestJerseyArtwork(save.jerseyNumber, Modifier.size(82.dp))
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                        CourtEyebrow("PLAYER JERSEY")
-                        Text(
-                            "Number ${displayedJerseyNumber(save.jerseyNumber)}",
-                            color = CourtQuestDesign.textPrimary,
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                        TextButton(onEdit, Modifier.heightIn(min = 48.dp)) {
-                            Text("Customize jersey")
-                        }
-                    }
-                }
-            }
-        }
-        item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                 CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(24.dp), highlighted = true) {
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
