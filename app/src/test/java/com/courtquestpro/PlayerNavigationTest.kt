@@ -42,6 +42,20 @@ class PlayerNavigationTest {
         assertEquals(listOf("home"), PlayerNavigation.restore(listOf("home", "coachAdmin")))
         assertEquals(listOf("home"), PlayerNavigation.restore(emptyList()))
     }
+    @Test fun editorVisitsNeverReuseRetainedScreenState() {
+        assertTrue(PlayerNavigation.retainsState("library"))
+        assertTrue(PlayerNavigation.retainsState("settings"))
+        assertTrue(PlayerNavigation.retainsState("career"))
+        assertFalse(PlayerNavigation.retainsState("drillEditor"))
+        assertFalse(PlayerNavigation.retainsState("drill"))
+        assertFalse(PlayerNavigation.retainsState("mission"))
+    }
+    @Test fun dailyAndPracticeReceiptsReturnToOriginWithoutReopeningRecorder() {
+        for (recorder in listOf("drill", "practice")) {
+            val receipt = PlayerNavigation.open(listOf("home", "library", recorder), "drillResult")
+            assertEquals(listOf("home", "library"), PlayerNavigation.back(receipt))
+        }
+    }
     @Test fun allFiveDestinationsHaveDistinctOwningTabs() {
         assertEquals(listOf("Court", "Train", "Quests", "Progress", "Me"), PlayerTab.entries.map { it.label })
         assertEquals(PlayerTab.ME, PlayerNavigation.tab(listOf("home", "me", "settings")))

@@ -20,7 +20,8 @@ def replace_text(value):
     ui.tap(node)
     ui.shell('input', 'keyevent', 'KEYCODE_MOVE_END')
     ui.shell('input', 'keyevent', *(['KEYCODE_DEL'] * max(1, len(node.get('text', '')))))
-    ui.shell('input', 'text', value.replace(' ', '%s'))
+    if value:
+        ui.shell('input', 'text', value.replace(' ', '%s'))
     back()  # IME, not destination
 
 
@@ -36,6 +37,14 @@ def main():
         click(tab); ui.require(ui.nodes(), heading); snap('navigation-' + tab.lower())
         back(); ui.require(ui.nodes(), 'Start training')
     assert state() == original, 'Browsing must not award XP or create evidence'
+    click('Train'); click('Create custom drill'); replace_text('Abandoned edit')
+    back(); click('Discard changes')
+    click('Create custom drill')
+    assert text_field().get('text', '') == '', 'Discarded editor fields must not return in a new drill'
+    back()
+    click('Progress'); click('Games')
+    click('Me'); click('Progress')
+    ui.require(ui.nodes(), 'Game history')
     click('Train'); replace_text('Mirror')
     click('Me'); click('Train')
     assert text_field().get('text') == 'Mirror', 'Library search must survive a tab round trip'
@@ -48,6 +57,7 @@ def main():
     # Android's saved instance state, rather than force-stop, must retain route and text.
     ui.shell('input', 'keyevent', 'KEYCODE_HOME'); time.sleep(2)
     ui.shell('am', 'kill', ui.PACKAGE); time.sleep(1)
+    assert not ui.shell(f'pidof {ui.PACKAGE} || true'), 'The background process must actually die'
     ui.open_app()
     assert text_field().get('text') == 'Draft Player'
     click('Save name'); assert state()['playerName'] == 'Draft Player'
@@ -68,7 +78,7 @@ def main():
     ui.shell('settings', 'put', 'system', 'font_scale', '1.0')
     report = dict(input_apk_sha256=hashlib.sha256(apk.read_bytes()).hexdigest(),
         five_usable_destinations=True, root_back_to_court=True, builder_back_to_train=True,
-        library_tab_state=True, profile_draft_tab_state=True, profile_draft_process_restore=True,
+        library_tab_state=True, profile_draft_tab_state=True, profile_draft_process_restore=True, discarded_editor_is_new=True, progress_filter_retained=True,
         name_save_explicit=True, navigation_does_not_award_xp=True,
         normal_compact_large_keyboard_captured=True)
     (ui.OUT/'navigation-result.json').write_text(json.dumps(report, indent=2)+'\n')

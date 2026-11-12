@@ -3,6 +3,8 @@ package com.courtquestpro
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -209,7 +211,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     fun navigate(route: String) { routeHistory = PlayerNavigation.open(routeHistory, route) }
     fun goBack() { routeHistory = PlayerNavigation.back(routeHistory) }
     var librarySlotId by rememberSaveable { mutableStateOf<String?>(null) }
-    var libraryFocusId by rememberSaveable { mutableStateOf<String?>(null) }
+    var librarySelectedId by rememberSaveable { mutableStateOf<String?>(null) }
     var editingDrillId by rememberSaveable { mutableStateOf<String?>(null) }
     var editorCategory by rememberSaveable { mutableStateOf("Shooting") }
     var selectedSlot by rememberSaveable { mutableIntStateOf(-1) }
@@ -238,7 +240,21 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         } else missionStartPending = versionId
     }
 
-    val today = LocalDate.now(ZoneId.systemDefault()).toString()
+    var today by remember { mutableStateOf(PlayerCalendar.today(Instant.now(), ZoneId.systemDefault())) }
+    DisposableEffect(context) {
+        val lifecycle = (context as? ComponentActivity)?.lifecycle
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) today = PlayerCalendar.today(Instant.now(), ZoneId.systemDefault())
+        }
+        lifecycle?.addObserver(observer)
+        onDispose { lifecycle?.removeObserver(observer) }
+    }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(PlayerCalendar.nextRefreshMillis(Instant.now(), ZoneId.systemDefault()))
+            today = PlayerCalendar.today(Instant.now(), ZoneId.systemDefault())
+        }
+    }
     fun openMatch() {
         error = ""
         navigate(if (save.hasResumableMatch(today)) "score" else "champSetup")
@@ -285,7 +301,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
 
     fun openLibrary(slotId: String? = null) {
         librarySlotId = slotId
-        libraryFocusId = null
+        librarySelectedId = null
         navigate("library")
     }
     @Composable fun HomeContent() {
@@ -340,7 +356,10 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             bottomBar = {
                 if (onboardingComplete && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")) {
                     CourtQuestNavigation(PlayerNavigation.tab(routeHistory)) { tab ->
-                        if (tab == PlayerTab.TRAIN) openLibrary() else navigate(tab.route)
+                        if (tab == PlayerTab.TRAIN) {
+                            if (librarySlotId != null) { librarySlotId = null; librarySelectedId = null }
+                            navigate(tab.route)
+                        } else navigate(tab.route)
                     }
                 }
             }
@@ -367,7 +386,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     }
                 )
             } else AnimatedContent(targetState = screen, label = "screen-transition", modifier = Modifier.padding(padding).consumeWindowInsets(padding)) { target ->
-                destinationState.SaveableStateProvider(target) {
+                @Composable fun DestinationContent() {
                 when (target) {
                     "home" -> HomeContent()
                     "library" -> DrillLibraryScreen(save, librarySlotId,
@@ -390,7 +409,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                             if (slot != null && TrainingLibrary.swap(save, slot.id, id)) {
                                 refresh(); navigate("home"); notice("Daily drill replaced. Your recorded work is protected.")
                             } else notice("Choose an untouched slot and a suitable drill.")
-                        }, onResume = { navigate("practice") }, onHome = { navigate("home") }, initialDrillId = libraryFocusId, onMissionBuilder = { openMissionBuilder() })
+                        }, onResume = { navigate("practice") }, onHome = { navigate("home") }, selectedId = librarySelectedId, onSelect = { librarySelectedId = it }, onMissionBuilder = { openMissionBuilder() })
                     "missionBuilder" -> MissionBuilderScreen(save, onChange = { refresh() }, onStart = { startMission(it) },
                         onResume = { openMission() }, onHome = { goBack() }, backLabel = PlayerNavigation.backLabel(routeHistory))
                     "mission" -> {
@@ -431,7 +450,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         save.difficulty.takeIf { it in TrainingLibrary.levels } ?: "Beginner", onSave = { input ->
                             val result = TrainingLibrary.saveCustom(save, input, editingDrillId)
                             if (result == null) TrainingLibrary.validation(input) ?: "This drill is no longer available to edit."
-                            else { libraryFocusId = result.id; refresh(); navigate("library"); notice("Custom drill saved."); null }
+                            else { librarySelectedId = result.id; refresh(); navigate("library"); notice("Custom drill saved."); null }
                         }, onBack = { goBack() })
                     "practice" -> {
                         val session = save.practiceSession
@@ -585,6 +604,9 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     else -> HomeContent()
                 }
                 }
+                if (PlayerNavigation.retainsState(target)) {
+                    destinationState.SaveableStateProvider(target) { DestinationContent() }
+                } else DestinationContent()
             }
         }
     }

@@ -11,6 +11,8 @@ internal object PlayerNavigation {
     private val trainingFlow = setOf("drill", "practice", "drillResult", "mission", "missionStepReceipt", "missionReceipt")
     private val known = roots + trainingFlow + listOf("settings", "missionBuilder", "drillEditor", "champSetup", "score", "recap", "gameHistory")
 
+    fun retainsState(route: String): Boolean = route in roots || route == "settings"
+
     fun restore(history: List<String>): List<String> =
         history.takeIf { it.isNotEmpty() && it.first() == "home" && it.all { route -> route in known } } ?: listOf("home")
 
