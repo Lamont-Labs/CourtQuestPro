@@ -1,0 +1,63 @@
+name: Verify compact player dock
+
+on:
+  push:
+    branches: [dev/premium-flow-toolkit]
+    paths:
+      - '.github/workflows/verify-compact-navigation.yml'
+      - 'scripts/verify_compact_navigation.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dock:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      COURTQUEST_UI_EVIDENCE: artifacts/compact-navigation
+      ANDROID_AVD_HOME: /tmp/courtquest-avd
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Prepare baseline and dedicated emulator
+        run: |
+          test -e /dev/kvm
+          sudo chmod 666 /dev/kvm
+          export ANDROID_SDK_ROOT="$ANDROID_HOME"
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" 'platforms;android-35' 'build-tools;35.0.1' 'system-images;android-35;default;x86_64' 'emulator'
+          curl --fail --location --retry 3 'https://github.com/Lamont-Labs/CourtQuestPro/releases/download/courtquest-dev-2026-11-05/CourtQuestPro-Android-debug.apk?baseline=compact-nav-build9' --output /tmp/courtquest-build9.apk
+          echo '68b3b1d1f2cd08084b65973ae07544b74c2a795db27994f2b9a2b975a7785c5a  /tmp/courtquest-build9.apk' | sha256sum --check
+          mkdir -p "$ANDROID_AVD_HOME" "$COURTQUEST_UI_EVIDENCE"
+          printf 'no\n' | "${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager" create avd --name CourtQuest_PremiumQA --package 'system-images;android-35;default;x86_64' --device pixel_2 --path "$ANDROID_AVD_HOME/CourtQuest_PremiumQA.avd"
+          export PATH="${ANDROID_HOME}/platform-tools:${PATH}"
+          adb start-server
+          "${ANDROID_HOME}/emulator/emulator" -avd CourtQuest_PremiumQA -port 5562 -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect -accel on -cores 2 -memory 2048 > "$COURTQUEST_UI_EVIDENCE/emulator.log" 2>&1 &
+          python3 - <<'PY'
+          import sys,time
+          sys.path.insert(0,'scripts')
+          import verify_android_daily_flow as ui
+          for _ in range(90):
+              try:
+                  if ui.shell('getprop','sys.boot_completed')=='1':break
+              except Exception:pass
+              time.sleep(2)
+          else:raise AssertionError('QA emulator did not boot')
+          assert 'CourtQuest_PremiumQA' in ui.adb('emu','avd','name').decode()
+          assert 'Success' in ui.adb('install','-r','/tmp/courtquest-build9.apk',timeout=180).decode()
+          ui.open_app()
+          PY
+      - name: Reproduce the build-9 failure before correction
+        run: python3 -u scripts/verify_compact_navigation.py baseline /tmp/courtquest-build9.apk
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: courtquest-compact-navigation
+          path: artifacts/
+          retention-days: 14
