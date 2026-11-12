@@ -19,24 +19,24 @@ name: Fresh profile and primary navigation
 - tapOn: ENTER MY COURT
 - assertVisible: Start training
 - takeScreenshot: court
-- tapOn: ".*Drill library.*"
+- tapOn: "^Drills$"
 - assertVisible: Create custom drill
 - takeScreenshot: drills
-- tapOn: ".*Player development.*"
+- tapOn: "^Progress$"
 - assertVisible: Your work, recorded.
 - takeScreenshot: progress
-- tapOn: ".*Player settings.*"
+- tapOn: "^Setup$"
 - assertVisible: Player name
 - assertVisible: CourtQuest QA
 - takeScreenshot: setup
-- tapOn: ".*Court dashboard.*"
+- tapOn: "^Court$"
 - assertVisible: Start training
 - stopApp
 - launchApp:
     clearState: false
 - assertVisible: Start training
 - assertNotVisible: ENTER MY COURT
-- tapOn: ".*Player settings.*"
+- tapOn: "^Setup$"
 - assertVisible: CourtQuest QA
-- tapOn: ".*Court dashboard.*"
+- tapOn: "^Court$"
 - assertVisible: Start training

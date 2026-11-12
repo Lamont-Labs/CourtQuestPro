@@ -64,6 +64,7 @@ jobs:
       - name: Capture baseline, update in place, and verify the daily flow
         run: |
           mkdir -p "$COURTQUEST_UI_EVIDENCE"
+          export PATH="${ANDROID_HOME}/platform-tools:${PATH}"
           "${ANDROID_HOME}/platform-tools/adb" start-server
           "${ANDROID_HOME}/emulator/emulator" -avd CourtQuest_PremiumQA -port 5562 -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect -accel on -cores 2 -memory 2048 > "$COURTQUEST_UI_EVIDENCE/emulator.log" 2>&1 &
           export COURTQUEST_EMULATOR_PID=$!
