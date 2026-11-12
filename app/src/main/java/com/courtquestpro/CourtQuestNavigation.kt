@@ -13,40 +13,38 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-internal fun CourtQuestNavigation(screen: String, onCourt: () -> Unit, onDrills: () -> Unit,
-                                  onProgress: () -> Unit, onSetup: () -> Unit) {
+internal fun CourtQuestNavigation(selected: PlayerTab, onSelect: (PlayerTab) -> Unit) {
+    val config = LocalConfiguration.current
+    // At large text sizes every label remains visible, with full native selection semantics.
+    val rows = if (config.fontScale >= 1.5f) PlayerTab.entries.chunked(3) else listOf(PlayerTab.entries.toList())
     Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp)) {
         CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(0.dp), blurred = true) {
-            NavigationBar(containerColor = Color.Transparent, tonalElevation = 0.dp,
-                windowInsets = WindowInsets(0, 0, 0, 0)) {
-                val colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = CourtQuestDesign.iconForeground,
-                    selectedTextColor = CourtQuestDesign.accent,
-                    indicatorColor = CourtQuestDesign.accentVivid,
-                    unselectedIconColor = CourtQuestDesign.textSecondary,
-                    unselectedTextColor = CourtQuestDesign.textSecondary)
-                NavigationBarItem(screen == "home", onCourt,
-                    icon = { Icon(Icons.Default.SportsBasketball, "Court dashboard") },
-                    label = { CourtNavigationLabel("Court") }, colors = colors)
-                NavigationBarItem(screen == "library", onDrills,
-                    icon = { Icon(Icons.Default.FitnessCenter, "Drill library") },
-                    label = { CourtNavigationLabel("Drills") }, colors = colors)
-                NavigationBarItem(screen in listOf("career", "gameHistory"), onProgress,
-                    icon = { Icon(Icons.Default.Insights, "Player development") },
-                    label = { CourtNavigationLabel("Progress") }, colors = colors)
-                NavigationBarItem(screen == "settings", onSetup,
-                    icon = { Icon(Icons.Default.Tune, "Player settings") },
-                    label = { CourtNavigationLabel("Setup") }, colors = colors)
+            Column {
+                rows.forEach { row ->
+                    NavigationBar(containerColor = Color.Transparent, tonalElevation = 0.dp,
+                        windowInsets = WindowInsets(0, 0, 0, 0)) {
+                        row.forEach { tab ->
+                            NavigationBarItem(selected == tab, { onSelect(tab) },
+                                icon = { Icon(when (tab) {
+                                    PlayerTab.COURT -> Icons.Default.SportsBasketball
+                                    PlayerTab.TRAIN -> Icons.Default.FitnessCenter
+                                    PlayerTab.QUESTS -> Icons.Default.Flag
+                                    PlayerTab.PROGRESS -> Icons.Default.Insights
+                                    PlayerTab.ME -> Icons.Default.Person
+                                }, null) },
+                                label = { Text(tab.label,
+                                    fontFamily = if (config.fontScale >= 1.2f || config.screenWidthDp < 360) CourtDisplay else CourtBody,
+                                    fontWeight = FontWeight.Bold, fontSize = 12.sp, softWrap = false, maxLines = 1) },
+                                colors = NavigationBarItemDefaults.colors(
+                                    selectedIconColor = CourtQuestDesign.iconForeground,
+                                    selectedTextColor = CourtQuestDesign.accent,
+                                    indicatorColor = CourtQuestDesign.accentVivid,
+                                    unselectedIconColor = CourtQuestDesign.textSecondary,
+                                    unselectedTextColor = CourtQuestDesign.textSecondary))
+                        }
+                    }
+                }
             }
         }
     }
-}
-
-@Composable
-private fun CourtNavigationLabel(label: String) {
-    val enlarged = LocalConfiguration.current.fontScale >= 1.5f
-    Text(label, modifier = Modifier.wrapContentWidth(unbounded = true),
-        fontFamily = if (enlarged) CourtDisplay else CourtBody,
-        fontWeight = if (enlarged) FontWeight.ExtraBold else FontWeight.Bold,
-        fontSize = 12.sp, softWrap = false, maxLines = 1)
 }

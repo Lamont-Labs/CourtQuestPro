@@ -53,7 +53,7 @@ internal fun DrillLibraryScreen(
     val suggestions = TrainingLibrary.suggestions(save)
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        item { AppHeader(if (swapSlotId == null) "Drill library." else "Make the swap.",
+        item { AppHeader(if (swapSlotId == null) "Train your way." else "Make the swap.",
             if (swapSlotId == null) "Find a drill. Make it yours. Put in the work." else "Choose a suitable drill for your untouched daily slot.") }
         item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {

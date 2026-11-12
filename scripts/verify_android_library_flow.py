@@ -118,7 +118,7 @@ def main():
     restore_saved_score()
     ui.seed('empty')
     ui.open_app()
-    click('Drills')
+    click('Train')
     snap('home')
     click('Create custom drill')
     click('Save drill')
@@ -159,12 +159,12 @@ def main():
     assert shuffled['drillDrafts'] == before['drillDrafts']
     assert any(a['drillId'] != b['drillId'] for a, b in zip(before['slots'], shuffled['slots']))
     snap('shuffle')
-    click('Drills')
+    click('Train')
     fill('library-search', 'Corner Touch')
     click('View Corner Touch')
     click('Use in daily workout')
     assert state()['slots'][0]['drillId'] == old_id
-    click('Drills')
+    click('Train')
     fill('library-search', 'Corner Touch')
     click('View Corner Touch')
     click('Start extra practice')
@@ -176,7 +176,7 @@ def main():
     assert state()['practiceSession']['draft']['successful'] == 1
     ui.shell('am', 'force-stop', ui.PACKAGE)
     ui.open_app()
-    click('Drills')
+    click('Train')
     fill('library-search', 'Corner Touch')
     click('View Corner Touch')
     click('Edit custom drill')
@@ -230,7 +230,7 @@ def main():
     assert completed['drillResults'][-1]['drillSnapshot']['minimumSuccesses'] == 5
     assert completed['totalXp'] == 150 and completed['slots'][0]['complete']
     click('Back to Court')
-    click('Drills')
+    click('Train')
     fill('library-search', 'Corner Touch Plus')
     click('View Corner Touch Plus')
     click('Archive drill')
@@ -245,7 +245,7 @@ def main():
         ui.shell('wm', 'size', '640x1440')
         ui.shell('settings', 'put', 'system', 'font_scale', font)
         time.sleep(2)
-        click('Drills')
+        click('Train')
         snap(label)
         click('Create custom drill')
         fill('custom-title', 'Keyboard Check')
