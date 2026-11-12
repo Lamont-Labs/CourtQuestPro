@@ -119,6 +119,17 @@ class DrawerSelectorTest(unittest.TestCase):
             self.assertIs(ui.drawer_target('Court', limit=1), target)
             shell.assert_called_once()
 
+    def test_row_outside_scroll_viewport_must_scroll_before_tapping(self):
+        # Android may export an entire 80dp row even when its bottom is clipped.
+        viewport = node(bounds='[12,64][180,608]', scrollable='true')
+        clipped = node('nav-career', 'Progress', '[12,560][180,720]')
+        initial = drawer(viewport, clipped)
+        complete = node('nav-career', 'Progress', '[12,400][180,560]')
+        ready = drawer(viewport, complete)
+        with patch.object(ui, 'nodes', side_effect=[initial, initial, ready]), patch.object(ui, 'shell') as shell:
+            self.assertIs(ui.drawer_target('Progress', minimum_px=96), complete)
+            shell.assert_called_once_with('input', 'swipe', '96', '472', '96', '200', '250')
+
     def test_unreachable_destination_fails_after_bounded_scroll(self):
         initial = drawer(node(scrollable='true'))
         with patch.object(ui, 'nodes', return_value=initial), patch.object(ui, 'shell') as shell:
@@ -128,7 +139,7 @@ class DrawerSelectorTest(unittest.TestCase):
 
     def test_partial_target_is_scrolled_until_minimum_hit_area_is_visible(self):
         clipped = node('nav-me', 'Me', '[0,600][168,660]')
-        initial = drawer(node(scrollable='true'), clipped)
+        initial = drawer(node(bounds='[0,0][192,680]', scrollable='true'), clipped)
         complete = node('nav-me', 'Me', '[0,400][168,560]')
         with patch.object(ui, 'nodes', side_effect=[initial, initial, drawer(complete)]), patch.object(ui, 'shell') as shell:
             self.assertIs(ui.drawer_target('Me', minimum_px=96), complete)

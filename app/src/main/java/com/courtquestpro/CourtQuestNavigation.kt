@@ -86,7 +86,8 @@ internal fun CourtQuestNavigation(
         }
         AnimatedVisibility(
             visible = expanded,
-            modifier = Modifier.align(Alignment.CenterStart).zIndex(1f),
+            modifier = Modifier.align(Alignment.CenterStart).zIndex(1f)
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Vertical)),
             enter = slideInHorizontally(tween(200)) { -it } + fadeIn(tween(200)),
             exit = slideOutHorizontally(tween(200)) { -it } + fadeOut(tween(200))
         ) {

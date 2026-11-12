@@ -56,11 +56,16 @@ def drawer_target(label, limit=12, minimum_px=1):
     for direction in ('up', 'down'):
         for _ in range(limit):
             drawer = wait_tagged('player-navigation-drawer')
+            regions = [n for n in drawer.iter('node') if n.get('scrollable') == 'true']
+            viewport = regions[0] if regions else drawer
+            vl, vt, vr, vb = map(int, re.findall(r'-?\d+', viewport.get('bounds', '')))
             target = tagged(list(drawer.iter('node')), 'nav-' + route)
             bounds = (list(map(int, re.findall(r'-?\d+', target.get('bounds', ''))))
                       if target is not None else None)
             if (bounds is not None and bounds[2] - bounds[0] >= minimum_px
-                    and bounds[3] - bounds[1] >= minimum_px):
+                    and bounds[3] - bounds[1] >= minimum_px
+                    and bounds[0] >= vl and bounds[1] >= vt
+                    and bounds[2] <= vr and bounds[3] <= vb):
                 # Android exports the active Role.Tab as selected/focusable but
                 # non-clickable. Still tap it and prove that the drawer closes.
                 actionable = (target.get('clickable') == 'true' or
@@ -71,7 +76,6 @@ def drawer_target(label, limit=12, minimum_px=1):
                 # not necessarily content-desc on the test-tag wrapper itself.
                 require(list(target.iter('node')), label)
                 return target
-            regions = [n for n in drawer.iter('node') if n.get('scrollable') == 'true']
             assert regions, f'No drawer scroll region can reach {label!r}'
             left, top, right, bottom = map(int, re.findall(r'-?\d+', regions[0].get('bounds', '')))
             upper, lower = top + (bottom - top) // 4, top + (bottom - top) * 3 // 4

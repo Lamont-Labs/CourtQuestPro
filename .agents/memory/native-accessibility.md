@@ -26,3 +26,14 @@ different UI states without any app defect.
 
 **How to apply:** Retain failure captures and verify the stable semantic state
 before selecting a target. A timeout must still fail, not silently continue.
+
+An exported node's bounds are not proof that its full touch area is visible.
+Check its scroll viewport as well as Android's safe drawing area.
+
+**Why:** In short landscape layouts, UIAutomator exported an entire navigation
+row beyond the list's clipping boundary, including pixels covered by Android
+system navigation. Its apparently valid center tap did not reach the row.
+
+**How to apply:** Keep native controls out of system bars using platform insets,
+then scroll clipped rows fully into their viewport before testing the hit area.
+Do not remove auto-dismiss or selection assertions to accommodate a failed tap.
