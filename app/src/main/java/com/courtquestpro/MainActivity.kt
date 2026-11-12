@@ -9,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -74,6 +75,7 @@ data class MatchRecord(
 )
 data class SaveState(
     var playerName: String = "",
+    var jerseyNumber: Int? = null,
     var difficulty: String = "Intermediate",
     var weeklyPlan: String = "Balanced",
     var trainingDays: MutableList<Int>? = null,
@@ -207,6 +209,12 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     }
     var routeHistory by rememberSaveable { mutableStateOf(listOf("home")) }
     val screen = PlayerNavigation.restore(routeHistory).last()
+    var navigationExpanded by rememberSaveable { mutableStateOf(false) }
+    val showEdgeNavigation = onboardingComplete && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")
+    val navigationInset by animateDpAsState(
+        targetValue = if (showEdgeNavigation && navigationExpanded) 120.dp else 0.dp,
+        animationSpec = tween(200), label = "player-navigation-inset"
+    )
     val destinationState = rememberSaveableStateHolder()
     fun navigate(route: String) { routeHistory = PlayerNavigation.open(routeHistory, route) }
     fun goBack() { routeHistory = PlayerNavigation.back(routeHistory) }
@@ -353,17 +361,8 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             modifier = Modifier.semantics { testTagsAsResourceId = true },
             snackbarHost = { SnackbarHost(snackbar) },
             containerColor = Color.Transparent,
-            bottomBar = {
-                if (onboardingComplete && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")) {
-                    CourtQuestNavigation(PlayerNavigation.tab(routeHistory)) { tab ->
-                        if (tab == PlayerTab.TRAIN) {
-                            if (librarySlotId != null) { librarySlotId = null; librarySelectedId = null }
-                            navigate(tab.route)
-                        } else navigate(tab.route)
-                    }
-                }
-            }
         ) { padding ->
+            Box(Modifier.fillMaxSize()) {
             if (!onboardingComplete) {
                 CourtOnboarding(
                     modifier = Modifier.padding(padding).consumeWindowInsets(padding),
@@ -385,7 +384,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         else finishOnboarding()
                     }
                 )
-            } else AnimatedContent(targetState = screen, label = "screen-transition", modifier = Modifier.padding(padding).consumeWindowInsets(padding)) { target ->
+            } else AnimatedContent(targetState = screen, label = "screen-transition", modifier = Modifier.padding(padding).consumeWindowInsets(padding).padding(start = if (showEdgeNavigation) navigationInset else 0.dp)) { target ->
                 @Composable fun DestinationContent() {
                 when (target) {
                     "home" -> HomeContent()
@@ -598,15 +597,38 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     "quests" -> QuestsScreen(save, today, onTraining = { openTraining() }, onBuild = { openMissionBuilder() },
                         onResumeMission = { openMission() }, onProgress = { navigate("career") })
                     "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") })
-                    "settings" -> SettingsScreen(save.playerName, save.difficulty, onBack = { goBack() }, onDifficulty = { save.difficulty = it; refresh() }, onSaveName = {
-                        save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
-                    })
+                    "settings" -> SettingsScreen(
+                        playerName = save.playerName,
+                        difficulty = save.difficulty,
+                        jerseyNumber = save.jerseyNumber,
+                        onBack = { goBack() },
+                        onDifficulty = { save.difficulty = it; refresh() },
+                        onSaveName = { save.playerName = it.trim(); playerNameInput = save.playerName; refresh() },
+                        onSaveJerseyNumber = { save.jerseyNumber = it; refresh() }
+                    )
                     else -> HomeContent()
                 }
                 }
                 if (PlayerNavigation.retainsState(target)) {
                     destinationState.SaveableStateProvider(target) { DestinationContent() }
                 } else DestinationContent()
+            }
+            if (showEdgeNavigation) {
+                CourtQuestNavigation(
+                    modifier = Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding),
+                    selected = PlayerNavigation.tab(routeHistory),
+                    jerseyNumber = save.jerseyNumber,
+                    expanded = navigationExpanded,
+                    onExpandedChange = { navigationExpanded = it },
+                    onSelect = { tab ->
+                        navigationExpanded = false
+                        if (tab == PlayerTab.TRAIN) {
+                            if (librarySlotId != null) { librarySlotId = null; librarySelectedId = null }
+                            navigate(tab.route)
+                        } else navigate(tab.route)
+                    }
+                )
+            }
             }
         }
     }

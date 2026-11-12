@@ -1,4 +1,4 @@
-name: Verify compact player dock
+name: Verify illustrated edge navigation
 
 on:
   push:
@@ -7,6 +7,11 @@ on:
       - '.github/workflows/verify-compact-navigation.yml'
       - 'scripts/verify_compact_navigation.py'
       - 'app/src/main/java/com/courtquestpro/CourtQuestNavigation.kt'
+      - 'app/src/main/java/com/courtquestpro/CourtMeScreen.kt'
+      - 'app/src/main/java/com/courtquestpro/CourtSettingsScreen.kt'
+      - 'app/src/main/java/com/courtquestpro/MainActivity.kt'
+      - 'app/src/main/assets/courtquest_navigation_atlas.png'
+      - '.maestro/premium-smoke.yaml'
   workflow_dispatch:
 
 permissions:
@@ -14,11 +19,11 @@ permissions:
   actions: read
 
 jobs:
-  dock:
+  edge-navigation:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
-      COURTQUEST_UI_EVIDENCE: artifacts/compact-navigation
+      COURTQUEST_UI_EVIDENCE: artifacts/edge-navigation
       ANDROID_AVD_HOME: /tmp/courtquest-avd
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -66,7 +71,7 @@ jobs:
           PY
       - name: Reproduce the build-9 failure before correction
         run: python3 -u scripts/verify_compact_navigation.py baseline /tmp/courtquest-build9.apk
-      - name: Verify compact dock, update continuity and native smoke
+      - name: Verify the illustrated rail, saved jersey, routes and native smoke
         run: |
           export PATH="${ANDROID_HOME}/platform-tools:${PATH}"
           python3 -u scripts/verify_compact_navigation.py candidate app/build/outputs/apk/debug/app-debug.apk
@@ -76,7 +81,7 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: courtquest-compact-navigation
+          name: courtquest-edge-navigation
           path: |
             artifacts/
             app/build/outputs/apk/debug/app-debug.apk
