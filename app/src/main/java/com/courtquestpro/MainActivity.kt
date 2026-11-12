@@ -355,16 +355,6 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             modifier = Modifier.semantics { testTagsAsResourceId = true },
             snackbarHost = { SnackbarHost(snackbar) },
             containerColor = Color.Transparent,
-            bottomBar = {
-                if (onboardingComplete && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")) {
-                    CourtQuestNavigation(PlayerNavigation.tab(routeHistory)) { tab ->
-                        if (tab == PlayerTab.TRAIN) {
-                            if (librarySlotId != null) { librarySlotId = null; librarySelectedId = null }
-                            navigate(tab.route)
-                        } else navigate(tab.route)
-                    }
-                }
-            }
         ) { padding ->
             Box(Modifier.fillMaxSize()) {
                 Box(Modifier.fillMaxSize().padding(start = if (onboardingComplete && navigationExpanded && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")) 120.dp else 0.dp)) {
