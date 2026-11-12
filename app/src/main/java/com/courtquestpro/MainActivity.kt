@@ -74,6 +74,7 @@ data class MatchRecord(
 )
 data class SaveState(
     var playerName: String = "",
+    var jerseyNumber: Int? = null,
     var difficulty: String = "Intermediate",
     var weeklyPlan: String = "Balanced",
     var trainingDays: MutableList<Int>? = null,
