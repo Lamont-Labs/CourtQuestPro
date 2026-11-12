@@ -284,12 +284,13 @@ private fun NavigationSpriteArtwork(atlas: ImageBitmap, cell: Int, modifier: Mod
 private fun rememberNavigationAtlas(): ImageBitmap? {
     val context = LocalContext.current.applicationContext
     return produceState<ImageBitmap?>(initialValue = cachedNavigationAtlas, key1 = context) {
-        value = withContext(Dispatchers.IO) {
+        val loaded = withContext(Dispatchers.IO) {
             cachedNavigationAtlas ?: synchronized(navigationAtlasLock) {
                 cachedNavigationAtlas ?: context.assets.open(NAV_ATLAS_FILE).use { stream ->
                     BitmapFactory.decodeStream(stream)?.asImageBitmap()
                 }.also { cachedNavigationAtlas = it }
             }
         }
+        value = loaded
     }.value
 }
