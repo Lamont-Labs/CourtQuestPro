@@ -20,6 +20,7 @@ class QuestAwardsTest {
         assertEquals("first_recorded_drill_v1", first.id)
         assertEquals(64, first.evidenceFingerprint.length)
         assertEquals("SELF_RECORDED", first.evidenceClass)
+        assertTrue(QuestAwards.receiptValid(save, first))
         assertEquals(0, QuestAwards.reconcile(save, "2026-11-12T21:00:00Z"))
         val restored = Gson().fromJson(Gson().toJson(save), SaveState::class.java)
         assertEquals(0, QuestAwards.reconcile(restored, "2026-11-13T01:00:00Z"))
@@ -33,6 +34,24 @@ class QuestAwardsTest {
         assertEquals(1, QuestAwards.reconcile(save, "2026-11-12T21:00:00Z"))
         assertEquals(2, save.questAwardReceipts!!.size)
         assertEquals(0, QuestAwards.reconcile(save, "2026-11-12T22:00:00Z"))
+    }
+
+    @Test fun changedOriginalEvidenceInvalidatesReceiptButNewEvidenceDoesNot() {
+        val save = SaveState(drillResults = mutableListOf(recorded("a")))
+        assertEquals(1, QuestAwards.reconcile(save, "2026-11-12T20:00:00Z"))
+        val receipt = save.questAwardReceipts!!.single()
+        save.drillResults!!.add(recorded("b"))
+        assertTrue(QuestAwards.receiptValid(save, receipt))
+        save.drillResults!![0] = recorded("a").copy(attempted = 11)
+        assertFalse(QuestAwards.receiptValid(save, receipt))
+    }
+
+    @Test fun alteredFingerprintOrSnapshotInvalidatesReceipt() {
+        val save = SaveState(drillResults = mutableListOf(recorded("a")))
+        QuestAwards.reconcile(save, "2026-11-12T20:00:00Z")
+        val receipt = save.questAwardReceipts!!.single()
+        assertFalse(QuestAwards.receiptValid(save, receipt.copy(evidenceFingerprint = "0".repeat(64))))
+        assertFalse(QuestAwards.receiptValid(save, receipt.copy(evidenceSnapshot = listOf("forged"))))
     }
 
     @Test fun invalidTimestampDoesNotWriteReceipts() {
