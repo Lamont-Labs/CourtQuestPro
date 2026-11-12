@@ -190,7 +190,7 @@ def main():
     snap('candidate-game-new-day-setup')
     ui.seed('game-history')
     ui.open_app()
-    ui.tap(ui.require(ui.nodes(), 'Progress'))
+    ui.navigate('Progress')
     ui.tap(ui.require(ui.nodes(), 'Games'))
     ui.tap(reachable('View all 8 games'))
     ui.require(ui.nodes(), '8 recorded games')

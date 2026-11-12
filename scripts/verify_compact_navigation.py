@@ -7,13 +7,13 @@ LABELS=['Court','Train','Quests','Progress','Me']
 ROUTES=['home','library','quests','career','me']
 
 def rect(node):
-    return list(map(int,re.findall('[0-9]+',node.get('bounds',''))))
+    return list(map(int,re.findall(r'-?\d+',node.get('bounds',''))))
 
 def state():
     return json.loads(ui.prefs()['state'].text)
 
 def tagged(items,tag):
-    return next((n for n in items if n.get('resource-id','').endswith(tag) and len(rect(n))==4 and rect(n)[2]>rect(n)[0] and rect(n)[3]>rect(n)[1]),None)
+    return ui.tagged(items,tag)
 
 def same_row(boxes):
     centers=[(r[1]+r[3])/2 for r in boxes]
@@ -49,22 +49,26 @@ def candidate(apk):
     measurements=[]
     for name,width,height,font in configurations:
         ui.shell('wm','size',f'{width}x{height}')
+        ui.shell('wm','density','320')
         ui.shell('settings','put','system','font_scale',font)
         time.sleep(2)
         for label,route in zip(LABELS,ROUTES):
-            items=ui.nodes()
-            opener=tagged(items,'nav-open-handle')
-            if opener is not None:
-                ui.tap(opener)
-            items=ui.nodes()
-            tabs=[tagged(items,'nav-'+r) for r in ROUTES]
-            assert all(tabs),(name,'five drawer targets required',label)
-            target=tabs[ROUTES.index(route)]
-            assert target.get('content-desc')==label,(name,label,'accessible name missing')
+            # A LazyColumn need not compose all five entries at once in landscape.
+            # Every labeled destination must still be reachable and at least 48dp.
+            target=ui.drawer_target(label)
+            left,top,right,bottom=rect(target)
+            assert right-left>=96 and bottom-top>=96,(name,label,'48dp target required',target.attrib)
+            ui.nodes(f'edge-{name}-{route}-drawer')
             ui.tap(target)
             items=ui.nodes()
             assert tagged(items,'nav-open-handle') is not None,(name,label,'drawer did not close')
-            measurements.append(dict(configuration=name,selected=label))
+            selected=ui.drawer_target(label)
+            assert selected.get('selected')=='true',(name,label,'selected destination not exposed',selected.attrib)
+            closer=ui.tagged(ui.nodes(),'nav-close-handle')
+            assert closer is not None,(name,label,'close handle missing')
+            ui.tap(closer)
+            assert tagged(ui.nodes(),'nav-open-handle') is not None,(name,label,'close control did not work')
+            measurements.append(dict(configuration=name,selected=label,target_bounds=[left,top,right,bottom]))
         ui.nodes('edge-'+name)
         ui.screenshot('edge-'+name)
     ui.shell('wm','size','720x1600')
@@ -74,11 +78,20 @@ def candidate(apk):
                 upgrade_from_build9=True,saved_data_unchanged=True,
                 five_accessible_drawer_destinations=True,drawer_closes_on_selection=True,
                 configurations=configurations,measurements=measurements)
-    (ui.OUT/'dock-result.json').write_text(json.dumps(report,indent=2)+'\\n')
+    (ui.OUT/'dock-result.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps(report),flush=True)
 
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('phase',choices=['baseline','candidate']);p.add_argument('apk')
     a=p.parse_args();ui.OUT.mkdir(parents=True,exist_ok=True)
-    (baseline if a.phase=='baseline' else candidate)(Path(a.apk))
+    try:
+        (baseline if a.phase=='baseline' else candidate)(Path(a.apk))
+    except Exception:
+        ui.nodes('dock-failure')
+        ui.screenshot('dock-failure')
+        raise
+    finally:
+        ui.shell('wm','size','720x1600')
+        ui.shell('wm','density','320')
+        ui.shell('settings','put','system','font_scale','1.0')

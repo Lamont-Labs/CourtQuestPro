@@ -17,7 +17,6 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
-      COURTQUEST_VERSION_CODE: '3'
       COURTQUEST_UI_EVIDENCE: artifacts/android-daily-flow
       ANDROID_AVD_HOME: /tmp/courtquest-avd
     steps:

@@ -18,10 +18,7 @@ def open_navigation():
 
 def click(label):
     if label in TABS:
-        open_navigation()
-        node = ui.find(ui.nodes(), label)
-        assert node is not None, f'Navigation destination {label!r} unavailable after opening drawer'
-        ui.tap(node)
+        ui.navigate(label)
     else:
         click_control(label)
 

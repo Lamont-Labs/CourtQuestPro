@@ -16,6 +16,9 @@ def top():
     for _ in range(16):ui.shell('input','swipe',str(x),str(t+(b-t)//4),str(x),str(t+(b-t)*4//5),'100')
 
 def click(text):
+    if text in ui.NAV_ROUTES:
+        ui.navigate(text)
+        return
     found=ui.find(ui.nodes(),text)
     if found is None:
         top();found=ui.scroll_to(text,40)

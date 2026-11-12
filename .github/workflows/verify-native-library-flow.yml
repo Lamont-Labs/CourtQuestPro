@@ -2,7 +2,7 @@ name: Verify native library and training flows
 
 on:
   push:
-    branches: [dev/drill-library, dev/premium-flow-toolkit]
+    branches: [dev/drill-library, dev/premium-flow-toolkit, repair/premium-flow-stabilization]
     paths:
       - 'app/**'
       - 'scripts/verify_android_daily_flow.py'
@@ -10,6 +10,7 @@ on:
       - 'scripts/verify_android_library_flow.py'
       - 'scripts/verify_android_mission_flow.py'
       - 'scripts/verify_android_navigation_flow.py'
+      - 'scripts/test_android_flow_*.py'
       - '.github/workflows/verify-native-library-flow.yml'
   workflow_dispatch:
 
@@ -21,7 +22,6 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     env:
-      COURTQUEST_VERSION_CODE: '9'
       COURTQUEST_UI_EVIDENCE: artifacts/android-daily-flow
       ANDROID_AVD_HOME: /tmp/courtquest-avd
     steps:

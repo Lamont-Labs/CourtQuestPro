@@ -15,6 +15,59 @@ SDK = Path(os.environ.get('ANDROID_HOME', str(ROOT.parent / 'courtquest-sdk')))
 ADB = SDK / 'platform-tools/adb'
 PACKAGE = 'com.courtquestpro'
 OUT = Path(os.environ.get('COURTQUEST_UI_EVIDENCE', str(ROOT / 'artifacts/android-daily-flow')))
+NAV_ROUTES = dict(Court='home', Train='library', Quests='quests', Progress='career', Me='me')
+
+
+def expected_version_code():
+    """Check the installed candidate against the build source, not an old CI override."""
+    source = (ROOT / 'app/build.gradle.kts').read_text()
+    versions = re.findall(r'^\s*versionCode\s*=\s*(\d+)\s*$', source, re.MULTILINE)
+    assert len(versions) == 1, 'Expected one explicit Android versionCode'
+    return int(versions[0])
+
+
+def tagged(items, tag):
+    for node in items:
+        resource = node.get('resource-id', '').split(':id/')[-1]
+        bounds = list(map(int, re.findall(r'-?\d+', node.get('bounds', ''))))
+        if resource == tag and len(bounds) == 4 and bounds[2] > bounds[0] and bounds[3] > bounds[1]:
+            return node
+    return None
+
+
+def drawer_target(label, limit=12):
+    """Find each destination in the drawer, scrolling its list on short screens."""
+    route = NAV_ROUTES[label]
+    items = nodes()
+    opener = tagged(items, 'nav-open-handle')
+    if opener is not None:
+        tap(opener)
+    for direction in ('up', 'down'):
+        for _ in range(limit):
+            items = nodes()
+            drawer = tagged(items, 'player-navigation-drawer')
+            assert drawer is not None, 'Navigation drawer must be open'
+            target = tagged(list(drawer.iter('node')), 'nav-' + route)
+            if target is not None:
+                assert target.get('clickable') == 'true' and target.get('enabled') == 'true', (
+                    label, 'destination must be actionable', target.attrib)
+                # Compose may expose the accessible name as text or a merged descendant,
+                # not necessarily content-desc on the test-tag wrapper itself.
+                require(list(target.iter('node')), label)
+                return target
+            regions = [n for n in drawer.iter('node') if n.get('scrollable') == 'true']
+            assert regions, f'No drawer scroll region can reach {label!r}'
+            left, top, right, bottom = map(int, re.findall(r'-?\d+', regions[0].get('bounds', '')))
+            upper, lower = top + (bottom - top) // 4, top + (bottom - top) * 3 // 4
+            start, end = (lower, upper) if direction == 'up' else (upper, lower)
+            shell('input', 'swipe', str((left + right) // 2), str(start),
+                  str((left + right) // 2), str(end), '250')
+    raise AssertionError(f'Drawer destination {label!r} is unreachable')
+
+
+def navigate(label):
+    tap(drawer_target(label))
+    assert tagged(nodes(), 'nav-open-handle') is not None, f'Drawer did not close after selecting {label}'
 
 
 def adb(*args, data=None, timeout=120):
@@ -185,19 +238,22 @@ def main():
         print('Update retained the existing profile and results.', flush=True)
     packaged_version = int(re.search(r'versionCode=(\d+)', shell('dumpsys', 'package', PACKAGE)).group(1))
     if args.phase == 'candidate':
-        assert packaged_version == int(os.environ.get('COURTQUEST_VERSION_CODE', '4'))
+        assert packaged_version == expected_version_code(), (packaged_version, expected_version_code())
     seed()
     open_app()
     home = nodes(f'{args.phase}-court')
     screenshot(f'{args.phase}-court')
     action_visible = find(home, 'Resume session') is not None
-    tap(require(home, 'Progress'))
+    if args.phase == 'baseline':
+        tap(require(home, 'Progress'))
+    else:
+        navigate('Progress')
     nodes(f'{args.phase}-progress')
     screenshot(f'{args.phase}-progress')
     if args.phase == 'baseline':
         tap(require(nodes(), 'Setup'))
     else:
-        tap(require(nodes(), 'Me'))
+        navigate('Me')
         tap(scroll_to('Edit profile'))
     settings = nodes(f'{args.phase}-setup')
     screenshot(f'{args.phase}-setup')
@@ -216,7 +272,10 @@ def main():
                 selected = True
         assert selected, 'The chosen level must visibly select on the first tap'
         assert json.loads(prefs()['state'].text)['difficulty'] == 'Beginner'
-    tap(require(nodes(), 'Court'))
+    if args.phase == 'baseline':
+        tap(require(nodes(), 'Court'))
+    else:
+        navigate('Court')
     tap(scroll_to('Resume session'))
     drill_nodes = nodes(f'{args.phase}-drill')
     screenshot(f'{args.phase}-drill')
@@ -262,7 +321,7 @@ def main():
     require(next_drill, 'Stationary Crossover Control')
     screenshot('candidate-next-drill')
     shell('input', 'keyevent', 'KEYCODE_BACK')
-    tap(require(nodes(), 'Progress'))
+    navigate('Progress')
     nodes('candidate-progress-after-save')
     screenshot('candidate-progress-after-save')
     scroll_to('15 successful / 15 attempts')
@@ -277,7 +336,7 @@ def main():
     time.sleep(2)
     nodes('candidate-compact-court')
     screenshot('candidate-compact-court')
-    tap(require(nodes(), 'Me'))
+    navigate('Me')
     tap(scroll_to('Edit profile'))
     nodes('candidate-compact-setup')
     screenshot('candidate-compact-setup')
@@ -295,12 +354,12 @@ def main():
     shell('settings', 'put', 'system', 'font_scale', '1.0')
     seed('empty')
     open_app()
-    tap(require(nodes(), 'Progress'))
+    navigate('Progress')
     require(nodes('candidate-empty-progress'), 'Start your baseline.')
     screenshot('candidate-empty-progress')
     seed('history')
     open_app()
-    tap(require(nodes(), 'Progress'))
+    navigate('Progress')
     tap(scroll_to('View all 150 sessions'))
     require(nodes('candidate-full-history'), 'Training history')
     screenshot('candidate-full-history')

@@ -1,11 +1,13 @@
-name: Verify compact player dock
+name: Verify compact player drawer
 
 on:
   push:
-    branches: [dev/premium-flow-toolkit]
+    branches: [dev/premium-flow-toolkit, repair/premium-flow-stabilization]
     paths:
       - '.github/workflows/verify-compact-navigation.yml'
       - 'scripts/verify_compact_navigation.py'
+      - 'scripts/verify_android_daily_flow.py'
+      - 'scripts/test_android_flow_*.py'
       - 'app/src/main/java/com/courtquestpro/CourtQuestNavigation.kt'
   workflow_dispatch:
 
@@ -16,7 +18,7 @@ permissions:
 jobs:
   dock:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 35
     env:
       COURTQUEST_UI_EVIDENCE: artifacts/compact-navigation
       ANDROID_AVD_HOME: /tmp/courtquest-avd
@@ -66,7 +68,7 @@ jobs:
           PY
       - name: Reproduce the build-9 failure before correction
         run: python3 -u scripts/verify_compact_navigation.py baseline /tmp/courtquest-build9.apk
-      - name: Verify compact dock, update continuity and native smoke
+      - name: Verify compact drawer, update continuity and native smoke
         run: |
           export PATH="${ANDROID_HOME}/platform-tools:${PATH}"
           python3 -u scripts/verify_compact_navigation.py candidate app/build/outputs/apk/debug/app-debug.apk

@@ -96,17 +96,15 @@ def fill(name, text):
 
 
 def click(text):
-    ui.tap(ui.scroll_to(text, 18))
+    if text in ui.NAV_ROUTES:
+        ui.navigate(text)
+    else:
+        ui.tap(ui.scroll_to(text, 18))
 
 
 
 def open_library():
     """Select Train, then explicitly leave any retained drill detail."""
-    items = ui.nodes()
-    if ui.find(items, 'Train') is None:
-        opener = next((n for n in items if n.get('resource-id', '').endswith('nav-open-handle')), None)
-        assert opener is not None, 'Navigation drawer opener is missing'
-        ui.tap(opener)
     click('Train')
     def top():
         regions = [n for n in ui.nodes() if n.get('scrollable') == 'true']
