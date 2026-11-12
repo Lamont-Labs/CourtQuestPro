@@ -2,7 +2,7 @@ name: Premium flow toolkit checks
 
 on:
   push:
-    branches: [dev/premium-flow-toolkit]
+    branches: [dev/premium-flow-toolkit, dev/edge-navigation-v1]
   workflow_dispatch:
 
 permissions:
