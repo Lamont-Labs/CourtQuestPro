@@ -73,6 +73,7 @@ def main():
             snap('navigation-' + label + '-' + tab.lower())
         click('Edit profile')
         ui.tap(ui.scroll_to('Draft Player', 25)); snap('navigation-' + label + '-keyboard')
+        ui.scroll_to('Save name', 25); snap('navigation-' + label + '-keyboard-save')
         back(); back()
     ui.shell('wm', 'size', '720x1600')
     ui.shell('settings', 'put', 'system', 'font_scale', '1.0')

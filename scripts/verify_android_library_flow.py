@@ -99,6 +99,27 @@ def click(text):
     ui.tap(ui.scroll_to(text, 18))
 
 
+
+def open_library():
+    """Select Train, then explicitly leave any retained drill detail."""
+    click('Train')
+    def top():
+        regions = [n for n in ui.nodes() if n.get('scrollable') == 'true']
+        if not regions:
+            return
+        def bounds(n): return list(map(int, re.findall(r'\\d+', n.get('bounds'))))
+        region = max(regions, key=lambda n: (bounds(n)[2]-bounds(n)[0])*(bounds(n)[3]-bounds(n)[1]))
+        left, upper, right, bottom = bounds(region)
+        for _ in range(16):
+            ui.shell('input', 'swipe', str((left+right)//2), str(upper+(bottom-upper)//4),
+                     str((left+right)//2), str(upper+(bottom-upper)*4//5), '100')
+    top()
+    back = ui.find(ui.nodes(), 'Back to library')
+    if back is not None:
+        ui.tap(back)
+        top()
+
+
 def confirm_target():
     check = next(n for n in ui.nodes() if n.get('checkable') == 'true')
     ui.tap(check)
@@ -118,7 +139,7 @@ def main():
     restore_saved_score()
     ui.seed('empty')
     ui.open_app()
-    click('Train')
+    open_library()
     snap('home')
     click('Create custom drill')
     click('Save drill')
@@ -159,12 +180,12 @@ def main():
     assert shuffled['drillDrafts'] == before['drillDrafts']
     assert any(a['drillId'] != b['drillId'] for a, b in zip(before['slots'], shuffled['slots']))
     snap('shuffle')
-    click('Train')
+    open_library()
     fill('library-search', 'Corner Touch')
     click('View Corner Touch')
     click('Use in daily workout')
     assert state()['slots'][0]['drillId'] == old_id
-    click('Train')
+    open_library()
     fill('library-search', 'Corner Touch')
     click('View Corner Touch')
     click('Start extra practice')
@@ -176,7 +197,7 @@ def main():
     assert state()['practiceSession']['draft']['successful'] == 1
     ui.shell('am', 'force-stop', ui.PACKAGE)
     ui.open_app()
-    click('Train')
+    open_library()
     fill('library-search', 'Corner Touch')
     click('View Corner Touch')
     click('Edit custom drill')
@@ -230,7 +251,7 @@ def main():
     assert completed['drillResults'][-1]['drillSnapshot']['minimumSuccesses'] == 5
     assert completed['totalXp'] == 150 and completed['slots'][0]['complete']
     click('Back to Court')
-    click('Train')
+    open_library()
     fill('library-search', 'Corner Touch Plus')
     click('View Corner Touch Plus')
     click('Archive drill')
@@ -245,7 +266,7 @@ def main():
         ui.shell('wm', 'size', '640x1440')
         ui.shell('settings', 'put', 'system', 'font_scale', font)
         time.sleep(2)
-        click('Train')
+        open_library()
         snap(label)
         click('Create custom drill')
         fill('custom-title', 'Keyboard Check')
