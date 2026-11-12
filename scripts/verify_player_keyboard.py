@@ -21,11 +21,15 @@ def main():
     for _ in range(30):
         items=ui.nodes()
         candidate=ui.find(items,'Save name')
+        regions=[n for n in items if n.get('scrollable')=='true' and n.get('package')==ui.PACKAGE]
         if candidate is not None:
-            left,top,right,bottom=bounds(candidate)
-            if bottom-top>=96 and candidate.get('enabled')!='false':
-                button=candidate;break
-        regions=[n for n in items if n.get('scrollable')=='true']
+            parents=[n for n in items if n.get('clickable')=='true' and any(x is candidate for x in n.iter('node'))]
+            if parents and regions:
+                parent=min(parents,key=lambda n:(bounds(n)[2]-bounds(n)[0])*(bounds(n)[3]-bounds(n)[1]))
+                viewport=max(regions,key=lambda n:(bounds(n)[2]-bounds(n)[0])*(bounds(n)[3]-bounds(n)[1]))
+                left,top,right,bottom=bounds(parent);vl,vt,vr,vb=bounds(viewport)
+                if bottom-top>=96 and top>=vt and bottom<=vb and parent.get('enabled')=='true':
+                    button=parent;break
         assert regions,'Profile must be scrollable above the keyboard'
         region=max(regions,key=lambda n:(bounds(n)[2]-bounds(n)[0])*(bounds(n)[3]-bounds(n)[1]))
         left,top,right,bottom=bounds(region)

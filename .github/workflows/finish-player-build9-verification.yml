@@ -40,7 +40,7 @@ jobs:
           from pathlib import Path
           run=json.load(open('retained-run.json'))
           assert run['head_sha']=='c08fd7996e654bc090fc52f477fb6d55a1b71a64'
-          assert run['conclusion']=='timed_out' and run['head_branch']=='dev/premium-flow-toolkit'
+          assert run['conclusion']=='cancelled' and run['head_branch']=='dev/premium-flow-toolkit'
           assert run['path']=='.github/workflows/verify-native-library-flow.yml'
           assert subprocess.check_output(['git','rev-parse','HEAD:app/src'],text=True).strip()=='6edca69928e7ff9e66b53a6349f6ab1fcd6190a4'
           root=Path('retained')
@@ -107,7 +107,7 @@ jobs:
           suites=[smoke] if smoke.tag=='testsuite' else list(smoke.iter('testsuite'))
           assert sum(int(s.get('tests',0)) for s in suites)>=1
           assert not sum(int(s.get(k,0)) for s in suites for k in ['failures','errors','skipped'])
-          lineage=dict(original_run_id=43244651522,original_conclusion='timed_out',original_source='c08fd7996e654bc090fc52f477fb6d55a1b71a64',
+          lineage=dict(original_run_id=43244651522,original_conclusion='cancelled',termination_reason='35-minute workflow limit',original_source='c08fd7996e654bc090fc52f477fb6d55a1b71a64',
               retained_completed_journeys=['daily','library','mission','navigation'],completed_in_this_run=['game','keyboard','maestro','apk_identity'],
               frozen_apk_sha256=sha,app_src_tree='6edca69928e7ff9e66b53a6349f6ab1fcd6190a4',
               completion_source=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip())
@@ -117,6 +117,7 @@ jobs:
       - name: Capture diagnostics
         if: always()
         run: |
+          mkdir -p artifacts/android-daily-flow
           timeout 30 "${ANDROID_HOME}/platform-tools/adb" -s emulator-5562 logcat -d > artifacts/android-daily-flow/completion-logcat.txt 2>&1 || true
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
