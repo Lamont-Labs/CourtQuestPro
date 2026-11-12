@@ -603,6 +603,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 } else DestinationContent()
             }
             }
+            }
             if (onboardingComplete && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")) {
                 CourtQuestNavigation(
                     selected = PlayerNavigation.tab(routeHistory),
