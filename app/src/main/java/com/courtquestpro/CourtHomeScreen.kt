@@ -58,14 +58,14 @@ internal fun HomeScreen(
         }
         item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp))
-                    .background(Brush.linearGradient(listOf(CourtQuestDesign.warmSurface, CourtQuestDesign.surface)))) {
+                CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(0.dp), highlighted = true) {
+                  Box(Modifier.fillMaxWidth()) {
                     Icon(painterResource(R.drawable.courtquest_half_court), contentDescription = null,
-                        tint = CourtQuestDesign.accent.copy(alpha = 0.13f),
+                        tint = CourtQuestDesign.accent.copy(alpha = 0.10f),
                         modifier = Modifier.size(230.dp).align(Alignment.TopEnd).offset(x = 62.dp, y = 18.dp))
                     Column(Modifier.fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            CourtEyebrow("DAILY SESSION", Modifier.weight(1f))
+                            CourtEyebrow("DAILY TRAINING", Modifier.weight(1f))
                             CourtStatus(if (done == 6) "Complete" else if (resumable) "In progress" else "Ready")
                         }
                         Text(when {
@@ -92,6 +92,7 @@ internal fun HomeScreen(
                             Icon(Icons.Default.ArrowForward, null, Modifier.size(20.dp))
                         }
                     }
+                  }
                 }
                 if (resumeMatch && done != 6) {
                     OutlinedButton(onClick = onStartChamp, modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp),
@@ -104,10 +105,9 @@ internal fun HomeScreen(
                         Icon(Icons.Default.ArrowForward, null, Modifier.size(20.dp))
                     }
                 }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    CourtMetric("Total XP", save.totalXp.toString(), Modifier.weight(1f), accent = true)
-                    CourtMetric("Day streak", save.currentStreak.toString(), Modifier.weight(1f))
-                    CourtMetric("Days this week", "$trainedThisWeek / 3", Modifier.weight(1f))
+                CourtQuestPremiumSurface(Modifier.fillMaxWidth()) {
+                    CourtMetricStrip(listOf("Total XP" to save.totalXp.toString(), "Day streak" to save.currentStreak.toString(),
+                        "Days this week" to "$trainedThisWeek / 3"))
                 }
                 CourtRule()
                 if (save.practiceSession != null) {

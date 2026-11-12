@@ -1,0 +1,47 @@
+{
+  "source_commit": "c1e0e5492fbb524f5df84d635ecfae7dc438ec45",
+  "files": [
+    {
+      "file": "NOTICE.md",
+      "upstream_path": "NOTICE.md",
+      "blob_sha": "0468271c904ae334cfaf27da6f8df3d5f419a1f0",
+      "upstream_blob_sha": "0468271c904ae334cfaf27da6f8df3d5f419a1f0",
+      "match": true
+    },
+    {
+      "file": "critique.md",
+      "upstream_path": ".agents/skills/impeccable/reference/critique.md",
+      "blob_sha": "7d5700fe57cabcce78d3a34fa97fd5c666e47f88",
+      "upstream_blob_sha": "7d5700fe57cabcce78d3a34fa97fd5c666e47f88",
+      "match": true
+    },
+    {
+      "file": "onboard.md",
+      "upstream_path": ".agents/skills/impeccable/reference/onboard.md",
+      "blob_sha": "f53ed67d710adf3e8a29f7ac2bb55ede6abe2d45",
+      "upstream_blob_sha": "f53ed67d710adf3e8a29f7ac2bb55ede6abe2d45",
+      "match": true
+    },
+    {
+      "file": "shape.md",
+      "upstream_path": ".agents/skills/impeccable/reference/shape.md",
+      "blob_sha": "90a74ae813331cbce8fff6beb498ced77970fadf",
+      "upstream_blob_sha": "90a74ae813331cbce8fff6beb498ced77970fadf",
+      "match": true
+    },
+    {
+      "file": "clarify.md",
+      "upstream_path": ".agents/skills/impeccable/reference/clarify.md",
+      "blob_sha": "4506a31c95e02b2ad918367a0ef4461643d51532",
+      "upstream_blob_sha": "4506a31c95e02b2ad918367a0ef4461643d51532",
+      "match": true
+    },
+    {
+      "file": "LICENSE",
+      "upstream_path": "LICENSE",
+      "blob_sha": "bb3f6d23b1f8025514a62a12b51b47d73e3c9aa9",
+      "upstream_blob_sha": "bb3f6d23b1f8025514a62a12b51b47d73e3c9aa9",
+      "match": true
+    }
+  ]
+}

@@ -1,0 +1,5 @@
++--- androidx.compose:compose-bom:2024.12.01
++--- com.airbnb.android:lottie-compose:6.7.1
++--- com.canopas.intro-showcase-view:introshowcaseview:2.0.2
+\--- dev.chrisbanes.haze:haze:1.1.1
+     \--- dev.chrisbanes.haze:haze-android:1.1.1

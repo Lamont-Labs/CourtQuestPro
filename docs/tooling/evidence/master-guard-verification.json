@@ -1,0 +1,6 @@
+{
+  "physical_device_refused": 2,
+  "wrong_avd_refused": 2,
+  "sdk_adb_fallback_used": true,
+  "install_or_reset_commands": false
+}

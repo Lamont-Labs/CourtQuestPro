@@ -3,6 +3,11 @@ package com.courtquestpro
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -23,13 +28,18 @@ internal fun CourtQuestPrimaryButton(
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier.heightIn(min = 56.dp),
+        modifier = modifier.heightIn(min = 56.dp).clip(RoundedCornerShape(16.dp))
+            .background(if (enabled) Brush.verticalGradient(listOf(CourtQuestDesign.iconGradientStart,
+                CourtQuestDesign.accentVivid, Color(0xFFF05206)))
+                else Brush.verticalGradient(listOf(CourtQuestDesign.elevatedSurface, CourtQuestDesign.elevatedSurface)))
+            .border(1.dp, if (enabled) Brush.verticalGradient(listOf(Color(0xFFFFB17C), CourtQuestDesign.accentVivid))
+                else Brush.verticalGradient(listOf(CourtQuestDesign.border, CourtQuestDesign.border)), RoundedCornerShape(16.dp)),
         enabled = enabled,
         shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = CourtQuestDesign.accentVivid,
-            contentColor = CourtQuestDesign.background,
-            disabledContainerColor = CourtQuestDesign.elevatedSurface,
+            containerColor = Color.Transparent,
+            contentColor = CourtQuestDesign.iconForeground,
+            disabledContainerColor = Color.Transparent,
             disabledContentColor = CourtQuestDesign.textSecondary
         ),
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),

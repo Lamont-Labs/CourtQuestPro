@@ -13,7 +13,7 @@ android {
         applicationId = "com.courtquestpro"
         minSdk = 26
         targetSdk = 35
-        versionCode = 6
+        versionCode = 7
         versionName = "1.0"
     }
 
@@ -43,6 +43,12 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.webkit:webkit:1.12.1")
     implementation("com.google.code.gson:gson:2.11.0")
+
+    // Owner-approved premium flow toolkit. Keep these compatible with Kotlin 2.0.21
+    // and Compose BOM 2024.12.01; see docs/tooling/PREMIUM_FLOW_TOOLKIT.md.
+    implementation("com.airbnb.android:lottie-compose:6.7.1")
+    implementation("com.canopas.intro-showcase-view:introshowcaseview:2.0.2")
+    implementation("dev.chrisbanes.haze:haze:1.1.1")
     testImplementation("junit:junit:4.13.2")
     debugImplementation("androidx.compose.ui:ui-tooling")
 }

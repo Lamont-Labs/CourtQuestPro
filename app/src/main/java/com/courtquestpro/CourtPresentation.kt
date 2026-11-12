@@ -8,6 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -29,6 +31,29 @@ internal fun CourtMetric(label: String, value: String, modifier: Modifier = Modi
         Text(value, color = if (accent) CourtQuestDesign.accent else CourtQuestDesign.textPrimary,
             style = MaterialTheme.typography.headlineLarge)
         Text(label, color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.labelMedium)
+    }
+}
+
+/** Reflow data instead of shrinking system-scaled numbers on compact/enlarged layouts. */
+@Composable
+internal fun CourtMetricStrip(metrics: List<Pair<String, String>>, modifier: Modifier = Modifier) {
+    val fontScale = LocalConfiguration.current.fontScale
+    BoxWithConstraints(modifier.fillMaxWidth()) {
+        val reflowThreshold = if (metrics.size > 2) 235f else 160f
+        if ((maxWidth.value / fontScale) < reflowThreshold) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                metrics.forEachIndexed { index, (label, value) ->
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(label, color = CourtQuestDesign.textSecondary,
+                            style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                        Text(value, color = if (index == 0) CourtQuestDesign.accent else CourtQuestDesign.textPrimary,
+                            style = MaterialTheme.typography.headlineMedium)
+                    }
+                }
+            }
+        } else Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            metrics.forEachIndexed { index, (label, value) -> CourtMetric(label, value, Modifier.weight(1f), index == 0) }
+        }
     }
 }
 

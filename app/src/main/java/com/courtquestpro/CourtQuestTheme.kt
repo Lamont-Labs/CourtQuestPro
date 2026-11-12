@@ -33,7 +33,7 @@ private val CourtTypography = Typography(
     bodySmall = TextStyle(fontFamily = CourtBody, fontWeight = FontWeight.Normal, fontSize = 12.sp, lineHeight = 18.sp),
     labelLarge = TextStyle(fontFamily = CourtBody, fontWeight = FontWeight.Bold, fontSize = 14.sp, lineHeight = 19.sp),
     labelMedium = TextStyle(fontFamily = CourtBody, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, lineHeight = 17.sp),
-    labelSmall = TextStyle(fontFamily = CourtBody, fontWeight = FontWeight.Bold, fontSize = 10.sp, lineHeight = 14.sp, letterSpacing = 1.sp)
+    labelSmall = TextStyle(fontFamily = CourtBody, fontWeight = FontWeight.Bold, fontSize = 11.sp, lineHeight = 16.sp, letterSpacing = 1.1.sp)
 )
 
 @Composable

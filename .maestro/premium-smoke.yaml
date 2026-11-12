@@ -1,0 +1,42 @@
+appId: com.courtquestpro
+name: Fresh profile and primary navigation
+---
+# This flow clears app data. Run only through the guarded emulator-only runner.
+- launchApp:
+    clearState: true
+- assertVisible: CONTINUE
+- tapOn: CONTINUE
+- assertVisible: Make it yours.
+- tapOn: Player name
+- inputText: CourtQuest QA
+- hideKeyboard
+- tapOn: CONTINUE
+- assertVisible: Find your level.
+- tapOn: CONTINUE
+- assertVisible: Choose your focus.
+- tapOn: CONTINUE
+- assertVisible: Build your routine.
+- tapOn: ENTER MY COURT
+- assertVisible: Start training
+- takeScreenshot: court
+- tapOn: "^Drills$"
+- assertVisible: Create custom drill
+- takeScreenshot: drills
+- tapOn: "^Progress$"
+- assertVisible: Your work, recorded.
+- takeScreenshot: progress
+- tapOn: "^Setup$"
+- assertVisible: Player name
+- assertVisible: CourtQuest QA
+- takeScreenshot: setup
+- tapOn: "^Court$"
+- assertVisible: Start training
+- stopApp
+- launchApp:
+    clearState: false
+- assertVisible: Start training
+- assertNotVisible: ENTER MY COURT
+- tapOn: "^Setup$"
+- assertVisible: CourtQuest QA
+- tapOn: "^Court$"
+- assertVisible: Start training
