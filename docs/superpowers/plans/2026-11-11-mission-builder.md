@@ -32,33 +32,33 @@
 **Files:** Create Mission.kt, MissionBuilder.kt; modify SaveState in MainActivity.kt; test MissionBuilderTest.kt.
 **Interfaces:** MissionStep snapshots Drill, minimumSuccesses and measurement vocabulary. MissionVersion holds version identity, source, ordered steps, generation seed/input/candidate snapshots and createdAt. MissionBuilder publishes new immutable versions and separately persists its draft.
 
-- [ ] Add tests for older-save roundtrip (slots/drafts/custom revisions/practice/awards/results), immutable edits/archive, saved/reopened builder and revision creation.
-- [ ] Add tests for reproducible generation, skill/level/time/equipment/space limits, mandatory steps and actionable impossible constraints.
-- [ ] Observe RED; implement immutable snapshots and deterministic generation, duration and add/remove/move rules; run the suite.
+- [x] Add tests for older-save roundtrip (slots/drafts/custom revisions/practice/awards/results), immutable edits/archive, saved/reopened builder and revision creation.
+- [x] Add tests for reproducible generation, skill/level/time/equipment/space limits, mandatory steps and actionable impossible constraints.
+- [x] Observe RED; implement immutable snapshots and deterministic generation, duration and add/remove/move rules; run the suite.
 
 ### Task 2: Durable sessions and exact-once evidence
 
 **Files:** Create MissionTraining.kt; modify DrillResult/TrainingLibrary/MainActivity; test MissionTrainingTest.kt.
 **Interfaces:** MissionTraining.start/update/pause/resume/finishStep/discard; session ID + step ID idempotency, one completion receipt per session, result links to version/measurement. Legacy results gain additive provenance only when newly saved.
 
-- [ ] Add tests for process/Gson recreation, pause/resume, same/midnight dates, duplicate finish, invalid counters/targets, protected unfinished daily/practice, discard after partial saves and unchanged XP.
-- [ ] Observe RED; implement transitions and result/receipt links. Preserve saved partial evidence on discard.
-- [ ] Run all Android unit tests and build/lint.
+- [x] Add tests for process/Gson recreation, pause/resume, same/midnight dates, duplicate finish, invalid counters/targets, protected unfinished daily/practice, discard after partial saves and unchanged XP.
+- [x] Observe RED; implement transitions and result/receipt links. Preserve saved partial evidence on discard.
+- [x] Run all Android unit tests and build/lint.
 
 ### Task 3: Native builder, recorder and receipts
 
 **Files:** Create CourtMissionBuilderScreen.kt, CourtMissionReceiptScreen.kt; modify MainActivity, Home/Library/Drill/Progress screens and DESIGN.md.
 **Interfaces:** Builder edits persist immediately; publish and start use domain methods; Mission recorder uses frozen step vocabulary and target. Court/Drills expose builder and active resume. Progress opens immutable completion receipts.
 
-- [ ] Add a dedicated-emulator builder-to-receipt journey before implementation: select/reorder/remove, generate/lock, save/reopen/revise, interrupt/resume, repeated save, receipts/Progress and legacy conflict.
-- [ ] Implement shared Signature components, scrollable keyboard-safe forms, labeled 48dp move buttons, one clear primary action and concise durable-save feedback.
+- [x] Add a dedicated-emulator builder-to-receipt journey before implementation: select/reorder/remove, generate/lock, save/reopen/revise, interrupt/resume, repeated save, receipts/Progress and legacy conflict.
+- [x] Implement shared Signature components, scrollable keyboard-safe forms, labeled 48dp move buttons, one clear primary action and concise durable-save feedback.
 - [ ] Verify normal/320dp-130%/critical200%/keyboard/reduced-motion captures; run existing library/daily/game/Maestro regressions on the exact candidate.
 
 ### Task 4: Review, exact-binary delivery and checkpoint
 
 **Files:** workflows/native verification and authorized publication guard; master tracker, evidence ledger and next-chat handoff.
 
-- [ ] Review whole diff against migration/snapshot/idempotency contract and fix blocking issues.
+- [x] Review whole diff against migration/snapshot/idempotency contract and fix blocking issues.
 - [ ] Confirm unit/build/lint, all native journeys and APK package/original certificate/version8/alignment.
 - [ ] Publish only the successful native-tested APK through existing development release; independently download/check bytes.
 - [ ] Record exact source/run/APK evidence and any unverified device/accessibility limits. Keep main intact.

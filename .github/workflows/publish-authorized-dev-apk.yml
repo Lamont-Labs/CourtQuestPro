@@ -115,9 +115,14 @@ jobs:
           for spec in 'court:Court' 'drill:Drill' 'result:Result' 'progress-after-save:Progress' 'compact-court:CompactCourt' 'large-type-drill:LargeTypeDrill'; do
             stem=${spec%:*}
             label=${spec#*:}
-            cp "native-evidence/artifacts/android-daily-flow/candidate-${stem}.png" "dist/CourtQuestPro-Build7-${label}.png"
+            cp "native-evidence/artifacts/android-daily-flow/candidate-${stem}.png" "dist/CourtQuestPro-Build8-${label}.png"
           done
-          gh release upload courtquest-dev-2026-11-05 dist/CourtQuestPro-Build7-*.png --clobber
+          for spec in 'builder-empty:MissionBuilder' 'saved-definition:SavedMission' 'resumed-recording:MissionResume' 'drill-receipt:MissionDrillReceipt' 'completion:MissionComplete' 'progress-receipt:MissionProgress' 'compact:MissionCompact' 'large-type:MissionLargeType' 'large-type-keyboard:MissionKeyboard' 'large-type-recorder:MissionRecorderLargeType'; do
+            stem=${spec%:*}
+            label=${spec#*:}
+            cp "native-evidence/artifacts/android-daily-flow/candidate-library-mission-${stem}.png" "dist/CourtQuestPro-Build8-${label}.png"
+          done
+          gh release upload courtquest-dev-2026-11-05 dist/CourtQuestPro-Build8-*.png --clobber
           gh release edit courtquest-dev-2026-11-05 --title 'CourtQuest Pro — Mission Builder build 8' --notes-file dist/current-release.md
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()

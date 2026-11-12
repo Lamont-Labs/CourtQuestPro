@@ -1,5 +1,12 @@
 # Master specification implementation tracker
 
+## Current issue — CQ-PLAYER-002
+
+The versioned solo Mission Builder is implemented on source `1e62415ef2aba2886fd538aa5bdf5c519e0a3b99`, app/src `826dc7c4f6eecbd0147b04e2cbc50a107ed4d089`. Local and GitHub development checks pass 61 unit tests, APK compilation and lint; local lint is 0 errors/7 warnings. [Development run 43144393096](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43144393096) and [toolkit/Maestro run 43144393130](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43144393130) are successful. The full [native run 43144393060](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43144393060) is in progress. Build 7 remains the published APK until exact-binary acceptance and publication finish.
+
+Implemented: separate durable builder, ordered selection/reorder/remove, saved immutable revisions, frozen target/vocabulary, seeded constrained generation with stored inputs/candidates, protected required steps, start/pause/resume/discard, exact-once drill results, one completion receipt and receipt reopening in Progress. New legacy daily/practice evidence is additive; old history, awards and session identities are preserved. [Current verification](tooling/MISSION_BUILDER_VERIFICATION.md). Do not move to CQ-PLAYER-003 until current native acceptance and higher-version APK delivery finish.
+
+
 The owner authorized implementation of the saved v1 master specification on November 11, 2026. The exact contract is [Master Product, UX & Engineering Specification v1](specs/CourtQuest_Pro_Master_Product_UX_Engineering_Spec_v1.md), copied from the current saved document `libfile_23352bc73e84819196bde99e72d137f5`. This tracker distinguishes implemented features from the proposal.
 
 ## CQ-PREMIUM-001 — native acceptance passed
@@ -12,7 +19,7 @@ Native source: `375a607fd7be33bf30ad56c2337cf9acf3ae2253`; app/src tree: `839a30
 | --- | --- | --- |
 | 0 | Baseline and brand lock | Complete for this pass: original Signature contours/letterforms retained; real Android baseline; signer/package/save schema preserved. [Brand hashes](tooling/evidence/master-spec-preservation.json), [core preservation](tooling/evidence/master-core-preservation.json). |
 | 1 | Canonical premium journey | Complete and published as development build 7; current-source native acceptance and independent public-download verification passed. |
-| 2 | Player Mode | Next: versioned Mission foundation/builder, five usable destinations, evidence-backed Quests, comparable Progress and resumable setup. [Scoped sequence and migration contract](plans/2026-11-11-player-mode-sequence.md). |
+| 2 | Player Mode | CQ-PLAYER-002 source implemented; native acceptance/delivery pending. Five usable destinations, evidence-backed Quests, comparable Progress and resumable setup follow. [Scoped sequence and migration contract](plans/2026-11-11-player-mode-sequence.md). |
 | 3 | Team/coach foundation | Planned: verified roles, consent-aware membership, server authorization and scoped roster access. |
 | 4 | Connected assignments | Planned: immutable Mission versions, explicit recipients and evidence-derived completion/offline reconciliation. |
 | 5 | Pilot polish | Planned: approved notifications, cooperative quests, exports and security/privacy/accessibility review. |
