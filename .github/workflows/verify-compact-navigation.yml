@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/verify-compact-navigation.yml'
       - 'scripts/verify_compact_navigation.py'
+      - 'app/src/main/java/com/courtquestpro/CourtQuestNavigation.kt'
   workflow_dispatch:
 
 permissions:
@@ -26,6 +27,11 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - name: Compile candidate, run all units and lint
+        run: |
+          python3 -m unittest discover -s scripts -p 'test_android_flow_*.py' -v
+          chmod +x gradlew
+          ./gradlew --no-daemon --console=plain :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
       - name: Prepare baseline and dedicated emulator
         run: |
           test -e /dev/kvm
@@ -55,9 +61,20 @@ jobs:
           PY
       - name: Reproduce the build-9 failure before correction
         run: python3 -u scripts/verify_compact_navigation.py baseline /tmp/courtquest-build9.apk
+      - name: Verify compact dock, update continuity and native smoke
+        run: |
+          export PATH="${ANDROID_HOME}/platform-tools:${PATH}"
+          python3 -u scripts/verify_compact_navigation.py candidate app/build/outputs/apk/debug/app-debug.apk
+          bash scripts/run_premium_flow_checks.sh emulator-5562 app/build/outputs/apk/debug/app-debug.apk
+          python3 scripts/verify_apk.py --apk app/build/outputs/apk/debug/app-debug.apk --build-tools "${ANDROID_HOME}/build-tools/35.0.1" --output artifacts/apk-verified
+          git rev-parse HEAD HEAD:app/src > artifacts/source-revisions.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
           name: courtquest-compact-navigation
-          path: artifacts/
+          path: |
+            artifacts/
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/test-results/testDebugUnitTest/
+            app/build/reports/lint-results-debug.*
           retention-days: 14
