@@ -97,6 +97,7 @@ data class SaveState(
     var matchOpponent: String = "",
     var matches: MutableList<MatchRecord> = mutableListOf(),
     var awardedKeys: MutableList<String> = mutableListOf(),
+    var questAwardReceipts: MutableList<QuestAwardReceipt>? = null,
     var drillResults: MutableList<DrillResult>? = null,
     var drillDrafts: MutableList<DrillDraft>? = null,
     var showWarmupDone: Boolean = false,
@@ -155,7 +156,11 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         )
     }
     fun persist() { prefs.edit().putString("state", gson.toJson(save)).apply() }
-    fun refresh() { save = gson.fromJson(gson.toJson(save), SaveState::class.java); persist() }
+    fun refresh() {
+        QuestAwards.reconcile(save, java.time.Instant.now().toString())
+        save = gson.fromJson(gson.toJson(save), SaveState::class.java)
+        persist()
+    }
 
     val catalog = TrainingLibrary.catalog(save)
     val snackbar = remember { SnackbarHostState() }
