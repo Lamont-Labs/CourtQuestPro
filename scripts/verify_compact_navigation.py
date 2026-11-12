@@ -55,14 +55,14 @@ def candidate(apk):
         for label,route in zip(LABELS,ROUTES):
             # A LazyColumn need not compose all five entries at once in landscape.
             # Every labeled destination must still be reachable and at least 48dp.
-            target=ui.drawer_target(label)
+            target=ui.drawer_target(label,minimum_px=96)
             left,top,right,bottom=rect(target)
             assert right-left>=96 and bottom-top>=96,(name,label,'48dp target required',target.attrib)
             ui.nodes(f'edge-{name}-{route}-drawer')
             ui.tap(target)
             items=ui.nodes()
             assert tagged(items,'nav-open-handle') is not None,(name,label,'drawer did not close')
-            selected=ui.drawer_target(label)
+            selected=ui.drawer_target(label,minimum_px=96)
             assert selected.get('selected')=='true',(name,label,'selected destination not exposed',selected.attrib)
             closer=ui.tagged(ui.nodes(),'nav-close-handle')
             assert closer is not None,(name,label,'close handle missing')

@@ -101,6 +101,14 @@ class DrawerSelectorTest(unittest.TestCase):
                 ui.drawer_target('Court', limit=1)
             self.assertEqual(shell.call_count, 2)
 
+    def test_partial_target_is_scrolled_until_minimum_hit_area_is_visible(self):
+        clipped = node('nav-me', 'Me', '[0,600][168,660]')
+        initial = drawer(node(scrollable='true'), clipped)
+        complete = node('nav-me', 'Me', '[0,400][168,560]')
+        with patch.object(ui, 'nodes', side_effect=[initial, initial, drawer(complete)]), patch.object(ui, 'shell') as shell:
+            self.assertIs(ui.drawer_target('Me', minimum_px=96), complete)
+            shell.assert_called_once()
+
     def test_navigation_must_close_drawer(self):
         target = node('nav-home', 'Court')
         with patch.object(ui, 'drawer_target', return_value=target), patch.object(ui, 'tap') as tap:

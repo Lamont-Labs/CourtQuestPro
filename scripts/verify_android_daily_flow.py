@@ -35,7 +35,7 @@ def tagged(items, tag):
     return None
 
 
-def drawer_target(label, limit=12):
+def drawer_target(label, limit=12, minimum_px=1):
     """Find each destination in the drawer, scrolling its list on short screens."""
     route = NAV_ROUTES[label]
     items = nodes()
@@ -48,7 +48,10 @@ def drawer_target(label, limit=12):
             drawer = tagged(items, 'player-navigation-drawer')
             assert drawer is not None, 'Navigation drawer must be open'
             target = tagged(list(drawer.iter('node')), 'nav-' + route)
-            if target is not None:
+            bounds = (list(map(int, re.findall(r'-?\d+', target.get('bounds', ''))))
+                      if target is not None else None)
+            if (bounds is not None and bounds[2] - bounds[0] >= minimum_px
+                    and bounds[3] - bounds[1] >= minimum_px):
                 assert target.get('clickable') == 'true' and target.get('enabled') == 'true', (
                     label, 'destination must be actionable', target.attrib)
                 # Compose may expose the accessible name as text or a merged descendant,
