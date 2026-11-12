@@ -107,7 +107,7 @@ def open_library():
         regions = [n for n in ui.nodes() if n.get('scrollable') == 'true']
         if not regions:
             return
-        def bounds(n): return list(map(int, re.findall(r'\\d+', n.get('bounds'))))
+        def bounds(n): return list(map(int, re.findall('[0-9]+', n.get('bounds'))))
         region = max(regions, key=lambda n: (bounds(n)[2]-bounds(n)[0])*(bounds(n)[3]-bounds(n)[1]))
         left, upper, right, bottom = bounds(region)
         for _ in range(16):
