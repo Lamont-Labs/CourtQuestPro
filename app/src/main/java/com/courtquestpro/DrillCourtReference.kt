@@ -33,7 +33,7 @@ internal fun DrillCourtReference(drill: Drill) {
             val w = size.width; val h = size.height
             fun p(x: Float, y: Float) = Offset(x * w, y * h)
             fun stroke(a: Offset, b: Offset, color: Color = line, width: Float = 2f) =
-                drawLine(color, a, b, width = width.dp.toPx(), cap = StrokeCap.Round)
+                drawLine(color = color, start = a, end = b, strokeWidth = width.dp.toPx(), cap = StrokeCap.Round)
             drawRoundRect(Color(0xFF0E1620), size = size, cornerRadius = androidx.compose.ui.geometry.CornerRadius(14.dp.toPx()))
             drawRoundRect(line.copy(alpha = .75f), topLeft = p(.035f,.035f),
                 size = Size(w*.93f,h*.93f), cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx()),
