@@ -23,6 +23,11 @@ def drawer(*children):
 
 
 class DrawerSelectorTest(unittest.TestCase):
+    def setUp(self):
+        sleep = patch.object(ui.time, 'sleep')
+        sleep.start()
+        self.addCleanup(sleep.stop)
+
     def test_leaf_element_is_a_valid_target_not_a_false_boolean(self):
         leaf = node('nav-home', 'Court')
         self.assertIs(ui.tagged([leaf], 'nav-home'), leaf)
@@ -59,6 +64,26 @@ class DrawerSelectorTest(unittest.TestCase):
             with patch.object(ui, 'nodes', return_value=drawer(node('nav-home', 'Court', **attrs))):
                 with self.assertRaises(AssertionError):
                     ui.drawer_target('Court')
+
+    def test_selected_tab_may_be_nonclickable_in_android_accessibility_export(self):
+        target = node('nav-home', clickable='false', selected='true', focusable='true')
+        target.append(node(**{'content-desc': 'Court'}))
+        with patch.object(ui, 'nodes', return_value=drawer(target)):
+            self.assertIs(ui.drawer_target('Court'), target)
+
+    def test_selected_tab_still_requires_focusable_enabled_semantics(self):
+        for attrs in ({'focusable': 'false'}, {'enabled': 'false'}):
+            values = dict(clickable='false', selected='true', focusable='true')
+            values.update(attrs)
+            with patch.object(ui, 'nodes', return_value=drawer(node('nav-home', 'Court', **values))):
+                with self.assertRaises(AssertionError):
+                    ui.drawer_target('Court')
+
+    def test_waits_for_drawer_to_finish_opening(self):
+        opener = node('nav-open-handle')
+        target = node('nav-home', 'Court')
+        with patch.object(ui, 'nodes', side_effect=[[opener], [], drawer(target)]), patch.object(ui, 'tap'):
+            self.assertIs(ui.drawer_target('Court'), target)
 
     def test_zero_area_and_similar_tag_are_not_destinations(self):
         for target in (node('nav-home', 'Court', '[0,0][0,0]'), node('other-nav-home', 'Court')):
@@ -116,7 +141,7 @@ class DrawerSelectorTest(unittest.TestCase):
                 ui.navigate('Court')
             tap.assert_called_once_with(target)
             with patch.object(ui, 'nodes', return_value=drawer(target)):
-                with self.assertRaisesRegex(AssertionError, 'did not close'):
+                with self.assertRaisesRegex(AssertionError, 'did not become ready'):
                     ui.navigate('Court')
 
     def test_all_candidate_flow_click_helpers_use_drawer_navigation(self):

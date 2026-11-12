@@ -13,10 +13,12 @@ branch, the Maestro smoke flow, and the native UI verification scripts were
 inspected before editing. The older main-branch automation was not imported
 over the intended development source.
 
-The application source tree remains
-`3d9e038cbf9677c95b832839849482ec05a6afdf`. No application source, resource,
-artwork, Gradle configuration, package ID, version, signing configuration,
-save behavior, navigation implementation, or design standard was changed.
+All existing application code/resources and artwork remain unchanged from
+source tree `3d9e038cbf9677c95b832839849482ec05a6afdf`, with one additive repair:
+the missing original `courtquest_navigation_atlas.png` was recovered byte for
+byte from repository history. No Kotlin code, Gradle configuration, package ID,
+version, signing configuration, save behavior, navigation implementation, or
+design standard was changed.
 No test was deleted and no lint suppression or failure bypass was added.
 No release workflow was triggered and no APK or replacement web app was
 published.
@@ -26,6 +28,8 @@ published.
 | Evidence | Finding | Disposition |
 | --- | --- | --- |
 | [Compact verification 43319429873](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43319429873) | Exact `content-desc` equality on the tagged wrapper rejected Court's accessible label. `all(tabs)` also depended on XML Element child-count truthiness, not presence. The test assumed every lazy drawer destination was visible simultaneously, impossible on short landscape screens. | Validate the exact label within its route's semantic subtree, an enabled clickable target, visible geometry, all five destinations by scrolling the drawer, selected state and automatic closure. Keep minimum 48dp touch assertions at the explicitly configured density. Capture a hierarchy and screenshot on failure. |
+| [First repair emulator run 43321302118](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43321302118) | The initial read did not yet expose the drawer; the failure capture showed it open. Its actual hierarchy confirmed labels on child nodes and the active Court tab exported as selected/focusable but non-clickable. | Wait for observable open/closed resources with bounded retries. Accept the platform's selected/focusable tab semantics only when enabled; still tap the current tab and assert automatic dismissal. Unselected non-clickable and disabled targets continue to fail. |
+| Same run's real Android screenshot and repository history | The loader requests `courtquest_navigation_atlas.png`, deleted after its introduction. Later two tiny differently named `.png` files are not valid PNG images and cannot satisfy the loader. The caught load error silently left every navigation picture blank. | Restore the exact historical atlas, Git blob `84ec96618a850b2b33d623f0023e252974f86bfa`, SHA-256 `c7c28958c9d051b1b0ef0f6444672ad1b78e54b6383ea31086a9a61687158620`. Keep both pre-existing files untouched. Add an integrity test for the loader path, original hash, dimensions, PNG chunk CRCs and decompressed pixel stream. No artwork was regenerated or redesigned. |
 | [Library/navigation 43316142939](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43316142939) | Library, Mission and navigation reports passed, then the daily script compared the installed version 10 with the obsolete workflow expectation 9. | Compare the installed candidate with the explicit version in the checked-out Android build source. Fail on absent or ambiguous version declarations; do not change the app version. Remove obsolete version overrides in the library, daily and game workflows. Frozen build-9 verification remains pinned. |
 | Same run, later previously unreachable checks | Daily, game, library, Mission and keyboard helpers still had paths that tapped retired always-visible horizontal tabs. | Share explicit drawer navigation for current candidates. Preserve the old horizontal-tab selectors in the historical daily baseline path. Keep exact result, XP, saved-data, history and scoring assertions. |
 | [Earlier toolkit 43312688287](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43312688287) | Maestro could not find `^Train$` while the drawer was collapsed. | Already repaired upstream. The owner baseline's [toolkit run 43319430422](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43319430422) passed. Preserve that smoke flow. |
@@ -65,7 +69,7 @@ development branch:
 Local commands and environment constraints are in [replit.md](../../replit.md).
 The local suite covers visible selectors, persisted rollover readiness,
 drawer labels/actionability/closure, lazy scrolling and source version
-expectations (24 tests, all passed). Python compilation, shell syntax, JSON parsing, five Android XML
+expectations plus artwork integrity (28 tests, all passed). Python compilation, shell syntax, JSON parsing, five Android XML
 resource/manifest parses, and the existing smoke runner's early refusal guards
 were also checked. No native device is attached and this container has no
 Android SDK or accelerated emulator.
@@ -82,9 +86,12 @@ APK compilation, and lint with zero errors / 11 existing warnings. The artifact'
 JUnit and lint XML were inspected independently. Its emulator checks are
 [compact drawer](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43321302118)
 and [library/training](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43321301963).
-These are not claimed to have passed while still running. Subsequent changes
-also scroll partially clipped drawer controls into a minimum 48dp hit area
-before tapping; their exact-commit Android runs must finish separately.
+The compact run failed and supplied the real hierarchy/screenshot above; it is
+not claimed as a pass. Subsequent changes scroll partially clipped drawer
+controls into a minimum 48dp hit area before tapping, handle the observed
+selected-tab semantics/readiness, and restore the original artwork. Their
+exact-commit Android runs must finish separately. Superseded in-progress runs
+on the intermediate commit were cancelled to avoid duplicate emulator work.
 
 Physical-phone testing, full TalkBack traversal, and supported old-API rendering
 remain separate from this narrowly scoped test-harness stabilization.

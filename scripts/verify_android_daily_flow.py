@@ -35,6 +35,17 @@ def tagged(items, tag):
     return None
 
 
+def wait_tagged(tag, attempts=4):
+    """Wait for the semantic state after an animated open/close, not a fixed delay."""
+    for attempt in range(attempts):
+        target = tagged(nodes(), tag)
+        if target is not None:
+            return target
+        if attempt + 1 < attempts:
+            time.sleep(0.2)
+    raise AssertionError(f'Visible Android resource {tag!r} did not become ready')
+
+
 def drawer_target(label, limit=12, minimum_px=1):
     """Find each destination in the drawer, scrolling its list on short screens."""
     route = NAV_ROUTES[label]
@@ -44,15 +55,17 @@ def drawer_target(label, limit=12, minimum_px=1):
         tap(opener)
     for direction in ('up', 'down'):
         for _ in range(limit):
-            items = nodes()
-            drawer = tagged(items, 'player-navigation-drawer')
-            assert drawer is not None, 'Navigation drawer must be open'
+            drawer = wait_tagged('player-navigation-drawer')
             target = tagged(list(drawer.iter('node')), 'nav-' + route)
             bounds = (list(map(int, re.findall(r'-?\d+', target.get('bounds', ''))))
                       if target is not None else None)
             if (bounds is not None and bounds[2] - bounds[0] >= minimum_px
                     and bounds[3] - bounds[1] >= minimum_px):
-                assert target.get('clickable') == 'true' and target.get('enabled') == 'true', (
+                # Android exports the active Role.Tab as selected/focusable but
+                # non-clickable. Still tap it and prove that the drawer closes.
+                actionable = (target.get('clickable') == 'true' or
+                              (target.get('selected') == 'true' and target.get('focusable') == 'true'))
+                assert actionable and target.get('enabled') == 'true', (
                     label, 'destination must be actionable', target.attrib)
                 # Compose may expose the accessible name as text or a merged descendant,
                 # not necessarily content-desc on the test-tag wrapper itself.
@@ -70,7 +83,7 @@ def drawer_target(label, limit=12, minimum_px=1):
 
 def navigate(label):
     tap(drawer_target(label))
-    assert tagged(nodes(), 'nav-open-handle') is not None, f'Drawer did not close after selecting {label}'
+    wait_tagged('nav-open-handle')
 
 
 def adb(*args, data=None, timeout=120):

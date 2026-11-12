@@ -1,0 +1,1 @@
+- [Native accessibility exports](native-accessibility.md) — distinguish UIAutomator semantics from pointer actionability; wait for drawer state after transitions.
