@@ -1,6 +1,6 @@
 # Mission Builder verification — CQ-PLAYER-002
 
-Native-accepted version 8, package com.courtquestpro; exact-binary publication pending. Scope: immutable solo Mission definitions, durable builder, ordered manual selection, constrained seeded generation, interrupted sessions, exact-once results/completion receipts and Progress receipt reopening.
+Published development version 8, package com.courtquestpro; native acceptance and independent public-download verification passed. Scope: immutable solo Mission definitions, durable builder, ordered manual selection, constrained seeded generation, interrupted sessions, exact-once results/completion receipts and Progress receipt reopening.
 
 Local verification (November 11, 2026 Pacific): 61 Android unit tests, no failures/errors/skips; APK compilation passed; lint 0 errors/7 warnings. Three existing visible-selector regressions pass. Original certificate, v2 signature, manifest/launcher/DEX, ZIP and 16 KB alignment checks pass. Twenty tracked brand/resource/signing paths match baseline e4bf55b byte for byte.
 
@@ -8,7 +8,7 @@ New tests were observed RED before implementation. Additional regressions first 
 
 Existing legacy result/draft/slot/practice/award identities remain intact. Newly completed daily/practice drills gain additive frozen definitions; historical timestamps/provenance are not backfilled. Personal Missions use the zero-extra-XP practice policy. No team roles, sync, assignments, five-tab navigation or school readiness are claimed.
 
-Native acceptance passed in [run 43147187632](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43147187632), artifact 13913082538. All 61 Android unit tests and seven Python verification checks pass; lint is 0 errors/11 warnings. The exact APK passed the existing library/daily/game suites, the complete two-drill Mission journey and guarded Maestro. Normal/320dp-130%/critical200%/keyboard captures were reviewed; see [rendered review](MISSION_BUILDER_RENDERED_REVIEW.md) for the precise scope and limits. Independent artifact download matches the declared SHA-256 and passes original signer, v2 signature, ZIP, manifest and 16KB alignment checks. [Machine-readable evidence](evidence/mission-build8-native.json). Publication remains gated on the exact tested artifact.
+Native acceptance passed in [run 43147187632](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43147187632), artifact 13913082538. All 61 Android unit tests and seven Python verification checks pass; lint is 0 errors/11 warnings. The exact APK passed the existing library/daily/game suites, the complete two-drill Mission journey and guarded Maestro. Normal/320dp-130%/critical200%/keyboard captures were reviewed; see [rendered review](MISSION_BUILDER_RENDERED_REVIEW.md) for the precise scope and limits. Independent artifact download matches the declared SHA-256 and passes original signer, v2 signature, ZIP, manifest and 16KB alignment checks. [Machine-readable evidence](evidence/mission-build8-native.json). The exact tested artifact was published without rebuilding it in [run 43233289181](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43233289181).
 
 Physical-phone performance, owner visual acceptance, full TalkBack traversal, API26–30 fallback and alternate launcher masks remain separate, unverified checks.
 
@@ -18,3 +18,7 @@ Run 43144393060 passed all library and daily assertions on APK SHA-256 `7bee93ac
 
 
 The repeated native run used the same APK bytes as the first run. Both previous-day game fixtures completed all strict date/identity/score/history checks; the measured readiness waits after launch were 0.024 and 0.014 seconds. No application source change was required by the readiness correction.
+
+## Exact-binary delivery passed
+
+Release commit `cea3890f7958998f5c1afa885893aff13a669053`; publication run `43233289181` SUCCESS, evidence artifact `13949898896`. The fixed development release now serves version1.0(8), 21,103,354 bytes, SHA-256 `7bee93ac1870911008db5973c9a374f0d4eb8db6e05ed917ba0df0db144ca04d`. Both the workflow and an independent public download matched the accepted native APK byte for byte. Package, original certificate, v2 signature, ZIP/DEX/manifest/launcher and 16KB alignment checks passed independently. Sixteen build-8 Android captures accompany the release. [Public-download ledger](evidence/mission-build8-public-download.json).

@@ -34,7 +34,7 @@
   "maestro_smoke": "PASS",
   "native_status": "PASS",
   "rendered_review": "docs/tooling/MISSION_BUILDER_RENDERED_REVIEW.md",
-  "delivery_status": "NATIVE_ACCEPTED_PUBLICATION_PENDING",
+  "delivery_status": "PUBLISHED_DOWNLOAD_VERIFIED",
   "daily_flow": {
     "input_apk_sha256": "7bee93ac1870911008db5973c9a374f0d4eb8db6e05ed917ba0df0db144ca04d",
     "version_code": 8,
@@ -124,5 +124,14 @@
     "legacy_practice_protected": true,
     "solo_xp_unchanged": true,
     "normal_compact_large_keyboard_captured": true
+  },
+  "publication": {
+    "public_download_url": "https://github.com/Lamont-Labs/CourtQuestPro/releases/download/courtquest-dev-2026-11-05/CourtQuestPro-Android-debug.apk",
+    "publication_commit": "cea3890f7958998f5c1afa885893aff13a669053",
+    "publication_run_id": 43233289181,
+    "publication_artifact_id": 13949898896,
+    "github_release_asset_id": 739712312,
+    "independent_download_verified_at": "2026-11-12T14:06:43.734287+00:00",
+    "matches_native_apk_byte_for_byte": true
   }
 }

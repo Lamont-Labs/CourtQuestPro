@@ -60,5 +60,5 @@
 
 - [x] Review whole diff against migration/snapshot/idempotency contract and fix blocking issues.
 - [x] Confirm unit/build/lint, all native journeys and APK package/original certificate/version8/alignment.
-- [ ] Publish only the successful native-tested APK through existing development release; independently download/check bytes.
-- [ ] Record exact source/run/APK evidence and any unverified device/accessibility limits. Keep main intact.
+- [x] Publish only the successful native-tested APK through existing development release; independently download/check bytes.
+- [x] Record exact source/run/APK evidence and any unverified device/accessibility limits. Keep main intact.
