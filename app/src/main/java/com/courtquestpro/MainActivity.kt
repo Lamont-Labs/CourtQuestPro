@@ -366,29 +366,8 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 }
             }
         ) { padding ->
-            if (onboardingComplete && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")) {
-                Box(Modifier.fillMaxSize()) {
-                    Box(Modifier.fillMaxSize().padding(start = if (navigationExpanded) 120.dp else 0.dp)) {
-                        ScreenContent
-                    }
-                    CourtQuestNavigation(
-                        selected = PlayerNavigation.tab(routeHistory),
-                        jerseyNumber = save.jerseyNumber,
-                        expanded = navigationExpanded,
-                        onExpandedChange = { navigationExpanded = it },
-                        onSelect = { tab ->
-                            navigationExpanded = false
-                            if (tab == PlayerTab.TRAIN && librarySlotId != null) {
-                                librarySlotId = null
-                                librarySelectedId = null
-                            }
-                            navigate(tab.route)
-                        }
-                    )
-                }
-            } else {
-                ScreenContent
-            }
+            Box(Modifier.fillMaxSize()) {
+                Box(Modifier.fillMaxSize().padding(start = if (onboardingComplete && navigationExpanded && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")) 120.dp else 0.dp)) {
             if (!onboardingComplete) {
                 CourtOnboarding(
                     modifier = Modifier.padding(padding).consumeWindowInsets(padding),
@@ -633,8 +612,25 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     destinationState.SaveableStateProvider(target) { DestinationContent() }
                 } else DestinationContent()
             }
+                }
+            }
         }
-    }
+        if (onboardingComplete && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")) {
+            CourtQuestNavigation(
+                selected = PlayerNavigation.tab(routeHistory),
+                jerseyNumber = save.jerseyNumber,
+                expanded = navigationExpanded,
+                onExpandedChange = { navigationExpanded = it },
+                onSelect = { tab ->
+                    navigationExpanded = false
+                    if (tab == PlayerTab.TRAIN && librarySlotId != null) {
+                        librarySlotId = null
+                        librarySelectedId = null
+                    }
+                    navigate(tab.route)
+                }
+            )
+        }
     }
 }
 
