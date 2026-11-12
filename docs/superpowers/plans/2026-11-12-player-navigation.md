@@ -44,3 +44,10 @@
 ## Decisions
 
 Keep existing route names for legacy flows to reduce migration risk. Use the working library as Train's landing screen; do not insert another menu before its usable controls. Navigation history stores only short route strings; no training data is copied into Android instance-state bundles. Back from an unsaved recorder preserves its existing durable draft; Mission exit also pauses it.
+
+## Execution ledger
+
+- Contract checkpoint: 3c75025. New navigation tests fail on the pre-implementation source with missing PlayerNavigation/PlayerTab, observed in development run 43240534679.
+- Initial implementation: 850aa3a. Development run 43241579376 passes unit/build/lint. Independent source review identified state-retention and date issues before release.
+- Correction checkpoint: 04fd021. Restricts retained registries to roots/settings, hoists selected drill, preserves Progress filters, refreshes local date on resume/midnight and strengthens native tests. Seven Python selector/state checks and changed Python syntax pass locally. Final Android/native/publication checks pending.
+- Minor deferred: recording-screen Back wording can still name Court even when the actual opener differs. Correct routing is implemented; copy polish is saved for the next issue.
