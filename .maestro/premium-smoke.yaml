@@ -18,17 +18,17 @@ name: Fresh profile and primary navigation
 - assertVisible: Build your routine.
 - tapOn: ENTER MY COURT
 - assertVisible: Start training
-- takeScreenshot: "${EVIDENCE_DIR}/court"
+- takeScreenshot: court
 - tapOn: ".*Drill library.*"
 - assertVisible: Create custom drill
-- takeScreenshot: "${EVIDENCE_DIR}/drills"
+- takeScreenshot: drills
 - tapOn: ".*Player development.*"
 - assertVisible: Your work, recorded.
-- takeScreenshot: "${EVIDENCE_DIR}/progress"
+- takeScreenshot: progress
 - tapOn: ".*Player settings.*"
 - assertVisible: Player name
 - assertVisible: CourtQuest QA
-- takeScreenshot: "${EVIDENCE_DIR}/setup"
+- takeScreenshot: setup
 - tapOn: ".*Court dashboard.*"
 - assertVisible: Start training
 - stopApp

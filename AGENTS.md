@@ -2,6 +2,8 @@
 
 ## Start here for UI work
 
+- The owner-authorized product roadmap is [the master specification](docs/specs/CourtQuest_Pro_Master_Product_UX_Engineering_Spec_v1.md). Read [its implementation tracker](docs/MASTER_SPEC_IMPLEMENTATION.md) to distinguish delivered features, current work and future phases. Preserve the native journey and brand before adding Player Mode or server-authorized school/team features.
+
 - Read [DESIGN.md](DESIGN.md) before designing, implementing, reviewing, or publishing any CourtQuest Pro UI change. It is the active design standard, tool guide, and visual acceptance checklist.
 - Read [the premium flow toolkit](docs/tooling/PREMIUM_FLOW_TOOLKIT.md) for the owner's approved plugins, pinned native references, review guides, installed library versions, and dedicated-emulator verification commands. Keep its readiness status accurate.
 - Use the local Impeccable shape, critique, clarify, and onboard guides in `tools/premium-flow/impeccable/` as reference material for native Android work. Its browser engine is outside this app's native implementation path.

@@ -1,0 +1,14 @@
+{
+  "source_commit": "be0ced284dbc6af1b2ca32b5e0a691a152bf7fac",
+  "package_id": "com.courtquestpro",
+  "certificate_sha256": "25f8007f0a8503b01ded3f4856d02e830c64c823aa2c816da4d347ed5015f27b",
+  "files": {
+    "signing/debug.keystore": "783b2225b4a230d97b9dbd90026a23ea5b698f7d04e650ff0804b99e1b0111d7",
+    "app/build.gradle.kts": "9fbc7416fe0f1a27e1863c5dcf4b2cb8aaa75556b90396e886f531cda7769858",
+    "tools/branding/signature-assets.json": "9671e11f69217143fe54e85c3ef2a5c1864202ea49cb4f9a4ca7ab18b426ff3a",
+    "app/src/main/res/drawable-xxxhdpi/courtquest_signature_emblem.png": "46353e2aa8e1eb44414432604c2e99ed278a9f593b849b94ffc8c80b4dc42a81",
+    "app/src/main/res/drawable-xxxhdpi/courtquest_signature_launcher.png": "a7d527bf0c10233c3b9f45c09aeb3c849e1a722be7cd3c6b544f89a3942a692e",
+    "app/src/main/res/drawable-xxxhdpi/courtquest_signature_wordmark.png": "95d5f903f111d74b895c4e22f876a0adad1ac73d8d5a6ac575565342b3349ca7"
+  },
+  "master_spec_sha256": "600028b9d4697965bd293c1fad359c868cb8ec82cb356df2eaa4e23ac5309fd7"
+}

@@ -90,7 +90,7 @@ def main() -> None:
     shutil.copy2(args.apk, destination)
     digest = hashlib.sha256(destination.read_bytes()).hexdigest()
     report = {
-        "application_name": "Court Quest Pro",
+        "application_name": re.search(r"^application-label:'([^']+)'", badging, re.M).group(1),
         "package_id": package,
         "version_name": version,
         "version_code": code,

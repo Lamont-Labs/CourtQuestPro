@@ -57,10 +57,8 @@ internal fun DrillScreen(
                             Text(drill.target, color = CourtQuestDesign.accent, style = MaterialTheme.typography.titleMedium)
                         }
                     CourtRule()
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                        CourtMetric(measurement.successLabel, completedCount.toString(), Modifier.weight(1f), accent = true)
-                        CourtMetric(measurement.attemptLabel, attemptedCount.toString(), Modifier.weight(1f))
-                    }
+                    CourtMetricStrip(listOf(measurement.successLabel to completedCount.toString(),
+                        measurement.attemptLabel to attemptedCount.toString()))
                     Text("${completedCount.coerceAtMost(requiredCount ?: 0)} of ${requiredCount ?: 0} successful actions toward your target",
                         color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
                     CourtQuestPrimaryButton(
@@ -115,10 +113,10 @@ internal fun DrillScreen(
                     verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = targetConfirmed, onCheckedChange = null, enabled = !complete)
                     Spacer(Modifier.width(10.dp))
-                    Text("Full target and safe technique completed.", color = CourtQuestDesign.textPrimary,
+                    Text("Full target completed safely.", color = CourtQuestDesign.textPrimary,
                         style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
                 }
-                if (!complete && !meetsCount) Text("Record ${(requiredCount ?: 0).minus(completedCount).coerceAtLeast(0)} more successful actions to save.",
+                if (!complete && !meetsCount) Text("Record ${(requiredCount ?: 0).minus(completedCount).coerceAtLeast(0)} more to target.",
                     color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
                 CourtQuestPrimaryButton(onClick = { onComplete(completedCount, attemptedCount) },
                     enabled = !complete && meetsCount && targetConfirmed, modifier = Modifier.fillMaxWidth()) {
@@ -186,10 +184,9 @@ internal fun DrillResultScreen(
                                 CourtEyebrow("SAVED TO PROGRESS", Modifier.weight(1f).semantics { liveRegion = LiveRegionMode.Polite })
                             }
                             Text(drill.title, color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineMedium)
-                            Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                                CourtMetric("Successful", result.completed.toString(), Modifier.weight(1f), accent = true)
-                                CourtMetric("Attempts", result.attempted.toString(), Modifier.weight(1f))
-                            }
+                            Text("Self-recorded · Saved on this device", color = CourtQuestDesign.textSecondary,
+                                style = MaterialTheme.typography.bodySmall)
+                            CourtMetricStrip(listOf("Successful" to result.completed.toString(), "Attempts" to result.attempted.toString()))
                             CourtRule()
                             FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalArrangement = Arrangement.spacedBy(8.dp)) {

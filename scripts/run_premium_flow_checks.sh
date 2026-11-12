@@ -13,7 +13,15 @@ if [[ ! -f "$qa_apk" ]]; then
     printf '%s\n' 'Pass the candidate APK as the second argument.' >&2
     exit 2
 fi
-command -v adb >/dev/null
+# Hosted runners may install platform-tools without putting adb on PATH.
+if ! command -v adb >/dev/null 2>&1; then
+    qa_sdk=${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}
+    if [[ -z "$qa_sdk" || ! -x "$qa_sdk/platform-tools/adb" ]]; then
+        printf '%s\n' 'Android platform-tools/adb is required.' >&2
+        exit 2
+    fi
+    export PATH="$qa_sdk/platform-tools:$PATH"
+fi
 qa_avd=$(adb -s "$qa_serial" emu avd name | tr -d '\r' | head -n 1)
 if [[ "$qa_avd" != CourtQuest_PremiumQA ]]; then
     printf '%s\n' 'Refusing to reset app data: this emulator is not CourtQuest_PremiumQA.' >&2
@@ -32,4 +40,4 @@ cd -- "$project_root"
 exec "$qa_maestro" --device "$qa_serial" test \
     --format junit --output "$qa_evidence/report.xml" \
     --test-output-dir "$qa_evidence" \
-    -e EVIDENCE_DIR="$qa_evidence" .maestro/premium-smoke.yaml
+    .maestro/premium-smoke.yaml

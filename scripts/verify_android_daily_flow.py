@@ -233,6 +233,16 @@ def main():
     assert state['drillResults'][-1]['completed'] == state['drillResults'][-1]['attempted'] == 15
     assert state['slots'][0]['complete'] and state['totalXp'] == 150
     assert not state['drillDrafts']
+    require(receipt, 'Self-recorded · Saved on this device')
+    shell('wm', 'size', '640x1440')
+    shell('settings', 'put', 'system', 'font_scale', '2.0')
+    time.sleep(2)
+    require(nodes(), 'Continue training')
+    require(nodes(), 'View Progress')
+    screenshot('candidate-large-type-receipt')
+    shell('settings', 'put', 'system', 'font_scale', '1.0')
+    shell('wm', 'size', '720x1600')
+    time.sleep(2)
     scroll_to('UP NEXT')
     scroll_to('Stationary Crossover Control')
     require(nodes(), 'Stationary Crossover Control')
@@ -298,6 +308,10 @@ def main():
     assert draft_state['drillDrafts'][0]['successful'] == 1 and draft_state['drillDrafts'][0]['attempted'] == 2
     require(nodes('candidate-large-type-drill'), 'Save results')
     screenshot('candidate-large-type-drill')
+    scroll_to('TRAINING CLOCK')
+    require(nodes(), 'Start')
+    scroll_to('Reset clock')
+    screenshot('candidate-large-type-clock')
     shell('settings', 'put', 'system', 'font_scale', '1.0')
     shell('wm', 'size', '720x1600')
     seed('blank')
@@ -374,7 +388,7 @@ def main():
     report = dict(input_apk_sha256=hashlib.sha256(Path(args.apk).read_bytes()).hexdigest(),
                   version_code=packaged_version, full_history_navigation=True, large_type_drill=True, large_type_scorekeeping=True, fresh_onboarding=True, empty_progress=True, blank_name=True, long_name=True,
                   completed_workout=True, scorekeeping_and_undo=True, system_back=True,
-                  receipt_next_drill_matches_continue=True,
+                  receipt_next_drill_matches_continue=True, large_type_receipt=True, large_type_clock=True,
                   update_retains_saved_state=True, primary_on_first_viewport=True, saved_name_visible=True, immediate_preference_selection=True, result_recorded_once=True,
                   successes=15, attempts=15, xp_awarded=50, relaunch_persistence=True,
                   compact_capture=True, large_type_capture=True)
