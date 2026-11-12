@@ -25,7 +25,7 @@ data class PlayerJersey(
     val lettering: Long = 0xFFFFFFFF
 ) {
     fun sanitized() = copy(number = number.trim().take(2).takeIf {
-        it == "00" || (it?.toIntOrNull() in 0..99)
+        it == "00" || (it.toIntOrNull()?.let { value -> value in 0..99 } == true)
     } ?: "23")
 }
 
