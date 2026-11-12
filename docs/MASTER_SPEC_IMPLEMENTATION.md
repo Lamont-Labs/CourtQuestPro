@@ -1,6 +1,6 @@
 # Master specification implementation tracker
 
-## CQ-PLAYER-003 — native acceptance passed; development publication pending
+## CQ-PLAYER-003 — complete and delivered as build 9
 
 Court, Train, Quests, Progress and Me are implemented and native-verified. Train preserves the library/builder, Quests shows actual daily evidence and Mission receipts, Me owns local profile/settings. Back returns to the opener and replaces completed recorders. Tab filters, name drafts and process restoration are preserved; transient editors clear; saved revisions select correctly; the local date refreshes on resume/midnight.
 
@@ -8,7 +8,9 @@ Runtime source `04fd0217f11ed420168d27a53de4e7c77add1944`, app/src `6edca69928e7
 
 The comprehensive run 43244651522 was cancelled at its 35-minute limit after writing four completed journey reports. The successful completion verifies those reports/source/unit/lint and exact frozen APK, runs the full remaining game/keyboard/Maestro checks and writes explicit [completion lineage](tooling/evidence/player-build9-native.json). The original cancelled run remains cancelled. APK bytes were not rebuilt. Earlier source/harness failures are retained in the plan and handoff. [Rendered review](tooling/PLAYER_NAVIGATION_RENDERED_REVIEW.md).
 
-Publication of the exact tested development APK is the remaining step. After delivery, proceed to CQ-PLAYER-004: versioned evidence-backed Quest rules/achievements. The current Quest activity screen does not implement those award rules. Preserve Google Play/free-paid roadmap and future school/security gates.
+Build 9 is published at the existing fixed download URL. Release commit `ca6238a5bdb23ff0c0dfa301fddbc1d7cde5d3a0`; [publication run 43253825911](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43253825911) succeeded. Unauthenticated public download is byte-identical to the Android-tested APK and independently checked manifests/API asset digest match version, size, original signer and SHA-256. [Public-download evidence](tooling/evidence/player-build9-public-download.json).
+
+Next open issue: CQ-PLAYER-004: versioned evidence-backed Quest rules/achievements. The current Quest activity screen does not implement those award rules. Preserve Google Play/free-paid roadmap and future school/security gates.
 
 ## CQ-PLAYER-002 — complete and delivered
 
@@ -29,7 +31,7 @@ Native source: `375a607fd7be33bf30ad56c2337cf9acf3ae2253`; app/src tree: `839a30
 | --- | --- | --- |
 | 0 | Baseline and brand lock | Complete for this pass: original Signature contours/letterforms retained; real Android baseline; signer/package/save schema preserved. [Brand hashes](tooling/evidence/master-spec-preservation.json), [core preservation](tooling/evidence/master-core-preservation.json). |
 | 1 | Canonical premium journey | Complete and published as development build 7; current-source native acceptance and independent public-download verification passed. |
-| 2 | Player Mode | CQ-PLAYER-002 complete and published as build 8, with native acceptance and independent public-download verification. Five usable destinations, evidence-backed Quests, comparable Progress and resumable setup follow. [Scoped sequence and migration contract](plans/2026-11-11-player-mode-sequence.md). |
+| 2 | Player Mode | CQ-PLAYER-002 and CQ-PLAYER-003 complete, published as builds 8 and 9 with native and public-download verification. Versioned evidence-backed Quest rules, comparable Progress and resumable setup follow. [Scoped sequence and migration contract](plans/2026-11-11-player-mode-sequence.md). |
 | 3 | Team/coach foundation | Planned: verified roles, consent-aware membership, server authorization and scoped roster access. |
 | 4 | Connected assignments | Planned: immutable Mission versions, explicit recipients and evidence-derived completion/offline reconciliation. |
 | 5 | Pilot polish | Planned: approved notifications, cooperative quests, exports and security/privacy/accessibility review. |
@@ -54,7 +56,7 @@ The original handoff runs 43096106238/43096106289 remain queued at the latest ch
 
 ## Remaining limits and next issue
 
-Physical-phone operation/performance, owner visual acceptance, full TalkBack traversal, API 26–30 fallback rendering and alternate launcher/theme masks remain unverified. Do not redefine Phase 1 as a school-ready release or claim the whole master specification is implemented. Proceed with CQ-PLAYER-004 after exact build-9 delivery under the saved Player Mode sequence. Build-8 exact-binary delivery has passed.
+Physical-phone operation/performance, owner visual acceptance, full TalkBack traversal, API 26–30 fallback rendering and alternate launcher/theme masks remain unverified. Do not redefine Phase 1 as a school-ready release or claim the whole master specification is implemented. Proceed with CQ-PLAYER-004 under the saved Player Mode sequence. Build-8 exact-binary delivery has passed.
 
 ## Exact-binary delivery
 

@@ -170,5 +170,8 @@
   "artifact_id": 13960571780,
   "completion_run_id": 43251979732,
   "accepted_native": true,
-  "publication_status": "pending"
+  "publication_status": "published",
+  "publication_run_id": 43253825911,
+  "publication_commit": "ca6238a5bdb23ff0c0dfa301fddbc1d7cde5d3a0",
+  "public_asset_id": 740099322
 }

@@ -24,22 +24,22 @@
 
 ## Task 1: navigation contract
 
-- [ ] Add behavioral tests for root Back, builder/editor parents, receipt replacement, repeated tab selection, invalid restored route and serialized route history.
-- [ ] Watch tests fail, implement PlayerNavigation reducer, run full Android unit suite.
+- [x] Add behavioral tests for root Back, builder/editor parents, receipt replacement, repeated tab selection, invalid restored route and serialized route history.
+- [x] Watch tests fail, implement PlayerNavigation reducer, run full Android unit suite.
 
 ## Task 2: native destinations
 
-- [ ] Integrate saved route history, five labeled semantic tab controls, SaveableStateHolder, appropriate child Back actions.
-- [ ] Add Quests daily checklist/real Mission receipts with actionable training/Progress routes and honest empty state; add Me profile summary and existing settings route.
-- [ ] Keep settings name draft across tab switching; preserve library detail/filter state and core saves.
+- [x] Integrate saved route history, five labeled semantic tab controls, SaveableStateHolder, appropriate child Back actions.
+- [x] Add Quests daily checklist/real Mission receipts with actionable training/Progress routes and honest empty state; add Me profile summary and existing settings route.
+- [x] Keep settings name draft across tab switching; preserve library detail/filter state and core saves.
 
 ## Task 3: native acceptance and delivery
 
-- [ ] Update native/Maestro selectors for Train and Me→Edit profile, retaining old Setup in baseline build-5 checks.
-- [ ] Add dedicated navigation/Me/Quests flow, saved-state/receipt Back, all five labels at compact/enlarged settings and keyboard captures.
-- [ ] Advance versionCode to 9; run Python regressions, compile, Android units, lint, all native flows and Maestro.
-- [ ] Review actual matching captures; request independent source review; resolve blocking findings.
-- [ ] Checkpoint on active development branch; publish only the exact accepted native APK using existing release workflow, independently verify public download.
+- [x] Update native/Maestro selectors for Train and Me→Edit profile, retaining old Setup in baseline build-5 checks.
+- [x] Add dedicated navigation/Me/Quests flow, saved-state/receipt Back, all five labels at compact/enlarged settings and keyboard captures.
+- [x] Advance versionCode to 9; run Python regressions, compile, Android units, lint, all native flows and Maestro.
+- [x] Review actual matching captures; request independent source review; resolve blocking findings.
+- [x] Checkpoint on active development branch; publish only the exact accepted native APK using existing release workflow, independently verify public download.
 
 ## Decisions
 
@@ -52,4 +52,5 @@ Keep existing route names for legacy flows to reduce migration risk. Use the wor
 - Correction checkpoint: 04fd021. Restricts retained registries to roots/settings, hoists selected drill, preserves Progress filters, refreshes local date on resume/midnight and strengthens native tests. Seven Python selector/state checks and changed Python syntax pass locally. Final Android/native/publication checks pending.
 - Minor deferred: recording-screen Back wording can still name Court even when the actual opener differs. Correct routing is implemented; copy polish is saved for the next issue.
 
-- Native acceptance completed: retained four passed journeys from cancelled run 43244651522; successful run 43251979732 finishes full game/keyboard/Maestro/signing against identical frozen bytes. Independently downloaded artifact verifies 72/72 tests, all six reports, original signer/package/v2/16KB, SHA-256 68b3b1d1f2cd08084b65973ae07544b74c2a795db27994f2b9a2b975a7785c5a. Actual normal/compact/200%/full-keyboard captures reviewed. Exact-binary publication pending.
+- Final native review and publication: run 43251979732 succeeds with explicit retained-run lineage; run 43253825911 publishes identical APK and verifies unauthenticated public download. Artifact manifests and public API asset digest checked independently. Source/app tree, original signer, package, version 9, 72 tests, seven Python checks, all six native reports and Maestro verified. Rendered normal/compact/200%/full keyboard control reviewed. No additional runtime changes after 04fd021.
+- Final review: independent source review completed; all five Important findings addressed and verified. Minor deferred: contextual recorder Back wording. Physical-phone/owner acceptance and full TalkBack remain separate. Next issue CQ-PLAYER-004.

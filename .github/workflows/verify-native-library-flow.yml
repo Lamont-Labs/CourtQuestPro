@@ -19,7 +19,7 @@ permissions:
 jobs:
   android-flow:
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 60
     env:
       COURTQUEST_VERSION_CODE: '9'
       COURTQUEST_UI_EVIDENCE: artifacts/android-daily-flow
