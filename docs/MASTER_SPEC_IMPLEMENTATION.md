@@ -33,3 +33,12 @@ The player and school paths share the future Mission, session and receipt contra
 Final current-source unit/build/lint, guarded Maestro execution, revised enlarged-text/clock/receipt captures, APK identity/signer/alignment, downloaded release verification and precise final checkpoint. Physical-phone performance, owner visual acceptance, full TalkBack traversal and API 26–30 fallback remain separate checks.
 
 The larger roadmap does not redefine Phase 1 as a school-ready or production-ready application. Complete one scoped issue and its verification before advancing the tracker.
+
+
+### Corrected-source checkpoint
+
+`fe8634eb5cbd1793a10d39321c165781ced5e753` passes 48 unit tests and compilation after disambiguating the Kotlin reflow comparison. Its current app/src tree is `839a30e17949d0b7d9dbe9284999637e2117aa34`. Maestro then exposed a selector issue: merged native navigation exposes the visible tab label, while the old flow searched a child icon description. The failure hierarchy contains `Drills`; the flow now selects exact visible Court/Drills/Progress/Setup labels. Source `a4d5ccd89770e8861ff1c97acab9974c25191642` preserves that same app/src tree and reruns the complete native gate.
+
+Current verification runs: [full native 43135148929](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43135148929), [toolkit smoke 43135148897](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43135148897), [development checks 43135148850](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43135148850). The app is not published from a failed overall run. Remaining evidence is recorded after these executions finish.
+
+Next issue sequence: [Player Mode implementation order](plans/2026-11-11-player-mode-sequence.md). Actual first-candidate visual findings: [Android rendered review](tooling/SIGNATURE_RENDERED_REVIEW.md).
