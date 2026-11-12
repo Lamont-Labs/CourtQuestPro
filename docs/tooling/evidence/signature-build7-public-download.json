@@ -1,0 +1,30 @@
+{
+  "application_name": "CourtQuest Pro",
+  "package_id": "com.courtquestpro",
+  "version_name": "1.0",
+  "version_code": 7,
+  "build_type": "debug",
+  "minimum_sdk": 26,
+  "target_sdk": 35,
+  "apk_filename": "CourtQuestPro-1.0.apk",
+  "apk_size_bytes": 20988666,
+  "apk_sha256": "1e0c5b24bc6f1087733014a1acaaba6b72e04435a758f9631b8f3e51b7b58767",
+  "certificate_sha256": "25f8007f0a8503b01ded3f4856d02e830c64c823aa2c816da4d347ed5015f27b",
+  "checks": {
+    "zip_integrity": "PASS",
+    "apk_v2_signature": "PASS",
+    "signing_continuity": "PASS",
+    "zip_alignment_16kb": "PASS",
+    "manifest_and_launcher": "PASS",
+    "main_activity_in_dex": "PASS",
+    "physical_device_test": "NOT_PERFORMED",
+    "emulator_test": "NOT_PERFORMED"
+  },
+  "verification_scope": "Independent public download: identity, signature, ZIP, alignment and native-byte comparison; device journey in the linked native ledger",
+  "byte_identity_to_native": "PASS",
+  "downloaded_at_utc": "2026-11-12T02:07:07.358857+00:00",
+  "release_commit": "a431a69254b9d896d2a76640f5af363530f0dfa6",
+  "publication_run_id": 43138905997,
+  "public_asset_id": 737690893,
+  "url": "https://github.com/Lamont-Labs/CourtQuestPro/releases/download/courtquest-dev-2026-11-05/CourtQuestPro-Android-debug.apk?build=7"
+}

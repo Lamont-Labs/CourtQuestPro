@@ -11,7 +11,7 @@ Native source: `375a607fd7be33bf30ad56c2337cf9acf3ae2253`; app/src tree: `839a30
 | Phase | Scope | Observed status |
 | --- | --- | --- |
 | 0 | Baseline and brand lock | Complete for this pass: original Signature contours/letterforms retained; real Android baseline; signer/package/save schema preserved. [Brand hashes](tooling/evidence/master-spec-preservation.json), [core preservation](tooling/evidence/master-core-preservation.json). |
-| 1 | Canonical premium journey | Implemented; current-source native acceptance passed. Exact-binary development publication is the remaining delivery gate. |
+| 1 | Canonical premium journey | Complete and published as development build 7; current-source native acceptance and independent public-download verification passed. |
 | 2 | Player Mode | Next: versioned Mission foundation/builder, five usable destinations, evidence-backed Quests, comparable Progress and resumable setup. [Scoped sequence and migration contract](plans/2026-11-11-player-mode-sequence.md). |
 | 3 | Team/coach foundation | Planned: verified roles, consent-aware membership, server authorization and scoped roster access. |
 | 4 | Connected assignments | Planned: immutable Mission versions, explicit recipients and evidence-derived completion/offline reconciliation. |
@@ -37,4 +37,10 @@ The original handoff runs 43096106238/43096106289 remain queued at the latest ch
 
 ## Remaining limits and next issue
 
-Exact-binary publication/download verification is pending. Physical-phone operation/performance, owner visual acceptance, full TalkBack traversal, API 26–30 fallback rendering and alternate launcher/theme masks remain unverified. Do not redefine Phase 1 as a school-ready release or claim the whole master specification is implemented. Finish this delivery, then proceed with CQ-PLAYER-002 under the saved Mission migration contract.
+Physical-phone operation/performance, owner visual acceptance, full TalkBack traversal, API 26–30 fallback rendering and alternate launcher/theme masks remain unverified. Do not redefine Phase 1 as a school-ready release or claim the whole master specification is implemented. Proceed with CQ-PLAYER-002 under the saved Mission migration contract.
+
+## Exact-binary delivery
+
+Release commit `a431a69254b9d896d2a76640f5af363530f0dfa6`; [publication run 43138905997](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43138905997): SUCCESS. The workflow verified source/app tree, tests, all native flow reports, Maestro and original signer before publishing the tested APK without rebuilding it. It downloaded and reverified the published file. An additional independent public download matched every byte and passed version/package/v2 signature/ZIP/16 KB alignment checks. [Public-download ledger](tooling/evidence/signature-build7-public-download.json).
+
+The legacy release-branch restored-UI guard expected the previous orange literal and failed before compilation in run 43138905972. Its sentinel is updated to the approved `accentVivid` value `0xFFFF650E`; the current source passes that shell guard locally. This tooling-only change preserves the native-tested app/src and published APK. The follow-up [restored-UI run 43139207885](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43139207885) passed its source guard, compilation, lint, unit tests and package check on release commit `8cd8657cc6ea7e7b158d3b1cf916934d21780b88`. [Release-branch development run 43139206837](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43139206837) also passed. No APK rebuild/replacement was published for that tooling-only correction.

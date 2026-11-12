@@ -4,7 +4,7 @@ Date: November 11, 2026; native acceptance update November 12 UTC.
 
 ## Superseding current-source verification
 
-The historical setup record below describes the original 42-test checkpoint. Current source `375a607fd7be33bf30ad56c2337cf9acf3ae2253` passes [native run 43136062719](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43136062719): 48 Android unit tests, 3 selector regressions, 0 lint errors/11 warnings, library/daily/game flows and guarded Maestro (1/1). [Current toolkit run 43136062726](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43136062726) also passes its dedicated-emulator journey. Haze/Lottie and the Signature components are now integrated. APK identity/signing/alignment passed after the native artifact was downloaded independently. Publication remains a separate gate; see [the master tracker](../MASTER_SPEC_IMPLEMENTATION.md) and [exact-binary ledger](evidence/signature-build7-native.json).
+The historical setup record below describes the original 42-test checkpoint. Current source `375a607fd7be33bf30ad56c2337cf9acf3ae2253` passes [native run 43136062719](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43136062719): 48 Android unit tests, 3 selector regressions, 0 lint errors/11 warnings, library/daily/game flows and guarded Maestro (1/1). [Current toolkit run 43136062726](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43136062726) also passes its dedicated-emulator journey. Haze/Lottie and the Signature components are now integrated. APK identity/signing/alignment passed after the native artifact was downloaded independently. Exact-binary publication and independent public-download verification also passed; see [the master tracker](../MASTER_SPEC_IMPLEMENTATION.md) and [exact-binary ledger](evidence/signature-build7-native.json).
 
 The original 43096106238/43096106289 runs remain queued; no success is attributed to them. Fresh successful executions finish the outstanding smoke verification. Physical-device and wrong-AVD guards still fail closed before reset/install. Maestro uses relative screenshot names and exact visible native navigation labels.
 
@@ -37,7 +37,7 @@ The original 43096106238/43096106289 runs remain queued; no success is attribute
 
 ## Native verification gate
 
-Current state: **local unit/build/lint and APK verification passed; Maestro device smoke pending CI runner**.
+State at the original toolkit-only handoff: **local unit/build/lint and APK verification passed; Maestro device smoke pending CI runner**.
 
 - [Premium flow toolkit CI](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43096106238): queued at the last check; no runner job has been assigned.
 - [Android development checks](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43096106289): queued at the last check.
@@ -50,10 +50,10 @@ Current state: **local unit/build/lint and APK verification passed; Maestro devi
 
 The local build confirms the added dependencies compile and the existing unit suite passes. Device journey execution remains an independent gate: a configured workflow, successful CLI installation, or static review is not evidence that the Android journey passed.
 
-## Scope and next work
+## Historical scope and next work
 
 This setup adds dependencies and development/verification resources. The deep-black/brighter-orange Signature glass UI, contextual hints, and Lottie feedback have not been integrated into screens. Haze 1.1.1 is the compatible blur foundation; Haze 2.x glass APIs require a separate toolchain decision.
 
-The current installed/published APK remains build 6. No replacement APK was published by this setup.
+At the toolkit-only handoff, the published APK remained build 6. That setup did not publish a replacement; the superseding Signature build-7 delivery is recorded above.
 
 Next-chat prompt: [NEXT_CHAT_PROMPT.md](../NEXT_CHAT_PROMPT.md). Finish the native verification gate before accepting or releasing subsequent UI work.

@@ -27,7 +27,7 @@ Reviewed the final Court, drill, receipt, next drill, Progress and compact Court
 
 The enlarged recording capture is scrolled to the attempt controls; its upper metrics are outside that viewport. It does not visually prove every metric at once. Paired metrics now reflow in code, and persisted successful/attempted counts were asserted after actual taps. This distinction is retained rather than claiming an uncaptured full-panel review.
 
-The current exact APK passes every native suite and guarded Maestro. Publication/download verification is the final delivery step. Owner visual acceptance remains separate.
+The current exact APK passes every native suite and guarded Maestro. Publication and independent public-download verification passed in run 43138905997 and the public-download ledger. Owner visual acceptance remains separate.
 
 ## Evidence limits
 

@@ -104,12 +104,23 @@
     "physical_device_test": "NOT_PERFORMED",
     "emulator_test": "PASS_SAME_APK_SHA256"
   },
-  "publication": "PENDING",
+  "publication": "PASS",
   "limitations": [
     "Physical-phone operation/performance and owner visual acceptance",
     "Full TalkBack traversal",
     "API 26\u201330 Haze fallback rendering",
     "Alternate launcher/theme masks",
     "200% recording capture documents scrolled controls, not the entire metric panel in one frame"
-  ]
+  ],
+  "release_commit": "a431a69254b9d896d2a76640f5af363530f0dfa6",
+  "publication_run_id": 43138905997,
+  "public_download": "PASS_BYTE_FOR_BYTE_WITH_NATIVE",
+  "public_asset_id": 737690893,
+  "direct_apk_url": "https://github.com/Lamont-Labs/CourtQuestPro/releases/download/courtquest-dev-2026-11-05/CourtQuestPro-Android-debug.apk?build=7",
+  "release_palette_guard_source_commit": "7cdf542f46fa523e45a093b8809b65a9ced29b6b",
+  "release_palette_guard_commit": "8cd8657cc6ea7e7b158d3b1cf916934d21780b88",
+  "release_palette_guard_run_id": 43139207885,
+  "release_palette_guard_result": "PASS",
+  "release_development_run_id": 43139206837,
+  "release_development_result": "PASS"
 }
