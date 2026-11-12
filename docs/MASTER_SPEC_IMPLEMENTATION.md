@@ -51,3 +51,27 @@ Physical-phone operation/performance, owner visual acceptance, full TalkBack tra
 Release commit `a431a69254b9d896d2a76640f5af363530f0dfa6`; [publication run 43138905997](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43138905997): SUCCESS. The workflow verified source/app tree, tests, all native flow reports, Maestro and original signer before publishing the tested APK without rebuilding it. It downloaded and reverified the published file. An additional independent public download matched every byte and passed version/package/v2 signature/ZIP/16 KB alignment checks. [Public-download ledger](tooling/evidence/signature-build7-public-download.json).
 
 The legacy release-branch restored-UI guard expected the previous orange literal and failed before compilation in run 43138905972. Its sentinel is updated to the approved `accentVivid` value `0xFFFF650E`; the current source passes that shell guard locally. This tooling-only change preserves the native-tested app/src and published APK. The follow-up [restored-UI run 43139207885](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43139207885) passed its source guard, compilation, lint, unit tests and package check on release commit `8cd8657cc6ea7e7b158d3b1cf916934d21780b88`. [Release-branch development run 43139206837](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43139206837) also passed. No APK rebuild/replacement was published for that tooling-only correction.
+
+## Future release track — Google Play and sustainable tiers
+
+**Roadmap decision (2026-11-11):** CourtQuest Pro is intended for eventual Google Play distribution and may offer free and paid tiers. These are future requirements, not claims of current compliance or approved monetization. Do not block the current Player Mode implementation on publishing or billing work, but avoid architecture that makes compliance or entitlements difficult.
+
+### Google Play readiness (mandatory before store publication)
+
+- Recheck the then-current Google Play Developer Program Policies, Developer Distribution Agreement, Android target API deadlines, SDK policies and Play Console requirements at submission time. Requirements can change.
+- Prepare a Play-ready Android App Bundle (AAB), release signing/Play App Signing and upgrade continuity; retain existing `com.courtquestpro` application identity and signing history. Test internal/closed tracks before production.
+- Provide accurate store listing, screenshots, content rating, app access instructions, privacy policy, Data safety declarations, permissions disclosures and account/data deletion workflows where applicable.
+- Verify Google Play Families/children's policies and age/consent handling if targeting or admitting minors; obtain qualified privacy/legal review for school/student data, including applicable COPPA/FERPA and state requirements. Avoid behavioral advertising and inappropriate tracking of minors.
+- Audit third-party SDKs, analytics, crash reporting, security, accessibility, content/IP licenses, device compatibility, performance, and Play pre-launch reports. Maintain a documented compliance checklist and submission evidence.
+- Treat compliance as a recurring release gate, not a one-time certification; review changes to Play policies before each production update.
+
+### Possible free / paid offering (decision deferred)
+
+- Preserve a genuinely useful free player experience: onboarding, core solo training, drill recording, saved results and basic Progress. Do not paywall access to a school-required assignment or essential privacy/accessibility controls.
+- Evaluate optional premium enhancements such as advanced analytics, expanded programs, sophisticated Mission Builder recommendations and convenience features; separately evaluate a school/team license with administrator-authorized purchasing.
+- Keep account identity, locally saved training evidence, team permissions and entitlement state separate. A subscription expiration must not erase a player's training history, invalidate receipts or remove required school access.
+- If selling digital features/subscriptions in a Play-distributed app, implement the applicable Google Play Billing requirements and current purchase/subscription disclosure, acknowledgment, restoration, cancellation and refund policies; check available exceptions rather than assuming them.
+- Model entitlements server-verified where appropriate, with offline grace behavior, purchase restore, refund/revocation handling and tests against forged client-side premium flags. Do not add billing SDKs or purchase prompts until pricing, tiers, audience and policy route are approved.
+- Future pricing, exact feature gates, subscription versus one-time purchase and school licensing remain **undecided**. Avoid advertising a paid tier as already available.
+
+**Scheduling:** add a dedicated Play readiness and monetization architecture review before public beta; execute store submission verification and billing acceptance only after the native player and authorized team foundations are stable. School pilots require their own privacy/security gates regardless of Play publication.
