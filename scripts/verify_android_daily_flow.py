@@ -46,8 +46,14 @@ def nodes(label=None):
 
 
 def find(items, text):
-    return next((node for node in items if any(text.casefold() in [line.strip().casefold() for line in value.splitlines()]
-                 for value in (node.get('text', ''), node.get('content-desc', '')))), None)
+    for node in items:
+        bounds = list(map(int, re.findall(r'-?\d+', node.get('bounds', ''))))
+        if len(bounds) != 4 or bounds[2] <= bounds[0] or bounds[3] <= bounds[1]:
+            continue
+        if any(text.casefold() in [line.strip().casefold() for line in value.splitlines()]
+               for value in (node.get('text', ''), node.get('content-desc', ''))):
+            return node
+    return None
 
 
 def require(items, text):
@@ -308,8 +314,7 @@ def main():
     assert draft_state['drillDrafts'][0]['successful'] == 1 and draft_state['drillDrafts'][0]['attempted'] == 2
     require(nodes('candidate-large-type-drill'), 'Save results')
     screenshot('candidate-large-type-drill')
-    scroll_to('TRAINING CLOCK')
-    require(nodes(), 'Start')
+    scroll_to('Start')
     scroll_to('Reset clock')
     screenshot('candidate-large-type-clock')
     shell('settings', 'put', 'system', 'font_scale', '1.0')
