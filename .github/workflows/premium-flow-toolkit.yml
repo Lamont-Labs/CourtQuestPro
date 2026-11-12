@@ -61,6 +61,7 @@ jobs:
             artifacts/premium-flow-toolkit/
             .maestro/tests/
             dependency-resolution.txt
+            app/build/outputs/apk/debug/app-debug.apk
             app/build/test-results/testDebugUnitTest/
             app/build/reports/lint-results-debug.*
           if-no-files-found: warn
