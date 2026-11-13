@@ -51,17 +51,17 @@ jobs:
               return m.group(1),int(m.group(2))
           old,new=info('previous/badging.txt'),info('dist/badging.txt')
           assert old[0]==new[0]=='com.courtquestpro',(old,new)
-          assert new[1]>=17 and new[1]>old[1],('Update must exceed installed v16 and previous release',old,new)
+          assert new[1]>=18 and new[1]>old[1],('Update must exceed installed v17 and previous release',old,new)
           assert cert('previous/cert.txt')==cert('dist/cert.txt'),'Signing certificate changed'
           print('In-place update metadata verified:',old,'->',new)
           PY
-          cp "$new" dist/CourtQuestPro-Update-v17.apk
-          sha256sum dist/CourtQuestPro-Update-v17.apk > dist/CourtQuestPro-Update-v17.apk.sha256
+          cp "$new" dist/CourtQuestPro-Update-v18.apk
+          sha256sum dist/CourtQuestPro-Update-v18.apk > dist/CourtQuestPro-Update-v18.apk.sha256
       - name: Publish verified phone update
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          tag=courtquest-phone-update-v17
-          gh release create "$tag" dist/CourtQuestPro-Update-v17.apk dist/CourtQuestPro-Update-v17.apk.sha256 dist/apk-manifest.json --target "$GITHUB_SHA" --title 'CourtQuest Pro — in-place Android update v17' --notes 'Install over the existing CourtQuest Pro app. Original package and signing certificate verified against the previous development release; version code 17 exceeds previously installed v16; compact navigation artwork cards and editable jersey number are included. Do not uninstall the existing app. Device-specific installation and saved-data retention must still be confirmed on the owner phone.' --prerelease
+          tag=courtquest-phone-update-v18
+          gh release create "$tag" dist/CourtQuestPro-Update-v18.apk dist/CourtQuestPro-Update-v18.apk.sha256 dist/apk-manifest.json --target "$GITHUB_SHA" --title 'CourtQuest Pro — in-place Android update v18' --notes 'Install over the existing CourtQuest Pro app. Original package and signing certificate verified against the previous development release; version code 18 exceeds previously installed v17; navigation panel wraps its contents and approved sprite backgrounds are processed for transparency. Do not uninstall the existing app. Device-specific installation and saved-data retention must still be confirmed on the owner phone.' --prerelease
