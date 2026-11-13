@@ -234,6 +234,7 @@ def main():
     assert saved['totalXp'] == 0 and saved.get('practiceSession') is None
     assert len(saved['drillResults']) == 1
     click('View Progress')
+    click('History')
     click('5 successful / 6 attempts')
     snap('progress')
 
