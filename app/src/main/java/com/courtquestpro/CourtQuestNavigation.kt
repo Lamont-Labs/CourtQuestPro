@@ -63,7 +63,6 @@ import kotlinx.coroutines.withContext
 
 private const val NAV_ATLAS_FILE = "courtquest_navigation_atlas.png"
 private const val DEFAULT_JERSEY_NUMBER = 23
-internal val jerseyColors = linkedMapOf("Black" to Color(0xFF15171C), "Orange" to Color(0xFFFF6A00), "White" to Color(0xFFF4F1E9), "Blue" to Color(0xFF2366D9), "Red" to Color(0xFFD52A36), "Green" to Color(0xFF178A56), "Purple" to Color(0xFF803BC1), "Gold" to Color(0xFFFFC342))
 @Volatile private var cachedNavigationAtlas: ImageBitmap? = null
 private val navigationAtlasLock = Any()
 
@@ -74,7 +73,6 @@ internal fun CourtQuestNavigation(
     modifier: Modifier = Modifier,
     selected: PlayerTab,
     jerseyNumber: Int?,
-    jerseyColor: String,
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
     onSelect: (PlayerTab) -> Unit
@@ -130,7 +128,6 @@ internal fun CourtQuestNavigation(
                             tab = tab,
                             selected = selected == tab,
                             jerseyNumber = displayedJerseyNumber(jerseyNumber),
-                            jerseyColor = jerseyColor,
                             atlas = atlas,
                             onClick = { onSelect(tab) }
                         )
@@ -194,7 +191,6 @@ private fun NavigationArtCard(
     tab: PlayerTab,
     selected: Boolean,
     jerseyNumber: Int,
-    jerseyColor: String,
     atlas: ImageBitmap?,
     onClick: () -> Unit
 ) {
@@ -251,8 +247,7 @@ private fun NavigationArtCard(
 @Composable
 internal fun CourtQuestJerseyArtwork(
     jerseyNumber: Int?,
-    modifier: Modifier = Modifier,
-    jerseyColor: String = "Black"
+    modifier: Modifier = Modifier
 ) {
     val atlas = rememberNavigationAtlas()
     Box(modifier, contentAlignment = Alignment.Center) {
