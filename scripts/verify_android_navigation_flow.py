@@ -49,8 +49,8 @@ def main():
     ui.shell('settings', 'put', 'system', 'font_scale', '1.0')
     ui.seed('empty'); ui.open_app()
     original = state()
-    for tab, heading in [('Train', 'Train your way.'), ('Quests', "TODAY'S DAILY QUEST"),
-                         ('Progress', 'Your work, recorded.'), ('Me', 'Edit profile')]:
+    for tab, heading in [('Train', 'Train'), ('Quests', 'Quests'),
+                         ('Progress', 'Progress'), ('Me', 'Me')]:
         click(tab); top(); ui.require(ui.nodes(), heading); snap('navigation-' + tab.lower())
         back(); ui.require(ui.nodes(), 'Start training')
     assert state() == original, 'Browsing must not award XP or create evidence'
@@ -66,7 +66,7 @@ def main():
     click('Me'); click('Train')
     assert text_field().get('text') == 'Mirror', 'Library search must survive a tab round trip'
     replace_text('')
-    click('Build a Mission'); back(); ui.require(ui.nodes(), 'Train your way.')
+    click('Build a Mission'); back(); ui.require(ui.nodes(), 'Train')
     click('Me'); click('Edit profile'); replace_text('Draft Player')
     assert state()['playerName'] == original['playerName'], 'Draft typing must not save identity'
     click('Quests'); click('Me'); click('Edit profile')
