@@ -5,7 +5,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -14,6 +15,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun QuestsScreen(save: SaveState, today: String, onTraining: () -> Unit, onBuild: () -> Unit,
     onResumeMission: () -> Unit, onProgress: () -> Unit) {
+    var section by rememberSaveable { mutableStateOf("Active") }
     val catalog = TrainingLibrary.catalog(save)
     val slots = if (save.activeDate == today) save.slots else emptyList()
     val recordedIds = save.drillResults.orEmpty().filter { result ->
@@ -24,10 +26,13 @@ internal fun QuestsScreen(save: SaveState, today: String, onTraining: () -> Unit
     val active = MissionTraining.active(save)
     val version = active?.let { MissionTraining.version(save, it) }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp)) {
-        item { AppHeader("A little work. A better game.", "Choose a session. Keep a record of your work.") }
+        item { AppHeader("Quests", "Training goals and completed Missions") }
+        item { Row(Modifier.padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf("Active", "Completed").forEach { tab -> FilterChip(section == tab, { section = tab }, label = { Text(tab) }) }
+        } }
         item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                if (active != null) CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(20.dp), highlighted = true) {
+                if (section == "Active" && active != null) CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(20.dp), highlighted = true) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         CourtEyebrow("YOUR ACTIVE MISSION")
                         Text(version?.title ?: "Your saved Mission", style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
@@ -35,7 +40,7 @@ internal fun QuestsScreen(save: SaveState, today: String, onTraining: () -> Unit
                         CourtQuestPrimaryButton(onResumeMission, Modifier.fillMaxWidth()) { Text("Resume Mission") }
                     }
                 }
-                CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(24.dp), highlighted = active == null) {
+                if (section == "Active") CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp), highlighted = active == null) {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         CourtEyebrow("TODAY'S DAILY QUEST")
                         Text(if (slots.isNotEmpty() && done == slots.size) "Work recorded." else "Build all six skills.",
@@ -53,7 +58,7 @@ internal fun QuestsScreen(save: SaveState, today: String, onTraining: () -> Unit
                             style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textSecondary)
                     }
                 }
-                slots.forEach { slot ->
+                if (section == "Active") slots.forEach { slot ->
                     val drill = catalog.firstOrNull { it.id == slot.drillId }
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(if (slot.id in recordedIds) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
@@ -64,17 +69,21 @@ internal fun QuestsScreen(save: SaveState, today: String, onTraining: () -> Unit
                         }
                     }
                 }
+                if (section == "Active") {
                 CourtRule()
                 CourtHeading("Make your own Mission")
                 Text("Choose a short session or build a longer lineup. Saved versions keep the same drills and targets.",
                     style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textSecondary)
                 OutlinedButton(onBuild, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Build a Mission") }
+                }
+                if (section == "Completed") {
                 CourtHeading("Missions you finished")
                 val count = save.missionReceipts.orEmpty().map { it.id }.distinct().size
                 Text(if (count == 0) "No completed Missions yet. Finish a saved Mission to keep its completion receipt in Progress."
                     else "$count completed ${if (count == 1) "Mission" else "Missions"} · Self-recorded · Saved on this device",
                     style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textSecondary)
                 OutlinedButton(onProgress, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("View saved results") }
+                }
             }
         }
     }
