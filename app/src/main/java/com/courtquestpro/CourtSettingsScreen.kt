@@ -1,10 +1,8 @@
 package com.courtquestpro
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,14 +25,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun SettingsScreen(playerName: String, difficulty: String, jerseyNumber: Int?, jerseyColor: String, onDifficulty: (String) -> Unit, onSaveName: (String) -> Unit, onSaveJersey: (Int) -> Unit, onSaveJerseyColor: (String) -> Unit, onBack: () -> Unit) {
+internal fun SettingsScreen(playerName: String, difficulty: String, jerseyNumber: Int?, onDifficulty: (String) -> Unit, onSaveName: (String) -> Unit, onSaveJersey: (Int) -> Unit, onBack: () -> Unit) {
     var name by rememberSaveable(playerName) { mutableStateOf(playerName) }
     var savedNotice by rememberSaveable { mutableStateOf(false) }
     var jerseyDraft by rememberSaveable(jerseyNumber) { mutableStateOf((jerseyNumber ?: 23).toString()) }
     var jerseySaved by rememberSaveable { mutableStateOf(false) }
-    var colorDraft by rememberSaveable(jerseyColor) { mutableStateOf(jerseyColor) }
     val keyboard = LocalSoftwareKeyboardController.current
     val saveName = {
         if (name.isNotBlank()) {
@@ -64,7 +60,7 @@ internal fun SettingsScreen(playerName: String, difficulty: String, jerseyNumber
                 color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                CourtQuestJerseyArtwork(jerseyDraft.toIntOrNull()?.coerceIn(0, 99), Modifier.size(88.dp), colorDraft)
+                CourtQuestJerseyArtwork(jerseyDraft.toIntOrNull()?.coerceIn(0, 99), Modifier.size(88.dp))
                 OutlinedTextField(
                     value = jerseyDraft,
                     onValueChange = { value ->
@@ -93,35 +89,6 @@ internal fun SettingsScreen(playerName: String, difficulty: String, jerseyNumber
             if (jerseySaved) Text("Jersey number saved", color = CourtQuestDesign.accent,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
-            CourtHeading("Jersey color")
-            Text("Select a jersey color. Your choice is saved to your player profile.",
-                color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
-            androidx.compose.foundation.layout.FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                jerseyColors.forEach { (label, swatch) ->
-                    val selected = colorDraft == label
-                    Row(
-                        Modifier.clip(RoundedCornerShape(14.dp))
-                            .background(if (selected) CourtQuestDesign.warmSurface else CourtQuestDesign.surface)
-                            .border(if (selected) 2.dp else 1.dp,
-                                if (selected) CourtQuestDesign.accent else CourtQuestDesign.border,
-                                RoundedCornerShape(14.dp))
-                            .clickable {
-                                colorDraft = label
-                                onSaveJerseyColor(label)
-                            }
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(7.dp)
-                    ) {
-                        Box(Modifier.size(20.dp).clip(RoundedCornerShape(6.dp))
-                            .background(swatch).border(1.dp, CourtQuestDesign.border, RoundedCornerShape(6.dp)))
-                        Text(label, color = CourtQuestDesign.textPrimary)
-                    }
-                }
-            }
             CourtRule()
             CourtHeading("Find your level")
             Text("Choose the challenge that fits your current game. This applies when a new daily workout is created.",
