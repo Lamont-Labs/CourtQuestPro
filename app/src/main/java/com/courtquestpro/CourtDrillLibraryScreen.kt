@@ -66,7 +66,7 @@ internal fun DrillLibraryScreen(
         }
         item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                if (section == "Custom" || swapSlotId != null) CourtQuestPrimaryButton(onNew, Modifier.fillMaxWidth()) {
+                CourtQuestPrimaryButton(onNew, Modifier.fillMaxWidth()) {
                     Icon(Icons.Default.Add, null, Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text("Create custom drill")
                 }
                 if (swapSlotId == null && section == "Library") OutlinedButton(onMissionBuilder, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Build a Mission") }
