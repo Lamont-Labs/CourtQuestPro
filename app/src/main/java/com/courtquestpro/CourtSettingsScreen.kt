@@ -20,14 +20,17 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun SettingsScreen(playerName: String, difficulty: String, onDifficulty: (String) -> Unit, onSaveName: (String) -> Unit, onBack: () -> Unit) {
+internal fun SettingsScreen(playerName: String, difficulty: String, jerseyNumber: Int?, onDifficulty: (String) -> Unit, onSaveName: (String) -> Unit, onSaveJersey: (Int) -> Unit, onBack: () -> Unit) {
     var name by rememberSaveable(playerName) { mutableStateOf(playerName) }
     var savedNotice by rememberSaveable { mutableStateOf(false) }
+    var jerseyDraft by rememberSaveable(jerseyNumber) { mutableStateOf((jerseyNumber ?: 23).toString()) }
+    var jerseySaved by rememberSaveable { mutableStateOf(false) }
     val keyboard = LocalSoftwareKeyboardController.current
     val saveName = {
         if (name.isNotBlank()) {
@@ -51,6 +54,41 @@ internal fun SettingsScreen(playerName: String, difficulty: String, onDifficulty
                 modifier = Modifier.fillMaxWidth()) { Text("Save name") }
             if (savedNotice) Text("Player name saved", color = CourtQuestDesign.accent,
                 style = MaterialTheme.typography.bodyMedium, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+            CourtRule()
+            CourtHeading("Your jersey")
+            Text("Choose the number displayed on your navigation jersey. Enter 0–99.",
+                color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                CourtQuestJerseyArtwork(jerseyDraft.toIntOrNull()?.coerceIn(0, 99), Modifier.size(88.dp))
+                OutlinedTextField(
+                    value = jerseyDraft,
+                    onValueChange = { value ->
+                        jerseyDraft = value.filter { it.isDigit() }.take(2)
+                        jerseySaved = false
+                    },
+                    label = { Text("Jersey number") },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(16.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { keyboard?.hide() })
+                )
+            }
+            CourtQuestPrimaryButton(
+                onClick = {
+                    jerseyDraft.toIntOrNull()?.takeIf { it in 0..99 }?.let {
+                        onSaveJersey(it)
+                        jerseySaved = true
+                        keyboard?.hide()
+                    }
+                },
+                enabled = jerseyDraft.toIntOrNull()?.let { it in 0..99 && it != (jerseyNumber ?: 23) } == true,
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("Save jersey number") }
+            if (jerseySaved) Text("Jersey number saved", color = CourtQuestDesign.accent,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
             CourtRule()
             CourtHeading("Find your level")
             Text("Choose the challenge that fits your current game. This applies when a new daily workout is created.",
