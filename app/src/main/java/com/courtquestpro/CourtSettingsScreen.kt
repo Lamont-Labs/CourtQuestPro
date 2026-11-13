@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +27,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun SettingsScreen(playerName: String, difficulty: String, jerseyNumber: Int?, jerseyColor: String, onDifficulty: (String) -> Unit, onSaveName: (String) -> Unit, onSaveJersey: (Int) -> Unit, onSaveJerseyColor: (String) -> Unit, onBack: () -> Unit) {
     var name by rememberSaveable(playerName) { mutableStateOf(playerName) }
