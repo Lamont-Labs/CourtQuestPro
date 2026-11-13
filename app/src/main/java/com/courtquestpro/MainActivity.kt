@@ -593,7 +593,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     "quests" -> QuestsScreen(save, today, onTraining = { openTraining() }, onBuild = { openMissionBuilder() },
                         onResumeMission = { openMission() }, onProgress = { navigate("career") })
                     "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") })
-                    "settings" -> SettingsScreen(save.playerName, save.difficulty, onBack = { goBack() }, onDifficulty = { save.difficulty = it; refresh() }, onSaveName = {
+                    "settings" -> SettingsScreen(save.playerName, save.difficulty, save.jerseyNumber, onBack = { goBack() }, onDifficulty = { save.difficulty = it; refresh() }, onSaveJersey = { save.jerseyNumber = it; refresh() }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
                     })
                     else -> HomeContent()
