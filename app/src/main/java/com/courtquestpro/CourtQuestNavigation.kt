@@ -112,30 +112,21 @@ internal fun CourtQuestNavigation(
                     }
                     .testTag("player-navigation-drawer")
             ) {
-                val railShape = RoundedCornerShape(topEnd = 26.dp, bottomEnd = 26.dp)
-                CourtQuestPremiumSurface(
-                    Modifier.width(84.dp).wrapContentHeight()
-                        .shadow(18.dp, railShape, spotColor = CourtQuestDesign.accentVivid.copy(alpha = 0.52f))
-                        .clip(railShape)
-                        .border(1.25.dp, CourtQuestDesign.accent.copy(alpha = 0.74f), railShape),
+                // Floating individual cards: no opaque full-height backing rail.
+                LazyColumn(
+                    Modifier.width(84.dp).wrapContentHeight().selectableGroup(),
                     contentPadding = PaddingValues(horizontal = 3.dp, vertical = 6.dp),
-                    blurred = true
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterVertically)
                 ) {
-                    LazyColumn(
-                        Modifier.fillMaxWidth().selectableGroup(),
-                        contentPadding = PaddingValues(vertical = 6.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterVertically)
-                    ) {
-                        items(PlayerTab.entries, key = { it.route }) { tab ->
-                            NavigationArtCard(
-                                tab = tab,
-                                selected = selected == tab,
-                                jerseyNumber = displayedJerseyNumber(jerseyNumber),
-                                atlas = atlas,
-                                onClick = { onSelect(tab) }
-                            )
-                        }
+                    items(PlayerTab.entries, key = { it.route }) { tab ->
+                        NavigationArtCard(
+                            tab = tab,
+                            selected = selected == tab,
+                            jerseyNumber = displayedJerseyNumber(jerseyNumber),
+                            atlas = atlas,
+                            onClick = { onSelect(tab) }
+                        )
                     }
                 }
                 Box(
