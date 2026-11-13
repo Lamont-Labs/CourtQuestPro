@@ -37,6 +37,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -59,6 +63,7 @@ import kotlinx.coroutines.withContext
 
 private const val NAV_ATLAS_FILE = "courtquest_navigation_atlas.png"
 private const val DEFAULT_JERSEY_NUMBER = 23
+internal val jerseyColors = linkedMapOf("Black" to Color(0xFF15171C), "Orange" to Color(0xFFFF6A00), "White" to Color(0xFFF4F1E9), "Blue" to Color(0xFF2366D9), "Red" to Color(0xFFD52A36), "Green" to Color(0xFF178A56), "Purple" to Color(0xFF803BC1), "Gold" to Color(0xFFFFC342))
 @Volatile private var cachedNavigationAtlas: ImageBitmap? = null
 private val navigationAtlasLock = Any()
 
@@ -69,6 +74,7 @@ internal fun CourtQuestNavigation(
     modifier: Modifier = Modifier,
     selected: PlayerTab,
     jerseyNumber: Int?,
+    jerseyColor: String,
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
     onSelect: (PlayerTab) -> Unit
@@ -187,6 +193,7 @@ private fun NavigationArtCard(
     tab: PlayerTab,
     selected: Boolean,
     jerseyNumber: Int,
+    jerseyColor: String,
     atlas: ImageBitmap?,
     onClick: () -> Unit
 ) {
@@ -212,6 +219,7 @@ private fun NavigationArtCard(
         ) {
             Box(Modifier.size(56.dp), contentAlignment = Alignment.Center) {
                 if (atlas != null) NavigationSpriteArtwork(atlas, tab.ordinal, Modifier.fillMaxSize())
+                if (tab == PlayerTab.ME) JerseyColorOverlay(jerseyColor, Modifier.fillMaxSize())
                 if (tab == PlayerTab.ME) {
                     Text(
                         jerseyNumber.toString(),
@@ -243,11 +251,13 @@ private fun NavigationArtCard(
 @Composable
 internal fun CourtQuestJerseyArtwork(
     jerseyNumber: Int?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    jerseyColor: String = "Black"
 ) {
     val atlas = rememberNavigationAtlas()
     Box(modifier, contentAlignment = Alignment.Center) {
         if (atlas != null) NavigationSpriteArtwork(atlas, PlayerTab.ME.ordinal, Modifier.fillMaxSize())
+        JerseyColorOverlay(jerseyColor, Modifier.fillMaxSize())
         Text(
             displayedJerseyNumber(jerseyNumber).toString(),
             Modifier.align(Alignment.Center).offset(y = (-8).dp),
@@ -333,4 +343,24 @@ private fun removeNavigationTileBackdrops(source: Bitmap): Bitmap {
         }
     }
     return Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888)
+}
+
+@Composable
+private fun JerseyColorOverlay(colorName: String, modifier: Modifier = Modifier) {
+    val color = jerseyColors[colorName] ?: return
+    if (colorName == "Black") return
+    // Confine tint to the jersey torso; leave the ball and surrounding glow intact.
+    Canvas(modifier) {
+        val left = size.width * 0.32f
+        val top = size.height * 0.23f
+        val width = size.width * 0.36f
+        val height = size.height * 0.49f
+        drawRoundRect(
+            color = color,
+            topLeft = Offset(left, top),
+            size = Size(width, height),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.width * 0.045f),
+            alpha = 0.48f
+        )
+    }
 }
