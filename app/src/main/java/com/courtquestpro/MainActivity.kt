@@ -358,7 +358,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             containerColor = Color.Transparent,
         ) { padding ->
             Box(Modifier.fillMaxSize()) {
-                Box(Modifier.fillMaxSize().padding(start = if (onboardingComplete && navigationExpanded && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")) 120.dp else 0.dp)) {
+                Box(Modifier.fillMaxSize()) {
             if (!onboardingComplete) {
                 CourtOnboarding(
                     modifier = Modifier.padding(padding).consumeWindowInsets(padding),
