@@ -1,6 +1,8 @@
 package com.courtquestpro
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color as AndroidColor
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -294,7 +296,7 @@ private fun rememberNavigationAtlas(): ImageBitmap? {
             runCatching {
                 cachedNavigationAtlas ?: synchronized(navigationAtlasLock) {
                     cachedNavigationAtlas ?: context.assets.open(NAV_ATLAS_FILE).use { stream ->
-                        BitmapFactory.decodeStream(stream)?.asImageBitmap()
+                        BitmapFactory.decodeStream(stream)?.let(::removeNavigationTileBackdrops)?.asImageBitmap()
                     }.also { cachedNavigationAtlas = it }
                 }
             }.getOrNull()
@@ -302,4 +304,42 @@ private fun rememberNavigationAtlas(): ImageBitmap? {
         atlas = loaded
     }
     return atlas
+}
+
+/**
+ * The approved atlas is RGB artwork with opaque black tile backgrounds.
+ * Make near-black pixels transparent without replacing the illustrations.
+ * Original packaged asset is left untouched. Processed once off the UI thread.
+ */
+private fun removeNavigationTileBackdrops(source: Bitmap): Bitmap {
+    val width = source.width
+    val height = source.height
+    val pixels = IntArray(width * height)
+    source.getPixels(pixels, 0, width, 0, 0, width, height)
+    val cellWidth = width / 5
+    for (cell in 0 until 5) {
+        val left = cell * cellWidth
+        val right = if (cell == 4) width else (cell + 1) * cellWidth
+        for (y in 0 until height) {
+            for (x in left until right) {
+                val index = y * width + x
+                val color = pixels[index]
+                val red = AndroidColor.red(color)
+                val green = AndroidColor.green(color)
+                val blue = AndroidColor.blue(color)
+                // The source has a nearly-black matte. Preserve bright art and
+                // emissive glow while feathering the matte out to transparency.
+                val strongest = maxOf(red, green, blue)
+                val alpha = when {
+                    strongest <= 12 -> 0
+                    strongest >= 62 -> 255
+                    else -> ((strongest - 12) * 255 / 50).coerceIn(0, 255)
+                }
+                pixels[index] = AndroidColor.argb(
+                    AndroidColor.alpha(color) * alpha / 255, red, green, blue
+                )
+            }
+        }
+    }
+    return Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888)
 }
