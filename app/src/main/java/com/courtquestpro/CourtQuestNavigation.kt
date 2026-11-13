@@ -92,7 +92,7 @@ internal fun CourtQuestNavigation(
             exit = slideOutHorizontally(tween(200)) { -it } + fadeOut(tween(200))
         ) {
             Box(
-                Modifier.width(108.dp).fillMaxHeight()
+                Modifier.width(108.dp).wrapContentHeight()
                     .pointerInput(expanded) {
                         var dragged = 0f
                         detectHorizontalDragGestures(
@@ -112,7 +112,7 @@ internal fun CourtQuestNavigation(
             ) {
                 val railShape = RoundedCornerShape(topEnd = 26.dp, bottomEnd = 26.dp)
                 CourtQuestPremiumSurface(
-                    Modifier.width(84.dp).fillMaxHeight()
+                    Modifier.width(84.dp).wrapContentHeight()
                         .shadow(18.dp, railShape, spotColor = CourtQuestDesign.accentVivid.copy(alpha = 0.52f))
                         .clip(railShape)
                         .border(1.25.dp, CourtQuestDesign.accent.copy(alpha = 0.74f), railShape),
@@ -120,7 +120,7 @@ internal fun CourtQuestNavigation(
                     blurred = true
                 ) {
                     LazyColumn(
-                        Modifier.fillMaxSize().selectableGroup(),
+                        Modifier.fillMaxWidth().selectableGroup(),
                         contentPadding = PaddingValues(vertical = 6.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterVertically)
