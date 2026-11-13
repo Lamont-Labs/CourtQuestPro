@@ -74,15 +74,34 @@ jobs:
           export COURTQUEST_EMULATOR_PID=$!
           sleep 10
           if ! kill -0 "$COURTQUEST_EMULATOR_PID"; then cat "$COURTQUEST_UI_EVIDENCE/emulator.log"; exit 1; fi
+          trap 'status=$?; echo "::error title=Android flow failed::Command: ${BASH_COMMAND} (exit ${status})"; exit "$status"' ERR
+          echo "::group::Baseline daily flow"
           python3 -u scripts/verify_android_daily_flow.py baseline /tmp/courtquest-build5.apk
+          echo "::endgroup::"
+          echo "::group::Baseline game flow"
           python3 -u scripts/verify_android_game_flow.py baseline /tmp/courtquest-build5.apk
+          echo "::endgroup::"
+          echo "::group::Candidate library flow"
           python3 -u scripts/verify_android_library_flow.py app/build/outputs/apk/debug/app-debug.apk
+          echo "::endgroup::"
+          echo "::group::Candidate mission flow"
           python3 -u scripts/verify_android_mission_flow.py app/build/outputs/apk/debug/app-debug.apk
+          echo "::endgroup::"
+          echo "::group::Candidate navigation flow"
           python3 -u scripts/verify_android_navigation_flow.py app/build/outputs/apk/debug/app-debug.apk
+          echo "::endgroup::"
+          echo "::group::Candidate daily flow"
           python3 -u scripts/verify_android_daily_flow.py candidate app/build/outputs/apk/debug/app-debug.apk
+          echo "::endgroup::"
+          echo "::group::Candidate game flow"
           python3 -u scripts/verify_android_game_flow.py candidate app/build/outputs/apk/debug/app-debug.apk
+          echo "::endgroup::"
+          echo "::group::Premium flow checks"
           bash scripts/run_premium_flow_checks.sh emulator-5562 app/build/outputs/apk/debug/app-debug.apk
+          echo "::endgroup::"
+          echo "::group::APK verification"
           python3 scripts/verify_apk.py --apk app/build/outputs/apk/debug/app-debug.apk --build-tools "${ANDROID_HOME}/build-tools/35.0.1" --output artifacts/apk-verified
+          echo "::endgroup::"
           git rev-parse HEAD HEAD:app/src > artifacts/source-revisions.txt
       - name: Capture Android diagnostics
         if: always()
