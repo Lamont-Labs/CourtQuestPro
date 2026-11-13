@@ -20,8 +20,16 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                 CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(24.dp), highlighted = true) {
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         CourtEyebrow("PLAYER PROFILE")
-                        Text(save.playerName.ifBlank { "Your player profile" },
-                            color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineLarge)
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            CourtQuestJerseyArtwork(save.jerseyNumber, Modifier.size(88.dp))
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(save.playerName.ifBlank { "Your player profile" },
+                                    color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineLarge)
+                                Text("Jersey #${displayedJerseyNumber(save.jerseyNumber)}",
+                                    color = CourtQuestDesign.accent, style = MaterialTheme.typography.titleMedium)
+                            }
+                        }
                         Text("${save.difficulty} · ${save.weeklyPlan} focus",
                             color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyLarge)
                         CourtQuestPrimaryButton(onEdit, Modifier.fillMaxWidth()) {
