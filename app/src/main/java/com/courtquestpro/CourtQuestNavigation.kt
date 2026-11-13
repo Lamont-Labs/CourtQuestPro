@@ -130,6 +130,7 @@ internal fun CourtQuestNavigation(
                             tab = tab,
                             selected = selected == tab,
                             jerseyNumber = displayedJerseyNumber(jerseyNumber),
+                            jerseyColor = jerseyColor,
                             atlas = atlas,
                             onClick = { onSelect(tab) }
                         )
