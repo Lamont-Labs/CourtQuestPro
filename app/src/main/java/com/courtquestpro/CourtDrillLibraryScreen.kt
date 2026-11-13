@@ -50,7 +50,7 @@ internal fun DrillLibraryScreen(
             (query.isBlank() || listOf(drill.title, drill.category, drill.instructions).any { it.contains(query.trim(), true) })
     }
     val suggestions = TrainingLibrary.suggestions(save)
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp),
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item { AppHeader(if (swapSlotId == null) "Train your way." else "Make the swap.",
             if (swapSlotId == null) "Find a drill. Make it yours. Put in the work." else "Choose a suitable drill for your untouched daily slot.") }
@@ -150,7 +150,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
         text = { Text("It will leave your library. Saved results and queued drills keep their original instructions and targets.") },
         confirmButton = { TextButton({ confirmArchive = false; onArchive() }) { Text("Archive drill") } },
         dismissButton = { TextButton({ confirmArchive = false }) { Text("Keep drill") } })
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         item { AppHeader(drill.title, "${drill.category} · ${drill.level} · ${drill.minutes} min") }
         item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
