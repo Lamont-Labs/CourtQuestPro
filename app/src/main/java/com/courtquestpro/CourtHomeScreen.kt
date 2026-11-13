@@ -51,18 +51,18 @@ internal fun HomeScreen(
         .firstOrNull { it.startsWith("${today.dayOfWeek.value}:") }?.substringAfter(":")
     val minutes = save.slots.sumOf { slot -> drills.firstOrNull { it.id == slot.drillId }?.minutes ?: 0 }
 
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp)) {
         item {
             AppHeader(save.playerName.takeIf { it.isNotBlank() }?.let { "$it’s court." } ?: "Your court.",
                 today.format(DateTimeFormatter.ofPattern("EEEE, MMMM d")))
         }
         item {
-            Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 val activeMission = MissionTraining.active(save)
                 if (activeMission != null) {
                     val version = MissionTraining.version(save, activeMission)
                     val next = MissionTraining.currentIndex(save, activeMission)
-                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(24.dp), highlighted = true) {
+                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp), highlighted = true) {
                         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                             CourtEyebrow("MISSION IN PROGRESS")
                             Text(version?.title ?: "Your Mission", style = MaterialTheme.typography.headlineLarge, color = CourtQuestDesign.textPrimary)
@@ -76,8 +76,8 @@ internal fun HomeScreen(
                   Box(Modifier.fillMaxWidth()) {
                     Icon(painterResource(R.drawable.courtquest_half_court), contentDescription = null,
                         tint = CourtQuestDesign.accent.copy(alpha = 0.10f),
-                        modifier = Modifier.size(230.dp).align(Alignment.TopEnd).offset(x = 62.dp, y = 18.dp))
-                    Column(Modifier.fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        modifier = Modifier.size(160.dp).align(Alignment.TopEnd).offset(x = 62.dp, y = 18.dp))
+                    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             CourtEyebrow("DAILY TRAINING", Modifier.weight(1f))
                             CourtStatus(if (done == 6) "Complete" else if (resumable) "In progress" else "Ready")
@@ -86,7 +86,7 @@ internal fun HomeScreen(
                             done == 6 -> "Work put in."
                             resumable -> "Back to work."
                             else -> "Build your game."
-                        }, style = MaterialTheme.typography.displaySmall, color = CourtQuestDesign.textPrimary)
+                        }, style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
                         Text("${save.slots.size} skill drills · $minutes min",
                             style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textSecondary)
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -128,7 +128,7 @@ internal fun HomeScreen(
                 if (save.practiceSession != null) {
                     OutlinedButton(onResumePractice, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) { Text("Resume extra practice") }
                 }
-                CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(20.dp)) {
+                CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(14.dp)) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         CourtEyebrow("YOUR GAME PLAN")
                         Text("A session built around you.", style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
