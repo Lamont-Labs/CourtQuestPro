@@ -1,0 +1,67 @@
+name: CourtQuest in-place phone update
+on:
+  push:
+    branches: [repair/premium-flow-stabilization]
+    paths: ['.github/workflows/courtquest-phone-update.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  verify-and-release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install Android tools
+        run: |
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.1"
+      - name: Build and test
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon --console=plain :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
+      - name: Verify APK and existing release upgrade identity
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_apk.py --apk app/build/outputs/apk/debug/app-debug.apk --build-tools "${ANDROID_HOME}/build-tools/35.0.1" --output dist
+          mkdir -p previous
+          gh release download courtquest-dev-2026-11-05 --pattern 'CourtQuestPro-Android-debug.apk' --dir previous
+          old=previous/CourtQuestPro-Android-debug.apk
+          new=dist/CourtQuestPro-1.0.apk
+          tools="${ANDROID_HOME}/build-tools/35.0.1"
+          "$tools/apksigner" verify --print-certs "$old" > previous/cert.txt
+          "$tools/apksigner" verify --print-certs "$new" > dist/cert.txt
+          "$tools/aapt" dump badging "$old" > previous/badging.txt
+          "$tools/aapt" dump badging "$new" > dist/badging.txt
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          def cert(p):
+              return re.search(r'Signer #1 certificate SHA-256 digest:\s*([0-9a-f]+)',Path(p).read_text(),re.I).group(1).lower()
+          def info(p):
+              s=Path(p).read_text()
+              m=re.search(r"package: name='([^']+)' versionCode='(\d+)'",s)
+              assert m,p
+              return m.group(1),int(m.group(2))
+          old,new=info('previous/badging.txt'),info('dist/badging.txt')
+          assert old[0]==new[0]=='com.courtquestpro',(old,new)
+          assert new[1]>old[1],('Update version must increase',old,new)
+          assert cert('previous/cert.txt')==cert('dist/cert.txt'),'Signing certificate changed'
+          print('In-place update metadata verified:',old,'->',new)
+          PY
+          cp "$new" dist/CourtQuestPro-Update-v10.apk
+          sha256sum dist/CourtQuestPro-Update-v10.apk > dist/CourtQuestPro-Update-v10.apk.sha256
+      - name: Publish verified phone update
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          tag=courtquest-phone-update-v10
+          gh release create "$tag" dist/CourtQuestPro-Update-v10.apk dist/CourtQuestPro-Update-v10.apk.sha256 dist/apk-manifest.json --target "$GITHUB_SHA" --title 'CourtQuest Pro — in-place Android update v10' --notes 'Install over the existing CourtQuest Pro app. Original package and signing certificate verified against the previous development release; version code increased. Do not uninstall the existing app. Device-specific installation and saved-data retention must still be confirmed on the owner phone.' --prerelease
