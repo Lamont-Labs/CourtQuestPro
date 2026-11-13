@@ -75,6 +75,7 @@ data class MatchRecord(
 data class SaveState(
     var playerName: String = "",
     var jerseyNumber: Int? = null,
+    var jerseyColor: String = "Black",
     var difficulty: String = "Intermediate",
     var weeklyPlan: String = "Balanced",
     var trainingDays: MutableList<Int>? = null,
@@ -593,7 +594,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     "quests" -> QuestsScreen(save, today, onTraining = { openTraining() }, onBuild = { openMissionBuilder() },
                         onResumeMission = { openMission() }, onProgress = { navigate("career") })
                     "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") })
-                    "settings" -> SettingsScreen(save.playerName, save.difficulty, save.jerseyNumber, onBack = { goBack() }, onDifficulty = { save.difficulty = it; refresh() }, onSaveJersey = { save.jerseyNumber = it; refresh() }, onSaveName = {
+                    "settings" -> SettingsScreen(save.playerName, save.difficulty, save.jerseyNumber, save.jerseyColor, onBack = { goBack() }, onDifficulty = { save.difficulty = it; refresh() }, onSaveJersey = { save.jerseyNumber = it; refresh() }, onSaveJerseyColor = { save.jerseyColor = it; refresh() }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
                     })
                     else -> HomeContent()
@@ -609,6 +610,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 CourtQuestNavigation(
                     selected = PlayerNavigation.tab(routeHistory),
                     jerseyNumber = save.jerseyNumber,
+                    jerseyColor = save.jerseyColor,
                     expanded = navigationExpanded,
                     onExpandedChange = { navigationExpanded = it },
                     onSelect = { tab ->
