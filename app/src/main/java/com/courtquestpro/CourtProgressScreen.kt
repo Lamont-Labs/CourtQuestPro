@@ -25,7 +25,7 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
     val valid = recorded.filter { it.attempted > 0 && it.completed in 0..it.attempted }
     if (showAllGames) {
         BackHandler { showAllGames = false }
-        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp),
+        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)) {
             item { AppHeader("Game history", "${save.matches.size} recorded games") }
             item {
@@ -40,7 +40,7 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
     }
     if (showAllSessions) {
         BackHandler { showAllSessions = false }
-        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp),
+        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)) {
             item { AppHeader("Training history", "${recorded.size} recorded sessions") }
             item {
@@ -53,7 +53,7 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
         }
         return
     }
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp)) {
         item { AppHeader("Your work, recorded.", "${rankFor(save.totalXp)} · ${save.playerName.ifBlank { "Player development" }}") }
         item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
