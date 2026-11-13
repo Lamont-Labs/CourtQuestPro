@@ -27,6 +27,7 @@ internal fun DrillLibraryScreen(
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var filter by rememberSaveable { mutableStateOf("All") }
+    var section by rememberSaveable { mutableStateOf("Library") }
     var category by rememberSaveable(swapSlotId) { mutableStateOf(
         swapSlotId?.let { id -> save.slots.firstOrNull { it.id == id }?.drillId }
             ?.let { id -> TrainingLibrary.catalog(save).firstOrNull { it.id == id }?.category } ?: "All skills") }
@@ -44,6 +45,7 @@ internal fun DrillLibraryScreen(
     }
     val available = TrainingLibrary.available(save)
     val shown = available.filter { drill ->
+        (section != "Custom" || drill.id.startsWith("custom_")) &&
         (category == "All skills" || drill.category == category) &&
             (filter != "Mine" || drill.id.startsWith("custom_")) &&
             (filter != "Favorites" || drill.id in favorites) &&
@@ -52,14 +54,22 @@ internal fun DrillLibraryScreen(
     val suggestions = TrainingLibrary.suggestions(save)
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        item { AppHeader(if (swapSlotId == null) "Train your way." else "Make the swap.",
+        item { AppHeader(if (swapSlotId == null) "Train" else "Make the swap.",
             if (swapSlotId == null) "Find a drill. Make it yours. Put in the work." else "Choose a suitable drill for your untouched daily slot.") }
+        if (swapSlotId == null) item {
+            Row(Modifier.padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(false, onHome, label = { Text("Today") }, modifier = Modifier.heightIn(min = 48.dp))
+                listOf("Library", "Custom").forEach { tab ->
+                    FilterChip(section == tab, { section = tab; filter = "All"; category = "All skills"; query = "" }, label = { Text(tab) }, modifier = Modifier.heightIn(min = 48.dp))
+                }
+            }
+        }
         item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                CourtQuestPrimaryButton(onNew, Modifier.fillMaxWidth()) {
+                if (section == "Custom" || swapSlotId != null) CourtQuestPrimaryButton(onNew, Modifier.fillMaxWidth()) {
                     Icon(Icons.Default.Add, null, Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text("Create custom drill")
                 }
-                if (swapSlotId == null) OutlinedButton(onMissionBuilder, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Build a Mission") }
+                if (swapSlotId == null && section == "Library") OutlinedButton(onMissionBuilder, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Build a Mission") }
                 if (save.practiceSession != null) {
                     OutlinedButton(onResume, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
                         Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(8.dp)); Text("Resume practice")
@@ -69,12 +79,12 @@ internal fun DrillLibraryScreen(
                 }
                 OutlinedTextField(query, { query = it }, label = { Text("Search drills") }, singleLine = true,
                     leadingIcon = { Icon(Icons.Default.Search, null) }, modifier = Modifier.fillMaxWidth().testTag("library-search"), shape = RoundedCornerShape(12.dp))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (section == "Library") FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf("All", "Mine", "Favorites").forEach { value ->
                         FilterChip(filter == value, { filter = value }, label = { Text(value) }, modifier = Modifier.heightIn(min = 48.dp))
                     }
                 }
-                Box {
+                if (section == "Library") Box {
                     OutlinedButton({ categoryMenu = true }, modifier = Modifier.heightIn(min = 48.dp)) {
                         Icon(Icons.Default.FilterList, null); Spacer(Modifier.width(8.dp)); Text(category)
                     }
@@ -86,7 +96,7 @@ internal fun DrillLibraryScreen(
                 }
             }
         }
-        if (query.isBlank() && filter == "All" && category == "All skills" && swapSlotId == null) {
+        if (section == "Library" && query.isBlank() && filter == "All" && category == "All skills" && swapSlotId == null) {
             item { Box(Modifier.padding(horizontal = 20.dp)) { CourtHeading("Suggested for you") } }
             item {
                 LazyRow(contentPadding = PaddingValues(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -104,14 +114,14 @@ internal fun DrillLibraryScreen(
                 }
             }
         }
-        item { Box(Modifier.padding(horizontal = 20.dp)) { CourtHeading("${shown.size} ${if (filter == "Mine") "custom " else ""}drills") } }
+        item { Box(Modifier.padding(horizontal = 20.dp)) { CourtHeading("${shown.size} ${if (section == "Custom" || filter == "Mine") "custom " else ""}drills") } }
         if (shown.isEmpty()) item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(if (filter == "Mine" && query.isBlank()) "Your drills start here." else "Try a different search.",
+                Text(if ((section == "Custom" || filter == "Mine") && query.isBlank()) "Your drills start here." else "Try a different search.",
                     style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
                 Text(if (filter == "Favorites") "Tap the star on a drill to keep it here." else "Clear a filter or create a drill with your own instructions and target.",
                     style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textSecondary)
-                TextButton({ query = ""; category = "All skills"; filter = "All" }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Show all drills") }
+                TextButton({ query = ""; category = "All skills"; filter = "All"; section = "Library" }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Show all drills") }
             }
         }
         items(shown, key = { it.id }) { drill ->
