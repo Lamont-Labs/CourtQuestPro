@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGames: Boolean = false, onMissionReceipt: (String) -> Unit = {}) {
     val drills = TrainingLibrary.catalog(save)
     var showGames by rememberSaveable(initiallyShowGames) { mutableStateOf(initiallyShowGames) }
+    var section by rememberSaveable { mutableStateOf("Overview") }
     var showAllSessions by rememberSaveable { mutableStateOf(false) }
     var showAllGames by rememberSaveable { mutableStateOf(false) }
     val recorded = save.drillResults.orEmpty()
@@ -54,10 +55,15 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
         return
     }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp)) {
-        item { AppHeader("Your work, recorded.", "${rankFor(save.totalXp)} · ${save.playerName.ifBlank { "Player development" }}") }
+        item { AppHeader("Progress", "${rankFor(save.totalXp)} · ${save.playerName.ifBlank { "Player development" }}") }
+        item { Row(Modifier.padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf("Overview", "Skills", "History").forEach { tab ->
+                FilterChip(section == tab, { section = tab }, label = { Text(tab) }, modifier = Modifier.heightIn(min = 48.dp))
+            }
+        } }
         item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(20.dp), highlighted = true) {
+                if (section == "Overview") CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp), highlighted = true) {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         CourtEyebrow("YOUR TRAINING RECORD")
                         CourtMetricStrip(listOf("Total XP" to save.totalXp.toString(),
@@ -66,7 +72,7 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
                                 (if (showGames) save.matches.map { it.date }.distinct().size else valid.map { it.date }.distinct().size).toString()))
                     }
                 }
-                if (save.missionReceipts.orEmpty().isNotEmpty() && !showGames) {
+                if (section == "History" && save.missionReceipts.orEmpty().isNotEmpty() && !showGames) {
                     CourtHeading("Completed Missions")
                     save.missionReceipts.orEmpty().asReversed().forEach { receipt ->
                         val version = save.missionVersions.orEmpty().firstOrNull { it.id == receipt.missionVersionId }
@@ -80,6 +86,7 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
                         }
                     }
                 }
+                if (section == "History") {
                 CourtRule()
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     FilterChip(!showGames, { showGames = false }, label = { Text("Training") }, modifier = Modifier.heightIn(min = 48.dp))
@@ -121,12 +128,16 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
                             Text("View all ${sessionHistory.size} sessions")
                         }
                     }
+                    }
+                    if (section == "Overview") {
                     CourtRule()
                     CourtHeading("Training activity")
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         StatCard("CURRENT STREAK", "${save.currentStreak} ${if (save.currentStreak == 1) "day" else "days"}", Modifier.weight(1f))
                         StatCard("LONGEST STREAK", "${save.longestStreak} ${if (save.longestStreak == 1) "day" else "days"}", Modifier.weight(1f))
                     }
+                    }
+                    if (section == "Skills") {
                     CourtRule()
                     CourtHeading("By skill")
                     listOf("Shooting", "Ball Handling", "Finishing", "Defense", "Rebounding", "Passing").forEach { category ->
@@ -173,6 +184,7 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
                     }
                     Text("Compare sessions for the same drill. Targets and conditions can differ. XP, streaks, and training days describe activity.",
                         color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
+                    }
                 }
                 TextButton(onClick = onHome, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("Back to Court") }
             }
