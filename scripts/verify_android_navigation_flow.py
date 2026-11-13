@@ -59,7 +59,7 @@ def main():
     click('Create custom drill')
     assert text_field().get('text', '') == '', 'Discarded editor fields must not return in a new drill'
     back()
-    click('Progress'); click('Games')
+    click('Progress'); click('History'); click('Games')
     click('Me'); click('Progress')
     ui.require(ui.nodes(), 'Game history')
     click('Train'); replace_text('Mirror')
