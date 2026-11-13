@@ -342,6 +342,7 @@ def main():
     screenshot('candidate-next-drill')
     shell('input', 'keyevent', 'KEYCODE_BACK')
     navigate('Progress')
+    tap(scroll_to('History'))
     nodes('candidate-progress-after-save')
     screenshot('candidate-progress-after-save')
     scroll_to('15 successful / 15 attempts')
