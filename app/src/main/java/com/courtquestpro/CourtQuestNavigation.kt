@@ -92,7 +92,7 @@ internal fun CourtQuestNavigation(
             exit = slideOutHorizontally(tween(200)) { -it } + fadeOut(tween(200))
         ) {
             Box(
-                Modifier.width(120.dp).fillMaxHeight()
+                Modifier.width(108.dp).fillMaxHeight()
                     .pointerInput(expanded) {
                         var dragged = 0f
                         detectHorizontalDragGestures(
@@ -112,18 +112,18 @@ internal fun CourtQuestNavigation(
             ) {
                 val railShape = RoundedCornerShape(topEnd = 26.dp, bottomEnd = 26.dp)
                 CourtQuestPremiumSurface(
-                    Modifier.width(96.dp).fillMaxHeight()
+                    Modifier.width(84.dp).fillMaxHeight()
                         .shadow(18.dp, railShape, spotColor = CourtQuestDesign.accentVivid.copy(alpha = 0.52f))
                         .clip(railShape)
                         .border(1.25.dp, CourtQuestDesign.accent.copy(alpha = 0.74f), railShape),
-                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 8.dp),
+                    contentPadding = PaddingValues(horizontal = 3.dp, vertical = 6.dp),
                     blurred = true
                 ) {
                     LazyColumn(
                         Modifier.fillMaxSize().selectableGroup(),
-                        contentPadding = PaddingValues(vertical = 8.dp),
+                        contentPadding = PaddingValues(vertical = 6.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)
+                        verticalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterVertically)
                     ) {
                         items(PlayerTab.entries, key = { it.route }) { tab ->
                             NavigationArtCard(
@@ -197,10 +197,10 @@ private fun NavigationArtCard(
     atlas: ImageBitmap?,
     onClick: () -> Unit
 ) {
-    val shape = RoundedCornerShape(22.dp)
+    val shape = RoundedCornerShape(17.dp)
     val label = tab.label
     Box(
-        Modifier.fillMaxWidth().heightIn(min = 80.dp)
+        Modifier.fillMaxWidth().heightIn(min = 76.dp)
             .clip(shape)
             .background(if (selected) CourtQuestDesign.warmSurface.copy(alpha = 0.76f) else Color(0xB20B0C0E))
             .border(
@@ -213,11 +213,11 @@ private fun NavigationArtCard(
             .testTag("nav-${tab.route}")
     ) {
         Column(
-            Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 5.dp),
+            Modifier.fillMaxWidth().padding(horizontal = 2.dp, vertical = 3.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Box(Modifier.size(51.dp), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(56.dp), contentAlignment = Alignment.Center) {
                 if (atlas != null) NavigationSpriteArtwork(atlas, tab.ordinal, Modifier.fillMaxSize())
                 if (tab == PlayerTab.ME) {
                     Text(
@@ -238,8 +238,8 @@ private fun NavigationArtCard(
                 color = if (selected) CourtQuestDesign.textPrimary else Color(0xFFF5F1EC),
                 fontFamily = CourtDisplay,
                 fontWeight = FontWeight.Bold,
-                fontSize = 13.sp,
-                lineHeight = 15.sp,
+                fontSize = 12.sp,
+                lineHeight = 14.sp,
                 textAlign = TextAlign.Center,
                 maxLines = 2
             )
