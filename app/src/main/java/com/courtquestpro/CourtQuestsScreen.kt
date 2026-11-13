@@ -23,7 +23,7 @@ internal fun QuestsScreen(save: SaveState, today: String, onTraining: () -> Unit
     val done = recordedIds.size
     val active = MissionTraining.active(save)
     val version = active?.let { MissionTraining.version(save, it) }
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp)) {
         item { AppHeader("A little work. A better game.", "Choose a session. Keep a record of your work.") }
         item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
