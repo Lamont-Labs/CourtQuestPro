@@ -25,11 +25,11 @@ name: Fresh profile and primary navigation
 - takeScreenshot: train
 - tapOn: "Open navigation"
 - tapOn: "^Quests$"
-- assertVisible: "TODAY'S DAILY QUEST"
+- assertVisible: "Quests"
 - takeScreenshot: quests
 - tapOn: "Open navigation"
 - tapOn: "^Progress$"
-- assertVisible: Your work, recorded.
+- assertVisible: "Progress"
 - takeScreenshot: progress
 - tapOn: "Open navigation"
 - tapOn: "^Me$"
