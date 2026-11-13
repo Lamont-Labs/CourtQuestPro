@@ -220,7 +220,6 @@ private fun NavigationArtCard(
         ) {
             Box(Modifier.size(56.dp), contentAlignment = Alignment.Center) {
                 if (atlas != null) NavigationSpriteArtwork(atlas, tab.ordinal, Modifier.fillMaxSize())
-                if (tab == PlayerTab.ME) JerseyColorOverlay(jerseyColor, Modifier.fillMaxSize())
                 if (tab == PlayerTab.ME) {
                     Text(
                         jerseyNumber.toString(),
@@ -258,7 +257,6 @@ internal fun CourtQuestJerseyArtwork(
     val atlas = rememberNavigationAtlas()
     Box(modifier, contentAlignment = Alignment.Center) {
         if (atlas != null) NavigationSpriteArtwork(atlas, PlayerTab.ME.ordinal, Modifier.fillMaxSize())
-        JerseyColorOverlay(jerseyColor, Modifier.fillMaxSize())
         Text(
             displayedJerseyNumber(jerseyNumber).toString(),
             Modifier.align(Alignment.Center).offset(y = (-8).dp),
@@ -346,22 +344,3 @@ private fun removeNavigationTileBackdrops(source: Bitmap): Bitmap {
     return Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888)
 }
 
-@Composable
-private fun JerseyColorOverlay(colorName: String, modifier: Modifier = Modifier) {
-    val color = jerseyColors[colorName] ?: return
-    if (colorName == "Black") return
-    // Confine tint to the jersey torso; leave the ball and surrounding glow intact.
-    Canvas(modifier) {
-        val left = size.width * 0.32f
-        val top = size.height * 0.23f
-        val width = size.width * 0.36f
-        val height = size.height * 0.49f
-        drawRoundRect(
-            color = color,
-            topLeft = Offset(left, top),
-            size = Size(width, height),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.width * 0.045f),
-            alpha = 0.48f
-        )
-    }
-}
