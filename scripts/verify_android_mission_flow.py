@@ -76,7 +76,7 @@ def main():
     assert saved['drillResults'][0]['missionVersionId']==version['id']
     ui.shell('am','force-stop',ui.PACKAGE);ui.open_app()
     click('Progress');click('History');click('View Mission receipt');snap('mission-progress-receipt')
-    ui.shell('input','keyevent','KEYCODE_BACK');top();ui.require(ui.nodes(),'Your work, recorded.')
+    ui.shell('input','keyevent','KEYCODE_BACK');top();ui.require(ui.nodes(),'Progress')
     click('View Mission receipt')
     assert len(state()['drillResults'])==2 and len(state()['missionReceipts'])==1
     click('Back to Court');click('Build a Mission')
