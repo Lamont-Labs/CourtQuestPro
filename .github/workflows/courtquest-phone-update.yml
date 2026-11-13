@@ -51,17 +51,17 @@ jobs:
               return m.group(1),int(m.group(2))
           old,new=info('previous/badging.txt'),info('dist/badging.txt')
           assert old[0]==new[0]=='com.courtquestpro',(old,new)
-          assert new[1]>old[1],('Update version must increase',old,new)
+          assert new[1]>=15 and new[1]>old[1],('Update must exceed known installed v14 and previous release',old,new)
           assert cert('previous/cert.txt')==cert('dist/cert.txt'),'Signing certificate changed'
           print('In-place update metadata verified:',old,'->',new)
           PY
-          cp "$new" dist/CourtQuestPro-Update-v10.apk
-          sha256sum dist/CourtQuestPro-Update-v10.apk > dist/CourtQuestPro-Update-v10.apk.sha256
+          cp "$new" dist/CourtQuestPro-Update-v15.apk
+          sha256sum dist/CourtQuestPro-Update-v15.apk > dist/CourtQuestPro-Update-v15.apk.sha256
       - name: Publish verified phone update
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          tag=courtquest-phone-update-v10
-          gh release create "$tag" dist/CourtQuestPro-Update-v10.apk dist/CourtQuestPro-Update-v10.apk.sha256 dist/apk-manifest.json --target "$GITHUB_SHA" --title 'CourtQuest Pro — in-place Android update v10' --notes 'Install over the existing CourtQuest Pro app. Original package and signing certificate verified against the previous development release; version code increased. Do not uninstall the existing app. Device-specific installation and saved-data retention must still be confirmed on the owner phone.' --prerelease
+          tag=courtquest-phone-update-v15
+          gh release create "$tag" dist/CourtQuestPro-Update-v15.apk dist/CourtQuestPro-Update-v15.apk.sha256 dist/apk-manifest.json --target "$GITHUB_SHA" --title 'CourtQuest Pro — in-place Android update v15' --notes 'Install over the existing CourtQuest Pro app. Original package and signing certificate verified against the previous development release; version code 15 exceeds uploaded build v14. Do not uninstall the existing app. Device-specific installation and saved-data retention must still be confirmed on the owner phone.' --prerelease
