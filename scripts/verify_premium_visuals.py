@@ -97,7 +97,7 @@ def capture_phase(phase, output):
         # Both APKs receive the same existing synthetic fixture in the guarded AVD.
         ui.seed('game-history')
         time.sleep(2)
-        ui.nav('Court')
+        ui.navigate('Court')
         for name, label in SCREENS:
             if phase == 'after':
                 # Exercise actual destination changes through the new dock.
@@ -106,10 +106,10 @@ def capture_phase(phase, output):
                 assert ui.wait_tagged('dock-' + ui.NAV_ROUTES[label]).get('selected') == 'true'
                 measurements.append(dict(configuration=config, screen=name, targets=audit_dock()))
             else:
-                ui.nav(label)
+                ui.navigate(label)
                 ui.wait_tagged('nav-open-handle')
             capture(name)
-        ui.nav('Court')
+        ui.navigate('Court')
         ui.tap(ui.wait_tagged('nav-open-handle'))
         ui.wait_tagged('player-navigation-drawer')
         capture('navigation')

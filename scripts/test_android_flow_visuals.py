@@ -1,4 +1,7 @@
 import unittest
+import tempfile
+from pathlib import Path
+from contextlib import ExitStack
 from unittest.mock import patch
 from xml.etree import ElementTree as ET
 
@@ -15,6 +18,23 @@ def dock_fixture():
 
 
 class NativeVisualGuardTest(unittest.TestCase):
+    def test_before_capture_uses_the_existing_navigation_contract(self):
+        with tempfile.TemporaryDirectory() as tmp, ExitStack() as mocks:
+            mocks.enter_context(patch.object(visual, 'CONFIGS', [('normal', 720, 1600, '1.0')]))
+            mocks.enter_context(patch.object(visual.time, 'sleep'))
+            mocks.enter_context(patch.object(visual, 'capture'))
+            mocks.enter_context(patch.object(visual, 'training_action'))
+            for name in ['shell', 'seed', 'wait_tagged', 'tap', 'require', 'nodes']:
+                mocks.enter_context(patch.object(visual.ui, name))
+            navigate = mocks.enter_context(patch.object(visual.ui, 'navigate'))
+            original_output = visual.ui.OUT
+            try:
+                visual.capture_phase('before', Path(tmp))
+                self.assertEqual([c.args[0] for c in navigate.call_args_list],
+                                 ['Court', 'Court', 'Train', 'Progress', 'Quests', 'Me', 'Court'])
+            finally:
+                visual.ui.OUT = original_output
+
     def test_physical_phone_is_rejected_before_any_fixture_access(self):
         with patch.object(visual.ui, 'shell', return_value='0'), \
                 patch.object(visual.ui, 'adb') as adb, self.assertRaises(AssertionError):

@@ -1,2 +1,3 @@
 - [Native accessibility exports](native-accessibility.md) — distinguish UIAutomator semantics from pointer actionability; wait for drawer state after transitions.
 - [Native visual acceptance](native-visual-acceptance.md) — verify visible Compose changes against the installed APK; release pipeline success is not a visual redesign.
+- [GitHub artifact downloads](github-artifact-downloads.md) — relative gh api ZIP requests preserve proxy authentication when gh run download follows an unauthenticated absolute URL.
