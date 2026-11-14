@@ -22,7 +22,7 @@ internal fun CourtQuestScene(content: @Composable () -> Unit) {
         Box(Modifier.fillMaxSize().background(CourtQuestDesign.background)) {
             Canvas(Modifier.matchParentSize().haze(haze)) {
                 drawRect(CourtQuestDesign.background)
-                drawRect(Brush.radialGradient(listOf(CourtQuestDesign.accentVivid.copy(alpha = 0.055f), Color.Transparent),
+                drawRect(Brush.radialGradient(listOf(CourtQuestDesign.accentVivid.copy(alpha = 0.018f), Color.Transparent),
                     center = Offset(size.width * 1.08f, size.height * 0.21f), radius = size.width * 0.92f))
                 val stroke = Stroke(1.dp.toPx())
                 val ink = Color.White.copy(alpha = 0.023f)

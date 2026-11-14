@@ -69,6 +69,14 @@ images cover Court, training entry, Library, Progress, Quests, Me and the drawer
 Current runtime/visual results are pending until the workflow and actual captures are reviewed.
 Existing full native journeys, unit/lint and compact-drawer checks remain separate acceptance gates.
 
+Early real Android critique: compilation, 72 Android unit tests, lint (0 errors) and the existing
+Maestro navigation flow passed. The first rendered review identified excessive Library controls
+before the drill list and overly warm surface lighting. The candidate now integrates the filtered
+count into a compact header, puts category/filter controls in a reflowing row with 48dp minimum
+targets, and reduces orange illumination to restrained edge reflection. Matching before/after
+capture acceptance remains pending. The capture harness explicitly relaunches after fixture
+seeding, since the existing seeder intentionally force-stops the test application.
+
 This design standard began with the owner's build 2 feedback. Build 5 received positive visual feedback (“Its looking amazing”); build 6 extends that approved system with the Drill Library. Build 2 used app source `21ff9222edd69f5c65c1999082b751c104d63194`, published in release commit `c3e57e93708edcb6e6fa61c43cddc79dae7314f3`. Confirm the current branch, APK version code, and owner feedback at the start of each pass. This file is the active standard. The earlier [design contract](docs/COURTQUEST_PREMIUM_UI_DESIGN_CONTRACT_v1.md) records the initial baseline.
 
 ## Latest owner visual direction: deep black and brighter orange

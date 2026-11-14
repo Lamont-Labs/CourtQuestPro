@@ -50,7 +50,7 @@ internal fun CourtQuestPremiumSurface(
             }
             drawPath(reflection, Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.075f), Color.Transparent)))
             if (highlighted) drawRect(Brush.radialGradient(
-                listOf(CourtQuestDesign.accentVivid.copy(alpha = 0.14f), Color.Transparent),
+                listOf(CourtQuestDesign.accentVivid.copy(alpha = 0.035f), Color.Transparent),
                 center = Offset(size.width, size.height), radius = size.width * 0.9f))
         }
         .border(1.dp, Brush.linearGradient(listOf(

@@ -53,9 +53,10 @@ internal fun DrillLibraryScreen(
     }
     val suggestions = TrainingLibrary.suggestions(save)
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item { AppHeader(if (swapSlotId == null) "Train" else "Make the swap.",
-            if (swapSlotId == null) "Find a drill. Make it yours. Put in the work." else "Choose a suitable drill for your untouched daily slot.") }
+            if (swapSlotId == null) "${shown.size} drills in view · Find your next rep."
+            else "Choose a suitable drill for your untouched daily slot.", compact = true) }
         if (swapSlotId == null) item {
             CourtQuestSegmentRail(
                 labels = listOf("Today", "Library", "Custom"),
@@ -69,16 +70,6 @@ internal fun DrillLibraryScreen(
         }
         item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(11.dp)) {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(shown.size.toString(), color = CourtQuestDesign.accent,
-                        style = MaterialTheme.typography.displayMedium)
-                    Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-                        CourtEyebrow(if (section == "Custom") "YOUR WORKOUT TOOLKIT" else "DRILL CATALOGUE")
-                        Text(if (swapSlotId == null) "drills in view" else "suitable drills",
-                            color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineMedium)
-                    }
-                }
                 OutlinedTextField(query, { query = it }, label = { Text("Search drills") }, singleLine = true,
                     leadingIcon = { Icon(Icons.Default.Search, null) },
                     modifier = Modifier.fillMaxWidth().testTag("library-search"), shape = RoundedCornerShape(14.dp))
@@ -100,19 +91,28 @@ internal fun DrillLibraryScreen(
                     Text(catalog.firstOrNull { it.id == save.practiceSession?.drillId }?.title ?: "Your saved practice",
                         style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)
                 }
-                if (section == "Library") FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("All", "Mine", "Favorites").forEach { value ->
-                        FilterChip(filter == value, { filter = value }, label = { Text(value) }, modifier = Modifier.heightIn(min = 48.dp))
-                    }
-                }
-                if (section == "Library") Box {
-                    OutlinedButton({ categoryMenu = true }, modifier = Modifier.heightIn(min = 48.dp)) {
-                        Icon(Icons.Default.FilterList, null); Spacer(Modifier.width(8.dp)); Text(category)
-                    }
-                    DropdownMenu(categoryMenu, { categoryMenu = false }) {
-                        (listOf("All skills") + TrainingLibrary.categories).forEach { value ->
-                            DropdownMenuItem(text = { Text(value) }, onClick = { category = value; categoryMenu = false })
+                if (section == "Library") FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Box {
+                        OutlinedButton({ categoryMenu = true }, modifier = Modifier.heightIn(min = 48.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)) {
+                            Icon(Icons.Default.FilterList, null, Modifier.size(18.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text(category, style = MaterialTheme.typography.labelMedium)
                         }
+                        DropdownMenu(categoryMenu, { categoryMenu = false }) {
+                            (listOf("All skills") + TrainingLibrary.categories).forEach { value ->
+                                DropdownMenuItem(text = { Text(value) }, onClick = { category = value; categoryMenu = false })
+                            }
+                        }
+                    }
+                    listOf("All", "Mine", "Favorites").forEach { value ->
+                        FilterChip(filter == value, { filter = value },
+                            label = { Text(value, style = MaterialTheme.typography.labelMedium) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = CourtQuestDesign.surface,
+                                selectedLabelColor = CourtQuestDesign.accentVivid),
+                            modifier = Modifier.defaultMinSize(minWidth = 48.dp).heightIn(min = 48.dp))
                     }
                 }
             }

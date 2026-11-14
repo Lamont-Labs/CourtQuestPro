@@ -24,6 +24,7 @@ class NativeVisualGuardTest(unittest.TestCase):
             mocks.enter_context(patch.object(visual.time, 'sleep'))
             mocks.enter_context(patch.object(visual, 'capture'))
             mocks.enter_context(patch.object(visual, 'training_action'))
+            open_app = mocks.enter_context(patch.object(visual.ui, 'open_app'))
             for name in ['shell', 'seed', 'wait_tagged', 'tap', 'require', 'nodes']:
                 mocks.enter_context(patch.object(visual.ui, name))
             navigate = mocks.enter_context(patch.object(visual.ui, 'navigate'))
@@ -32,6 +33,7 @@ class NativeVisualGuardTest(unittest.TestCase):
                 visual.capture_phase('before', Path(tmp))
                 self.assertEqual([c.args[0] for c in navigate.call_args_list],
                                  ['Court', 'Court', 'Train', 'Progress', 'Quests', 'Me', 'Court'])
+                open_app.assert_called_once()
             finally:
                 visual.ui.OUT = original_output
 

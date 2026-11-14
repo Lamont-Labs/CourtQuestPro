@@ -96,7 +96,9 @@ def capture_phase(phase, output):
         ui.shell('settings', 'put', 'system', 'font_scale', font)
         # Both APKs receive the same existing synthetic fixture in the guarded AVD.
         ui.seed('game-history')
-        time.sleep(2)
+        # Seeding deliberately force-stops the package; launch before querying its UI.
+        ui.open_app()
+        ui.wait_tagged('nav-open-handle')
         ui.navigate('Court')
         for name, label in SCREENS:
             if phase == 'after':
