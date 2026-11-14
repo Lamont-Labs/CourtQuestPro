@@ -75,6 +75,23 @@ def capture(name):
     ui.screenshot(name)
 
 
+def audit_large_library():
+    # At 200% text, use full-width controls rather than splitting single words.
+    for label in ['today', 'library', 'custom']:
+        node = ui.wait_tagged('segment-' + label)
+        l, t, r, b = bounds(node)
+        assert r - l >= 400 and b - t >= 96, f'Large-text {label} must reflow to a full-width target'
+    for _ in range(8):
+        items = ui.nodes()
+        controls = [ui.tagged(items, tag) for tag in ['library-create', 'library-build-mission']]
+        if all(node is not None and bounds(node)[2] - bounds(node)[0] >= 400
+               and bounds(node)[3] - bounds(node)[1] >= 104 for node in controls):
+            capture('library-actions-large')
+            return
+        ui.shell('input', 'swipe', '320', '1100', '320', '700', '300')
+    raise AssertionError('Full-width large-text Library actions were not reachable without clipped targets')
+
+
 def training_action(normal):
     for _ in range(1 if normal else 12):
         items = ui.nodes()
@@ -111,6 +128,8 @@ def capture_phase(phase, output):
                 ui.navigate(label)
                 ui.wait_tagged('nav-open-handle')
             capture(name)
+            if phase == 'after' and config == 'large' and name == 'library':
+                audit_large_library()
         ui.navigate('Court')
         ui.tap(ui.wait_tagged('nav-open-handle'))
         ui.wait_tagged('player-navigation-drawer')

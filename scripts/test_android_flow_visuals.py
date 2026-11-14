@@ -18,6 +18,27 @@ def dock_fixture():
 
 
 class NativeVisualGuardTest(unittest.TestCase):
+    def test_large_library_requires_readable_full_width_controls(self):
+        rail = ET.Element('node', {'bounds': '[40,300][600,420]'})
+        items = [ET.Element('node', {'resource-id': tag, 'bounds': '[40,500][600,650]'}) for tag in
+                 ['library-create', 'library-build-mission']]
+        with patch.object(visual.ui, 'wait_tagged', return_value=rail), \
+                patch.object(visual.ui, 'nodes', return_value=items), patch.object(visual, 'capture') as capture:
+            visual.audit_large_library()
+        capture.assert_called_once_with('library-actions-large')
+
+    def test_large_library_rejects_narrow_split_word_layout(self):
+        rail = ET.Element('node', {'bounds': '[40,300][200,420]'})
+        with patch.object(visual.ui, 'wait_tagged', return_value=rail), self.assertRaises(AssertionError):
+            visual.audit_large_library()
+
+    def test_large_library_rejects_unreachable_actions(self):
+        rail = ET.Element('node', {'bounds': '[40,300][600,420]'})
+        with patch.object(visual.ui, 'wait_tagged', return_value=rail), \
+                patch.object(visual.ui, 'nodes', return_value=[]), patch.object(visual.ui, 'shell'), \
+                self.assertRaises(AssertionError):
+            visual.audit_large_library()
+
     def test_before_capture_uses_the_existing_navigation_contract(self):
         with tempfile.TemporaryDirectory() as tmp, ExitStack() as mocks:
             mocks.enter_context(patch.object(visual, 'CONFIGS', [('normal', 720, 1600, '1.0')]))

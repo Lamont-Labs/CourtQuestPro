@@ -66,7 +66,12 @@ guarded disposable Android 35 AVD, captures identical synthetic data before/afte
 360dp/100%, 320dp/130% and 320dp/200%, checks data-preserving installation, measures every
 dock target and compares body pixels excluding system bars/dock. Seven normal-size comparison
 images cover Court, training entry, Library, Progress, Quests, Me and the drawer.
-Current runtime/visual results are pending until the workflow and actual captures are reviewed.
+The first matched Android comparison passed for all seven surfaces in normal, compact and 200%
+text configurations. Manual review confirmed body-level changes, not just a new dock or palette.
+That review also caught split words in Library controls at 200% text. Rails and Library actions
+now reflow to full-width targets above 130% text without reducing the user's font scale. The
+emulator gate additionally requires reachable, full-width large-text actions and captures them
+separately. Final checks of this accessibility refinement and owner visual acceptance remain pending.
 Existing full native journeys, unit/lint and compact-drawer checks remain separate acceptance gates.
 
 Early real Android critique: compilation, 72 Android unit tests, lint (0 errors) and the existing

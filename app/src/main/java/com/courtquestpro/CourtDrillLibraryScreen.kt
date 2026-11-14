@@ -16,6 +16,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -73,13 +74,16 @@ internal fun DrillLibraryScreen(
                 OutlinedTextField(query, { query = it }, label = { Text("Search drills") }, singleLine = true,
                     leadingIcon = { Icon(Icons.Default.Search, null) },
                     modifier = Modifier.fillMaxWidth().testTag("library-search"), shape = RoundedCornerShape(14.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    CourtQuestPrimaryButton(onNew, Modifier.weight(1f)) {
+                FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    maxItemsInEachRow = if (LocalDensity.current.fontScale > 1.3f) 1 else 2) {
+                    CourtQuestPrimaryButton(onNew, Modifier.weight(1f).testTag("library-create")) {
                         Icon(Icons.Default.Add, null, Modifier.size(19.dp)); Spacer(Modifier.width(6.dp))
-                        Text("Create custom drill", style = MaterialTheme.typography.labelLarge)
+                        Text("Create custom drill", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                     }
                     if (swapSlotId == null && section == "Library") {
-                        OutlinedButton(onMissionBuilder, Modifier.weight(1f).heightIn(min = 52.dp)) {
+                        OutlinedButton(onMissionBuilder, Modifier.weight(1f).heightIn(min = 52.dp).testTag("library-build-mission")) {
                             Text("Build a Mission", style = MaterialTheme.typography.labelLarge)
                         }
                     }
