@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/verify-compact-navigation.yml'
       - 'scripts/verify_compact_navigation.py'
+      - '.maestro/premium-smoke.yaml'
       - 'scripts/verify_android_daily_flow.py'
       - 'scripts/test_android_flow_*.py'
       - 'app/src/main/java/com/courtquestpro/CourtQuestNavigation.kt'
