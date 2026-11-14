@@ -192,6 +192,7 @@ def main():
     ui.seed('game-history')
     ui.open_app()
     ui.navigate('Progress')
+    ui.tap(ui.require(ui.nodes(), 'History'))
     ui.tap(ui.require(ui.nodes(), 'Games'))
     ui.tap(reachable('View all 8 games'))
     ui.require(ui.nodes(), '8 recorded games')
