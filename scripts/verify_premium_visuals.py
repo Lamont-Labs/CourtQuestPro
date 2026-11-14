@@ -81,15 +81,25 @@ def audit_large_library():
         node = ui.wait_tagged('segment-' + label)
         l, t, r, b = bounds(node)
         assert r - l >= 400 and b - t >= 96, f'Large-text {label} must reflow to a full-width target'
+    audit_large_controls(['library-create', 'library-build-mission'], 'library-actions-large', 104)
+
+
+def audit_large_controls(tags, screenshot_name, minimum_height=96):
     for _ in range(8):
         items = ui.nodes()
-        controls = [ui.tagged(items, tag) for tag in ['library-create', 'library-build-mission']]
+        controls = [ui.tagged(items, tag) for tag in tags]
+        scrollables = [node for node in items if node.get('scrollable') == 'true']
+        assert scrollables, 'Large-text controls need a scrollable native content area'
+        viewport = bounds(max(scrollables, key=lambda n: (bounds(n)[2] - bounds(n)[0]) *
+                              (bounds(n)[3] - bounds(n)[1])))
         if all(node is not None and bounds(node)[2] - bounds(node)[0] >= 400
-               and bounds(node)[3] - bounds(node)[1] >= 104 for node in controls):
-            capture('library-actions-large')
+               and bounds(node)[3] - bounds(node)[1] >= minimum_height
+               and viewport[1] + 8 < bounds(node)[1] < bounds(node)[3] < viewport[3] - 8
+               for node in controls):
+            capture(screenshot_name)
             return
         ui.shell('input', 'swipe', '320', '1100', '320', '700', '300')
-    raise AssertionError('Full-width large-text Library actions were not reachable without clipped targets')
+    raise AssertionError(f'Full-width large-text controls were not reachable without clipped targets: {tags}')
 
 
 def training_action(normal):
@@ -130,6 +140,8 @@ def capture_phase(phase, output):
             capture(name)
             if phase == 'after' and config == 'large' and name == 'library':
                 audit_large_library()
+            if phase == 'after' and config == 'large' and name == 'progress':
+                audit_large_controls(['progress-record-sessions'], 'progress-record-large')
         ui.navigate('Court')
         ui.tap(ui.wait_tagged('nav-open-handle'))
         ui.wait_tagged('player-navigation-drawer')

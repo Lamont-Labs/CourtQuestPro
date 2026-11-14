@@ -18,10 +18,18 @@ def dock_fixture():
 
 
 class NativeVisualGuardTest(unittest.TestCase):
+    def test_large_progress_rejects_narrow_record_columns(self):
+        item = ET.Element('node', {'resource-id': 'progress-record-sessions', 'bounds': '[320,500][600,700]'})
+        viewport = ET.Element('node', {'scrollable': 'true', 'bounds': '[0,96][640,1232]'})
+        with patch.object(visual.ui, 'nodes', return_value=[item, viewport]), patch.object(visual.ui, 'shell'), \
+                self.assertRaises(AssertionError):
+            visual.audit_large_controls(['progress-record-sessions'], 'progress-record-large')
+
     def test_large_library_requires_readable_full_width_controls(self):
         rail = ET.Element('node', {'bounds': '[40,300][600,420]'})
         items = [ET.Element('node', {'resource-id': tag, 'bounds': '[40,500][600,650]'}) for tag in
                  ['library-create', 'library-build-mission']]
+        items.append(ET.Element('node', {'scrollable': 'true', 'bounds': '[0,96][640,1232]'}))
         with patch.object(visual.ui, 'wait_tagged', return_value=rail), \
                 patch.object(visual.ui, 'nodes', return_value=items), patch.object(visual, 'capture') as capture:
             visual.audit_large_library()
@@ -34,10 +42,18 @@ class NativeVisualGuardTest(unittest.TestCase):
 
     def test_large_library_rejects_unreachable_actions(self):
         rail = ET.Element('node', {'bounds': '[40,300][600,420]'})
+        viewport = ET.Element('node', {'scrollable': 'true', 'bounds': '[0,96][640,1232]'})
         with patch.object(visual.ui, 'wait_tagged', return_value=rail), \
-                patch.object(visual.ui, 'nodes', return_value=[]), patch.object(visual.ui, 'shell'), \
+                patch.object(visual.ui, 'nodes', return_value=[viewport]), patch.object(visual.ui, 'shell'), \
                 self.assertRaises(AssertionError):
             visual.audit_large_library()
+
+    def test_large_controls_reject_partially_clipped_rows(self):
+        items = [ET.Element('node', {'resource-id': 'library-create', 'bounds': '[40,1100][600,1232]'}),
+                 ET.Element('node', {'scrollable': 'true', 'bounds': '[0,96][640,1232]'})]
+        with patch.object(visual.ui, 'nodes', return_value=items), patch.object(visual.ui, 'shell'), \
+                self.assertRaises(AssertionError):
+            visual.audit_large_controls(['library-create'], 'clipped')
 
     def test_before_capture_uses_the_existing_navigation_contract(self):
         with tempfile.TemporaryDirectory() as tmp, ExitStack() as mocks:

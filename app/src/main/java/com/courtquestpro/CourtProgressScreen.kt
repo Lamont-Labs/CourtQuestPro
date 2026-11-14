@@ -14,9 +14,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGames: Boolean = false, onMissionReceipt: (String) -> Unit = {}) {
     val drills = TrainingLibrary.catalog(save)
     var showGames by rememberSaveable(initiallyShowGames) { mutableStateOf(initiallyShowGames) }
@@ -79,14 +82,19 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
                             Text(rankFor(save.totalXp).uppercase(), color = CourtQuestDesign.accent,
                                 style = MaterialTheme.typography.labelSmall)
                         }
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            maxItemsInEachRow = if (LocalDensity.current.fontScale > 1.3f) 1 else 3) {
                             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
                                 Text(save.totalXp.toString(), color = CourtQuestDesign.accent,
                                     style = MaterialTheme.typography.displayMedium)
                                 CourtEyebrow("TOTAL XP", color = CourtQuestDesign.textSecondary)
                             }
-                            Box(Modifier.width(1.dp).height(54.dp).background(CourtQuestDesign.border))
-                            Column(Modifier.weight(1f).padding(start = 2.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            if (LocalDensity.current.fontScale <= 1.3f) {
+                                Box(Modifier.width(1.dp).height(54.dp).background(CourtQuestDesign.border))
+                            }
+                            Column(Modifier.weight(1f).padding(start = 2.dp).testTag("progress-record-sessions"),
+                                verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text(recordCount.toString(), color = CourtQuestDesign.textPrimary,
                                     style = MaterialTheme.typography.headlineLarge)
                                 Text(if (showGames) "GAMES" else "SESSIONS",
