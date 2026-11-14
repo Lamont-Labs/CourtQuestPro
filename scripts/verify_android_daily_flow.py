@@ -135,6 +135,18 @@ def require(items, text):
     return node
 
 
+def assert_empty_progress(items):
+    require(items, 'PLAYER RECORD')
+    require(items, 'TOTAL XP')
+    require(items, '0 training days')
+    record = tagged(items, 'progress-record-sessions')
+    assert record is not None, 'Empty session record is missing'
+    require(list(record.iter('node')), 'SESSIONS')
+    require(list(record.iter('node')), '0')
+    assert sum(node.get('text') == '0' for node in items) >= 2, \
+        'Empty Progress must show zero XP and zero sessions'
+
+
 def tap(node):
     left, top, right, bottom = map(int, re.findall(r'\d+', node.attrib['bounds']))
     assert right > left and bottom > top, node.attrib
@@ -376,7 +388,10 @@ def main():
     seed('empty')
     open_app()
     navigate('Progress')
-    require(nodes('candidate-empty-progress'), 'YOUR TRAINING RECORD')
+    assert_empty_progress(nodes('candidate-empty-progress'))
+    empty_state = json.loads(prefs()['state'].text)
+    assert empty_state['totalXp'] == 0 and empty_state['drillResults'] == [], \
+        'Viewing empty Progress changed the saved XP or recorded results'
     screenshot('candidate-empty-progress')
     seed('history')
     open_app()
