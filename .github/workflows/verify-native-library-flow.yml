@@ -3,15 +3,6 @@ name: Verify native library and training flows
 on:
   push:
     branches: [dev/drill-library, dev/premium-flow-toolkit, repair/premium-flow-stabilization]
-    paths:
-      - 'app/**'
-      - 'scripts/verify_android_daily_flow.py'
-      - 'scripts/verify_android_game_flow.py'
-      - 'scripts/verify_android_library_flow.py'
-      - 'scripts/verify_android_mission_flow.py'
-      - 'scripts/verify_android_navigation_flow.py'
-      - 'scripts/test_android_flow_*.py'
-      - '.github/workflows/verify-native-library-flow.yml'
   workflow_dispatch:
 
 permissions:
