@@ -3,18 +3,18 @@ version: alpha
 name: CourtQuest Pro
 description: A native Android basketball training and scorekeeping design system.
 colors:
-  primary: "#FF650E"
-  accent: "#FF944F"
-  on-primary: "#160C06"
-  background: "#000000"
-  surface: "#101113"
-  surface-elevated: "#202226"
-  border: "#34363B"
-  control-outline: "#92969E"
-  surface-warm: "#321A10"
-  court-shadow: "#090B0E"
-  text-primary: "#F8F5F0"
-  text-secondary: "#B8BBC3"
+  primary: "#FF5B0A"
+  accent: "#FFA36B"
+  on-primary: "#1B0C03"
+  background: "#050505"
+  surface: "#101112"
+  surface-elevated: "#191A1C"
+  border: "#292A2C"
+  control-outline: "#777A7D"
+  surface-warm: "#291207"
+  court-shadow: "#030303"
+  text-primary: "#F7F4EF"
+  text-secondary: "#AAA9A6"
 omitted:
   - section: typography
     reason: Android typography uses scalable sp values documented in the Typography section.
@@ -31,6 +31,43 @@ omitted:
 ## Overview
 
 CourtQuest Pro is a basketball performance studio for a player on a phone. It opens onto a clear training decision, supports a focused drill or one-on-one game, then makes the recorded result easy to find. The latest owner-selected direction is deep black, brighter orange, polished glass layers, crisp high-definition rendering, and Signature branding. Use basketball court geometry, confident typography, and carefully prioritized data to give CourtQuest its own identity. Use calmer, more direct layouts while the player is recording attempts or keeping score.
+
+## Native transformation following the v21 phone review
+
+The owner confirmed v21 installed correctly but reported “There was absolutely no change at all.”
+That release repaired the update pipeline; it was not a visual redesign. This pass starts at
+`de7127db` and changes the real Kotlin/Compose presentation on `dev/premium-flow-toolkit`.
+It does not authorize a new public APK release.
+
+- Court foregrounds actual daily completion and the start/resume action with an editorial numeric hierarchy.
+- Training entry separates the saved target from planned minutes while preserving all recording controls.
+- Train/Library uses an integrated discovery header and a native segmented selector instead of stacked default chips.
+- Progress uses a saved-record feature with actual XP, recorded activity and history.
+- Quests gives existing daily evidence a segmented visual treatment; no new award rules are implied.
+- Me leads with the existing approved jersey and saved player identity, with profile editing and routine controls retained.
+- A single-row 56dp bottom dock complements, not replaces, the edge drawer. All destinations retain
+  accessible names and 48dp targets. At enlarged text only the selected label is rendered; its scalable
+  type is never capped. The drawer stays clear of the dock and system bars.
+
+This owner request supersedes the older “do not redesign other screens” restriction and the
+edge-only navigation presentation below. Original Signature resources, navigation artwork, fonts,
+save schema, app identity, signing configuration and versionCode remain unchanged.
+
+Guidance used: pinned UI/UX Pro Max source `6ae86f61`, queried for **Fitness/Gym App**
+(exact product/reasoning match; Sports/Fitness Barlow pairing), native **jetpack-compose**
+semantics/reusable layouts, and compact navigation touch/overlap guidance. Retain the bundled
+Barlow fonts and the owner's black/orange identity; reject the web showcase layout, green CTA,
+hover effects and 48px showcase gaps. The dataset's Compose 1.11.4 examples are newer than the
+project BOM, so existing compatible Compose primitives remain authoritative. Apply the local
+Impeccable critique to actual Android captures, not generated mockups.
+
+Rendered verification: `verify-premium-visuals.yml` installs the hash-pinned released v21 on a
+guarded disposable Android 35 AVD, captures identical synthetic data before/after at
+360dp/100%, 320dp/130% and 320dp/200%, checks data-preserving installation, measures every
+dock target and compares body pixels excluding system bars/dock. Seven normal-size comparison
+images cover Court, training entry, Library, Progress, Quests, Me and the drawer.
+Current runtime/visual results are pending until the workflow and actual captures are reviewed.
+Existing full native journeys, unit/lint and compact-drawer checks remain separate acceptance gates.
 
 This design standard began with the owner's build 2 feedback. Build 5 received positive visual feedback (“Its looking amazing”); build 6 extends that approved system with the Drill Library. Build 2 used app source `21ff9222edd69f5c65c1999082b751c104d63194`, published in release commit `c3e57e93708edcb6e6fa61c43cddc79dae7314f3`. Confirm the current branch, APK version code, and owner feedback at the start of each pass. This file is the active standard. The earlier [design contract](docs/COURTQUEST_PREMIUM_UI_DESIGN_CONTRACT_v1.md) records the initial baseline.
 

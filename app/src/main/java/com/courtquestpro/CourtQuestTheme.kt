@@ -3,13 +3,16 @@ package com.courtquestpro
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.Shapes
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.dp
 
 internal val CourtDisplay = FontFamily(Font(R.font.barlow_condensed_extra_bold, FontWeight.ExtraBold))
 internal val CourtBody = FontFamily(
@@ -19,14 +22,14 @@ internal val CourtBody = FontFamily(
 )
 
 private val CourtTypography = Typography(
-    displayLarge = TextStyle(fontFamily = CourtDisplay, fontWeight = FontWeight.ExtraBold, fontSize = 64.sp, lineHeight = 66.sp),
-    displayMedium = TextStyle(fontFamily = CourtDisplay, fontWeight = FontWeight.ExtraBold, fontSize = 52.sp, lineHeight = 54.sp),
-    displaySmall = TextStyle(fontFamily = CourtDisplay, fontWeight = FontWeight.ExtraBold, fontSize = 42.sp, lineHeight = 44.sp),
-    headlineLarge = TextStyle(fontFamily = CourtDisplay, fontWeight = FontWeight.ExtraBold, fontSize = 36.sp, lineHeight = 39.sp),
-    headlineMedium = TextStyle(fontFamily = CourtDisplay, fontWeight = FontWeight.ExtraBold, fontSize = 30.sp, lineHeight = 33.sp),
-    headlineSmall = TextStyle(fontFamily = CourtDisplay, fontWeight = FontWeight.ExtraBold, fontSize = 26.sp, lineHeight = 29.sp),
-    titleLarge = TextStyle(fontFamily = CourtBody, fontWeight = FontWeight.Bold, fontSize = 21.sp, lineHeight = 27.sp),
-    titleMedium = TextStyle(fontFamily = CourtBody, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, lineHeight = 22.sp),
+    displayLarge = TextStyle(fontFamily = CourtDisplay, fontWeight = FontWeight.ExtraBold, fontSize = 58.sp, lineHeight = 60.sp, letterSpacing = (-0.6).sp),
+    displayMedium = TextStyle(fontFamily = CourtDisplay, fontWeight = FontWeight.ExtraBold, fontSize = 48.sp, lineHeight = 50.sp, letterSpacing = (-0.4).sp),
+    displaySmall = TextStyle(fontFamily = CourtDisplay, fontWeight = FontWeight.ExtraBold, fontSize = 40.sp, lineHeight = 42.sp, letterSpacing = (-0.25).sp),
+    headlineLarge = TextStyle(fontFamily = CourtDisplay, fontWeight = FontWeight.ExtraBold, fontSize = 34.sp, lineHeight = 36.sp, letterSpacing = (-0.2).sp),
+    headlineMedium = TextStyle(fontFamily = CourtDisplay, fontWeight = FontWeight.ExtraBold, fontSize = 29.sp, lineHeight = 31.sp),
+    headlineSmall = TextStyle(fontFamily = CourtDisplay, fontWeight = FontWeight.ExtraBold, fontSize = 25.sp, lineHeight = 27.sp),
+    titleLarge = TextStyle(fontFamily = CourtBody, fontWeight = FontWeight.Bold, fontSize = 19.sp, lineHeight = 24.sp),
+    titleMedium = TextStyle(fontFamily = CourtBody, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, lineHeight = 21.sp),
     titleSmall = TextStyle(fontFamily = CourtBody, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 20.sp),
     bodyLarge = TextStyle(fontFamily = CourtBody, fontWeight = FontWeight.Normal, fontSize = 16.sp, lineHeight = 24.sp),
     bodyMedium = TextStyle(fontFamily = CourtBody, fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 21.sp),
@@ -52,6 +55,13 @@ internal fun CourtQuestTheme(content: @Composable () -> Unit) {
             surfaceVariant = CourtQuestDesign.elevatedSurface, onSurfaceVariant = CourtQuestDesign.textSecondary,
             outline = CourtQuestDesign.controlOutline, outlineVariant = CourtQuestDesign.border,
             error = Color(0xFFFFB4AB)
+        ),
+        shapes = Shapes(
+            extraSmall = RoundedCornerShape(6.dp),
+            small = RoundedCornerShape(10.dp),
+            medium = RoundedCornerShape(14.dp),
+            large = RoundedCornerShape(20.dp),
+            extraLarge = RoundedCornerShape(24.dp)
         ),
         typography = CourtTypography,
         content = content

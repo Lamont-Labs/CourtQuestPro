@@ -18,27 +18,30 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun AppHeader(title: String, subtitle: String = "", compact: Boolean = false) {
-    Column(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 20.dp)) {
+    Column(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 14.dp)) {
         FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
-            verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Image(painterResource(R.drawable.courtquest_signature_emblem), null,
-                    modifier = Modifier.size(34.dp).clip(RoundedCornerShape(10.dp))
-                        .background(CourtQuestDesign.accentVivid).padding(3.dp))
+                    modifier = Modifier.size(30.dp).clip(RoundedCornerShape(9.dp))
+                        .background(CourtQuestDesign.accentVivid).padding(2.dp))
                 Image(painterResource(R.drawable.courtquest_signature_wordmark), "CourtQuest Pro",
-                    modifier = Modifier.width(132.dp).height(42.dp))
+                    modifier = Modifier.width(116.dp).height(36.dp))
             }
-            Box(Modifier.heightIn(min = 42.dp), contentAlignment = Alignment.CenterStart) { CourtEyebrow("PLAYER LAB") }
+            Box(Modifier.heightIn(min = 40.dp), contentAlignment = Alignment.CenterStart) { CourtEyebrow("PLAYER LAB") }
         }
-        Spacer(Modifier.height(16.dp))
-        CourtRule()
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(8.dp))
         Text(title, color = CourtQuestDesign.textPrimary,
             style = if (compact) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.displaySmall,
             modifier = Modifier.semantics { heading() })
         if (subtitle.isNotBlank()) {
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(3.dp))
             Text(subtitle, color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
         }
+        Spacer(Modifier.height(10.dp))
+        Box(Modifier.width(36.dp).height(3.dp).clip(RoundedCornerShape(2.dp))
+            .background(CourtQuestDesign.accentVivid))
+        Spacer(Modifier.height(10.dp))
+        CourtRule()
     }
 }

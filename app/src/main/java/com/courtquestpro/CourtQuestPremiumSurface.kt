@@ -25,12 +25,12 @@ internal val LocalCourtHaze = staticCompositionLocalOf<HazeState?> { null }
 @Composable
 internal fun CourtQuestPremiumSurface(
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(18.dp),
+    contentPadding: PaddingValues = PaddingValues(16.dp),
     highlighted: Boolean = false,
     blurred: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val shape = RoundedCornerShape(if (highlighted) 24.dp else 20.dp)
+    val shape = RoundedCornerShape(if (highlighted) 22.dp else 16.dp)
     val state = LocalCourtHaze.current
     val blur = if (blurred && state != null) Modifier.hazeChild(state) {
         backgroundColor = CourtQuestDesign.background
@@ -41,14 +41,14 @@ internal fun CourtQuestPremiumSurface(
     } else Modifier
     Box(modifier.shadow(if (highlighted) 18.dp else 8.dp, shape).clip(shape).then(blur)
         .background(Brush.linearGradient(listOf(
-            Color(0xF025272B), Color(0xF0111215), Color(0xFA090A0C))))
+            Color(0xF01D1E20), Color(0xF0101112), Color(0xFA090A0B))))
         .drawBehind {
             val reflection = Path().apply {
                 moveTo(0f, 0f); lineTo(size.width, 0f)
-                lineTo(size.width, size.height * 0.025f)
-                lineTo(0f, size.height * 0.22f); close()
+                lineTo(size.width, size.height * 0.018f)
+                lineTo(0f, size.height * 0.13f); close()
             }
-            drawPath(reflection, Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.065f), Color.Transparent)))
+            drawPath(reflection, Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.075f), Color.Transparent)))
             if (highlighted) drawRect(Brush.radialGradient(
                 listOf(CourtQuestDesign.accentVivid.copy(alpha = 0.14f), Color.Transparent),
                 center = Offset(size.width, size.height), radius = size.width * 0.9f))

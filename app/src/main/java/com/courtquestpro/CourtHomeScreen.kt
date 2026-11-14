@@ -1,6 +1,7 @@
 package com.courtquestpro
 
 import androidx.compose.foundation.background
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -63,11 +64,18 @@ internal fun HomeScreen(
                     val version = MissionTraining.version(save, activeMission)
                     val next = MissionTraining.currentIndex(save, activeMission)
                     CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp), highlighted = true) {
-                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             CourtEyebrow("MISSION IN PROGRESS")
                             Text(version?.title ?: "Your Mission", style = MaterialTheme.typography.headlineLarge, color = CourtQuestDesign.textPrimary)
-                            Text("${next ?: 0} of ${version?.steps?.size ?: 0} drills recorded · Version ${version?.version ?: "?"}",
-                                style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textSecondary)
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Text((next ?: 0).toString().padStart(2, '0'), style = MaterialTheme.typography.displaySmall,
+                                    color = CourtQuestDesign.accent)
+                                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Text("DRILLS RECORDED", style = MaterialTheme.typography.labelSmall, color = CourtQuestDesign.textSecondary)
+                                    Text("of ${version?.steps?.size ?: 0} · Version ${version?.version ?: "?"}",
+                                        style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textPrimary)
+                                }
+                            }
                             CourtQuestPrimaryButton(onResumeMission, Modifier.fillMaxWidth()) { Text("Resume Mission") }
                         }
                     }
@@ -77,18 +85,25 @@ internal fun HomeScreen(
                     Icon(painterResource(R.drawable.courtquest_half_court), contentDescription = null,
                         tint = CourtQuestDesign.accent.copy(alpha = 0.10f),
                         modifier = Modifier.size(160.dp).align(Alignment.TopEnd).offset(x = 62.dp, y = 18.dp))
-                    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             CourtEyebrow("DAILY TRAINING", Modifier.weight(1f))
                             CourtStatus(if (done == 6) "Complete" else if (resumable) "In progress" else "Ready")
                         }
-                        Text(when {
-                            done == 6 -> "Work put in."
-                            resumable -> "Back to work."
-                            else -> "Build your game."
-                        }, style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
-                        Text("${save.slots.size} skill drills · $minutes min",
-                            style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textSecondary)
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Text(done.toString().padStart(2, '0'), style = MaterialTheme.typography.displaySmall,
+                                color = CourtQuestDesign.accent)
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(when {
+                                    done == 6 -> "Work put in."
+                                    resumable -> "Back to work."
+                                    else -> "Build your game."
+                                }, style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
+                                Text("OF ${save.slots.size} DRILLS  ·  $minutes MIN",
+                                    style = MaterialTheme.typography.labelSmall, color = CourtQuestDesign.textSecondary)
+                            }
+                        }
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.semantics { contentDescription = "$done of 6 drills completed" }) {
                             Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
@@ -120,7 +135,7 @@ internal fun HomeScreen(
                         Icon(Icons.Default.ArrowForward, null, Modifier.size(20.dp))
                     }
                 }
-                CourtQuestPremiumSurface(Modifier.fillMaxWidth()) {
+                CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(horizontal = 14.dp, vertical = 12.dp)) {
                     CourtMetricStrip(listOf("Total XP" to save.totalXp.toString(), "Day streak" to save.currentStreak.toString(),
                         "Days this week" to "$trainedThisWeek / 3"))
                 }
@@ -170,7 +185,7 @@ internal fun HomeScreen(
                 CourtRule()
                 CourtHeading("This week", if (showWeeklyEditor) "Done" else "Edit", { showWeeklyEditor = !showWeeklyEditor })
                 CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(18.dp)) {
-                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Column(Modifier.animateContentSize(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         Text(when {
                             todayActivity == "Game" -> "Game day"
                             todayActivity == "Practice" -> "Team practice today"

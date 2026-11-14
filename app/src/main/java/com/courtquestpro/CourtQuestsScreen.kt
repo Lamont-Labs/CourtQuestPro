@@ -2,6 +2,8 @@ package com.courtquestpro
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -28,10 +30,10 @@ internal fun QuestsScreen(save: SaveState, today: String, onTraining: () -> Unit
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp)) {
         item { AppHeader("Quests", "Training goals and completed Missions") }
         item { Row(Modifier.padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("Active", "Completed").forEach { tab -> FilterChip(section == tab, { section = tab }, label = { Text(tab) }) }
+            listOf("Active", "Completed").forEach { tab -> FilterChip(section == tab, { section = tab }, label = { Text(tab) }, modifier = Modifier.heightIn(min = 48.dp)) }
         } }
         item {
-            Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 if (section == "Active" && active != null) CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(20.dp), highlighted = true) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         CourtEyebrow("YOUR ACTIVE MISSION")
@@ -41,14 +43,24 @@ internal fun QuestsScreen(save: SaveState, today: String, onTraining: () -> Unit
                     }
                 }
                 if (section == "Active") CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp), highlighted = active == null) {
-                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         CourtEyebrow("TODAY'S DAILY QUEST")
-                        Text(if (slots.isNotEmpty() && done == slots.size) "Work recorded." else "Build all six skills.",
-                            style = MaterialTheme.typography.headlineLarge, color = CourtQuestDesign.textPrimary)
-                        Text("$done of ${slots.size} drills recorded today",
-                            style = MaterialTheme.typography.titleMedium, color = CourtQuestDesign.accent)
-                        LinearProgressIndicator(progress = { if (slots.isEmpty()) 0f else done.toFloat() / slots.size },
-                            modifier = Modifier.fillMaxWidth(), color = CourtQuestDesign.accentVivid, trackColor = CourtQuestDesign.border)
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Text(done.toString().padStart(2, '0'), style = MaterialTheme.typography.displaySmall, color = CourtQuestDesign.accent)
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(if (slots.isNotEmpty() && done == slots.size) "Work recorded." else "Build all six skills.",
+                                    style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
+                                Text("$done of ${slots.size} drills recorded today",
+                                    style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)
+                            }
+                        }
+                        Row(Modifier.fillMaxWidth().height(5.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            repeat(maxOf(slots.size, 1)) { index ->
+                                Box(Modifier.weight(1f).fillMaxHeight()
+                                    .background(if (index < done) CourtQuestDesign.accentVivid else CourtQuestDesign.border,
+                                        RoundedCornerShape(4.dp)))
+                            }
+                        }
                         if (slots.isNotEmpty() && done == slots.size) {
                             CourtQuestPrimaryButton(onProgress, Modifier.fillMaxWidth()) { Text("See today's results") }
                         } else if (active == null && slots.isNotEmpty()) {

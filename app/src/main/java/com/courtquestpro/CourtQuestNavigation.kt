@@ -84,7 +84,7 @@ internal fun CourtQuestNavigation(
         if (expanded) {
             Box(
                 Modifier.fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.04f))
+                    .background(Color.Black.copy(alpha = 0.28f))
                     .clickable(role = Role.Button, onClick = { onExpandedChange(false) })
                     .semantics { contentDescription = "Close navigation" }
                     .testTag("nav-outside-dismiss")
@@ -98,7 +98,7 @@ internal fun CourtQuestNavigation(
             exit = slideOutHorizontally(tween(200)) { -it } + fadeOut(tween(200))
         ) {
             Box(
-                Modifier.width(108.dp).wrapContentHeight()
+                Modifier.width(156.dp).wrapContentHeight()
                     .pointerInput(expanded) {
                         var dragged = 0f
                         detectHorizontalDragGestures(
@@ -118,7 +118,7 @@ internal fun CourtQuestNavigation(
             ) {
                 // Floating individual cards: no opaque full-height backing rail.
                 LazyColumn(
-                    Modifier.width(84.dp).wrapContentHeight().selectableGroup(),
+                    Modifier.width(104.dp).wrapContentHeight().selectableGroup(),
                     contentPadding = PaddingValues(horizontal = 3.dp, vertical = 6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterVertically)
@@ -168,7 +168,7 @@ internal fun CourtQuestNavigation(
                 contentAlignment = Alignment.CenterStart
             ) {
                 Box(
-                    Modifier.width(27.dp).height(78.dp)
+                    Modifier.width(21.dp).height(64.dp)
                         .shadow(16.dp, RoundedCornerShape(topEnd = 18.dp, bottomEnd = 18.dp),
                             spotColor = CourtQuestDesign.accentVivid.copy(alpha = 0.82f))
                         .clip(RoundedCornerShape(topEnd = 18.dp, bottomEnd = 18.dp))
@@ -194,15 +194,18 @@ private fun NavigationArtCard(
     atlas: ImageBitmap?,
     onClick: () -> Unit
 ) {
-    val shape = RoundedCornerShape(17.dp)
+    val shape = RoundedCornerShape(16.dp)
     val label = tab.label
     Box(
-        Modifier.fillMaxWidth().heightIn(min = 76.dp)
+        Modifier.fillMaxWidth().heightIn(min = if (tab == PlayerTab.ME) 100.dp else 76.dp)
             .clip(shape)
-            .background(if (selected) CourtQuestDesign.warmSurface.copy(alpha = 0.76f) else Color(0xB20B0C0E))
+            .background(Brush.verticalGradient(listOf(
+                if (selected) Color(0xFF352116) else Color(0xF021242A),
+                Color(0xF0090B0E)
+            )))
             .border(
-                if (selected) 1.7.dp else 1.dp,
-                if (selected) CourtQuestDesign.accentVivid else Color.White.copy(alpha = 0.26f),
+                if (selected) 1.2.dp else 0.8.dp,
+                if (selected) CourtQuestDesign.accentVivid else Color.White.copy(alpha = 0.22f),
                 shape
             )
             .selectable(selected = selected, role = Role.Tab, onClick = onClick)
@@ -214,17 +217,17 @@ private fun NavigationArtCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Box(Modifier.size(56.dp), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(if (tab == PlayerTab.ME) 74.dp else 52.dp), contentAlignment = Alignment.Center) {
                 if (atlas != null) NavigationSpriteArtwork(atlas, tab.ordinal, Modifier.fillMaxSize())
                 if (tab == PlayerTab.ME) {
                     Text(
                         jerseyNumber.toString(),
-                        Modifier.align(Alignment.Center).offset(y = (-6).dp),
+                        Modifier.align(Alignment.Center).offset(y = (-8).dp),
                         color = CourtQuestDesign.accent,
                         fontFamily = CourtDisplay,
                         fontWeight = FontWeight.Black,
-                        fontSize = 13.sp,
-                        lineHeight = 14.sp,
+                        fontSize = 17.sp,
+                        lineHeight = 19.sp,
                         textAlign = TextAlign.Center,
                         maxLines = 1
                     )

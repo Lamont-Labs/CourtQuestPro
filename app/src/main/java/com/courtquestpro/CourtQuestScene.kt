@@ -22,12 +22,12 @@ internal fun CourtQuestScene(content: @Composable () -> Unit) {
         Box(Modifier.fillMaxSize().background(CourtQuestDesign.background)) {
             Canvas(Modifier.matchParentSize().haze(haze)) {
                 drawRect(CourtQuestDesign.background)
-                drawRect(Brush.radialGradient(listOf(CourtQuestDesign.accentVivid.copy(alpha = 0.085f), Color.Transparent),
-                    center = Offset(size.width * 1.1f, size.height * 0.28f), radius = size.width * 1.2f))
+                drawRect(Brush.radialGradient(listOf(CourtQuestDesign.accentVivid.copy(alpha = 0.055f), Color.Transparent),
+                    center = Offset(size.width * 1.08f, size.height * 0.21f), radius = size.width * 0.92f))
                 val stroke = Stroke(1.dp.toPx())
-                val ink = Color.White.copy(alpha = 0.035f)
-                drawCircle(ink, size.width * 0.36f, Offset(size.width * 0.86f, size.height * 0.35f), style = stroke)
-                drawRect(ink, Offset(size.width * 0.60f, size.height * 0.13f), Size(size.width * 0.5f, size.height * 0.23f), style = stroke)
+                val ink = Color.White.copy(alpha = 0.023f)
+                drawCircle(ink, size.width * 0.34f, Offset(size.width * 0.92f, size.height * 0.30f), style = stroke)
+                drawRect(ink, Offset(size.width * 0.62f, size.height * 0.12f), Size(size.width * 0.46f, size.height * 0.22f), style = stroke)
             }
             content()
         }

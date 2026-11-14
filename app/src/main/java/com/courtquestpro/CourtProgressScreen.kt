@@ -2,6 +2,7 @@ package com.courtquestpro
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -24,6 +25,9 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
     var showAllGames by rememberSaveable { mutableStateOf(false) }
     val recorded = save.drillResults.orEmpty()
     val valid = recorded.filter { it.attempted > 0 && it.completed in 0..it.attempted }
+    val recordCount = if (showGames) save.matches.size else recorded.size
+    val recordedDays = if (showGames) save.matches.map { it.date }.distinct().size
+        else valid.map { it.date }.distinct().size
     if (showAllGames) {
         BackHandler { showAllGames = false }
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp),
@@ -56,20 +60,44 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
     }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp)) {
         item { AppHeader("Progress", "${rankFor(save.totalXp)} · ${save.playerName.ifBlank { "Player development" }}") }
-        item { Row(Modifier.padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("Overview", "Skills", "History").forEach { tab ->
-                FilterChip(section == tab, { section = tab }, label = { Text(tab) }, modifier = Modifier.heightIn(min = 48.dp))
-            }
-        } }
         item {
-            Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                if (section == "Overview") CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp), highlighted = true) {
-                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        CourtEyebrow("YOUR TRAINING RECORD")
-                        CourtMetricStrip(listOf("Total XP" to save.totalXp.toString(),
-                            (if (showGames) "Games" else "Sessions") to (if (showGames) save.matches.size else recorded.size).toString(),
-                            (if (showGames) "Game days" else "Training days") to
-                                (if (showGames) save.matches.map { it.date }.distinct().size else valid.map { it.date }.distinct().size).toString()))
+            CourtQuestSegmentRail(
+                labels = listOf("Overview", "Skills", "History"),
+                selected = section,
+                onSelect = { section = it },
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
+        }
+        item {
+            Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                if (section == "Overview") CourtQuestPremiumSurface(
+                    Modifier.fillMaxWidth(), PaddingValues(16.dp), highlighted = true
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            CourtEyebrow("PLAYER RECORD", Modifier.weight(1f))
+                            Text(rankFor(save.totalXp).uppercase(), color = CourtQuestDesign.accent,
+                                style = MaterialTheme.typography.labelSmall)
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                                Text(save.totalXp.toString(), color = CourtQuestDesign.accent,
+                                    style = MaterialTheme.typography.displayMedium)
+                                CourtEyebrow("TOTAL XP", color = CourtQuestDesign.textSecondary)
+                            }
+                            Box(Modifier.width(1.dp).height(54.dp).background(CourtQuestDesign.border))
+                            Column(Modifier.weight(1f).padding(start = 2.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(recordCount.toString(), color = CourtQuestDesign.textPrimary,
+                                    style = MaterialTheme.typography.headlineLarge)
+                                Text(if (showGames) "GAMES" else "SESSIONS",
+                                    color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.labelSmall)
+                                Text("$recordedDays ${if (showGames) "game" else "training"} days",
+                                    color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                        CourtRule()
+                        Text("XP tracks participation. Results are self-recorded.",
+                            color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
                     }
                 }
                 if (section == "History" && save.missionReceipts.orEmpty().isNotEmpty() && !showGames) {
@@ -88,14 +116,16 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
                 }
                 if (section == "History") {
                 CourtRule()
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    FilterChip(!showGames, { showGames = false }, label = { Text("Training") }, modifier = Modifier.heightIn(min = 48.dp))
-                    FilterChip(showGames, { showGames = true }, label = { Text("Games") }, modifier = Modifier.heightIn(min = 48.dp))
-                }
+                CourtQuestSegmentRail(
+                    labels = listOf("Training", "Games"),
+                    selected = if (showGames) "Games" else "Training",
+                    onSelect = { showGames = it == "Games" },
+                    modifier = Modifier.fillMaxWidth()
+                )
                 if (showGames) {
                     CourtHeading("Game history")
                     if (save.matches.isEmpty()) {
-                        CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(24.dp)) {
+                        CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(18.dp)) {
                             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 Icon(Icons.Default.SportsBasketball, null, tint = CourtQuestDesign.accent, modifier = Modifier.size(32.dp))
                                 Text("Your first match awaits.", color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineMedium)
@@ -111,7 +141,7 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
                         }
                     }
                 } else if (recorded.isEmpty()) {
-                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(24.dp)) {
+                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(18.dp)) {
                         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                             Icon(Icons.Default.Insights, null, tint = CourtQuestDesign.accent, modifier = Modifier.size(36.dp))
                             Text("Start your baseline.", color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineLarge)

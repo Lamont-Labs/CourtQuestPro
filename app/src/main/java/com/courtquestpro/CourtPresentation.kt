@@ -29,7 +29,7 @@ internal fun CourtHeading(title: String, detail: String? = null, onDetail: (() -
 internal fun CourtMetric(label: String, value: String, modifier: Modifier = Modifier, accent: Boolean = false) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(3.dp)) {
         Text(value, color = if (accent) CourtQuestDesign.accent else CourtQuestDesign.textPrimary,
-            style = MaterialTheme.typography.headlineLarge)
+            style = MaterialTheme.typography.headlineMedium)
         Text(label, color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.labelMedium)
     }
 }
@@ -47,7 +47,7 @@ internal fun CourtMetricStrip(metrics: List<Pair<String, String>>, modifier: Mod
                         Text(label, color = CourtQuestDesign.textSecondary,
                             style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                         Text(value, color = if (index == 0) CourtQuestDesign.accent else CourtQuestDesign.textPrimary,
-                            style = MaterialTheme.typography.headlineMedium)
+                            style = MaterialTheme.typography.headlineSmall)
                     }
                 }
             }

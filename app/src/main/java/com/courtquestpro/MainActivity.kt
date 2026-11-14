@@ -351,10 +351,26 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 confirmMissionDiscard = false; refresh()
                 missionStartPending?.let { startMission(it) }
             }) { Text("Discard and start Mission") } }, dismissButton = { TextButton({ confirmMissionDiscard = false }) { Text("Keep session") } })
+        fun selectPlayerTab(tab: PlayerTab) {
+            navigationExpanded = false
+            if (tab == PlayerTab.TRAIN && librarySlotId != null) {
+                librarySlotId = null
+                librarySelectedId = null
+            }
+            navigate(tab.route)
+        }
+        val showPlayerNavigation = onboardingComplete &&
+            screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")
         CourtQuestScene {
         Scaffold(
             modifier = Modifier.semantics { testTagsAsResourceId = true },
             snackbarHost = { SnackbarHost(snackbar) },
+            bottomBar = {
+                if (showPlayerNavigation) CourtQuestBottomDock(
+                    selected = PlayerNavigation.tab(routeHistory),
+                    onSelect = { selectPlayerTab(it) }
+                )
+            },
             containerColor = Color.Transparent,
         ) { padding ->
             Box(Modifier.fillMaxSize()) {
@@ -605,20 +621,14 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             }
             }
             }
-            if (onboardingComplete && screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")) {
+            if (showPlayerNavigation) {
                 CourtQuestNavigation(
+                    modifier = Modifier.padding(bottom = 64.dp),
                     selected = PlayerNavigation.tab(routeHistory),
                     jerseyNumber = save.jerseyNumber,
                     expanded = navigationExpanded,
                     onExpandedChange = { navigationExpanded = it },
-                    onSelect = { tab ->
-                        navigationExpanded = false
-                        if (tab == PlayerTab.TRAIN && librarySlotId != null) {
-                            librarySlotId = null
-                            librarySelectedId = null
-                        }
-                        navigate(tab.route)
-                    }
+                    onSelect = { selectPlayerTab(it) }
                 )
             }
         }

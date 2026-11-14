@@ -28,14 +28,14 @@ internal fun CourtQuestPrimaryButton(
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier.heightIn(min = 56.dp).clip(RoundedCornerShape(16.dp))
+        modifier = modifier.heightIn(min = 52.dp).clip(RoundedCornerShape(14.dp))
             .background(if (enabled) Brush.verticalGradient(listOf(CourtQuestDesign.iconGradientStart,
                 CourtQuestDesign.accentVivid, Color(0xFFF05206)))
                 else Brush.verticalGradient(listOf(CourtQuestDesign.elevatedSurface, CourtQuestDesign.elevatedSurface)))
             .border(1.dp, if (enabled) Brush.verticalGradient(listOf(Color(0xFFFFB17C), CourtQuestDesign.accentVivid))
-                else Brush.verticalGradient(listOf(CourtQuestDesign.border, CourtQuestDesign.border)), RoundedCornerShape(16.dp)),
+                else Brush.verticalGradient(listOf(CourtQuestDesign.border, CourtQuestDesign.border)), RoundedCornerShape(14.dp)),
         enabled = enabled,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(14.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Transparent,
             contentColor = CourtQuestDesign.iconForeground,

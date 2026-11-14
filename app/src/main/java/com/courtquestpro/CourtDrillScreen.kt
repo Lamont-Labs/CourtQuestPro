@@ -53,9 +53,20 @@ internal fun DrillScreen(
                 Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
                     CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(20.dp), highlighted = true) {
                       Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            CourtEyebrow("YOUR TARGET · ${drill.minutes} MIN")
-                            Text(drill.target, color = CourtQuestDesign.accent, style = MaterialTheme.typography.titleMedium)
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                CourtEyebrow("YOUR TARGET")
+                                Text(drill.target, color = CourtQuestDesign.textPrimary,
+                                    style = MaterialTheme.typography.headlineSmall)
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(drill.minutes.toString().padStart(2, '0'),
+                                    color = CourtQuestDesign.accentVivid,
+                                    style = MaterialTheme.typography.displaySmall)
+                                Text("MIN PLAN", color = CourtQuestDesign.textSecondary,
+                                    style = MaterialTheme.typography.labelSmall)
+                            }
                         }
                     CourtRule()
                     CourtMetricStrip(listOf(measurement.successLabel to completedCount.toString(),
