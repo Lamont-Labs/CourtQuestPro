@@ -148,6 +148,7 @@ def main():
     snap('candidate-game-receipt')
     reachable('View game history')
     ui.tap(reachable('View game history'))
+    ui.tap(reachable('History'))
     ui.require(ui.nodes(), 'Game history')
     reachable('Casey won')
     snap('candidate-game-history')
