@@ -1,0 +1,100 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "KL1cX_T7lnlYXpVoUWi2w"
+uri = "file://artifacts/native-premium-review-5b/artifacts/premium-redesign/comparison-court.jpg"
+type = "image"
+title = "Court home — before / after"
+description = "Actual Android 35 emulator capture with matching saved test data. Released v21 on the left; native UI commit 5b255f7c4cee on the right. No APK published."
+logical_id = "05d2001b-8ecf-494b-99ca-81362a636dbd"
+content_hash = "sha256:bf615f90c27053b1224ac645212917a323c8166f398214355aa60d382996715e"
+size = 361952
+mtime_ms = 1794672996887
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/05d2001b-8ecf-494b-99ca-81362a636dbd/790051aa-adc1-46e7-9c94-727c2b707e75"
+storage_version_token = "1794673048201979"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "WpswvAokx4wIRN1pIjqp_"
+uri = "file://artifacts/native-premium-review-5b/artifacts/premium-redesign/comparison-library.jpg"
+type = "image"
+title = "Drill Library — before / after"
+description = "Actual Android 35 emulator capture with matching saved test data. Released v21 on the left; native UI commit 5b255f7c4cee on the right. No APK published."
+logical_id = "010298a6-02d6-4991-a39d-13ddaebf156c"
+content_hash = "sha256:edb2dad5be28898d81b152a02a48f6b2e6daff1414bd7db83040a05bc1af4673"
+size = 325816
+mtime_ms = 1794672996890
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/010298a6-02d6-4991-a39d-13ddaebf156c/aa904aef-08bc-447e-be29-9fb77d0d2c61"
+storage_version_token = "1794673048719246"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "oektL26SWM3FJBS98LkM8"
+uri = "file://artifacts/native-premium-review-5b/artifacts/premium-redesign/comparison-training.jpg"
+type = "image"
+title = "Training entry — before / after"
+description = "Actual Android 35 emulator capture with matching saved test data. Released v21 on the left; native UI commit 5b255f7c4cee on the right. No APK published."
+logical_id = "bd9ef7fc-61e2-4c0a-b396-b11465e8c004"
+content_hash = "sha256:dbebb2554975dd895e23206e93c87bde221bf17d810ff68dee8b6036e2a0c588"
+size = 312795
+mtime_ms = 1794672996903
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/bd9ef7fc-61e2-4c0a-b396-b11465e8c004/334f4d0b-160c-4f3c-96cc-3f2ca2260ab0"
+storage_version_token = "1794673049178091"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "D__v2Lt0sWqAIRRk9HpjH"
+uri = "file://artifacts/native-premium-review-5b/artifacts/premium-redesign/comparison-progress.jpg"
+type = "image"
+title = "Progress — before / after"
+description = "Actual Android 35 emulator capture with matching saved test data. Released v21 on the left; native UI commit 5b255f7c4cee on the right. No APK published."
+logical_id = "dd781a9a-e188-4f6b-957e-13f30015cbff"
+content_hash = "sha256:6092809a4a54023f8832ee2ce26d933f30bc90b551d4c641835ac493b568bcf7"
+size = 225648
+mtime_ms = 1794672996899
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/dd781a9a-e188-4f6b-957e-13f30015cbff/2102bab1-c97f-4a00-882e-36a2e7f26b8a"
+storage_version_token = "1794673050277386"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "Tfv7Vbgd-W0aPM4SPyWUi"
+uri = "file://artifacts/native-premium-review-5b/artifacts/premium-redesign/comparison-quests.jpg"
+type = "image"
+title = "Quests — before / after"
+description = "Actual Android 35 emulator capture with matching saved test data. Released v21 on the left; native UI commit 5b255f7c4cee on the right. No APK published."
+logical_id = "19481c07-1003-404c-97a8-d1ebfabbc497"
+content_hash = "sha256:e27d69a9866ab35cf2f4eac0c65a4995dbc9f57e4b0db4ea8d6bc8daacdd4954"
+size = 358971
+mtime_ms = 1794672996901
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/19481c07-1003-404c-97a8-d1ebfabbc497/c2635964-964f-4cbf-b41f-23e79b956a5f"
+storage_version_token = "1794673050771707"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "wLBtZ0oR5_kN53ykqZ_nB"
+uri = "file://artifacts/native-premium-review-5b/artifacts/premium-redesign/comparison-me.jpg"
+type = "image"
+title = "Me profile — before / after"
+description = "Actual Android 35 emulator capture with matching saved test data. Released v21 on the left; native UI commit 5b255f7c4cee on the right. No APK published."
+logical_id = "f3bc7758-06ae-44cf-87c2-688c7b3e2130"
+content_hash = "sha256:7eb05ab93fed4bf6af4930af179f1102acbcbf7d8c562e15fcdbf205ea332a67"
+size = 323149
+mtime_ms = 1794672996893
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/f3bc7758-06ae-44cf-87c2-688c7b3e2130/963fd8f5-e101-4046-a312-6324c5ae4d24"
+storage_version_token = "1794673051234970"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "PfR3ZQSDyuen0MHJfj_vy"
+uri = "file://artifacts/native-premium-review-5b/artifacts/premium-redesign/comparison-navigation.jpg"
+type = "image"
+title = "Side drawer and bottom navigation — before / after"
+description = "Actual Android 35 emulator capture with matching saved test data. Released v21 on the left; native UI commit 5b255f7c4cee on the right. No APK published."
+logical_id = "0a0d86c9-5059-408b-81b9-a456e3ffddca"
+content_hash = "sha256:b7e71d663fe7ac6ff51cc7a16e058f55bb0477fbb71d845b196e2ff46bb8e0f1"
+size = 400895
+mtime_ms = 1794672996895
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/0a0d86c9-5059-408b-81b9-a456e3ffddca/d00e5932-bda4-4ad0-8d1c-560893717ff4"
+storage_version_token = "1794673051688999"
+content_type = "image/jpeg"
