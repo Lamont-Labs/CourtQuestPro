@@ -40,7 +40,7 @@ def source():
 def wait_for_ci(output, timeout=3900):
     sha = os.environ['GITHUB_SHA']
     deadline = time.monotonic() + timeout
-    paths = ['android-development.yml', 'verify-native-library-flow.yml']
+    paths = ['android-development.yml', 'verify-compact-navigation.yml', 'verify-native-library-flow.yml']
     last = None
     while time.monotonic() < deadline:
         results = {}

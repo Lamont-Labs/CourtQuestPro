@@ -5,6 +5,10 @@ on:
     branches: [dev/premium-flow-toolkit, repair/premium-flow-stabilization]
     paths:
       - '.github/workflows/verify-compact-navigation.yml'
+      - '.github/workflows/courtquest-phone-update.yml'
+      - 'app/build.gradle.kts'
+      - 'scripts/phone_release_gate.py'
+      - 'scripts/verify_phone_update.py'
       - 'scripts/verify_compact_navigation.py'
       - '.maestro/premium-smoke.yaml'
       - 'scripts/verify_android_daily_flow.py'

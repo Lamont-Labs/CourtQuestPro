@@ -77,7 +77,7 @@ class ExactCommitGateTest(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'Release blocked'):
                 gate.wait_for_ci(Path('must-not-be-written.json'))
 
-    def test_both_current_commit_checks_are_required(self):
+    def test_all_current_commit_checks_exclude_stale_results(self):
         run = dict(id=1, head_sha='current', head_branch=gate.BRANCH,
                    status='completed', conclusion='success', html_url='https://github.com/example')
         stale = dict(run, id=2, head_sha='old')
