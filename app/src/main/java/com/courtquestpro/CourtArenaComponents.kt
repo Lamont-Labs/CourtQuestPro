@@ -91,7 +91,7 @@ internal fun CourtAthleteIdentity(save: SaveState, modifier: Modifier = Modifier
             )
             Text(
                 if (save.jerseyNumber == null) "JERSEY NOT SET · DISPLAY 7"
-                else "JERSEY #${save.jerseyNumber.coerceIn(0, 99)}",
+                else "JERSEY #${displayedJerseyNumber(save.jerseyNumber)}",
                 color = CourtQuestDesign.accent,
                 style = MaterialTheme.typography.labelLarge
             )
