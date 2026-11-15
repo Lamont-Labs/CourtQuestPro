@@ -18,6 +18,39 @@ def dock_fixture():
 
 
 class NativeVisualGuardTest(unittest.TestCase):
+    def test_onboarding_readiness_waits_past_an_empty_cold_start_hierarchy(self):
+        entry = ET.Element('node', {'text': 'CONTINUE', 'bounds': '[40,1200][680,1304]'})
+        with patch.object(visual.ui, 'nodes', side_effect=[[], [entry]]) as reads, \
+                patch.object(visual.time, 'sleep'):
+            self.assertIs(visual.wait_text('CONTINUE'), entry)
+        self.assertEqual(reads.call_count, 2)
+
+    def test_onboarding_readiness_still_fails_when_the_entry_control_never_appears(self):
+        with patch.object(visual.ui, 'nodes', return_value=[]) as reads, \
+                patch.object(visual.time, 'sleep'), self.assertRaises(AssertionError):
+            visual.wait_text('CONTINUE', attempts=2)
+        self.assertEqual(reads.call_count, 2)
+
+    def test_failure_evidence_covers_both_apk_phases_without_hiding_the_failure(self):
+        for phase in ['before', 'after']:
+            with self.subTest(phase=phase), tempfile.TemporaryDirectory() as tmp, \
+                    patch.object(visual, 'capture_phase', side_effect=AssertionError('entry not ready')), \
+                    patch.object(visual, 'require_qa'), patch.object(visual.ui, 'OUT', Path(tmp)), \
+                    patch.object(visual.ui, 'nodes') as dump, patch.object(visual.ui, 'screenshot') as shot:
+                with self.assertRaisesRegex(AssertionError, 'entry not ready'):
+                    visual.capture_checked_phase(phase, Path(tmp))
+                dump.assert_called_once_with('visual-failure')
+                shot.assert_called_once_with('visual-failure')
+
+    def test_failure_capture_never_reads_an_unvalidated_device(self):
+        with patch.object(visual, 'capture_phase', side_effect=AssertionError('wrong device')), \
+                patch.object(visual, 'require_qa', side_effect=RuntimeError('not disposable QA')), \
+                patch.object(visual.ui, 'nodes') as dump, patch.object(visual.ui, 'screenshot') as shot:
+            with self.assertRaisesRegex(AssertionError, 'wrong device'):
+                visual.capture_checked_phase('before', Path('unused'))
+            dump.assert_not_called()
+            shot.assert_not_called()
+
     def test_large_heading_rejects_the_narrow_column_that_split_words(self):
         heading = ET.Element('node', {'bounds': '[40,100][240,180]'})
         with patch.object(visual.ui, 'wait_tagged', return_value=heading), self.assertRaises(AssertionError):
@@ -119,6 +152,7 @@ class NativeVisualGuardTest(unittest.TestCase):
             mocks.enter_context(patch.object(visual.time, 'sleep'))
             mocks.enter_context(patch.object(visual, 'require_qa'))
             mocks.enter_context(patch.object(visual, 'capture'))
+            mocks.enter_context(patch.object(visual, 'wait_text'))
             mocks.enter_context(patch.object(visual, 'training_action'))
             open_app = mocks.enter_context(patch.object(visual.ui, 'open_app'))
             for name in ['shell', 'seed', 'wait_tagged', 'tap', 'require', 'nodes']:

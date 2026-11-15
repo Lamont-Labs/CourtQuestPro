@@ -74,6 +74,16 @@ def capture(name):
     ui.nodes(name)
     ui.screenshot(name)
 
+def wait_text(text, attempts=8):
+    """am start can return before a cold activity exports its first real controls."""
+    for attempt in range(attempts):
+        target = ui.find(ui.nodes(), text)
+        if target is not None:
+            return target
+        if attempt + 1 < attempts:
+            time.sleep(0.2)
+    raise AssertionError(f'Visible onboarding control {text!r} did not become ready')
+
 def audit_live_primary():
     """Normal launch must expose actual recording, not only a clock/save gate."""
     items = ui.nodes()
@@ -183,7 +193,7 @@ def capture_phase(phase, output):
         require_qa()
         assert 'Success' in ui.shell('pm', 'clear', ui.PACKAGE)
         ui.open_app()
-        ui.require(ui.nodes(), 'Get Started' if phase == 'after' else 'CONTINUE')
+        wait_text('Get Started' if phase == 'after' else 'CONTINUE')
         if phase == 'after' and config == 'large':
             audit_large_heading('onboarding-brand-name')
         capture('onboarding')
@@ -284,6 +294,21 @@ def compare(output):
     return metrics
 
 
+def capture_checked_phase(phase, output):
+    try:
+        return capture_phase(phase, output)
+    except Exception:
+        try:
+            # Do not collect a screen if the disposable-device guard failed.
+            require_qa()
+            ui.OUT.mkdir(parents=True, exist_ok=True)
+            ui.nodes('visual-failure')
+            ui.screenshot('visual-failure')
+        except Exception as evidence_error:
+            print(f'Validated QA failure evidence unavailable: {evidence_error}', flush=True)
+        raise
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--baseline', type=Path, required=True)
@@ -295,7 +320,7 @@ def main():
     assert sha(args.baseline) == BASELINE_SHA256, 'The baseline is not the previous verified native APK'
     assert sha(args.candidate) != BASELINE_SHA256, 'Candidate is still the unchanged previous native APK'
     assert 'Success' in ui.adb('install', str(args.baseline.resolve()), timeout=180).decode()
-    capture_phase('before', args.output)
+    capture_checked_phase('before', args.output)
     ui.shell('am', 'force-stop', ui.PACKAGE)
     prefs_path = 'shared_prefs/court_quest_pro.xml'
     original = ui.adb('exec-out', 'run-as', ui.PACKAGE, 'cat', prefs_path)
@@ -304,14 +329,7 @@ def main():
     assert original == ui.adb('exec-out', 'run-as', ui.PACKAGE, 'cat', prefs_path), 'Upgrade changed existing preferences'
     ui.open_app()
     assert saved_values_preserved(before, json.loads(ui.prefs()['state'].text)), 'Redesign changed existing player data'
-    try:
-        targets = capture_phase('after', args.output)
-    except Exception:
-        # Retain the real window that blocked verification, not just a Python trace.
-        ui.OUT.mkdir(parents=True, exist_ok=True)
-        ui.nodes('visual-failure')
-        ui.screenshot('visual-failure')
-        raise
+    targets = capture_checked_phase('after', args.output)
     report = dict(baseline_apk_sha256=BASELINE_SHA256, candidate_apk_sha256=sha(args.candidate),
                   baseline_commit='c30876b3ac4bea45967a7a254030df6de084c5d7',
                   candidate_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
