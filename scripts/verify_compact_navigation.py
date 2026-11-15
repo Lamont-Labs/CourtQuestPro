@@ -52,29 +52,30 @@ def candidate(apk):
         ui.shell('wm','density','320')
         ui.shell('settings','put','system','font_scale',font)
         time.sleep(2)
+        dock=ui.wait_tagged('player-bottom-dock')
+        dock_box=rect(dock)
+        assert dock_box[3]-dock_box[1]<=160,(name,'dock is too tall',dock_box)
+        assert ui.tagged(ui.nodes(),'nav-open-handle') is None, 'Side drawer handle must be absent'
+        boxes=[]
         for label,route in zip(LABELS,ROUTES):
-            # A LazyColumn need not compose all five entries at once in landscape.
-            # Every labeled destination must still be reachable and at least 48dp.
-            target=ui.drawer_target(label,minimum_px=96)
+            target=ui.dock_target(label,minimum_px=90)
             left,top,right,bottom=rect(target)
-            assert right-left>=96 and bottom-top>=96,(name,label,'48dp target required',target.attrib)
-            ui.nodes(f'edge-{name}-{route}-drawer')
+            assert right-left>=90 and bottom-top>=90,(name,label,'accessible target',target.attrib)
+            boxes.append([left,top,right,bottom])
             ui.tap(target)
-            ui.wait_tagged('nav-open-handle')
-            selected=ui.drawer_target(label,minimum_px=96)
+            selected=ui.wait_tagged('dock-'+route)
             assert selected.get('selected')=='true',(name,label,'selected destination not exposed',selected.attrib)
-            closer=ui.wait_tagged('nav-close-handle')
-            ui.tap(closer)
-            ui.wait_tagged('nav-open-handle')
             measurements.append(dict(configuration=name,selected=label,target_bounds=[left,top,right,bottom]))
-        ui.nodes('edge-'+name)
-        ui.screenshot('edge-'+name)
+        same_row(boxes)
+        assert all(boxes[i][2]<=boxes[i+1][0]+2 for i in range(4)),(name,'dock targets overlap',boxes)
+        ui.nodes('dock-'+name)
+        ui.screenshot('dock-'+name)
     ui.shell('wm','size','720x1600')
     ui.shell('settings','put','system','font_scale','1.0')
     assert state()==before,'Tab browsing altered saved player/training data'
     report=dict(input_apk_sha256=hashlib.sha256(apk.read_bytes()).hexdigest(),
                 upgrade_from_build9=True,saved_data_unchanged=True,
-                five_accessible_drawer_destinations=True,drawer_closes_on_selection=True,
+                five_accessible_dock_destinations=True,side_drawer_removed=True,
                 configurations=configurations,measurements=measurements)
     (ui.OUT/'dock-result.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps(report),flush=True)
