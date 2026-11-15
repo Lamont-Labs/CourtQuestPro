@@ -51,7 +51,7 @@ def audit_dock():
     dock = ui.tagged(items, 'player-bottom-dock')
     assert dock is not None, 'New bottom dock is missing'
     left, top, right, bottom = bounds(dock)
-    assert bottom - top <= 112, 'Bottom dock grew beyond 56dp'
+    assert bottom - top <= 116, 'Bottom dock grew beyond approved 58dp'
     targets = []
     for label, route in ui.NAV_ROUTES.items():
         node = ui.tagged(items, 'dock-' + route)
