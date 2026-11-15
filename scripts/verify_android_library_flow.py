@@ -106,6 +106,9 @@ def click(text):
 
 def open_library():
     """Select Train from the primary dock; the drawer has dedicated coverage."""
+    back = ui.find(ui.nodes(), 'Back to library')
+    if back is not None:
+        ui.tap(back)
     ui.tap(ui.wait_tagged('dock-library', attempts=20))
     train_sections = ('train-arena-hero', 'train-plan-content', 'train-library-content')
     for _ in range(20):
