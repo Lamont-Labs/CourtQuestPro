@@ -88,6 +88,19 @@ def audit_live_primary():
             assert r - l >= 96 and b - t >= 96, 'Live recording target is smaller than 48dp'
             assert node.get('enabled') == 'true', 'Live recording is disabled before any attempts'
 
+def audit_me_avatar():
+    items = ui.nodes()
+    jersey = ui.tagged(items, 'me-jersey-hero')
+    avatar = ui.tagged(items, 'me-neutral-avatar')
+    assert jersey is not None and avatar is not None, 'Profile identity artwork is missing'
+    left, top, right, bottom = bounds(jersey)
+    cx, cy = (left + right) / 2, (top + bottom) / 2
+    radius = min(right - left, bottom - top) / 2
+    l, t, r, b = bounds(avatar)
+    assert r > l and b > t
+    assert all((x - cx) ** 2 + (y - cy) ** 2 < radius ** 2
+               for x in (l, r) for y in (t, b)), 'Jersey circle clips the neutral avatar badge'
+
 
 def audit_large_progress_picker():
     picker = ui.wait_tagged('progress-section-picker')
@@ -176,6 +189,8 @@ def capture_phase(phase, output):
                 ui.navigate(label)
                 ui.wait_tagged('nav-open-handle')
             capture(name)
+            if phase == 'after' and name == 'me':
+                audit_me_avatar()
             if phase == 'after' and config == 'large' and name == 'library':
                 audit_large_library()
             if phase == 'after' and config == 'large' and name == 'progress':

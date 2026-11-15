@@ -78,7 +78,8 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                             contentAlignment = Alignment.Center
                         ) {
                             CourtQuestJerseyArtwork(save.jerseyNumber, Modifier.fillMaxSize().padding(8.dp))
-                            Box(Modifier.align(Alignment.BottomEnd).padding(12.dp).size(44.dp)
+                            Box(Modifier.align(Alignment.BottomEnd).padding(30.dp).size(44.dp)
+                                .testTag("me-neutral-avatar")
                                 .background(CourtQuestDesign.surface, CircleShape)
                                 .border(1.dp, CourtQuestDesign.accent, CircleShape),
                                 contentAlignment = Alignment.Center) {

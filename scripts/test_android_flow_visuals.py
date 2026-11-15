@@ -18,6 +18,18 @@ def dock_fixture():
 
 
 class NativeVisualGuardTest(unittest.TestCase):
+    def test_avatar_cannot_cross_the_circular_artwork_clip(self):
+        jersey = ET.Element('node', {'resource-id': 'me-jersey-hero', 'bounds': '[20,20][400,400]'})
+        avatar = ET.Element('node', {'resource-id': 'me-neutral-avatar', 'bounds': '[288,288][376,376]'})
+        with patch.object(visual.ui, 'nodes', return_value=[jersey, avatar]), self.assertRaises(AssertionError):
+            visual.audit_me_avatar()
+
+    def test_avatar_fits_inside_the_original_jersey_artwork(self):
+        jersey = ET.Element('node', {'resource-id': 'me-jersey-hero', 'bounds': '[20,20][400,400]'})
+        avatar = ET.Element('node', {'resource-id': 'me-neutral-avatar', 'bounds': '[252,252][340,340]'})
+        with patch.object(visual.ui, 'nodes', return_value=[jersey, avatar]):
+            visual.audit_me_avatar()
+
     def test_live_primary_rejects_a_recording_button_below_the_viewport(self):
         viewport = ET.Element('node', {'scrollable': 'true', 'bounds': '[0,48][720,1552]'})
         stats = ET.Element('node', {'resource-id': 'live-drill-stats', 'bounds': '[40,780][680,900]'})
