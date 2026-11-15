@@ -153,7 +153,8 @@ def audit_home_shortcuts():
     assert ui.wait_tagged('train-library-content') is not None, \
         'The Drills shortcut must open the drill catalog, not only My Plan'
     ui.navigate('Court')
-    ui.tap(ui.wait_tagged('dock-train'))
+    train_route = ui.NAV_ROUTES['Train']
+    ui.tap(ui.wait_tagged(f'dock-{train_route}'))
     assert ui.wait_tagged('train-plan-content') is not None, \
         'The Train destination must open My Plan after visiting Drills'
 

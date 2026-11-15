@@ -43,14 +43,16 @@ class NativeVisualGuardTest(unittest.TestCase):
         focus = ET.Element('node', {'resource-id': 'court-todays-focus', 'bounds': '[40,1000][680,1100]'})
         viewport = ET.Element('node', {'scrollable': 'true', 'bounds': '[0,48][720,1392]'})
         catalog = ET.Element('node', {'resource-id': 'train-library-content', 'bounds': '[0,400][720,900]'})
-        dock = ET.Element('node', {'resource-id': 'dock-train', 'bounds': '[0,1200][150,1300]'})
+        train_route = visual.ui.NAV_ROUTES['Train']
+        dock = ET.Element('node', {'resource-id': f'dock-{train_route}', 'bounds': '[0,1200][150,1300]'})
         plan = ET.Element('node', {'resource-id': 'train-plan-content', 'bounds': '[0,400][720,900]'})
         reads = [*nodes, nodes[1], catalog, dock, plan]
-        with patch.object(visual.ui, 'wait_tagged', side_effect=reads), \
+        with patch.object(visual.ui, 'wait_tagged', side_effect=reads) as wait_tagged, \
                 patch.object(visual.ui, 'nodes', return_value=[*nodes, focus, viewport]), patch.object(visual.ui, 'tap'), \
                 patch.object(visual.ui, 'navigate') as navigate:
             visual.audit_home_shortcuts()
         self.assertEqual(navigate.call_args.args, ('Court',))
+        self.assertIn((f'dock-{train_route}',), [call.args for call in wait_tagged.call_args_list])
 
     def test_reference_shortcut_routes_directly_to_the_drill_catalog(self):
         labels = ['Train', 'Drills', 'Progress', 'Quests', 'Games', 'Team']
@@ -60,7 +62,8 @@ class NativeVisualGuardTest(unittest.TestCase):
         focus = ET.Element('node', {'resource-id': 'court-todays-focus', 'bounds': '[40,800][680,900]'})
         viewport = ET.Element('node', {'scrollable': 'true', 'bounds': '[0,48][720,1392]'})
         catalog = ET.Element('node', {'resource-id': 'train-library-content', 'bounds': '[0,400][720,900]'})
-        dock = ET.Element('node', {'resource-id': 'dock-train', 'bounds': '[0,1200][150,1300]'})
+        train_route = visual.ui.NAV_ROUTES['Train']
+        dock = ET.Element('node', {'resource-id': f'dock-{train_route}', 'bounds': '[0,1200][150,1300]'})
         plan = ET.Element('node', {'resource-id': 'train-plan-content', 'bounds': '[0,400][720,900]'})
         with patch.object(visual.ui, 'wait_tagged', side_effect=[*nodes, nodes[1], catalog, dock, plan]), \
                 patch.object(visual.ui, 'nodes', return_value=[*nodes, focus, viewport]), \
