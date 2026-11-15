@@ -436,7 +436,7 @@ def main():
     shell('wm', 'size', '720x1600')
     seed('blank')
     open_app()
-    require(nodes('candidate-blank-profile'), 'Your court.')
+    require(nodes('candidate-blank-profile'), 'Court')
     screenshot('candidate-blank-profile')
     seed('long')
     open_app()
