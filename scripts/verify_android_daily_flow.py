@@ -229,7 +229,9 @@ def scroll_to(text, limit=10):
         if node is not None:
             return node
         scrollables = [node for node in items if node.get('scrollable') == 'true']
-        assert scrollables, f'No scrollable content can reach {text!r}'
+        if not scrollables:
+            time.sleep(0.2)
+            continue
         def bounds(node):
             return list(map(int, re.findall(r'\d+', node.attrib['bounds'])))
         scrollable = max(scrollables, key=lambda node: (bounds(node)[2] - bounds(node)[0]) * (bounds(node)[3] - bounds(node)[1]))

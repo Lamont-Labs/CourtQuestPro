@@ -359,6 +359,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         fun selectPlayerTab(tab: PlayerTab) {
             navigationExpanded = false
             if (tab == PlayerTab.TRAIN) {
+                if (screen == "home") libraryInitialSection = "Today"
                 if (screen != tab.route || librarySlotId != null) {
                     librarySlotId = null
                     librarySelectedId = null
