@@ -29,6 +29,7 @@ def restore_saved_score():
     fixture.update(matchPlayer='Jordan', matchOpponent='Casey', playerScore=2,
                    opponentScore=1, pointHistory=[True, False, True])
     seed_state(fixture)
+    ui.wait_tagged('court-player-hero', attempts=20)
     click('Resume 1-on-1')
     ui.require(ui.nodes(), 'Record point for Jordan')
 

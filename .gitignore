@@ -15,3 +15,4 @@ artifacts/
 !/signing/README.md
 .superpowers/
 .pythonlibs/
+/generated-artifacts/
