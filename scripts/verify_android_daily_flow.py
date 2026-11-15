@@ -190,6 +190,10 @@ def seed(variant="normal"):
                                   attempted=0, targetConfirmed=False, remainingSeconds=360)], showWarmupDone=False)
     if variant == 'empty':
         state.update(totalXp=0, currentStreak=0, longestStreak=0, drillResults=[], drillDrafts=[])
+    elif variant == 'visual-review':
+        # Clearly synthetic, identically persisted before/after screenshot data.
+        # These are fixture values, never runtime defaults or a real user's identity.
+        state.update(playerName='CourtQuest QA', jerseyNumber=14)
     elif variant == 'blank':
         state['playerName'] = ''
     elif variant == 'long':

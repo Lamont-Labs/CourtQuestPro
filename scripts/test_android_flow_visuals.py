@@ -77,7 +77,7 @@ class NativeVisualGuardTest(unittest.TestCase):
             try:
                 visual.capture_phase('before', Path(tmp))
                 self.assertEqual([c.args[0] for c in navigate.call_args_list],
-                                 ['Court', 'Court', 'Train', 'Progress', 'Quests', 'Me', 'Me', 'Court'])
+                                 ['Court', 'Court', 'Train', 'Progress', 'Quests', 'Me', 'Court', 'Me'])
                 self.assertEqual(open_app.call_count, 2)
             finally:
                 visual.ui.OUT = original_output

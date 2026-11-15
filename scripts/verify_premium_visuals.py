@@ -130,7 +130,7 @@ def capture_phase(phase, output):
         ui.require(ui.nodes(), 'Get Started' if phase == 'after' else 'CONTINUE')
         capture('onboarding')
         # Both APKs receive the same existing synthetic fixture in the guarded AVD.
-        ui.seed('game-history')
+        ui.seed('visual-review')
         # Seeding deliberately force-stops the package; launch before querying its UI.
         ui.open_app()
         ui.wait_tagged('nav-open-handle')
@@ -150,20 +150,6 @@ def capture_phase(phase, output):
                 audit_large_library()
             if phase == 'after' and config == 'large' and name == 'progress':
                 audit_large_controls(['progress-record-sessions'], 'progress-record-large')
-        # Baseline has no Team screen: retain its real Me entry point as an
-        # explicitly labeled absence comparison rather than inventing a baseline.
-        ui.navigate('Me')
-        if phase == 'after':
-            ui.tap(ui.wait_tagged('me-settings-menu'))
-            ui.tap(ui.wait_tagged('me-team'))
-            ui.require(ui.nodes(), 'NO TEAM CONFIGURED')
-            assert ui.tagged(ui.nodes(), 'team-screen') is not None
-            team_before = json.loads(ui.prefs()['state'].text)
-            capture('team')
-            assert team_before == json.loads(ui.prefs()['state'].text), 'Viewing empty Team mutated player data'
-            ui.shell('input', 'keyevent', 'KEYCODE_BACK')
-        else:
-            capture('team')
         ui.navigate('Court')
         ui.tap(ui.wait_tagged('nav-open-handle'))
         ui.wait_tagged('player-navigation-drawer')
@@ -175,6 +161,25 @@ def capture_phase(phase, output):
         ui.require(ui.nodes(), 'Five-Spot Form Shooting')
         capture('training')
         ui.shell('input', 'keyevent', 'KEYCODE_BACK')
+        # Team did not exist on the baseline; label its actual Me entry point.
+        if phase == 'after':
+            ui.navigate('Court')
+            ui.tap(ui.scroll_to('Team'))
+            ui.scroll_to('NO TEAM CONFIGURED')
+            assert ui.tagged(ui.nodes(), 'team-screen') is not None
+            team_before = json.loads(ui.prefs()['state'].text)
+            capture('team')
+            assert team_before == json.loads(ui.prefs()['state'].text), 'Viewing empty Team mutated player data'
+            ui.shell('input', 'keyevent', 'KEYCODE_BACK')
+            ui.navigate('Me')
+            ui.tap(ui.wait_tagged('me-settings-menu'))
+            capture('me-menu')
+            ui.tap(ui.wait_tagged('me-team'))
+            ui.scroll_to('NO TEAM CONFIGURED')
+            assert ui.tagged(ui.nodes(), 'team-screen') is not None, 'Me menu did not open Team'
+        else:
+            ui.navigate('Me')
+            capture('team')
     return measurements
 
 
@@ -228,7 +233,14 @@ def main():
     assert original == ui.adb('exec-out', 'run-as', ui.PACKAGE, 'cat', prefs_path), 'Upgrade changed existing preferences'
     ui.open_app()
     assert saved_values_preserved(before, json.loads(ui.prefs()['state'].text)), 'Redesign changed existing player data'
-    targets = capture_phase('after', args.output)
+    try:
+        targets = capture_phase('after', args.output)
+    except Exception:
+        # Retain the real window that blocked verification, not just a Python trace.
+        ui.OUT.mkdir(parents=True, exist_ok=True)
+        ui.nodes('visual-failure')
+        ui.screenshot('visual-failure')
+        raise
     report = dict(baseline_apk_sha256=BASELINE_SHA256, candidate_apk_sha256=sha(args.candidate),
                   baseline_commit='c30876b3ac4bea45967a7a254030df6de084c5d7',
                   candidate_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),

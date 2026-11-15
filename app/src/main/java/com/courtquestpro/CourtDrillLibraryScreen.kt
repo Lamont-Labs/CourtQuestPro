@@ -78,6 +78,15 @@ internal fun DrillLibraryScreen(
                         style = MaterialTheme.typography.headlineMedium)
                     Text("${save.difficulty} · ${save.weeklyPlan} focus", color = CourtQuestDesign.textSecondary,
                         style = MaterialTheme.typography.bodyMedium)
+                    CourtQuestPrimaryButton(onStartTraining, Modifier.fillMaxWidth().testTag("train-start-training")) {
+                        Text(when {
+                            MissionTraining.active(save) != null -> "Resume Mission"
+                            save.slots.isNotEmpty() && save.slots.all { it.complete } -> "Play 1-on-1"
+                            resumablePlan -> "Resume session"
+                            else -> "Start training"
+                        }, Modifier.weight(1f))
+                        Icon(Icons.AutoMirrored.Filled.ArrowForward, null)
+                    }
                 }
             }
         }
@@ -120,10 +129,6 @@ internal fun DrillLibraryScreen(
                                 if (slot.complete) Icon(Icons.Default.CheckCircle, "Recorded",
                                     tint = CourtQuestDesign.accent)
                             }
-                        }
-                        CourtQuestPrimaryButton(onStartTraining, Modifier.fillMaxWidth().testTag("train-start-training")) {
-                            Text(if (resumablePlan) "Resume session" else "Start training", Modifier.weight(1f))
-                            Icon(Icons.AutoMirrored.Filled.ArrowForward, null)
                         }
                     }
                 }

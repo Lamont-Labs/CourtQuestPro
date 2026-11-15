@@ -17,8 +17,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Unit, onTeam: () -> Unit = {}) {
     var section by rememberSaveable { mutableStateOf("Profile") }
@@ -38,7 +41,9 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                         Icon(Icons.Default.MoreVert, contentDescription = "Player settings menu",
                             tint = CourtQuestDesign.textPrimary)
                     }
-                    DropdownMenu(settingsMenu, { settingsMenu = false }) {
+                    // A popup is outside Scaffold's semantics root.
+                    DropdownMenu(settingsMenu, { settingsMenu = false },
+                        modifier = Modifier.semantics { testTagsAsResourceId = true }) {
                         DropdownMenuItem(text = { Text("Edit player profile") },
                             onClick = { settingsMenu = false; onEdit() },
                             leadingIcon = { Icon(Icons.Default.Edit, null) })
@@ -72,12 +77,19 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                                 .border(1.dp, CourtQuestDesign.accent.copy(alpha = .45f), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            CourtQuestJerseyArtwork(save.jerseyNumber ?: 7, Modifier.fillMaxSize().padding(8.dp))
+                            CourtQuestJerseyArtwork(save.jerseyNumber, Modifier.fillMaxSize().padding(8.dp))
+                            Box(Modifier.align(Alignment.BottomEnd).padding(12.dp).size(44.dp)
+                                .background(CourtQuestDesign.surface, CircleShape)
+                                .border(1.dp, CourtQuestDesign.accent, CircleShape),
+                                contentAlignment = Alignment.Center) {
+                                Icon(Icons.Default.Person, "Player avatar not set",
+                                    Modifier.size(25.dp), tint = CourtQuestDesign.textPrimary)
+                            }
                         }
                         Text(save.playerName.ifBlank { "Your player profile" },
                             color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.displaySmall,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                        Text(if (save.jerseyNumber == null) "JERSEY NOT SET · DISPLAY 7"
+                        Text(if (save.jerseyNumber == null) "JERSEY NUMBER NOT SET"
                             else "JERSEY #${displayedJerseyNumber(save.jerseyNumber)}",
                             color = CourtQuestDesign.accent, style = MaterialTheme.typography.titleMedium)
                         Text("${rankFor(save.totalXp)}  ·  ${save.totalXp} XP",
