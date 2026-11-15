@@ -34,44 +34,50 @@ import androidx.compose.ui.unit.sp
 /** Same five destinations, with Court at the center. Hit areas never overlap the medallion. */
 @Composable
 internal fun CourtQuestBottomDock(selected: PlayerTab, onSelect: (PlayerTab) -> Unit) {
-    val enlarged = LocalDensity.current.fontScale > 1.3f
+    val atlas = rememberNavigationAtlas()
     val order = listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)
     val shape = RoundedCornerShape(21.dp)
     Box(Modifier.fillMaxWidth().background(CourtQuestDesign.background).navigationBarsPadding()
         .padding(horizontal = 8.dp, vertical = 4.dp)) {
         Row(
-            Modifier.fillMaxWidth().height(56.dp).clip(shape)
+            Modifier.fillMaxWidth().height(58.dp).clip(shape)
                 .background(Brush.verticalGradient(listOf(Color(0xFF222223), Color(0xFF09090A))))
                 .border(.8.dp, Color.White.copy(alpha = .19f), shape)
-                .padding(horizontal = 2.dp).selectableGroup().testTag("player-bottom-dock"),
+                .padding(horizontal = 3.dp).selectableGroup().testTag("player-bottom-dock"),
             verticalAlignment = Alignment.CenterVertically
         ) {
             order.forEach { tab ->
                 val active = selected == tab
-                val court = tab == PlayerTab.COURT
-                val icon = when(tab) {
-                    PlayerTab.TRAIN -> Icons.Outlined.FitnessCenter
-                    PlayerTab.PROGRESS -> Icons.Outlined.Insights
-                    PlayerTab.COURT -> Icons.Outlined.SportsBasketball
-                    PlayerTab.QUESTS -> Icons.Outlined.Shield
-                    PlayerTab.ME -> Icons.Outlined.Person
-                }
-                Column(
-                    Modifier.weight(1f).height(48.dp).clip(RoundedCornerShape(15.dp))
+                Box(
+                    Modifier.weight(1f).fillMaxHeight()
+                        .clip(RoundedCornerShape(14.dp))
                         .selectable(selected = active, role = Role.Tab, onClick = { onSelect(tab) })
-                        .semantics { contentDescription = tab.label }.testTag("dock-${tab.route}"),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                        .semantics { contentDescription = tab.label }
+                        .testTag("dock-${tab.route}"),
+                    contentAlignment = Alignment.Center
                 ) {
-                    if (court) CourtBasketballMedallion(Modifier.size(45.dp), active)
-                    else {
-                        Icon(icon, null, Modifier.size(if(enlarged) 25.dp else 22.dp),
-                            tint = if(active) CourtQuestDesign.accent else CourtQuestDesign.textSecondary)
-                        // Names remain in native semantics at every scale; no text scaling cap.
-                        if(!enlarged) Text(tab.label, color = if(active) CourtQuestDesign.textPrimary else CourtQuestDesign.textSecondary,
-                            fontFamily = CourtDisplay, fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp, lineHeight = 13.sp, maxLines = 1)
-                        if(active) Box(Modifier.padding(top = 2.dp).size(3.dp).background(CourtQuestDesign.accent, CircleShape))
+                    if (atlas != null) {
+                        // Use the original approved side-navigation art, without cards or labels.
+                        NavigationSpriteArtwork(
+                            atlas, tab.ordinal,
+                            Modifier.size(if (tab == PlayerTab.COURT) 52.dp else 47.dp)
+                        )
+                    } else if (tab == PlayerTab.COURT) {
+                        CourtBasketballMedallion(Modifier.size(44.dp), active)
+                    } else {
+                        val fallback = when (tab) {
+                            PlayerTab.TRAIN -> Icons.Outlined.FitnessCenter
+                            PlayerTab.PROGRESS -> Icons.Outlined.Insights
+                            PlayerTab.QUESTS -> Icons.Outlined.Shield
+                            PlayerTab.ME -> Icons.Outlined.Person
+                            PlayerTab.COURT -> Icons.Outlined.SportsBasketball
+                        }
+                        Icon(fallback, contentDescription = null, modifier = Modifier.size(27.dp),
+                            tint = if (active) CourtQuestDesign.accent else CourtQuestDesign.textSecondary)
+                    }
+                    if (active) {
+                        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 2.dp)
+                            .width(22.dp).height(2.dp).background(CourtQuestDesign.accent, CircleShape))
                     }
                 }
             }
