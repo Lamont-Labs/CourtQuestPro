@@ -215,6 +215,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     fun goBack() { routeHistory = PlayerNavigation.back(routeHistory) }
     var librarySlotId by rememberSaveable { mutableStateOf<String?>(null) }
     var librarySelectedId by rememberSaveable { mutableStateOf<String?>(null) }
+    var libraryInitialSection by rememberSaveable { mutableStateOf("Today") }
     var editingDrillId by rememberSaveable { mutableStateOf<String?>(null) }
     var editorCategory by rememberSaveable { mutableStateOf("Shooting") }
     var selectedSlot by rememberSaveable { mutableIntStateOf(-1) }
@@ -303,9 +304,10 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         }
     }
 
-    fun openLibrary(slotId: String? = null) {
+    fun openLibrary(slotId: String? = null, initialSection: String? = null) {
         librarySlotId = slotId
         librarySelectedId = null
+        libraryInitialSection = initialSection ?: if (slotId == null) "Today" else "Library"
         navigate("library")
     }
     @Composable fun HomeContent() {
@@ -320,7 +322,8 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 if (changed > 0) { refresh(); notice("$changed untouched drills shuffled.") }
                 else notice("No suitable alternatives yet. Started and completed drills stay protected.")
             }, onResumePractice = { navigate("practice") }, onMissionBuilder = { openMissionBuilder() }, onResumeMission = { openMission() },
-            onTeam = { navigate("team") }, onQuests = { navigate("quests") }, onMe = { navigate("me") })
+            onTeam = { navigate("team") }, onQuests = { navigate("quests") },
+            onDrills = { openLibrary(initialSection = "Library") })
     }
 
     CourtQuestTheme {
@@ -402,7 +405,8 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 @Composable fun DestinationContent() {
                 when (target) {
                     "home" -> HomeContent()
-                    "library" -> DrillLibraryScreen(save, librarySlotId, onStartTraining = { openTraining() },
+                    "library" -> DrillLibraryScreen(save, librarySlotId,
+                        initialSection = libraryInitialSection, onStartTraining = { openTraining() },
                         onNew = {
                             editingDrillId = null
                             editorCategory = librarySlotId?.let { id -> save.slots.firstOrNull { it.id == id }?.drillId }

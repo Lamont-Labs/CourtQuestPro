@@ -28,7 +28,7 @@ internal fun HomeScreen(
     onSaveName: (String) -> Unit, onWeeklyPlan: (String) -> Unit,
     onTrainingDay: (Int) -> Unit, onActivity: (Int, String) -> Unit,
     onLibrary: () -> Unit, onShuffle: () -> Unit, onSwap: (String) -> Unit, onResumePractice: () -> Unit, onMissionBuilder: () -> Unit, onResumeMission: () -> Unit,
-    onTeam: () -> Unit = {}, onQuests: () -> Unit = {}, onMe: () -> Unit = {}
+    onTeam: () -> Unit = {}, onQuests: () -> Unit = {}, onDrills: () -> Unit = onLibrary
 ) {
     var showWeeklyEditor by remember { mutableStateOf(false) }
     var newPlayerName by remember { mutableStateOf("") }
@@ -107,14 +107,13 @@ internal fun HomeScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         HomeShortcut("Train", Icons.Default.SportsBasketball, onLibrary, Modifier.weight(1f))
+                        HomeShortcut("Drills", Icons.Default.FitnessCenter, onDrills, Modifier.weight(1f))
                         HomeShortcut("Progress", Icons.Default.Insights, onCareer, Modifier.weight(1f))
-                        HomeShortcut("Quests", Icons.Default.EmojiEvents, onQuests, Modifier.weight(1f))
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        HomeShortcut("Quests", Icons.Default.EmojiEvents, onQuests, Modifier.weight(1f))
+                        HomeShortcut("Games", Icons.Default.SportsBasketball, onStartChamp, Modifier.weight(1f))
                         HomeShortcut("Team", Icons.Default.Groups, onTeam, Modifier.weight(1f))
-                        HomeShortcut("Me", Icons.Default.Person, onMe, Modifier.weight(1f))
-                        HomeShortcut(if (resumeMatch) "Resume game" else "1-on-1", Icons.Default.SportsBasketball,
-                            onStartChamp, Modifier.weight(1f))
                     }
                 }
             }

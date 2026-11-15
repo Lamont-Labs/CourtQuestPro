@@ -25,12 +25,13 @@ internal fun DrillLibraryScreen(
     save: SaveState, swapSlotId: String?, onNew: () -> Unit, onEdit: (String) -> Unit,
     onArchive: (String) -> Unit, onFavorite: (String) -> Unit, onPractice: (String) -> Unit,
     onUse: (String) -> Unit, onResume: () -> Unit, onHome: () -> Unit, selectedId: String?, onSelect: (String?) -> Unit, onMissionBuilder: () -> Unit,
-    onStartTraining: () -> Unit = onHome
+    onStartTraining: () -> Unit = onHome,
+    initialSection: String = "Today"
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var filter by rememberSaveable { mutableStateOf("All") }
-    var section by rememberSaveable(swapSlotId) {
-        mutableStateOf(if (swapSlotId == null) "Today" else "Library")
+    var section by rememberSaveable(swapSlotId, initialSection) {
+        mutableStateOf(if (swapSlotId == null) initialSection else "Library")
     }
     var category by rememberSaveable(swapSlotId) { mutableStateOf(
         swapSlotId?.let { id -> save.slots.firstOrNull { it.id == id }?.drillId }
@@ -138,7 +139,9 @@ internal fun DrillLibraryScreen(
             }
         }
         item {
-            Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(11.dp)) {
+            Column(Modifier.padding(horizontal = 20.dp)
+                .then(if (section == "Library") Modifier.testTag("train-library-content") else Modifier),
+                verticalArrangement = Arrangement.spacedBy(11.dp)) {
                 if (section != "Today") {
                 OutlinedTextField(query, { query = it }, label = { Text("Search drills") }, singleLine = true,
                     leadingIcon = { Icon(Icons.Default.Search, null) },

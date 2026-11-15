@@ -18,6 +18,29 @@ def dock_fixture():
 
 
 class NativeVisualGuardTest(unittest.TestCase):
+    def test_reference_shortcut_routes_directly_to_the_drill_catalog(self):
+        labels = ['Train', 'Drills', 'Progress', 'Quests', 'Games', 'Team']
+        nodes = []
+        for index, label in enumerate(labels):
+            nodes.append(ET.Element('node', {
+                'resource-id': 'court-shortcut-' + label.lower(), 'content-desc': label,
+                'bounds': f'[{index*120},200][{index*120+120},320]'
+            }))
+        catalog = ET.Element('node', {'resource-id': 'train-library-content', 'bounds': '[0,400][720,900]'})
+        with patch.object(visual.ui, 'wait_tagged', side_effect=[*nodes, nodes[1], catalog]), \
+                patch.object(visual.ui, 'tap') as tap:
+            visual.audit_home_shortcuts()
+        tap.assert_called_once_with(nodes[1])
+
+    def test_home_shortcuts_require_named_48dp_targets(self):
+        labels = ['Train', 'Drills', 'Progress', 'Quests', 'Games', 'Team']
+        nodes = [ET.Element('node', {
+            'resource-id': 'court-shortcut-' + label.lower(), 'content-desc': label,
+            'bounds': '[0,0][80,80]'
+        }) for label in labels]
+        with patch.object(visual.ui, 'wait_tagged', side_effect=nodes), self.assertRaises(AssertionError):
+            visual.audit_home_shortcuts()
+
     def test_onboarding_readiness_waits_past_an_empty_cold_start_hierarchy(self):
         entry = ET.Element('node', {'text': 'CONTINUE', 'bounds': '[40,1200][680,1304]'})
         with patch.object(visual.ui, 'nodes', side_effect=[[], [entry]]) as reads, \

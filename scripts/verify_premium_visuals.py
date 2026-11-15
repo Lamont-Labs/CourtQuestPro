@@ -124,6 +124,16 @@ def audit_large_heading(tag):
     l, t, r, b = bounds(node)
     assert r - l >= 400 and b > t, f'Large-text heading is confined to a narrow column: {tag}'
 
+def audit_home_shortcuts():
+    for label in ['Train', 'Drills', 'Progress', 'Quests', 'Games', 'Team']:
+        node = ui.wait_tagged(f'court-shortcut-{label.lower()}')
+        assert node.get('content-desc') == label, f'{label}: shortcut label is not accessible'
+        l, t, r, b = bounds(node)
+        assert r - l >= 96 and b - t >= 96, f'{label}: shortcut target is smaller than 48dp'
+    ui.tap(ui.wait_tagged('court-shortcut-drills'))
+    assert ui.wait_tagged('train-library-content') is not None, \
+        'The Drills shortcut must open the drill catalog, not only My Plan'
+
 
 def audit_large_progress_picker():
     picker = ui.wait_tagged('progress-section-picker')
@@ -214,6 +224,9 @@ def capture_phase(phase, output):
                 ui.navigate(label)
                 ui.wait_tagged('nav-open-handle')
             capture(name)
+            if phase == 'after' and config == 'normal' and name == 'court':
+                audit_home_shortcuts()
+                ui.navigate('Court')
             if phase == 'after' and config == 'large' and name == 'court':
                 audit_large_controls(['court-athlete-details'], 'court-player-details-large', 1)
             if phase == 'after' and name == 'me':

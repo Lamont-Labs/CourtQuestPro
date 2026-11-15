@@ -40,9 +40,12 @@ athlete-led welcome; personalized Court hero and six shortcuts; hoop-led Train;
 dominant live clock ring; evidence-based Progress chart; dimensional Quest
 shields; honest Team space; jersey-centered Me. Keep the original Signature
 logo and jersey artwork, real saved names/numbers/results, package and signer.
-The image file itself was not included in the imported message. It has been
-requested; until supplied, implement the detailed written description and do
-not claim an image-to-image fidelity review.
+The owner supplied the approved 1199 × 1312 eight-panel reference as
+`attached_assets/file_00000000552c81fd852527adb08f0afa_1794708439004.png`.
+Use its hierarchy, orange arena lighting, athletic type, glass panels, and
+compact five-item dock as the visual target. Its sample player, jersey, rank,
+scores and “Indians” team are illustrative only; never treat those values as
+real saved player/team data.
 
 Presentation ownership stays separate from persistence, scoring, workout
 generation and award rules. The existing source contains no authorized team
