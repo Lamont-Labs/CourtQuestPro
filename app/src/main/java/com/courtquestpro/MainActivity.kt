@@ -376,6 +376,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             bottomBar = {
                 if (showPlayerNavigation) CourtQuestBottomDock(
                     selected = PlayerNavigation.tab(routeHistory),
+                    jerseyNumber = save.jerseyNumber,
                     onSelect = { selectPlayerTab(it) }
                 )
             },
