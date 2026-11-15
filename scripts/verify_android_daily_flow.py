@@ -432,7 +432,9 @@ def main():
     seed('complete')
     open_app()
     complete_home = nodes('candidate-complete-court')
-    require(complete_home, 'Work put in.')
+    require(complete_home, '6 of 6 drills completed')
+    assert all(slot['complete'] for slot in json.loads(prefs()['state'].text)['slots']), \
+        'Completed Court must reflect the actual saved six-drill completion'
     screenshot('candidate-complete-court')
     tap(require(complete_home, 'Play 1-on-1'))
     fields = [node for node in nodes() if node.get('class') == 'android.widget.EditText']

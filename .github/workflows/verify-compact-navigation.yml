@@ -4,6 +4,7 @@ on:
   push:
     branches: [dev/premium-flow-toolkit, repair/premium-flow-stabilization]
     paths:
+      - 'app/src/**'
       - '.github/workflows/verify-compact-navigation.yml'
       - '.github/workflows/courtquest-phone-update.yml'
       - 'app/build.gradle.kts'

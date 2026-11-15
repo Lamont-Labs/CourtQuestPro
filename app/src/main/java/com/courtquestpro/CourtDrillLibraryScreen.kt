@@ -29,7 +29,9 @@ internal fun DrillLibraryScreen(
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var filter by rememberSaveable { mutableStateOf("All") }
-    var section by rememberSaveable { mutableStateOf("Today") }
+    var section by rememberSaveable(swapSlotId) {
+        mutableStateOf(if (swapSlotId == null) "Today" else "Library")
+    }
     var category by rememberSaveable(swapSlotId) { mutableStateOf(
         swapSlotId?.let { id -> save.slots.firstOrNull { it.id == id }?.drillId }
             ?.let { id -> TrainingLibrary.catalog(save).firstOrNull { it.id == id }?.category } ?: "All skills") }

@@ -76,13 +76,10 @@ internal fun DrillScreen(
                         }
                     DrillSessionTimer(drill.minutes, timerSeconds) { timerSeconds = it; saveDraft() }
                     CourtRule()
-                    CourtMetricStrip(listOf(measurement.successLabel to completedCount.toString(),
-                        measurement.attemptLabel to attemptedCount.toString()))
                     val rate = if (attemptedCount == 0) null else completedCount.toFloat() / attemptedCount
-                    Text(
-                        if (rate == null) "Accuracy appears after your first attempt."
-                        else "Current accuracy · ${(rate * 100).toInt()}%  ·  ${completedCount.coerceAtMost(requiredCount ?: 0)} of ${requiredCount ?: 0} toward target",
-                        color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
+                    CourtMetricStrip(listOf(measurement.successLabel to completedCount.toString(),
+                        measurement.attemptLabel to attemptedCount.toString(),
+                        "Accuracy" to (rate?.let { "${(it * 100).toInt()}%" } ?: "—")))
                     Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                         CourtEyebrow("NEXT STEP")
                         Text(
@@ -174,9 +171,8 @@ private fun DrillSessionTimer(minutes: Int, initialRemaining: Int, onRemaining: 
     }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         CourtEyebrow(if (remaining == 0) "CLOCK FINISHED" else if (running) "CLOCK RUNNING" else "TRAINING CLOCK")
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-            Box(Modifier.size(112.dp), contentAlignment = Alignment.Center) {
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(Modifier.widthIn(max = 260.dp).fillMaxWidth().aspectRatio(1f), contentAlignment = Alignment.Center) {
                 Canvas(Modifier.fillMaxSize().testTag("live-drill-ring").semantics {
                     contentDescription = "Training clock: %02d minutes %02d seconds".format(remaining / 60, remaining % 60)
                 }) {
@@ -188,13 +184,7 @@ private fun DrillSessionTimer(minutes: Int, initialRemaining: Int, onRemaining: 
                         style = Stroke(stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round))
                 }
                 Text("%02d:%02d".format(remaining / 60, remaining % 60), color = CourtQuestDesign.textPrimary,
-                    style = MaterialTheme.typography.headlineMedium)
-            }
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(if (running) "Stay in rhythm." else "Your session clock.",
-                    color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleLarge)
-                Text("Clock pauses when you leave this drill.",
-                    color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
+                    style = MaterialTheme.typography.displayMedium)
             }
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
