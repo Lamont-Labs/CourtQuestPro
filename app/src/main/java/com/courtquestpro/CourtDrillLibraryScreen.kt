@@ -218,7 +218,7 @@ internal fun DrillLibraryScreen(
                     style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
                 Text(if (filter == "Favorites") "Tap the star on a drill to keep it here." else "Clear a filter or create a drill with your own instructions and target.",
                     style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textSecondary)
-                TextButton({ query = ""; category = "All skills"; filter = "All"; section = "Library" }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Show all drills") }
+                TextButton({ query = ""; category = "All skills"; filter = "All"; onSectionChange("Library") }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Show all drills") }
             }
         }
         if (section != "Today") items(shown, key = { it.id }) { drill ->
