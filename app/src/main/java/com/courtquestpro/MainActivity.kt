@@ -633,16 +633,6 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             }
             }
             }
-            if (showPlayerNavigation) {
-                CourtQuestNavigation(
-                    modifier = Modifier.padding(bottom = 64.dp),
-                    selected = PlayerNavigation.tab(routeHistory),
-                    jerseyNumber = save.jerseyNumber,
-                    expanded = navigationExpanded,
-                    onExpandedChange = { navigationExpanded = it },
-                    onSelect = { selectPlayerTab(it) }
-                )
-            }
         }
     }
 }
