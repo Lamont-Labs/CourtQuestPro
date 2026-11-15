@@ -10,10 +10,9 @@ TABS = ('Court', 'Train', 'Quests', 'Progress', 'Me')
 
 
 def open_navigation():
-    items = ui.nodes()
-    opener = next((n for n in items if n.get('resource-id', '').endswith('nav-open-handle')), None)
-    if opener is not None:
-        ui.tap(opener)
+    # All five destinations are permanently exposed in the compact bottom dock.
+    ui.wait_tagged('player-bottom-dock')
+    assert ui.tagged(ui.nodes(), 'nav-open-handle') is None
 
 
 def click(label):
