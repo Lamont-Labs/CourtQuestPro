@@ -11,6 +11,7 @@ import verify_android_daily_flow as ui
 from verify_phone_update import saved_values_preserved
 
 BASELINE_SHA256 = '5125f01e191d26e03fc779ebd96affa3e9dbd5db2900dcedbc8f8660ac9f63bd'
+REFERENCE_FIDELITY_STATUS = 'OWNER_REFERENCE_AVAILABLE; AUTOMATED_PIXEL_MATCH_NOT_CLAIMED'
 CONFIGS = [('normal', 720, 1600, '1.0'), ('compact', 640, 1440, '1.3'),
            ('large', 640, 1440, '2.0')]
 SCREENS = [('court', 'Court'), ('library', 'Train'), ('progress', 'Progress'),
@@ -349,7 +350,7 @@ def main():
                   real_android_emulator=True, saved_data_preserved=True, dock_measurements=targets,
                   body_comparisons=compare(args.output), published_apk=False,
                   visual_owner_acceptance='PENDING',
-                  reference_image_fidelity='PENDING_REFERENCE_ATTACHMENT',
+                  reference_image_fidelity=REFERENCE_FIDELITY_STATUS,
                   team_baseline='No Team screen existed; captured the real Me entry point',
                   team_empty_state_preserves_save=True)
     (args.output / 'visual-verification.json').write_text(json.dumps(report, indent=2) + '\n')

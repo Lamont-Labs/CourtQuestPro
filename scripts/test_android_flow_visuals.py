@@ -18,6 +18,12 @@ def dock_fixture():
 
 
 class NativeVisualGuardTest(unittest.TestCase):
+    def test_reference_report_no_longer_claims_the_approved_image_is_missing(self):
+        self.assertEqual(
+            visual.REFERENCE_FIDELITY_STATUS,
+            'OWNER_REFERENCE_AVAILABLE; AUTOMATED_PIXEL_MATCH_NOT_CLAIMED'
+        )
+
     def test_reference_shortcut_routes_directly_to_the_drill_catalog(self):
         labels = ['Train', 'Drills', 'Progress', 'Quests', 'Games', 'Team']
         nodes = []
