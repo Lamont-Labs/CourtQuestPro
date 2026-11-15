@@ -78,18 +78,36 @@ internal fun CourtArenaHero(
 @Composable
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 internal fun CourtAthleteIdentity(save: SaveState, modifier: Modifier = Modifier) {
-    FlowRow(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        maxItemsInEachRow = if (LocalDensity.current.fontScale > 1.6f) 1 else 2) {
-        Box(
-            Modifier.size(92.dp).shadow(14.dp, CircleShape, ambientColor = CourtQuestDesign.accentVivid.copy(alpha = .2f))
-                .clip(CircleShape).background(Color(0xFF171719))
-                .border(1.dp, CourtQuestDesign.accent.copy(alpha = .45f), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            CourtQuestJerseyArtwork(save.jerseyNumber ?: 7, Modifier.fillMaxSize().padding(5.dp))
+    if (LocalDensity.current.fontScale > 1.6f) {
+        FlowRow(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp), maxItemsInEachRow = 1) {
+            CourtAthleteJersey(save, 92.dp)
+            CourtAthleteDetails(save, Modifier.weight(1f).testTag("court-athlete-details"))
         }
-        Column(Modifier.weight(1f).testTag("court-athlete-details"), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+    } else {
+        Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            CourtAthleteJersey(save, 76.dp)
+            CourtAthleteDetails(save, Modifier.weight(1f).testTag("court-athlete-details"))
+        }
+    }
+}
+
+@Composable
+private fun CourtAthleteJersey(save: SaveState, size: androidx.compose.ui.unit.Dp) {
+    Box(
+        Modifier.size(size).shadow(14.dp, CircleShape, ambientColor = CourtQuestDesign.accentVivid.copy(alpha = .2f))
+            .clip(CircleShape).background(Color(0xFF171719))
+            .border(1.dp, CourtQuestDesign.accent.copy(alpha = .45f), CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        CourtQuestJerseyArtwork(save.jerseyNumber ?: 7, Modifier.fillMaxSize().padding(5.dp))
+    }
+}
+
+@Composable
+private fun CourtAthleteDetails(save: SaveState, modifier: Modifier = Modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Text(
                 save.playerName.ifBlank { "Your player profile" },
                 color = CourtQuestDesign.textPrimary,
@@ -104,7 +122,6 @@ internal fun CourtAthleteIdentity(save: SaveState, modifier: Modifier = Modifier
             Text("${save.difficulty} · ${rankFor(save.totalXp)} · ${save.totalXp} XP",
                 color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
             CourtRankMeter(save.totalXp)
-        }
     }
 }
 

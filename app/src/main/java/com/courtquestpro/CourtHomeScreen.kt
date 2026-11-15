@@ -54,11 +54,10 @@ internal fun HomeScreen(
 
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp)) {
         item {
-            AppHeader(save.playerName.takeIf { it.isNotBlank() }?.let { "$it’s court." } ?: "Your court.",
-                today.format(DateTimeFormatter.ofPattern("EEEE, MMMM d")))
+            AppHeader("Court", compact = true)
         }
         item {
-            Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 val hasResume = resumable
                 val heroHeight = 220.dp +
                     if (save.playerName.length > 20) 24.dp else 0.dp
@@ -93,24 +92,29 @@ internal fun HomeScreen(
                     else -> "${save.weeklyPlan} focus · ${save.difficulty}"
                 }
                 CourtQuestPremiumSurface(Modifier.fillMaxWidth().testTag("court-focus-card"),
-                    PaddingValues(14.dp), highlighted = true) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        CourtEyebrow("TODAY'S FOCUS")
-                        Text(focusLine, color = CourtQuestDesign.textPrimary,
-                            style = MaterialTheme.typography.bodyMedium)
-                        Text("$done of 6 drills completed",
-                            color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.semantics { contentDescription = "$done of 6 drills completed" })
+                    PaddingValues(10.dp), highlighted = true) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            CourtEyebrow("TODAY'S FOCUS")
+                            Text(focusLine, color = CourtQuestDesign.textPrimary,
+                                style = MaterialTheme.typography.bodyMedium, maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                            Text("$done / 6 drills",
+                                color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.semantics { contentDescription = "$done of 6 drills completed" })
+                        }
                         CourtQuestPrimaryButton(
                             if (activeMission != null) onResumeMission else onSpin,
-                            Modifier.fillMaxWidth().testTag("court-todays-focus")
+                            Modifier.widthIn(min = 132.dp, max = 164.dp).testTag("court-todays-focus")
                         ) {
                             Text(
                                 if (activeMission != null) "Resume Mission"
                                 else if (done == 6 && resumeMatch) "Resume 1-on-1"
                                 else if (done == 6) "Play 1-on-1"
                                 else if (hasResume) "Resume session" else "Start training",
-                                Modifier.weight(1f)
+                                Modifier.weight(1f), maxLines = 2,
+                                style = MaterialTheme.typography.labelMedium
                             )
                             Icon(Icons.Default.ArrowForward, null, Modifier.size(20.dp))
                         }
