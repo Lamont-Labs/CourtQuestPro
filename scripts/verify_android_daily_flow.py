@@ -96,7 +96,7 @@ def dock_target(label, minimum_px=1):
     dock = wait_tagged('player-bottom-dock')
     target = tagged(items, 'dock-' + route)
     assert target is not None, f'Bottom destination {label!r} is missing'
-    bounds = list(map(int, re.findall(r'-?\\d+', target.get('bounds', ''))))
+    bounds = list(map(int, re.findall(r'-?\d+', target.get('bounds', ''))))
     assert len(bounds) == 4 and bounds[2] - bounds[0] >= minimum_px and bounds[3] - bounds[1] >= minimum_px, (label, bounds)
     assert target.get('enabled') == 'true', (label, 'disabled destination')
     assert target.get('clickable') == 'true' or target.get('selected') == 'true', (label, 'not actionable')
