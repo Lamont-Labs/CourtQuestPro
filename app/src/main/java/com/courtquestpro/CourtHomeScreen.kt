@@ -64,21 +64,24 @@ internal fun HomeScreen(
                 val heroHeight = 276.dp * LocalDensity.current.fontScale +
                     if (save.playerName.length > 20) 24.dp else 0.dp
                 CourtArenaHero(R.drawable.court_arena_player,
-                    Modifier.fillMaxWidth().height(heroHeight).testTag("court-player-hero")) {
+                    Modifier.fillMaxWidth().heightIn(min = heroHeight).testTag("court-player-hero")) {
+                    Column(Modifier.fillMaxWidth().heightIn(min = heroHeight).padding(14.dp),
+                        verticalArrangement = Arrangement.SpaceBetween) {
                     Column(
-                        Modifier.align(Alignment.TopStart).fillMaxWidth().padding(18.dp),
+                        Modifier.fillMaxWidth().padding(4.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         CourtEyebrow("COURTQUEST PRO  ·  ${rankFor(save.totalXp).uppercase()}")
                         CourtAthleteIdentity(save, Modifier.fillMaxWidth())
                     }
+                    Spacer(Modifier.height(12.dp))
                     val focusLine = when {
                         activeMission != null -> "MISSION IN PROGRESS · ${MissionTraining.version(save, activeMission)?.title ?: "Your Mission"}"
                         done == 6 -> "Today's plan is complete."
                         hasResume -> "Pick up where you left off."
                         else -> "${save.weeklyPlan} focus · ${save.difficulty}"
                     }
-                    Column(Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(14.dp),
+                    Column(Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(focusLine, color = CourtQuestDesign.textPrimary,
                             style = MaterialTheme.typography.bodyMedium)
@@ -100,6 +103,7 @@ internal fun HomeScreen(
                         }
                     }
                 }
+                    }
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         HomeShortcut("Train", Icons.Default.SportsBasketball, onLibrary, Modifier.weight(1f))

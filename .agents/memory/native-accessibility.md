@@ -18,6 +18,14 @@ An active selected/focusable tab can be tested by tapping it and verifying the
 actual result (including auto-dismiss), not by skipping that interaction.
 Continue rejecting disabled or non-actionable unselected destinations.
 
+Read enabled/disabled state from the actionable control, not its text label.
+
+**Why:** Android exported a disabled Compose save button with an enabled text
+child. Reading the child's flag falsely suggested that premature saving was allowed.
+
+**How to apply:** Locate the control's stable semantic node, then assert its
+state. Labels identify the action but do not establish whether it is enabled.
+
 Wait for the required observable drawer open/closed state after transitions,
 using bounded readiness checks rather than assuming one fixed delay is enough.
 

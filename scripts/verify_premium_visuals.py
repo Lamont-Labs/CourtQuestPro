@@ -109,6 +109,11 @@ def audit_unrecorded_save():
     assert button.get('enabled') == 'false', \
         'Save became enabled without the required attempts and explicit confirmation'
 
+def audit_large_heading(tag):
+    node = ui.wait_tagged(tag)
+    l, t, r, b = bounds(node)
+    assert r - l >= 400 and b > t, f'Large-text heading is confined to a narrow column: {tag}'
+
 
 def audit_large_progress_picker():
     picker = ui.wait_tagged('progress-section-picker')
@@ -179,6 +184,8 @@ def capture_phase(phase, output):
         assert 'Success' in ui.shell('pm', 'clear', ui.PACKAGE)
         ui.open_app()
         ui.require(ui.nodes(), 'Get Started' if phase == 'after' else 'CONTINUE')
+        if phase == 'after' and config == 'large':
+            audit_large_heading('onboarding-brand-name')
         capture('onboarding')
         # Both APKs receive the same existing synthetic fixture in the guarded AVD.
         ui.seed('visual-review')
@@ -197,12 +204,15 @@ def capture_phase(phase, output):
                 ui.navigate(label)
                 ui.wait_tagged('nav-open-handle')
             capture(name)
+            if phase == 'after' and config == 'large' and name == 'court':
+                audit_large_controls(['court-athlete-details'], 'court-player-details-large', 1)
             if phase == 'after' and name == 'me':
                 audit_me_avatar()
             if phase == 'after' and config == 'large' and name == 'library':
                 audit_large_library()
             if phase == 'after' and config == 'large' and name == 'progress':
                 audit_large_progress_picker()
+                audit_large_controls(['progress-activity-heading'], 'progress-activity-heading-large', 1)
                 audit_large_controls(['progress-record-sessions'], 'progress-record-large')
         ui.navigate('Court')
         ui.tap(ui.wait_tagged('nav-open-handle'))

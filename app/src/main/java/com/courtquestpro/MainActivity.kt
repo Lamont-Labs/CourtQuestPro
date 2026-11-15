@@ -40,6 +40,7 @@ import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -723,6 +724,7 @@ private fun CourtOnboardingChoice(
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun CourtOnboarding(
     modifier: Modifier = Modifier,
     step: Int, name: String, level: String, focus: String, days: List<Int>,
@@ -740,13 +742,14 @@ private fun CourtOnboarding(
             .padding(top = CourtQuestDesign.spacingXl)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(
+            FlowRow(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(CourtQuestDesign.spacingSm),
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                maxItemsInEachRow = if (LocalDensity.current.fontScale > 1.3f) 1 else 2
             ) {
                 Text(
-                    "COURTQUEST PRO", Modifier.weight(1f),
+                    "COURTQUEST PRO", Modifier.weight(1f).testTag("onboarding-brand-name"),
                     color = CourtQuestDesign.accent, fontSize = 11.sp,
                     lineHeight = 14.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp
                 )

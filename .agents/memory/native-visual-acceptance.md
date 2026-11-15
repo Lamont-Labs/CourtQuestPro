@@ -19,6 +19,10 @@ Batch visual critique across normal and enlarged-text captures before pushing th
 
 **Why:** A visible normal-size redesign can still split single-word labels at 200% text;
 navigation target measurements and pixel-difference gates do not detect that defect.
+An unchanged introductory summary can also fill the entire enlarged-text viewport,
+completely hiding a new chart that is obvious at normal text size.
 
 **How to apply:** Review actual enlarged-text screen bodies as well as navigation. Reflow
 narrow multi-column controls instead of shrinking or capping the user's chosen font scale.
+Check the initial viewport before scrolling; reachable new content is not necessarily
+an immediately visible redesign.

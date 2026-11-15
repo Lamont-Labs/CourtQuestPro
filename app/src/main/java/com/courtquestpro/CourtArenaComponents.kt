@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -34,6 +35,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 
 /** Arena artwork remains decorative; the tint and court-light falloff are drawn natively. */
 @Composable
@@ -51,12 +54,12 @@ internal fun CourtArenaHero(
         Image(
             painter = painterResource(resourceId),
             contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.matchParentSize(),
             contentScale = ContentScale.Crop,
             alignment = imageAlignment
         )
         Box(
-            Modifier.fillMaxSize().background(
+            Modifier.matchParentSize().background(
                 Brush.verticalGradient(
                     0f to Color(0x18000000),
                     .46f to Color(0x3C080503),
@@ -64,7 +67,7 @@ internal fun CourtArenaHero(
                 )
             )
         )
-        Box(Modifier.fillMaxSize().background(
+        Box(Modifier.matchParentSize().background(
             Brush.horizontalGradient(listOf(Color(0x284B1200), Color.Transparent, Color(0x18430F00)))
         ))
         content()
@@ -73,8 +76,11 @@ internal fun CourtArenaHero(
 
 /** The original jersey atlas shows the established display fallback without mutating a blank profile. */
 @Composable
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 internal fun CourtAthleteIdentity(save: SaveState, modifier: Modifier = Modifier) {
-    Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+    FlowRow(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        maxItemsInEachRow = if (LocalDensity.current.fontScale > 1.6f) 1 else 2) {
         Box(
             Modifier.size(92.dp).shadow(14.dp, CircleShape, ambientColor = CourtQuestDesign.accentVivid.copy(alpha = .2f))
                 .clip(CircleShape).background(Color(0xFF171719))
@@ -83,7 +89,7 @@ internal fun CourtAthleteIdentity(save: SaveState, modifier: Modifier = Modifier
         ) {
             CourtQuestJerseyArtwork(save.jerseyNumber ?: 7, Modifier.fillMaxSize().padding(5.dp))
         }
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Column(Modifier.weight(1f).testTag("court-athlete-details"), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Text(
                 save.playerName.ifBlank { "Your player profile" },
                 color = CourtQuestDesign.textPrimary,

@@ -237,13 +237,16 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
 private fun windowDateLabel(date: LocalDate): String = date.format(DateTimeFormatter.ofPattern("MMM d"))
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun CourtProgressActivity(results: List<DrillResult>) {
     val window = courtActivityWindow(results, LocalDate.now())
     val count = window.sumOf { it.count }
     CourtQuestPremiumSurface(Modifier.fillMaxWidth().testTag("progress-activity"), PaddingValues(16.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                CourtEyebrow("ACTIVITY", Modifier.weight(1f))
+            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                maxItemsInEachRow = if (LocalDensity.current.fontScale > 1.3f) 1 else 2) {
+                CourtEyebrow("ACTIVITY", Modifier.weight(1f).testTag("progress-activity-heading"))
                 Text("LAST 14 DAYS", color = CourtQuestDesign.textSecondary,
                     style = MaterialTheme.typography.labelSmall)
             }

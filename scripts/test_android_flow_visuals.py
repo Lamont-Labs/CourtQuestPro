@@ -18,6 +18,16 @@ def dock_fixture():
 
 
 class NativeVisualGuardTest(unittest.TestCase):
+    def test_large_heading_rejects_the_narrow_column_that_split_words(self):
+        heading = ET.Element('node', {'bounds': '[40,100][240,180]'})
+        with patch.object(visual.ui, 'wait_tagged', return_value=heading), self.assertRaises(AssertionError):
+            visual.audit_large_heading('onboarding-brand-name')
+
+    def test_large_heading_accepts_full_width_without_reducing_text_size(self):
+        heading = ET.Element('node', {'bounds': '[40,100][600,180]'})
+        with patch.object(visual.ui, 'wait_tagged', return_value=heading):
+            visual.audit_large_heading('onboarding-brand-name')
+
     def test_save_gate_uses_the_disabled_button_not_its_enabled_text_child(self):
         button = ET.Element('node', {'resource-id': 'live-save-results', 'enabled': 'false',
                                     'bounds': '[72,1408][648,1512]'})
