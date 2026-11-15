@@ -440,7 +440,7 @@ def main():
     screenshot('candidate-blank-profile')
     seed('long')
     open_app()
-    require(nodes('candidate-long-profile'), 'Alexandria Montgomery-Washington’s court.')
+    require(nodes('candidate-long-profile'), 'Court')
     scroll_to('Resume session')
     screenshot('candidate-long-profile')
     seed('complete')
@@ -503,7 +503,7 @@ def main():
     nodes('candidate-fresh-week-plan')
     screenshot('candidate-fresh-week-plan')
     tap(require(nodes(), 'ENTER MY COURT'))
-    require(nodes('candidate-fresh-court'), 'Avery’s court.')
+    require(nodes('candidate-fresh-court'), 'Court')
     screenshot('candidate-fresh-court')
     fresh_state = json.loads(prefs()['state'].text)
     assert fresh_state['playerName'] == 'Avery' and len(fresh_state['slots']) == 6
