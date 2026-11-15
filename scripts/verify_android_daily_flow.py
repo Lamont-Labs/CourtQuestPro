@@ -51,7 +51,11 @@ def drawer_target(label, limit=12, minimum_px=1):
     route = NAV_ROUTES[label]
     items = nodes()
     opener = tagged(items, 'nav-open-handle')
-    if opener is not None:
+    # A cold-start hierarchy can precede the app's first navigation frame.
+    # Missing opener does not mean the drawer is already open.
+    if tagged(items, 'player-navigation-drawer') is None:
+        if opener is None:
+            opener = wait_tagged('nav-open-handle')
         tap(opener)
     for direction in ('up', 'down'):
         for _ in range(limit):

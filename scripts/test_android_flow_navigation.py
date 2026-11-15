@@ -85,6 +85,14 @@ class DrawerSelectorTest(unittest.TestCase):
         with patch.object(ui, 'nodes', side_effect=[[opener], [], drawer(target)]), patch.object(ui, 'tap'):
             self.assertIs(ui.drawer_target('Court'), target)
 
+    def test_cold_start_waits_for_opener_before_waiting_for_drawer(self):
+        opener = node('nav-open-handle')
+        target = node('nav-home', 'Court')
+        with patch.object(ui, 'nodes', side_effect=[[], [opener], drawer(target)]), \
+                patch.object(ui, 'tap') as tap:
+            self.assertIs(ui.drawer_target('Court'), target)
+            tap.assert_called_once_with(opener)
+
     def test_zero_area_and_similar_tag_are_not_destinations(self):
         for target in (node('nav-home', 'Court', '[0,0][0,0]'), node('other-nav-home', 'Court')):
             self.assertIsNone(ui.tagged([target], 'nav-home'))

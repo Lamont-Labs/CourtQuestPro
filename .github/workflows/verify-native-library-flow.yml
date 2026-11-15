@@ -65,7 +65,7 @@ jobs:
           export COURTQUEST_EMULATOR_PID=$!
           sleep 10
           if ! kill -0 "$COURTQUEST_EMULATOR_PID"; then cat "$COURTQUEST_UI_EVIDENCE/emulator.log"; exit 1; fi
-          trap 'status=$?; echo "::error title=Android flow failed::Command: ${BASH_COMMAND} (exit ${status})"; exit "$status"' ERR
+          trap 'status=$?; echo "::error title=Android flow failed::Command: ${BASH_COMMAND} (exit ${status})"; timeout 15 adb -s emulator-5562 shell uiautomator dump /sdcard/flow-failure.xml >/dev/null 2>&1 && adb -s emulator-5562 pull /sdcard/flow-failure.xml "$COURTQUEST_UI_EVIDENCE/flow-failure.xml" || true; timeout 15 adb -s emulator-5562 exec-out screencap -p > "$COURTQUEST_UI_EVIDENCE/flow-failure.png" || true; exit "$status"' ERR
           echo "::group::Baseline daily flow"
           python3 -u scripts/verify_android_daily_flow.py baseline /tmp/courtquest-build5.apk
           echo "::endgroup::"
