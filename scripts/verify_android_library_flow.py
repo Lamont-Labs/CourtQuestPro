@@ -107,7 +107,14 @@ def click(text):
 def open_library():
     """Select Train from the primary dock; the drawer has dedicated coverage."""
     ui.tap(ui.wait_tagged('dock-library', attempts=20))
-    ui.wait_tagged('train-arena-hero', attempts=20)
+    train_sections = ('train-arena-hero', 'train-plan-content', 'train-library-content')
+    for _ in range(20):
+        items = ui.nodes()
+        if any(ui.tagged(items, tag) is not None for tag in train_sections):
+            break
+        time.sleep(0.2)
+    else:
+        raise AssertionError('Train content did not become ready after selecting the dock')
     def top():
         regions = [n for n in ui.nodes() if n.get('scrollable') == 'true']
         if not regions:
