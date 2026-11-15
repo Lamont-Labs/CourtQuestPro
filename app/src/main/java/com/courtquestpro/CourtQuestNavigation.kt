@@ -269,7 +269,7 @@ internal fun CourtQuestJerseyArtwork(
 }
 
 @Composable
-private fun NavigationSpriteArtwork(atlas: ImageBitmap, cell: Int, modifier: Modifier = Modifier) {
+internal fun NavigationSpriteArtwork(atlas: ImageBitmap, cell: Int, modifier: Modifier = Modifier) {
     Canvas(modifier) {
         val cellLeft = atlas.width * cell / 5
         val cellRight = atlas.width * (cell + 1) / 5
@@ -286,7 +286,7 @@ private fun NavigationSpriteArtwork(atlas: ImageBitmap, cell: Int, modifier: Mod
 }
 
 @Composable
-private fun rememberNavigationAtlas(): ImageBitmap? {
+internal fun rememberNavigationAtlas(): ImageBitmap? {
     val context = LocalContext.current.applicationContext
     var atlas by remember(context) { mutableStateOf(cachedNavigationAtlas) }
     LaunchedEffect(context) {
