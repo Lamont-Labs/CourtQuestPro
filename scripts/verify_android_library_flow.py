@@ -109,6 +109,12 @@ def open_library():
     back = ui.find(ui.nodes(), 'Back to library')
     if back is not None:
         ui.tap(back)
+        for _ in range(20):
+            if ui.find(ui.nodes(), 'Back to library') is None:
+                break
+            time.sleep(0.2)
+        else:
+            raise AssertionError('Back to library did not close the drill detail')
     ui.tap(ui.wait_tagged('dock-library', attempts=20))
     train_sections = ('train-arena-hero', 'train-plan-content', 'train-library-content')
     for _ in range(20):
@@ -129,10 +135,6 @@ def open_library():
             ui.shell('input', 'swipe', str((left+right)//2), str(upper+(bottom-upper)//4),
                      str((left+right)//2), str(upper+(bottom-upper)*4//5), '100')
     top()
-    back = ui.find(ui.nodes(), 'Back to library')
-    if back is not None:
-        ui.tap(back)
-        top()
     # Train now opens the actual saved plan; catalog operations live in Library.
     click('Library')
 
