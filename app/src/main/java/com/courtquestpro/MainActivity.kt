@@ -409,7 +409,9 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 when (target) {
                     "home" -> HomeContent()
                     "library" -> DrillLibraryScreen(save, librarySlotId,
-                        initialSection = libraryInitialSection, onStartTraining = { openTraining() },
+                        selectedSection = libraryInitialSection,
+                        onSectionChange = { libraryInitialSection = it },
+                        onStartTraining = { openTraining() },
                         onNew = {
                             editingDrillId = null
                             editorCategory = librarySlotId?.let { id -> save.slots.firstOrNull { it.id == id }?.drillId }

@@ -26,13 +26,12 @@ internal fun DrillLibraryScreen(
     onArchive: (String) -> Unit, onFavorite: (String) -> Unit, onPractice: (String) -> Unit,
     onUse: (String) -> Unit, onResume: () -> Unit, onHome: () -> Unit, selectedId: String?, onSelect: (String?) -> Unit, onMissionBuilder: () -> Unit,
     onStartTraining: () -> Unit = onHome,
-    initialSection: String = "Today"
+    selectedSection: String = "Today",
+    onSectionChange: (String) -> Unit = {}
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var filter by rememberSaveable { mutableStateOf("All") }
-    var section by rememberSaveable(swapSlotId, initialSection) {
-        mutableStateOf(if (swapSlotId == null) initialSection else "Library")
-    }
+    val section = if (swapSlotId == null) selectedSection else "Library"
     var category by rememberSaveable(swapSlotId) { mutableStateOf(
         swapSlotId?.let { id -> save.slots.firstOrNull { it.id == id }?.drillId }
             ?.let { id -> TrainingLibrary.catalog(save).firstOrNull { it.id == id }?.category } ?: "All skills") }
@@ -97,8 +96,8 @@ internal fun DrillLibraryScreen(
                 tagKeys = listOf("today", "library", "custom"),
                 selected = if (section == "Today") "My Plan" else section,
                 onSelect = { tab ->
-                    if (tab == "My Plan") section = "Today"
-                    else { section = tab; filter = "All"; category = "All skills"; query = "" }
+                    if (tab == "My Plan") onSectionChange("Today")
+                    else { onSectionChange(tab); filter = "All"; category = "All skills"; query = "" }
                 },
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
