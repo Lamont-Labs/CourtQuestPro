@@ -17,6 +17,17 @@ def dock_fixture():
     return root
 
 
+def shortcut_fixture(label, bounds, child_label=False, clickable=True):
+    attrs = {'resource-id': 'court-shortcut-' + label.lower(), 'bounds': bounds,
+             'clickable': str(clickable).lower(), 'enabled': 'true'}
+    if not child_label:
+        attrs['content-desc'] = label
+    node = ET.Element('node', attrs)
+    if child_label:
+        ET.SubElement(node, 'node', {'content-desc': label, 'bounds': bounds})
+    return node
+
+
 class NativeVisualGuardTest(unittest.TestCase):
     def test_reference_report_no_longer_claims_the_approved_image_is_missing(self):
         self.assertEqual(
@@ -26,10 +37,9 @@ class NativeVisualGuardTest(unittest.TestCase):
 
     def test_home_shortcut_and_dock_return_to_train_hub_after_catalog_visit(self):
         labels = ['Train', 'Drills', 'Progress', 'Quests', 'Games', 'Team']
-        nodes = [ET.Element('node', {
-            'resource-id': 'court-shortcut-' + label.lower(), 'content-desc': label,
-            'bounds': f'[{index*120},200][{index*120+120},320]'
-        }) for index, label in enumerate(labels)]
+        nodes = [shortcut_fixture(label, f'[{index*120},200][{index*120+120},320]',
+                                  child_label=(label == 'Train'))
+                 for index, label in enumerate(labels)]
         focus = ET.Element('node', {'resource-id': 'court-todays-focus', 'bounds': '[40,1000][680,1100]'})
         viewport = ET.Element('node', {'scrollable': 'true', 'bounds': '[0,48][720,1392]'})
         catalog = ET.Element('node', {'resource-id': 'train-library-content', 'bounds': '[0,400][720,900]'})
@@ -46,10 +56,7 @@ class NativeVisualGuardTest(unittest.TestCase):
         labels = ['Train', 'Drills', 'Progress', 'Quests', 'Games', 'Team']
         nodes = []
         for index, label in enumerate(labels):
-            nodes.append(ET.Element('node', {
-                'resource-id': 'court-shortcut-' + label.lower(), 'content-desc': label,
-                'bounds': f'[{index*120},200][{index*120+120},320]'
-            }))
+            nodes.append(shortcut_fixture(label, f'[{index*120},200][{index*120+120},320]'))
         focus = ET.Element('node', {'resource-id': 'court-todays-focus', 'bounds': '[40,800][680,900]'})
         viewport = ET.Element('node', {'scrollable': 'true', 'bounds': '[0,48][720,1392]'})
         catalog = ET.Element('node', {'resource-id': 'train-library-content', 'bounds': '[0,400][720,900]'})
@@ -67,9 +74,25 @@ class NativeVisualGuardTest(unittest.TestCase):
         labels = ['Train', 'Drills', 'Progress', 'Quests', 'Games', 'Team']
         nodes = [ET.Element('node', {
             'resource-id': 'court-shortcut-' + label.lower(), 'content-desc': label,
-            'bounds': '[0,0][80,80]'
+            'bounds': '[0,0][80,80]', 'clickable': 'true', 'enabled': 'true'
         }) for label in labels]
         with patch.object(visual.ui, 'wait_tagged', side_effect=nodes), self.assertRaises(AssertionError):
+            visual.audit_home_shortcuts()
+
+    def test_home_shortcuts_reject_a_missing_accessible_name(self):
+        nodes = [shortcut_fixture(label, f'[{index*120},200][{index*120+120},320]')
+                 for index, label in enumerate(['Train', 'Drills', 'Progress', 'Quests', 'Games', 'Team'])]
+        nodes[0].attrib.pop('content-desc')
+        with patch.object(visual.ui, 'wait_tagged', side_effect=nodes), self.assertRaisesRegex(
+                AssertionError, 'shortcut label is not accessible'):
+            visual.audit_home_shortcuts()
+
+    def test_home_shortcut_accepts_name_on_accessible_child_but_requires_clickable_wrapper(self):
+        nodes = [shortcut_fixture(label, f'[{index*120},200][{index*120+120},320]',
+                                  child_label=(label == 'Train'), clickable=(label != 'Train'))
+                 for index, label in enumerate(['Train', 'Drills', 'Progress', 'Quests', 'Games', 'Team'])]
+        with patch.object(visual.ui, 'wait_tagged', side_effect=nodes), self.assertRaisesRegex(
+                AssertionError, 'shortcut is not actionable'):
             visual.audit_home_shortcuts()
 
     def test_onboarding_readiness_waits_past_an_empty_cold_start_hierarchy(self):

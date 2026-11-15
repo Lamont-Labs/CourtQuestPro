@@ -129,7 +129,12 @@ def audit_home_shortcuts():
     shortcuts = []
     for label in ['Train', 'Drills', 'Progress', 'Quests', 'Games', 'Team']:
         node = ui.wait_tagged(f'court-shortcut-{label.lower()}')
-        assert node.get('content-desc') == label, f'{label}: shortcut label is not accessible'
+        assert node.get('clickable') == 'true' and node.get('enabled') == 'true', \
+            f'{label}: shortcut is not actionable'
+        # Compose may export the accessible name on a semantic child rather than
+        # on the tagged, clickable wrapper. Keep the name within this target.
+        assert any(label == child.get('content-desc') or label == child.get('text')
+                   for child in node.iter('node')), f'{label}: shortcut label is not accessible'
         l, t, r, b = bounds(node)
         assert r - l >= 96 and b - t >= 96, f'{label}: shortcut target is smaller than 48dp'
         shortcuts.append((l, t, r, b))
