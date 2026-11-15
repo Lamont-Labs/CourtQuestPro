@@ -18,6 +18,20 @@ def dock_fixture():
 
 
 class NativeVisualGuardTest(unittest.TestCase):
+    def test_save_gate_uses_the_disabled_button_not_its_enabled_text_child(self):
+        button = ET.Element('node', {'resource-id': 'live-save-results', 'enabled': 'false',
+                                    'bounds': '[72,1408][648,1512]'})
+        ET.SubElement(button, 'node', {'text': 'Save results', 'enabled': 'true'})
+        with patch.object(visual.ui, 'nodes', return_value=list(button.iter())):
+            visual.audit_unrecorded_save()
+
+    def test_save_gate_rejects_an_enabled_button_even_if_its_text_is_disabled(self):
+        button = ET.Element('node', {'resource-id': 'live-save-results', 'enabled': 'true',
+                                    'bounds': '[72,1408][648,1512]'})
+        ET.SubElement(button, 'node', {'text': 'Save results', 'enabled': 'false'})
+        with patch.object(visual.ui, 'nodes', return_value=list(button.iter())), self.assertRaises(AssertionError):
+            visual.audit_unrecorded_save()
+
     def test_avatar_cannot_cross_the_circular_artwork_clip(self):
         jersey = ET.Element('node', {'resource-id': 'me-jersey-hero', 'bounds': '[20,20][400,400]'})
         avatar = ET.Element('node', {'resource-id': 'me-neutral-avatar', 'bounds': '[288,288][376,376]'})

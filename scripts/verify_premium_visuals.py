@@ -101,6 +101,14 @@ def audit_me_avatar():
     assert all((x - cx) ** 2 + (y - cy) ** 2 < radius ** 2
                for x in (l, r) for y in (t, b)), 'Jersey circle clips the neutral avatar badge'
 
+def audit_unrecorded_save():
+    # TextView children may remain enabled inside a disabled Compose button.
+    # The tagged control owns the actionable disabled semantics.
+    button = ui.tagged(ui.nodes(), 'live-save-results')
+    assert button is not None, 'Save results button is missing'
+    assert button.get('enabled') == 'false', \
+        'Save became enabled without the required attempts and explicit confirmation'
+
 
 def audit_large_progress_picker():
     picker = ui.wait_tagged('progress-section-picker')
@@ -212,8 +220,7 @@ def capture_phase(phase, output):
             ui.scroll_to('Record successful attempt')
             capture('training-actions')
             ui.scroll_to('Save results')
-            assert ui.require(ui.nodes(), 'Save results').get('enabled') == 'false', \
-                'Save became enabled without the required attempts and explicit confirmation'
+            audit_unrecorded_save()
         ui.shell('input', 'keyevent', 'KEYCODE_BACK')
         # Team did not exist on the baseline; label its actual Me entry point.
         if phase == 'after':
