@@ -16,7 +16,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -61,10 +60,11 @@ internal fun HomeScreen(
         item {
             Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 val hasResume = resumable
-                val heroHeight = 276.dp * LocalDensity.current.fontScale +
+                val heroHeight = 220.dp +
                     if (save.playerName.length > 20) 24.dp else 0.dp
                 CourtArenaHero(R.drawable.court_arena_player,
-                    Modifier.fillMaxWidth().heightIn(min = heroHeight).testTag("court-player-hero")) {
+                    Modifier.fillMaxWidth().heightIn(min = heroHeight).testTag("court-player-hero"),
+                    imageAlignment = Alignment.TopCenter) {
                     Column(Modifier.fillMaxWidth().heightIn(min = heroHeight).padding(14.dp),
                         verticalArrangement = Arrangement.Top) {
                         Column(Modifier.fillMaxWidth().padding(4.dp),
