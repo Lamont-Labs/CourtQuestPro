@@ -28,12 +28,13 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /** Same five destinations, with Court at the center. Hit areas never overlap the medallion. */
 @Composable
-internal fun CourtQuestBottomDock(selected: PlayerTab, onSelect: (PlayerTab) -> Unit) {
+internal fun CourtQuestBottomDock(selected: PlayerTab, jerseyNumber: Int?, onSelect: (PlayerTab) -> Unit) {
     val atlas = rememberNavigationAtlas()
     val order = listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)
     val shape = RoundedCornerShape(21.dp)
@@ -74,6 +75,19 @@ internal fun CourtQuestBottomDock(selected: PlayerTab, onSelect: (PlayerTab) -> 
                         }
                         Icon(fallback, contentDescription = null, modifier = Modifier.size(27.dp),
                             tint = if (active) CourtQuestDesign.accent else CourtQuestDesign.textSecondary)
+                    }
+                    if (tab == PlayerTab.ME) {
+                        Text(
+                            displayedJerseyNumber(jerseyNumber).toString(),
+                            modifier = Modifier.align(Alignment.Center).offset(y = (-5).dp),
+                            color = CourtQuestDesign.accent,
+                            fontFamily = CourtDisplay,
+                            fontWeight = FontWeight.Black,
+                            fontSize = 11.sp,
+                            lineHeight = 12.sp,
+                            textAlign = TextAlign.Center,
+                            maxLines = 1
+                        )
                     }
                     if (active) {
                         Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 2.dp)
