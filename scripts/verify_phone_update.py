@@ -30,12 +30,13 @@ def identity(apk, tools, output, prefix):
                 certificate_sha256=certs[0].lower(), apk_sha256=digest(apk))
 
 
-def compatible(old, new):
+def compatible(old, new, previous_version=20, candidate_version=21):
     require(old['package_id'] == new['package_id'] == 'com.courtquestpro', 'Package identity changed')
     require(old['certificate_sha256'] == new['certificate_sha256'] == EXPECTED_CERTIFICATE,
-            'Original signing identity does not match the released v20 APK')
-    require(old['version_code'] == 20 and new['version_code'] == 21 and
-            new['version_code'] > old['version_code'], 'Expected a strictly increasing v20 -> v21 update')
+            f'Original signing identity does not match the released v{previous_version} APK')
+    require(old['version_code'] == previous_version and new['version_code'] == candidate_version and
+            candidate_version > previous_version,
+            f'Expected a strictly increasing v{previous_version} -> v{candidate_version} update')
 
 
 def saved_values_preserved(before, after):
@@ -49,9 +50,11 @@ def saved_values_preserved(before, after):
 
 
 def identities(args):
-    old = identity(args.previous, args.tools, args.output, 'v20')
-    new = identity(args.candidate, args.tools, args.output, 'v21')
-    compatible(old, new)
+    old_version = args.previous_version
+    candidate_version = args.candidate_version
+    old = identity(args.previous, args.tools, args.output, f'v{old_version}')
+    new = identity(args.candidate, args.tools, args.output, f'v{candidate_version}')
+    compatible(old, new, old_version, candidate_version)
     (args.output / 'upgrade-identity.json').write_text(json.dumps(dict(previous=old, candidate=new), indent=2) + '\n')
     print(json.dumps(dict(previous=old, candidate=new), indent=2))
 
@@ -59,12 +62,18 @@ def identities(args):
 def upgrade(args):
     import verify_android_daily_flow as ui
     from verify_android_library_flow import seed_state
+    previous_version = args.previous_version
+    candidate_version = args.candidate_version
     # No caller can direct this fixture writer at an owner's physical phone.
     require(ui.shell('getprop', 'ro.kernel.qemu') == '1', 'Only the disposable QA emulator is allowed')
     require(ui.adb('emu', 'avd', 'name').decode().splitlines()[0].strip() == 'CourtQuest_PremiumQA',
             'Wrong AVD: refusing to install or seed test data')
     ui.OUT = args.output
-    require('Success' in ui.adb('install', str(args.previous.resolve())).decode(), 'Install released v20 failed')
+    require('Success' in ui.adb('install', str(args.previous.resolve())).decode(),
+            f'Install released v{previous_version} failed')
+    installed = ui.shell('dumpsys', 'package', ui.PACKAGE)
+    require(re.search(rf'versionCode={previous_version}\b', installed) is not None,
+            f'Installed baseline is not versionCode {previous_version}')
     ui.seed('game-history')
     fixture = json.loads(ui.prefs()['state'].text)
     drill = dict(id='custom:upgrade:1', category='Shooting', title='Upgrade fixture',
@@ -91,8 +100,8 @@ def upgrade(args):
     require(before['totalXp'] == 100 and len(before['matches']) == 8 and len(before['drillResults']) == 2
             and before['jerseyNumber'] == 42 and before['playerScore'] == 3
             and len(before['customDrills']) == len(before['missionVersions']) == 1,
-            'Released v20 did not retain the synthetic fixture')
-    ui.screenshot('v20-before-update')
+            f'Released v{previous_version} did not retain the synthetic fixture')
+    ui.screenshot(f'v{previous_version}-before-update')
     ui.shell('am', 'force-stop', ui.PACKAGE)
     prefs_path = 'shared_prefs/court_quest_pro.xml'
     raw = ui.adb('exec-out', 'run-as', ui.PACKAGE, 'cat', prefs_path)
@@ -101,18 +110,21 @@ def upgrade(args):
     require(ui.adb('exec-out', 'run-as', ui.PACKAGE, 'cat', prefs_path) == raw,
             'Package installation altered existing preferences')
     installed = ui.shell('dumpsys', 'package', ui.PACKAGE)
-    require(re.search(r'versionCode=21\b', installed) is not None, 'Installed version is not 21')
+    require(re.search(rf'versionCode={candidate_version}\b', installed) is not None,
+            f'Installed version is not {candidate_version}')
     ui.open_app()
     after = json.loads(ui.prefs()['state'].text)
-    require(saved_values_preserved(before, after), 'Existing v20 player data changed on first v21 launch')
+    require(saved_values_preserved(before, after),
+            f'Existing v{previous_version} player data changed on first v{candidate_version} launch')
     ui.wait_tagged('nav-open-handle')
-    ui.screenshot('v21-after-update')
+    ui.screenshot(f'v{candidate_version}-after-update')
     ui.shell('am', 'force-stop', ui.PACKAGE)
     ui.open_app()
     require(saved_values_preserved(before, json.loads(ui.prefs()['state'].text)),
             'Existing data changed after relaunch')
     report = dict(input_apk_sha256=digest(args.candidate), baseline_apk_sha256=digest(args.previous),
-                  versions=[20, 21], android_install_replace=True, preferences_byte_identical_after_install=True,
+                  versions=[previous_version, candidate_version], android_install_replace=True,
+                  preferences_byte_identical_after_install=True,
                   saved_values_preserved_after_launch=True, saved_values_preserved_after_relaunch=True,
                   physical_device_test='NOT_PERFORMED', destructive_phone_operations='NONE')
     (args.output / 'install-upgrade.json').write_text(json.dumps(report, indent=2) + '\n')
@@ -122,12 +134,13 @@ def finalize(args):
     manifest = json.loads((args.output / 'apk-manifest.json').read_text())
     upgrade_report = json.loads((args.output / 'install-upgrade.json').read_text())
     identities_report = json.loads((args.output / 'upgrade-identity.json').read_text())
-    compatible(identities_report['previous'], identities_report['candidate'])
+    compatible(identities_report['previous'], identities_report['candidate'],
+               args.previous_version, args.candidate_version)
     sha = digest(args.candidate)
     require(sha == manifest['apk_sha256'] == upgrade_report['input_apk_sha256'] ==
             identities_report['candidate']['apk_sha256'], 'Candidate evidence refers to different APKs')
     require(upgrade_report['baseline_apk_sha256'] == identities_report['previous']['apk_sha256']
-            and upgrade_report['versions'] == [20, 21]
+            and upgrade_report['versions'] == [args.previous_version, args.candidate_version]
             and all(v for v in upgrade_report.values() if isinstance(v, bool)),
             'In-place upgrade evidence is incomplete or uses a different baseline')
     native = Path('native-evidence')
@@ -151,7 +164,9 @@ def finalize(args):
         int(s.get(k, 0)) for s in suites for k in ['errors', 'failures', 'skipped']), 'Maestro evidence incomplete')
     manifest.update(upgrade_identity=identities_report, install_upgrade=upgrade_report,
                     exact_commit_ci=json.loads((args.output / 'ci-gates.json').read_text()))
-    manifest['checks']['emulator_test'] = 'PASS_V20_TO_V21_IN_PLACE_AND_FULL_NATIVE_SAME_APK'
+    manifest['checks']['emulator_test'] = (
+        f'PASS_V{args.previous_version}_TO_V{args.candidate_version}_IN_PLACE_AND_FULL_NATIVE_SAME_APK'
+    )
     (args.output / 'apk-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
     print('All exact-binary release gates passed:', sha)
 
@@ -163,6 +178,8 @@ if __name__ == '__main__':
     parser.add_argument('--candidate', type=Path, default=Path('app/build/outputs/apk/debug/app-debug.apk'))
     parser.add_argument('--tools', type=Path, default=Path(os.environ.get('ANDROID_HOME', '')) / 'build-tools/35.0.1')
     parser.add_argument('--output', type=Path, default=Path('dist'))
+    parser.add_argument('--previous-version', type=int, default=20)
+    parser.add_argument('--candidate-version', type=int, default=21)
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     dict(identity=identities, upgrade=upgrade, finalize=finalize)[args.phase](args)

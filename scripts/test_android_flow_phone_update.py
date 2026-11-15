@@ -18,6 +18,18 @@ class PhoneUpdateContractTest(unittest.TestCase):
     def test_original_identity_and_monotonic_increment_pass(self):
         compatible(self.old, self.new)
 
+    def test_v21_to_v22_update_passes_with_original_identity(self):
+        old = dict(self.old, version_code=21)
+        new = dict(self.old, version_code=22)
+        compatible(old, new, previous_version=21, candidate_version=22)
+
+    def test_v21_to_v22_rejects_equal_downgraded_or_wrong_version(self):
+        old = dict(self.old, version_code=21)
+        for version in [20, 21, 23]:
+            with self.subTest(version=version), self.assertRaises(RuntimeError):
+                compatible(old, dict(self.new, version_code=version),
+                           previous_version=21, candidate_version=22)
+
     def test_equal_downgraded_or_wrong_version_fails(self):
         for version in [19, 20, 22]:
             with self.subTest(version=version), self.assertRaises(RuntimeError):
