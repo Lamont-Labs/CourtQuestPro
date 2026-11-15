@@ -66,23 +66,35 @@ internal fun HomeScreen(
                 CourtArenaHero(R.drawable.court_arena_player,
                     Modifier.fillMaxWidth().heightIn(min = heroHeight).testTag("court-player-hero")) {
                     Column(Modifier.fillMaxWidth().heightIn(min = heroHeight).padding(14.dp),
-                        verticalArrangement = Arrangement.SpaceBetween) {
-                    Column(
-                        Modifier.fillMaxWidth().padding(4.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        CourtEyebrow("COURTQUEST PRO  ·  ${rankFor(save.totalXp).uppercase()}")
-                        CourtAthleteIdentity(save, Modifier.fillMaxWidth())
+                        verticalArrangement = Arrangement.Top) {
+                        Column(Modifier.fillMaxWidth().padding(4.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            CourtEyebrow("COURTQUEST PRO  ·  ${rankFor(save.totalXp).uppercase()}")
+                            CourtAthleteIdentity(save, Modifier.fillMaxWidth())
+                        }
                     }
-                    Spacer(Modifier.height(12.dp))
-                    val focusLine = when {
-                        activeMission != null -> "MISSION IN PROGRESS · ${MissionTraining.version(save, activeMission)?.title ?: "Your Mission"}"
-                        done == 6 -> "Today's plan is complete."
-                        hasResume -> "Pick up where you left off."
-                        else -> "${save.weeklyPlan} focus · ${save.difficulty}"
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        HomeShortcut("Train", Icons.Default.SportsBasketball, onLibrary, Modifier.weight(1f))
+                        HomeShortcut("Drills", Icons.Default.FitnessCenter, onDrills, Modifier.weight(1f))
+                        HomeShortcut("Progress", Icons.Default.Insights, onCareer, Modifier.weight(1f))
                     }
-                    Column(Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        HomeShortcut("Quests", Icons.Default.EmojiEvents, onQuests, Modifier.weight(1f))
+                        HomeShortcut("Games", Icons.Default.SportsBasketball, onStartChamp, Modifier.weight(1f))
+                        HomeShortcut("Team", Icons.Default.Groups, onTeam, Modifier.weight(1f))
+                    }
+                }
+                val focusLine = when {
+                    activeMission != null -> "MISSION IN PROGRESS · ${MissionTraining.version(save, activeMission)?.title ?: "Your Mission"}"
+                    done == 6 -> "Today's plan is complete."
+                    hasResume -> "Pick up where you left off."
+                    else -> "${save.weeklyPlan} focus · ${save.difficulty}"
+                }
+                CourtQuestPremiumSurface(Modifier.fillMaxWidth().testTag("court-focus-card"),
+                    PaddingValues(14.dp), highlighted = true) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        CourtEyebrow("TODAY'S FOCUS")
                         Text(focusLine, color = CourtQuestDesign.textPrimary,
                             style = MaterialTheme.typography.bodyMedium)
                         Text("$done of 6 drills completed",
@@ -101,19 +113,6 @@ internal fun HomeScreen(
                             )
                             Icon(Icons.Default.ArrowForward, null, Modifier.size(20.dp))
                         }
-                    }
-                }
-                    }
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        HomeShortcut("Train", Icons.Default.SportsBasketball, onLibrary, Modifier.weight(1f))
-                        HomeShortcut("Drills", Icons.Default.FitnessCenter, onDrills, Modifier.weight(1f))
-                        HomeShortcut("Progress", Icons.Default.Insights, onCareer, Modifier.weight(1f))
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        HomeShortcut("Quests", Icons.Default.EmojiEvents, onQuests, Modifier.weight(1f))
-                        HomeShortcut("Games", Icons.Default.SportsBasketball, onStartChamp, Modifier.weight(1f))
-                        HomeShortcut("Team", Icons.Default.Groups, onTeam, Modifier.weight(1f))
                     }
                 }
             }

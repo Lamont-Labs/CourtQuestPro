@@ -126,11 +126,24 @@ def audit_large_heading(tag):
     assert r - l >= 400 and b > t, f'Large-text heading is confined to a narrow column: {tag}'
 
 def audit_home_shortcuts():
+    shortcuts = []
     for label in ['Train', 'Drills', 'Progress', 'Quests', 'Games', 'Team']:
         node = ui.wait_tagged(f'court-shortcut-{label.lower()}')
         assert node.get('content-desc') == label, f'{label}: shortcut label is not accessible'
         l, t, r, b = bounds(node)
         assert r - l >= 96 and b - t >= 96, f'{label}: shortcut target is smaller than 48dp'
+        shortcuts.append((l, t, r, b))
+    focus = ui.tagged(ui.nodes(), 'court-todays-focus')
+    assert focus is not None, 'Today’s Focus action is missing'
+    _, focus_top, _, focus_bottom = bounds(focus)
+    assert focus_top > max(box[3] for box in shortcuts), \
+        'Today’s Focus action must follow the six reference shortcut tiles'
+    viewports = [n for n in ui.nodes() if n.get('scrollable') == 'true']
+    assert viewports, 'Court must expose a scrollable content viewport'
+    viewport = max(viewports, key=lambda n: (bounds(n)[2] - bounds(n)[0]) *
+                   (bounds(n)[3] - bounds(n)[1]))
+    assert focus_bottom <= bounds(viewport)[3], \
+        'Today’s Focus action must be visible in the initial Court viewport'
     ui.tap(ui.wait_tagged('court-shortcut-drills'))
     assert ui.wait_tagged('train-library-content') is not None, \
         'The Drills shortcut must open the drill catalog, not only My Plan'

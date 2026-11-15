@@ -30,11 +30,14 @@ class NativeVisualGuardTest(unittest.TestCase):
             'resource-id': 'court-shortcut-' + label.lower(), 'content-desc': label,
             'bounds': f'[{index*120},200][{index*120+120},320]'
         }) for index, label in enumerate(labels)]
+        focus = ET.Element('node', {'resource-id': 'court-todays-focus', 'bounds': '[40,1000][680,1100]'})
+        viewport = ET.Element('node', {'scrollable': 'true', 'bounds': '[0,48][720,1392]'})
         catalog = ET.Element('node', {'resource-id': 'train-library-content', 'bounds': '[0,400][720,900]'})
         dock = ET.Element('node', {'resource-id': 'dock-train', 'bounds': '[0,1200][150,1300]'})
         plan = ET.Element('node', {'resource-id': 'train-plan-content', 'bounds': '[0,400][720,900]'})
         reads = [*nodes, nodes[1], catalog, dock, plan]
-        with patch.object(visual.ui, 'wait_tagged', side_effect=reads), patch.object(visual.ui, 'tap'), \
+        with patch.object(visual.ui, 'wait_tagged', side_effect=reads), \
+                patch.object(visual.ui, 'nodes', return_value=[*nodes, focus, viewport]), patch.object(visual.ui, 'tap'), \
                 patch.object(visual.ui, 'navigate') as navigate:
             visual.audit_home_shortcuts()
         self.assertEqual(navigate.call_args.args, ('Court',))
@@ -47,10 +50,13 @@ class NativeVisualGuardTest(unittest.TestCase):
                 'resource-id': 'court-shortcut-' + label.lower(), 'content-desc': label,
                 'bounds': f'[{index*120},200][{index*120+120},320]'
             }))
+        focus = ET.Element('node', {'resource-id': 'court-todays-focus', 'bounds': '[40,800][680,900]'})
+        viewport = ET.Element('node', {'scrollable': 'true', 'bounds': '[0,48][720,1392]'})
         catalog = ET.Element('node', {'resource-id': 'train-library-content', 'bounds': '[0,400][720,900]'})
         dock = ET.Element('node', {'resource-id': 'dock-train', 'bounds': '[0,1200][150,1300]'})
         plan = ET.Element('node', {'resource-id': 'train-plan-content', 'bounds': '[0,400][720,900]'})
         with patch.object(visual.ui, 'wait_tagged', side_effect=[*nodes, nodes[1], catalog, dock, plan]), \
+                patch.object(visual.ui, 'nodes', return_value=[*nodes, focus, viewport]), \
                 patch.object(visual.ui, 'navigate'), \
                 patch.object(visual.ui, 'tap') as tap:
             visual.audit_home_shortcuts()
