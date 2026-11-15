@@ -105,8 +105,9 @@ def click(text):
 
 
 def open_library():
-    """Select Train, then explicitly leave any retained drill detail."""
-    click('Train')
+    """Select Train from the primary dock; the drawer has dedicated coverage."""
+    ui.tap(ui.wait_tagged('dock-library', attempts=20))
+    ui.wait_tagged('train-arena-hero', attempts=20)
     def top():
         regions = [n for n in ui.nodes() if n.get('scrollable') == 'true']
         if not regions:
