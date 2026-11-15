@@ -20,6 +20,10 @@ def click(label):
     if label in TABS:
         ui.navigate(label)
     else:
+        if label in ('Overview', 'Skills', 'History'):
+            picker = ui.tagged(ui.nodes(), 'progress-section-picker')
+            if picker is not None:
+                ui.tap(picker)
         click_control(label)
 
 

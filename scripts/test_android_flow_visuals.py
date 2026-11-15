@@ -18,6 +18,22 @@ def dock_fixture():
 
 
 class NativeVisualGuardTest(unittest.TestCase):
+    def test_live_primary_rejects_a_recording_button_below_the_viewport(self):
+        viewport = ET.Element('node', {'scrollable': 'true', 'bounds': '[0,48][720,1552]'})
+        stats = ET.Element('node', {'resource-id': 'live-drill-stats', 'bounds': '[40,780][680,900]'})
+        button = ET.Element('node', {'resource-id': 'live-record-success', 'bounds': '[40,1480][680,1610]',
+                                    'enabled': 'true'})
+        with patch.object(visual.ui, 'nodes', return_value=[viewport, stats, button]), self.assertRaises(AssertionError):
+            visual.audit_live_primary()
+
+    def test_live_primary_accepts_visible_stats_and_an_enabled_large_target(self):
+        viewport = ET.Element('node', {'scrollable': 'true', 'bounds': '[0,48][720,1552]'})
+        stats = ET.Element('node', {'resource-id': 'live-drill-stats', 'bounds': '[40,780][680,900]'})
+        button = ET.Element('node', {'resource-id': 'live-record-success', 'bounds': '[40,920][680,1050]',
+                                    'enabled': 'true'})
+        with patch.object(visual.ui, 'nodes', return_value=[viewport, stats, button]):
+            visual.audit_live_primary()
+
     def test_large_progress_rejects_narrow_record_columns(self):
         item = ET.Element('node', {'resource-id': 'progress-record-sessions', 'bounds': '[320,500][600,700]'})
         viewport = ET.Element('node', {'scrollable': 'true', 'bounds': '[0,96][640,1232]'})

@@ -126,8 +126,10 @@ def open_library():
 
 
 def confirm_target():
+    ui.scroll_to('Full target completed safely.')
     check = next(n for n in ui.nodes() if n.get('checkable') == 'true')
     ui.tap(check)
+    ui.scroll_to('Save results')
 
 
 def main():

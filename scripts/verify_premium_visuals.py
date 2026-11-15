@@ -74,6 +74,36 @@ def capture(name):
     ui.nodes(name)
     ui.screenshot(name)
 
+def audit_live_primary():
+    """Normal launch must expose actual recording, not only a clock/save gate."""
+    items = ui.nodes()
+    viewport = next(n for n in items if n.get('scrollable') == 'true')
+    vl, vt, vr, vb = bounds(viewport)
+    for tag in ['live-drill-stats', 'live-record-success']:
+        node = ui.tagged(items, tag)
+        assert node is not None, f'Live first viewport is missing {tag}'
+        l, t, r, b = bounds(node)
+        assert vl <= l < r <= vr and vt <= t < b <= vb, f'Live first viewport clips {tag}'
+        if tag == 'live-record-success':
+            assert r - l >= 96 and b - t >= 96, 'Live recording target is smaller than 48dp'
+            assert node.get('enabled') == 'true', 'Live recording is disabled before any attempts'
+
+
+def audit_large_progress_picker():
+    picker = ui.wait_tagged('progress-section-picker')
+    l, t, r, b = bounds(picker)
+    assert r - l >= 400 and b - t >= 96, 'Large-text Progress picker is cramped'
+    ui.tap(picker)
+    items = ui.nodes()
+    for label in ['overview', 'skills', 'history']:
+        node = ui.tagged(items, 'segment-' + label)
+        assert node is not None and node.get('enabled') == 'true', f'Progress option missing: {label}'
+        l, t, r, b = bounds(node)
+        assert r - l >= 400 and b - t >= 96 and 0 <= t < b <= 1440, \
+            f'Progress option is clipped or below 48dp: {label}'
+    capture('progress-view-menu-large')
+    ui.tap(ui.tagged(items, 'segment-overview'))
+
 
 def audit_large_library():
     # At 200% text, use full-width controls rather than splitting single words.
@@ -149,6 +179,7 @@ def capture_phase(phase, output):
             if phase == 'after' and config == 'large' and name == 'library':
                 audit_large_library()
             if phase == 'after' and config == 'large' and name == 'progress':
+                audit_large_progress_picker()
                 audit_large_controls(['progress-record-sessions'], 'progress-record-large')
         ui.navigate('Court')
         ui.tap(ui.wait_tagged('nav-open-handle'))
@@ -160,6 +191,14 @@ def capture_phase(phase, output):
         time.sleep(1)
         ui.require(ui.nodes(), 'Five-Spot Form Shooting')
         capture('training')
+        if phase == 'after':
+            if config == 'normal':
+                audit_live_primary()
+            ui.scroll_to('Record successful attempt')
+            capture('training-actions')
+            ui.scroll_to('Save results')
+            assert ui.require(ui.nodes(), 'Save results').get('enabled') == 'false', \
+                'Save became enabled without the required attempts and explicit confirmation'
         ui.shell('input', 'keyevent', 'KEYCODE_BACK')
         # Team did not exist on the baseline; label its actual Me entry point.
         if phase == 'after':

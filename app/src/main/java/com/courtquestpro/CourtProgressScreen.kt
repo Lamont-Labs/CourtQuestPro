@@ -72,15 +72,11 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp)) {
         item { AppHeader("Progress", "${rankFor(save.totalXp)} · ${save.playerName.ifBlank { "Player development" }}") }
         item {
-            CourtQuestSegmentRail(
-                labels = listOf("Overview", "Skills", "History"),
-                selected = section,
-                onSelect = { section = it },
-                modifier = Modifier.padding(horizontal = 20.dp)
-            )
+            CourtProgressSectionPicker(section) { section = it }
         }
         item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                if (section == "Overview") CourtProgressActivity(valid)
                 if (section == "Overview") CourtQuestPremiumSurface(
                     Modifier.fillMaxWidth(), PaddingValues(16.dp), highlighted = true
                 ) {
@@ -114,29 +110,6 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
                         CourtRule()
                         Text("XP tracks participation. Results are self-recorded.",
                             color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
-                    }
-                }
-                if (section == "Overview") {
-                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp)) {
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                CourtEyebrow("RECORDED ACTIVITY", Modifier.weight(1f))
-                                Text("LAST 14 DAYS", color = CourtQuestDesign.textSecondary,
-                                    style = MaterialTheme.typography.labelSmall)
-                            }
-                            CourtActivityChart(valid)
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(windowDateLabel(LocalDate.now().minusDays(13)),
-                                    color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.labelSmall)
-                                Text("TODAY", color = CourtQuestDesign.accent,
-                                    style = MaterialTheme.typography.labelSmall)
-                            }
-                            Text(
-                                if (valid.isEmpty()) "Your recorded sessions will build this view."
-                                else "${valid.size} valid ${if (valid.size == 1) "result" else "results"} across ${valid.map { it.date }.distinct().size} training days",
-                                color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall
-                            )
-                        }
                     }
                 }
                 if (section == "History" && save.missionReceipts.orEmpty().isNotEmpty() && !showGames) {
@@ -262,6 +235,30 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
 }
 
 private fun windowDateLabel(date: LocalDate): String = date.format(DateTimeFormatter.ofPattern("MMM d"))
+
+@Composable
+private fun CourtProgressActivity(results: List<DrillResult>) {
+    val window = courtActivityWindow(results, LocalDate.now())
+    val count = window.sumOf { it.count }
+    CourtQuestPremiumSurface(Modifier.fillMaxWidth().testTag("progress-activity"), PaddingValues(16.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                CourtEyebrow("ACTIVITY", Modifier.weight(1f))
+                Text("LAST 14 DAYS", color = CourtQuestDesign.textSecondary,
+                    style = MaterialTheme.typography.labelSmall)
+            }
+            CourtActivityChart(results)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(windowDateLabel(LocalDate.now().minusDays(13)),
+                    color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.labelSmall)
+                Text("TODAY", color = CourtQuestDesign.accent, style = MaterialTheme.typography.labelSmall)
+            }
+            Text(if (count == 0) "No recorded activity in the last 14 days."
+                else "$count ${if (count == 1) "result" else "results"} · ${window.count { it.count > 0 }} active ${if (window.count { it.count > 0 } == 1) "day" else "days"}",
+                color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
 
 @Composable
 private fun CourtActivityChart(results: List<DrillResult>) {
