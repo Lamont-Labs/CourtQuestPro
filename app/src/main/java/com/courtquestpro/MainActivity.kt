@@ -358,9 +358,12 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             }) { Text("Discard and start Mission") } }, dismissButton = { TextButton({ confirmMissionDiscard = false }) { Text("Keep session") } })
         fun selectPlayerTab(tab: PlayerTab) {
             navigationExpanded = false
-            if (tab == PlayerTab.TRAIN && librarySlotId != null) {
-                librarySlotId = null
-                librarySelectedId = null
+            if (tab == PlayerTab.TRAIN) {
+                libraryInitialSection = "Today"
+                if (librarySlotId != null) {
+                    librarySlotId = null
+                    librarySelectedId = null
+                }
             }
             navigate(tab.route)
         }

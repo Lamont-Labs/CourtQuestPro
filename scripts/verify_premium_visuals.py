@@ -134,6 +134,10 @@ def audit_home_shortcuts():
     ui.tap(ui.wait_tagged('court-shortcut-drills'))
     assert ui.wait_tagged('train-library-content') is not None, \
         'The Drills shortcut must open the drill catalog, not only My Plan'
+    ui.navigate('Court')
+    ui.tap(ui.wait_tagged('dock-train'))
+    assert ui.wait_tagged('train-plan-content') is not None, \
+        'The Train destination must open My Plan after visiting Drills'
 
 
 def audit_large_progress_picker():

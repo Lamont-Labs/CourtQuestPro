@@ -104,7 +104,8 @@ internal fun DrillLibraryScreen(
             )
         }
         if (section == "Today" && swapSlotId == null) item {
-            Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.padding(horizontal = 20.dp).testTag("train-plan-content"),
+                verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(18.dp), highlighted = true) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         CourtEyebrow("YOUR SAVED PLAN")

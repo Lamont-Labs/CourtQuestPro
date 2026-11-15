@@ -24,6 +24,21 @@ class NativeVisualGuardTest(unittest.TestCase):
             'OWNER_REFERENCE_AVAILABLE; AUTOMATED_PIXEL_MATCH_NOT_CLAIMED'
         )
 
+    def test_home_shortcut_and_dock_return_to_train_hub_after_catalog_visit(self):
+        labels = ['Train', 'Drills', 'Progress', 'Quests', 'Games', 'Team']
+        nodes = [ET.Element('node', {
+            'resource-id': 'court-shortcut-' + label.lower(), 'content-desc': label,
+            'bounds': f'[{index*120},200][{index*120+120},320]'
+        }) for index, label in enumerate(labels)]
+        catalog = ET.Element('node', {'resource-id': 'train-library-content', 'bounds': '[0,400][720,900]'})
+        dock = ET.Element('node', {'resource-id': 'dock-train', 'bounds': '[0,1200][150,1300]'})
+        plan = ET.Element('node', {'resource-id': 'train-plan-content', 'bounds': '[0,400][720,900]'})
+        reads = [*nodes, nodes[1], catalog, dock, plan]
+        with patch.object(visual.ui, 'wait_tagged', side_effect=reads), patch.object(visual.ui, 'tap'), \
+                patch.object(visual.ui, 'navigate') as navigate:
+            visual.audit_home_shortcuts()
+        self.assertEqual(navigate.call_args.args, ('Court',))
+
     def test_reference_shortcut_routes_directly_to_the_drill_catalog(self):
         labels = ['Train', 'Drills', 'Progress', 'Quests', 'Games', 'Team']
         nodes = []
@@ -33,10 +48,14 @@ class NativeVisualGuardTest(unittest.TestCase):
                 'bounds': f'[{index*120},200][{index*120+120},320]'
             }))
         catalog = ET.Element('node', {'resource-id': 'train-library-content', 'bounds': '[0,400][720,900]'})
-        with patch.object(visual.ui, 'wait_tagged', side_effect=[*nodes, nodes[1], catalog]), \
+        dock = ET.Element('node', {'resource-id': 'dock-train', 'bounds': '[0,1200][150,1300]'})
+        plan = ET.Element('node', {'resource-id': 'train-plan-content', 'bounds': '[0,400][720,900]'})
+        with patch.object(visual.ui, 'wait_tagged', side_effect=[*nodes, nodes[1], catalog, dock, plan]), \
+                patch.object(visual.ui, 'navigate'), \
                 patch.object(visual.ui, 'tap') as tap:
             visual.audit_home_shortcuts()
-        tap.assert_called_once_with(nodes[1])
+        self.assertEqual(tap.call_args_list[0].args, (nodes[1],))
+        self.assertEqual(tap.call_args_list[1].args, (dock,))
 
     def test_home_shortcuts_require_named_48dp_targets(self):
         labels = ['Train', 'Drills', 'Progress', 'Quests', 'Games', 'Team']
