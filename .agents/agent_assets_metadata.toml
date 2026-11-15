@@ -98,3 +98,87 @@ mtime_ms = 1794672996895
 storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/0a0d86c9-5059-408b-81b9-a456e3ffddca/d00e5932-bda4-4ad0-8d1c-560893717ff4"
 storage_version_token = "1794673051688999"
 content_type = "image/jpeg"
+
+[[outputs]]
+id = "oHn_BAfmPP-KSc84FK_3T"
+uri = "file://artifacts/cinematic-review-3b/court-and-welcome-working-comparison.jpg"
+type = "image"
+title = "Court and welcome — actual Android before / after"
+description = "Working native build, not final acceptance. Previous verified UI on the left; cinematic implementation on the right. Matching synthetic QA saves, not real player identity or user phone data. Later training/menu corrections are still being verified. No APK published."
+logical_id = "888e5680-61b4-445a-bac2-bc954d536a9d"
+content_hash = "sha256:1f2bfabaa9399528b09bb8780b278acb34386c9e8c39d8f0684830c0619834ea"
+size = 450059
+mtime_ms = 1794703481673
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/888e5680-61b4-445a-bac2-bc954d536a9d/f6712a64-dcb3-4e1d-98c9-e0d16ec8aca5"
+storage_version_token = "1794703494108066"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "_LtOFoEa48fwS7ynqSWFE"
+uri = "file://artifacts/cinematic-final-02a4c1ce/progress-and-live-native-comparison.jpg"
+type = "image"
+title = "Progress and live drill — real Android before / after"
+description = "Actual emulator captures from the current, unchanged native app source. Matching synthetic QA saves, not real player records. Live recording controls are now visible with the timer and stats. Full visual and functional verification is still running; no APK published."
+logical_id = "8868bf64-18b6-454e-9ebd-bde5e8607d28"
+content_hash = "sha256:b16e18e5c975f96632d475aeecbf1316d77acbf0b5ab199b02cf5a0a964bec71"
+size = 608176
+mtime_ms = 1794706302944
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/8868bf64-18b6-454e-9ebd-bde5e8607d28/2e78b2bb-6ff7-4366-a3a0-344f057da60c"
+storage_version_token = "1794706322889514"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "2FLwBrUAbgUPrfkWmYv8A"
+uri = "file://generated-artifacts/courtquest-redesign/before-after-native-screens.pdf"
+type = "pdf"
+title = "CourtQuest Pro — before/after emulator screens"
+description = "Nine full-resolution paired 720×1600 native emulator captures: onboarding, Court, Train/library, live drill, Progress, Quests, Team, Me, and navigation. Names and stats shown are deterministic QA fixtures, not real account data."
+logical_id = "f69a6115-db42-4265-93c1-4721cb1ac677"
+content_hash = "sha256:ed1b070dd373b7cd31864d7967331d1bdd8076a01fc61b2bb5a81791e1ca312e"
+size = 2380260
+mtime_ms = 1794714255392
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/f69a6115-db42-4265-93c1-4721cb1ac677/e313eeb2-d5e0-49b1-afb7-9afd736d1b9c"
+storage_version_token = "1794714405356832"
+content_type = "application/pdf"
+
+[[outputs]]
+id = "D3vFYFtxaIN2JAkxHdx2G"
+uri = "file://generated-artifacts/courtquest-redesign/before-after-mini-overview.png"
+type = "image"
+title = "CourtQuest Pro — before/after overview"
+description = "Quick visual comparison of the nine matched native emulator screens."
+logical_id = "93678a67-df06-402c-a1a6-2bb3e575b15a"
+content_hash = "sha256:3773ea8be25e042457cc4828a7f79bf1621e9af52b9c4a4f384467750fd93f39"
+size = 821107
+mtime_ms = 1794714313704
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/93678a67-df06-402c-a1a6-2bb3e575b15a/965a5635-faaa-410d-8c87-e5153472613e"
+storage_version_token = "1794714405891196"
+content_type = "image/png"
+
+[[outputs]]
+id = "GQlH0Hh9aexnJsPxWWj3K"
+uri = "file://generated-artifacts/courtquest-redesign/after-compact-overview.png"
+type = "image"
+title = "CourtQuest Pro — compact layout review"
+description = "Redesigned screens captured at compact display settings; QA fixture values are sample test data."
+logical_id = "93fe6c9a-a93b-403d-85e9-5a521706f5ea"
+content_hash = "sha256:0b5c95cb9f5741c598be6bf0814e3088c2b827c6c32ece2e6a9a07bc7b5dfccc"
+size = 1610642
+mtime_ms = 1794714264668
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/93fe6c9a-a93b-403d-85e9-5a521706f5ea/601ebe26-1e69-4df7-b77f-5eacdecf458e"
+storage_version_token = "1794714406419657"
+content_type = "image/png"
+
+[[outputs]]
+id = "lDQX9ptq9NwXlFY90ry10"
+uri = "file://generated-artifacts/courtquest-redesign/after-large-text-overview.png"
+type = "image"
+title = "CourtQuest Pro — large-text layout review"
+description = "Redesigned screens captured with large text; QA fixture values are sample test data."
+logical_id = "3b0b8745-ee13-4978-af79-1cc120986c82"
+content_hash = "sha256:c11cbc7377a4a21672a2ddf82b53d2e4dfac42a300764ef86fde4f744c5a34ce"
+size = 1656667
+mtime_ms = 1794714270252
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/3b0b8745-ee13-4978-af79-1cc120986c82/22a5a684-37b9-407f-a212-5dd01e21fc48"
+storage_version_token = "1794714406929755"
+content_type = "image/png"
