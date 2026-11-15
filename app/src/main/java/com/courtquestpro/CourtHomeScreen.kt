@@ -73,6 +73,7 @@ internal fun HomeScreen(
                             CourtAthleteIdentity(save, Modifier.fillMaxWidth())
                         }
                     }
+                }
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         HomeShortcut("Train", Icons.Default.SportsBasketball, onLibrary, Modifier.weight(1f))
