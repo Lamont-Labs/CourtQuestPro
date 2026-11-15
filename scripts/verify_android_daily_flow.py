@@ -89,9 +89,31 @@ def drawer_target(label, limit=12, minimum_px=1):
     raise AssertionError(f'Drawer destination {label!r} is unreachable')
 
 
+def dock_target(label, minimum_px=1):
+    """Find a real, accessible destination in the five-icon bottom dock."""
+    route = NAV_ROUTES[label]
+    items = nodes()
+    dock = wait_tagged('player-bottom-dock')
+    target = tagged(items, 'dock-' + route)
+    assert target is not None, f'Bottom destination {label!r} is missing'
+    bounds = list(map(int, re.findall(r'-?\\d+', target.get('bounds', ''))))
+    assert len(bounds) == 4 and bounds[2] - bounds[0] >= minimum_px and bounds[3] - bounds[1] >= minimum_px, (label, bounds)
+    assert target.get('enabled') == 'true', (label, 'disabled destination')
+    assert target.get('clickable') == 'true' or target.get('selected') == 'true', (label, 'not actionable')
+    require(list(target.iter('node')), label)
+    return target
+
+
 def navigate(label):
-    tap(drawer_target(label))
-    wait_tagged('nav-open-handle')
+    # Published baseline APKs have the old drawer; redesigned candidates have
+    # the icon-only dock. Verify whichever navigation is actually installed.
+    if tagged(nodes(), 'player-bottom-dock') is not None:
+        tap(dock_target(label))
+        selected = wait_tagged('dock-' + NAV_ROUTES[label])
+        assert selected.get('selected') == 'true', (label, 'tab not selected')
+    else:
+        tap(drawer_target(label))
+        wait_tagged('nav-open-handle')
 
 
 def adb(*args, data=None, timeout=120):
