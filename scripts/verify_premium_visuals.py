@@ -235,13 +235,13 @@ def capture_phase(phase, output):
         ui.seed('visual-review')
         # Seeding deliberately force-stops the package; launch before querying its UI.
         ui.open_app()
-        ui.wait_tagged('nav-open-handle')
+        ui.wait_tagged('player-bottom-dock' if phase == 'after' else 'nav-open-handle')
         ui.navigate('Court')
         for name, label in SCREENS:
             if phase == 'after':
                 # Exercise actual destination changes through the new dock.
                 ui.tap(ui.wait_tagged('dock-' + ui.NAV_ROUTES[label]))
-                ui.wait_tagged('nav-open-handle')
+                ui.wait_tagged('player-bottom-dock')
                 assert ui.wait_tagged('dock-' + ui.NAV_ROUTES[label]).get('selected') == 'true'
                 measurements.append(dict(configuration=config, screen=name, targets=audit_dock()))
             else:
@@ -262,11 +262,16 @@ def capture_phase(phase, output):
                 audit_large_controls(['progress-activity-heading'], 'progress-activity-heading-large', 1)
                 audit_large_controls(['progress-record-sessions'], 'progress-record-large')
         ui.navigate('Court')
-        ui.tap(ui.wait_tagged('nav-open-handle'))
-        ui.wait_tagged('player-navigation-drawer')
-        capture('navigation')
-        ui.tap(ui.wait_tagged('nav-close-handle'))
-        ui.wait_tagged('nav-open-handle')
+        if phase == 'after':
+            ui.wait_tagged('player-bottom-dock')
+            assert ui.tagged(ui.nodes(), 'nav-open-handle') is None, 'Retired side handle is visible'
+            capture('navigation')
+        else:
+            ui.tap(ui.wait_tagged('nav-open-handle'))
+            ui.wait_tagged('player-navigation-drawer')
+            capture('navigation')
+            ui.tap(ui.wait_tagged('nav-close-handle'))
+            ui.wait_tagged('nav-open-handle')
         ui.tap(training_action(config == 'normal'))
         time.sleep(1)
         ui.require(ui.nodes(), 'Five-Spot Form Shooting')
