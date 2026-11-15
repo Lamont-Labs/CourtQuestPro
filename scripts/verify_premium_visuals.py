@@ -10,7 +10,7 @@ from pathlib import Path
 import verify_android_daily_flow as ui
 from verify_phone_update import saved_values_preserved
 
-BASELINE_SHA256 = '9a5fb589fb59e21bec2c590701379a70264998702f7d7208c0157d6f52363555'
+BASELINE_SHA256 = '5125f01e191d26e03fc779ebd96affa3e9dbd5db2900dcedbc8f8660ac9f63bd'
 CONFIGS = [('normal', 720, 1600, '1.0'), ('compact', 640, 1440, '1.3'),
            ('large', 640, 1440, '2.0')]
 SCREENS = [('court', 'Court'), ('library', 'Train'), ('progress', 'Progress'),
@@ -78,14 +78,15 @@ def capture(name):
 def audit_large_library():
     # At 200% text, use full-width controls rather than splitting single words.
     for label in ['today', 'library', 'custom']:
-        node = ui.wait_tagged('segment-' + label)
-        l, t, r, b = bounds(node)
-        assert r - l >= 400 and b - t >= 96, f'Large-text {label} must reflow to a full-width target'
+        audit_large_controls(['segment-' + label], f'library-{label}-large')
+    # The new default is My Plan. Discovery actions belong to Library.
+    audit_large_controls(['segment-library'], 'library-selected-control-large')
+    ui.tap(ui.wait_tagged('segment-library'))
     audit_large_controls(['library-create', 'library-build-mission'], 'library-actions-large', 104)
 
 
 def audit_large_controls(tags, screenshot_name, minimum_height=96):
-    for _ in range(8):
+    for attempt in range(16):
         items = ui.nodes()
         controls = [ui.tagged(items, tag) for tag in tags]
         scrollables = [node for node in items if node.get('scrollable') == 'true']
@@ -98,7 +99,8 @@ def audit_large_controls(tags, screenshot_name, minimum_height=96):
                for node in controls):
             capture(screenshot_name)
             return
-        ui.shell('input', 'swipe', '320', '1100', '320', '700', '300')
+        start, end = ('1100', '700') if attempt < 8 else ('400', '950')
+        ui.shell('input', 'swipe', '320', start, '320', end, '300')
     raise AssertionError(f'Full-width large-text controls were not reachable without clipped targets: {tags}')
 
 
@@ -121,6 +123,12 @@ def capture_phase(phase, output):
         ui.shell('wm', 'size', f'{width}x{height}')
         ui.shell('wm', 'density', '320')
         ui.shell('settings', 'put', 'system', 'font_scale', font)
+        # Only the named disposable AVD can be cleared. No real phone is accessed.
+        require_qa()
+        assert 'Success' in ui.shell('pm', 'clear', ui.PACKAGE)
+        ui.open_app()
+        ui.require(ui.nodes(), 'Get Started' if phase == 'after' else 'CONTINUE')
+        capture('onboarding')
         # Both APKs receive the same existing synthetic fixture in the guarded AVD.
         ui.seed('game-history')
         # Seeding deliberately force-stops the package; launch before querying its UI.
@@ -142,6 +150,20 @@ def capture_phase(phase, output):
                 audit_large_library()
             if phase == 'after' and config == 'large' and name == 'progress':
                 audit_large_controls(['progress-record-sessions'], 'progress-record-large')
+        # Baseline has no Team screen: retain its real Me entry point as an
+        # explicitly labeled absence comparison rather than inventing a baseline.
+        ui.navigate('Me')
+        if phase == 'after':
+            ui.tap(ui.wait_tagged('me-settings-menu'))
+            ui.tap(ui.wait_tagged('me-team'))
+            ui.require(ui.nodes(), 'NO TEAM CONFIGURED')
+            assert ui.tagged(ui.nodes(), 'team-screen') is not None
+            team_before = json.loads(ui.prefs()['state'].text)
+            capture('team')
+            assert team_before == json.loads(ui.prefs()['state'].text), 'Viewing empty Team mutated player data'
+            ui.shell('input', 'keyevent', 'KEYCODE_BACK')
+        else:
+            capture('team')
         ui.navigate('Court')
         ui.tap(ui.wait_tagged('nav-open-handle'))
         ui.wait_tagged('player-navigation-drawer')
@@ -160,7 +182,7 @@ def compare(output):
     from PIL import Image, ImageChops, ImageDraw, ImageStat
     metrics = []
     for config, _, _, _ in CONFIGS:
-        for screen in [name for name, _ in SCREENS] + ['navigation', 'training']:
+        for screen in [name for name, _ in SCREENS] + ['navigation', 'training', 'onboarding', 'team']:
             before = Image.open(output / 'before' / config / f'{screen}.png').convert('RGB')
             after = Image.open(output / 'after' / config / f'{screen}.png').convert('RGB')
             assert before.size == after.size, 'Before/after device settings differ'
@@ -177,8 +199,9 @@ def compare(output):
             if config == 'normal':
                 sheet = Image.new('RGB', (width * 2, height + 64), '#08090B')
                 draw = ImageDraw.Draw(sheet)
-                draw.text((24, 20), 'BEFORE: released v21', fill='white')
-                draw.text((width + 24, 20), 'AFTER: native premium redesign', fill='#FF650E')
+                baseline_label = 'BEFORE: Me (Team did not exist)' if screen == 'team' else 'BEFORE: previous verified native UI'
+                draw.text((24, 20), baseline_label, fill='white')
+                draw.text((width + 24, 20), 'AFTER: cinematic native redesign', fill='#FF650E')
                 sheet.paste(before, (0, 64))
                 sheet.paste(after, (width, 64))
                 sheet.save(output / f'comparison-{screen}.jpg', quality=94)
@@ -193,8 +216,8 @@ def main():
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     await_boot()
-    assert sha(args.baseline) == BASELINE_SHA256, 'The baseline is not the verified released v21'
-    assert sha(args.candidate) != BASELINE_SHA256, 'Candidate is still the unchanged v21 APK'
+    assert sha(args.baseline) == BASELINE_SHA256, 'The baseline is not the previous verified native APK'
+    assert sha(args.candidate) != BASELINE_SHA256, 'Candidate is still the unchanged previous native APK'
     assert 'Success' in ui.adb('install', str(args.baseline.resolve()), timeout=180).decode()
     capture_phase('before', args.output)
     ui.shell('am', 'force-stop', ui.PACKAGE)
@@ -207,11 +230,14 @@ def main():
     assert saved_values_preserved(before, json.loads(ui.prefs()['state'].text)), 'Redesign changed existing player data'
     targets = capture_phase('after', args.output)
     report = dict(baseline_apk_sha256=BASELINE_SHA256, candidate_apk_sha256=sha(args.candidate),
-                  baseline_commit='de7127db7f9193630222cde505aa15d7ece99f2b',
+                  baseline_commit='c30876b3ac4bea45967a7a254030df6de084c5d7',
                   candidate_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
                   real_android_emulator=True, saved_data_preserved=True, dock_measurements=targets,
                   body_comparisons=compare(args.output), published_apk=False,
-                  visual_owner_acceptance='PENDING')
+                  visual_owner_acceptance='PENDING',
+                  reference_image_fidelity='PENDING_REFERENCE_ATTACHMENT',
+                  team_baseline='No Team screen existed; captured the real Me entry point',
+                  team_empty_state_preserves_save=True)
     (args.output / 'visual-verification.json').write_text(json.dumps(report, indent=2) + '\n')
     print('Real before/after Android captures and dock measurements passed; no release published', flush=True)
 

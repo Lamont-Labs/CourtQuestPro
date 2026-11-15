@@ -2,9 +2,9 @@ package com.courtquestpro
 
 import androidx.compose.foundation.background
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -13,10 +13,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -27,12 +27,14 @@ internal fun HomeScreen(
     save: SaveState, onSpin: () -> Unit, onStartChamp: () -> Unit, onCareer: () -> Unit,
     onSaveName: (String) -> Unit, onWeeklyPlan: (String) -> Unit,
     onTrainingDay: (Int) -> Unit, onActivity: (Int, String) -> Unit,
-    onLibrary: () -> Unit, onShuffle: () -> Unit, onSwap: (String) -> Unit, onResumePractice: () -> Unit, onMissionBuilder: () -> Unit, onResumeMission: () -> Unit
+    onLibrary: () -> Unit, onShuffle: () -> Unit, onSwap: (String) -> Unit, onResumePractice: () -> Unit, onMissionBuilder: () -> Unit, onResumeMission: () -> Unit,
+    onTeam: () -> Unit = {}, onQuests: () -> Unit = {}, onMe: () -> Unit = {}
 ) {
     var showWeeklyEditor by remember { mutableStateOf(false) }
     var newPlayerName by remember { mutableStateOf("") }
     val today = LocalDate.now()
     val drills = TrainingLibrary.catalog(save)
+    val activeMission = MissionTraining.active(save)
     val resumeMatch = save.hasResumableMatch(today.toString())
     val done = save.slots.count { it.complete }
     val resumable = save.slots.any { slot ->
@@ -50,7 +52,6 @@ internal fun HomeScreen(
     val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
     val todayActivity = save.weeklyActivities.orEmpty()
         .firstOrNull { it.startsWith("${today.dayOfWeek.value}:") }?.substringAfter(":")
-    val minutes = save.slots.sumOf { slot -> drills.firstOrNull { it.id == slot.drillId }?.minutes ?: 0 }
 
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp)) {
         item {
@@ -58,72 +59,64 @@ internal fun HomeScreen(
                 today.format(DateTimeFormatter.ofPattern("EEEE, MMMM d")))
         }
         item {
-            Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                val activeMission = MissionTraining.active(save)
-                if (activeMission != null) {
-                    val version = MissionTraining.version(save, activeMission)
-                    val next = MissionTraining.currentIndex(save, activeMission)
-                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp), highlighted = true) {
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            CourtEyebrow("MISSION IN PROGRESS")
-                            Text(version?.title ?: "Your Mission", style = MaterialTheme.typography.headlineLarge, color = CourtQuestDesign.textPrimary)
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Text((next ?: 0).toString().padStart(2, '0'), style = MaterialTheme.typography.displaySmall,
-                                    color = CourtQuestDesign.accent)
-                                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                    Text("DRILLS RECORDED", style = MaterialTheme.typography.labelSmall, color = CourtQuestDesign.textSecondary)
-                                    Text("of ${version?.steps?.size ?: 0} · Version ${version?.version ?: "?"}",
-                                        style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textPrimary)
-                                }
-                            }
-                            CourtQuestPrimaryButton(onResumeMission, Modifier.fillMaxWidth()) { Text("Resume Mission") }
-                        }
+            Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                val hasResume = resumable
+                val heroHeight = 276.dp * LocalDensity.current.fontScale +
+                    if (save.playerName.length > 20) 24.dp else 0.dp
+                CourtArenaHero(R.drawable.court_arena_player,
+                    Modifier.fillMaxWidth().height(heroHeight).testTag("court-player-hero")) {
+                    Column(
+                        Modifier.align(Alignment.TopStart).fillMaxWidth().padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        CourtEyebrow("COURTQUEST PRO  ·  ${rankFor(save.totalXp).uppercase()}")
+                        CourtAthleteIdentity(save, Modifier.fillMaxWidth())
                     }
-                } else {
-                CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(0.dp), highlighted = true) {
-                  Box(Modifier.fillMaxWidth()) {
-                    Icon(painterResource(R.drawable.courtquest_half_court), contentDescription = null,
-                        tint = CourtQuestDesign.accent.copy(alpha = 0.10f),
-                        modifier = Modifier.size(160.dp).align(Alignment.TopEnd).offset(x = 62.dp, y = 18.dp))
-                    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            CourtEyebrow("DAILY TRAINING", Modifier.weight(1f))
-                            CourtStatus(if (done == 6) "Complete" else if (resumable) "In progress" else "Ready")
-                        }
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Text(done.toString().padStart(2, '0'), style = MaterialTheme.typography.displaySmall,
-                                color = CourtQuestDesign.accent)
-                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                Text(when {
-                                    done == 6 -> "Work put in."
-                                    resumable -> "Back to work."
-                                    else -> "Build your game."
-                                }, style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
-                                Text("OF ${save.slots.size} DRILLS  ·  $minutes MIN",
-                                    style = MaterialTheme.typography.labelSmall, color = CourtQuestDesign.textSecondary)
-                            }
-                        }
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.semantics { contentDescription = "$done of 6 drills completed" }) {
-                            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                                save.slots.forEach { slot ->
-                                    Box(Modifier.weight(1f).height(5.dp).clip(CircleShape)
-                                        .background(if (slot.complete) CourtQuestDesign.accentVivid else CourtQuestDesign.border))
-                                }
-                            }
-                            Text("$done of 6 drills completed", style = MaterialTheme.typography.labelMedium,
-                                color = CourtQuestDesign.textSecondary)
-                        }
-                        CourtQuestPrimaryButton(onClick = onSpin, modifier = Modifier.fillMaxWidth()) {
-                            Text(if (done == 6 && resumeMatch) "Resume 1-on-1" else if (done == 6) "Play 1-on-1" else if (resumable) "Resume session" else "Start training",
-                                modifier = Modifier.weight(1f))
+                    val focusLine = when {
+                        activeMission != null -> "MISSION IN PROGRESS · ${MissionTraining.version(save, activeMission)?.title ?: "Your Mission"}"
+                        done == 6 -> "Today's plan is complete."
+                        hasResume -> "Pick up where you left off."
+                        else -> "${save.weeklyPlan} focus · ${save.difficulty}"
+                    }
+                    Column(Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(focusLine, color = CourtQuestDesign.textPrimary,
+                            style = MaterialTheme.typography.bodyMedium)
+                        Text("$done of 6 drills completed",
+                            color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.semantics { contentDescription = "$done of 6 drills completed" })
+                        CourtQuestPrimaryButton(
+                            if (activeMission != null) onResumeMission else onSpin,
+                            Modifier.fillMaxWidth().testTag("court-todays-focus")
+                        ) {
+                            Text(
+                                if (activeMission != null) "Resume Mission"
+                                else if (done == 6 && resumeMatch) "Resume 1-on-1"
+                                else if (done == 6) "Play 1-on-1"
+                                else if (hasResume) "Resume session" else "Start training",
+                                Modifier.weight(1f)
+                            )
                             Icon(Icons.Default.ArrowForward, null, Modifier.size(20.dp))
                         }
                     }
-                  }
                 }
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        HomeShortcut("Train", Icons.Default.SportsBasketball, onLibrary, Modifier.weight(1f))
+                        HomeShortcut("Progress", Icons.Default.Insights, onCareer, Modifier.weight(1f))
+                        HomeShortcut("Quests", Icons.Default.EmojiEvents, onQuests, Modifier.weight(1f))
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        HomeShortcut("Team", Icons.Default.Groups, onTeam, Modifier.weight(1f))
+                        HomeShortcut("Me", Icons.Default.Person, onMe, Modifier.weight(1f))
+                        HomeShortcut(if (resumeMatch) "Resume game" else "1-on-1", Icons.Default.SportsBasketball,
+                            onStartChamp, Modifier.weight(1f))
+                    }
                 }
+            }
+        }
+        item {
+            Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (resumeMatch && done != 6) {
                     OutlinedButton(onClick = onStartChamp, modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp),
                         shape = RoundedCornerShape(16.dp), contentPadding = PaddingValues(16.dp)) {
@@ -266,6 +259,28 @@ internal fun HomeScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun HomeShortcut(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Surface(
+        modifier.heightIn(min = 66.dp).clickable(onClick = onClick).testTag("court-shortcut-${label.lowercase().replace(' ', '-')}")
+            .semantics { contentDescription = label },
+        shape = RoundedCornerShape(15.dp),
+        color = CourtQuestDesign.surface.copy(alpha = .94f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, CourtQuestDesign.border)
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(3.dp)
+        ) {
+            Icon(icon, null, tint = CourtQuestDesign.accent, modifier = Modifier.size(21.dp))
+            Text(label, color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.labelMedium,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
     }
 }

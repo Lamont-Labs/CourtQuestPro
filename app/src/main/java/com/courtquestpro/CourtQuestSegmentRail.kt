@@ -31,8 +31,10 @@ internal fun CourtQuestSegmentRail(
     labels: List<String>,
     selected: String,
     onSelect: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    tagKeys: List<String> = labels.map { it.lowercase().replace(' ', '-') }
 ) {
+    require(tagKeys.size == labels.size) { "Each segment needs one stable semantic key" }
     val railShape = RoundedCornerShape(13.dp)
     FlowRow(
         modifier.fillMaxWidth()
@@ -45,13 +47,13 @@ internal fun CourtQuestSegmentRail(
         verticalArrangement = Arrangement.spacedBy(3.dp),
         maxItemsInEachRow = if (LocalDensity.current.fontScale > 1.3f) 1 else labels.size
     ) {
-        labels.forEach { label ->
+        labels.forEachIndexed { index, label ->
             val active = label == selected
             val itemShape = RoundedCornerShape(10.dp)
             Box(
                 Modifier.weight(1f)
                     .heightIn(min = 48.dp)
-                    .testTag("segment-${label.lowercase()}")
+                    .testTag("segment-${tagKeys[index]}")
                     .clip(itemShape)
                     .background(if (active) CourtQuestDesign.warmSurface else CourtQuestDesign.background.copy(alpha = 0.22f))
                     .selectable(selected = active, role = Role.Tab, onClick = { onSelect(label) }),

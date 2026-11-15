@@ -4,8 +4,8 @@ name: Fresh profile and primary navigation
 # This flow clears app data. Run only through the guarded emulator-only runner.
 - launchApp:
     clearState: true
-- assertVisible: CONTINUE
-- tapOn: CONTINUE
+- assertVisible: Get Started
+- tapOn: Get Started
 - assertVisible: Make it yours.
 - tapOn: Player name
 - inputText: CourtQuest QA
@@ -21,6 +21,10 @@ name: Fresh profile and primary navigation
 - takeScreenshot: court
 - tapOn: "Open navigation"
 - tapOn: "^Train$"
+- tapOn: "^Library$"
+- scrollUntilVisible:
+    element: Create custom drill
+    direction: DOWN
 - assertVisible: Create custom drill
 - takeScreenshot: train
 - tapOn: "Open navigation"
@@ -33,6 +37,9 @@ name: Fresh profile and primary navigation
 - takeScreenshot: progress
 - tapOn: "Open navigation"
 - tapOn: "^Me$"
+- scrollUntilVisible:
+    element: Edit profile
+    direction: DOWN
 - assertVisible: Edit profile
 - tapOn: Edit profile
 - assertVisible: Player name
@@ -48,6 +55,9 @@ name: Fresh profile and primary navigation
 - assertNotVisible: ENTER MY COURT
 - tapOn: "Open navigation"
 - tapOn: "^Me$"
+- scrollUntilVisible:
+    element: Edit profile
+    direction: DOWN
 - assertVisible: Edit profile
 - tapOn: Edit profile
 - assertVisible: CourtQuest QA

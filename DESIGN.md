@@ -32,6 +32,40 @@ omitted:
 
 CourtQuest Pro is a basketball performance studio for a player on a phone. It opens onto a clear training decision, supports a focused drill or one-on-one game, then makes the recorded result easy to find. The latest owner-selected direction is deep black, brighter orange, polished glass layers, crisp high-definition rendering, and Signature branding. Use basketball court geometry, confident typography, and carefully prioritized data to give CourtQuest its own identity. Use calmer, more direct layouts while the player is recording attempts or keeping score.
 
+## Approved cinematic eight-screen rearchitecture — November 15, 2026
+
+Owner: “These are badass!!! Do that!!” This explicitly replaces an incremental
+polish scope with the described eight-screen arena composition: immersive
+athlete-led welcome; personalized Court hero and six shortcuts; hoop-led Train;
+dominant live clock ring; evidence-based Progress chart; dimensional Quest
+shields; honest Team space; jersey-centered Me. Keep the original Signature
+logo and jersey artwork, real saved names/numbers/results, package and signer.
+The image file itself was not included in the imported message. It has been
+requested; until supplied, implement the detailed written description and do
+not claim an image-to-image fidelity review.
+
+Presentation ownership stays separate from persistence, scoring, workout
+generation and award rules. The existing source contains no authorized team
+membership backend; Team must clearly state that it is not configured and
+must not invent a roster, schedule, assignments or working invite service.
+Bottom navigation stays one row and 56dp, with five non-overlapping 48dp
+targets and an original native basketball medallion for Court in the center.
+Original artwork in the side drawer is retained.
+
+Guidance rerun against pinned UI/UX Pro Max `6ae86f61`: Fitness/Gym App matched
+Sports/Fitness and the existing Barlow/Barlow Condensed pairing; native
+`jetpack-compose` searches matched shared layout and explicit semantics; UX
+matched 48dp Android touch targets and readable contrast. Its marketing
+showcase layout, alternate green CTA and newer Compose examples are not
+adopted. Native Canvas charts use real dated results, an honest zero baseline,
+accessible textual values and no invented proficiency. Assets are documented
+in [cinematic provenance](docs/tooling/CINEMATIC_ASSET_PROVENANCE.md).
+
+Acceptance requires actual baseline/candidate emulator captures for all eight
+screens, including no-team and no-history states, compact/enlarged text and
+existing full native/drawer regressions. Compilation or pixel differences alone
+are not aesthetic acceptance. No new public APK is authorized by this work.
+
 ## Native transformation following the v21 phone review
 
 The owner confirmed v21 installed correctly but reported “There was absolutely no change at all.”

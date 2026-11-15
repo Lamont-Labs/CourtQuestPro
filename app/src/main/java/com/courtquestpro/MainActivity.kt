@@ -318,7 +318,8 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 val changed = TrainingLibrary.shuffle(save)
                 if (changed > 0) { refresh(); notice("$changed untouched drills shuffled.") }
                 else notice("No suitable alternatives yet. Started and completed drills stay protected.")
-            }, onResumePractice = { navigate("practice") }, onMissionBuilder = { openMissionBuilder() }, onResumeMission = { openMission() })
+            }, onResumePractice = { navigate("practice") }, onMissionBuilder = { openMissionBuilder() }, onResumeMission = { openMission() },
+            onTeam = { navigate("team") }, onQuests = { navigate("quests") }, onMe = { navigate("me") })
     }
 
     CourtQuestTheme {
@@ -360,7 +361,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             navigate(tab.route)
         }
         val showPlayerNavigation = onboardingComplete &&
-            screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings")
+            screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings", "team")
         CourtQuestScene {
         Scaffold(
             modifier = Modifier.semantics { testTagsAsResourceId = true },
@@ -400,7 +401,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 @Composable fun DestinationContent() {
                 when (target) {
                     "home" -> HomeContent()
-                    "library" -> DrillLibraryScreen(save, librarySlotId,
+                    "library" -> DrillLibraryScreen(save, librarySlotId, onStartTraining = { openTraining() },
                         onNew = {
                             editingDrillId = null
                             editorCategory = librarySlotId?.let { id -> save.slots.firstOrNull { it.id == id }?.drillId }
@@ -608,7 +609,8 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     "career" -> CareerScreen(save, onHome = { navigate("home") }, onMissionReceipt = { missionReceiptId = it; navigate("missionReceipt") })
                     "quests" -> QuestsScreen(save, today, onTraining = { openTraining() }, onBuild = { openMissionBuilder() },
                         onResumeMission = { openMission() }, onProgress = { navigate("career") })
-                    "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") })
+                    "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") }, onTeam = { navigate("team") })
+                    "team" -> TeamScreen(onTrain = { openLibrary() }, onBack = { goBack() })
                     "settings" -> SettingsScreen(save.playerName, save.difficulty, save.jerseyNumber, onBack = { goBack() }, onDifficulty = { save.difficulty = it; refresh() }, onSaveJersey = { save.jerseyNumber = it; refresh() }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
                     })
@@ -957,7 +959,7 @@ private fun CourtOnboarding(
             }
             CourtQuestPrimaryButton(onClick = onNext, modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    if (step == 4) "ENTER MY COURT" else "CONTINUE",
+                    when (step) { 0 -> "Get Started"; 4 -> "ENTER MY COURT"; else -> "CONTINUE" },
                     fontSize = 13.sp, fontWeight = FontWeight.Black, letterSpacing = 0.8.sp
                 )
             }

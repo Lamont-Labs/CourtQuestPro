@@ -14,3 +14,4 @@ artifacts/
 !/signing/debug.keystore
 !/signing/README.md
 .superpowers/
+.pythonlibs/

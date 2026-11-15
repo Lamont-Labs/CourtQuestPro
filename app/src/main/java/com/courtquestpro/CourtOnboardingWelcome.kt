@@ -1,85 +1,72 @@
 package com.courtquestpro
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.SportsBasketball
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 @Composable
 internal fun CourtOnboardingWelcome() {
-    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        Box(
-            Modifier.fillMaxWidth()
-                .aspectRatio(342f / 178f)
-                .clip(RoundedCornerShape(24.dp))
-                .background(
-                    Brush.linearGradient(
-                        listOf(CourtQuestDesign.blueprintShadow, CourtQuestDesign.warmSurface)
-                    )
-                )
+    Column(verticalArrangement = Arrangement.spacedBy(22.dp)) {
+        CourtArenaHero(
+            R.drawable.court_arena_player,
+            Modifier.fillMaxWidth().height(300.dp * LocalDensity.current.fontScale)
+                .testTag("onboarding-arena-hero")
         ) {
             Image(
-                painter = painterResource(R.drawable.courtquest_half_court),
-                contentDescription = null,
-                modifier = Modifier.matchParentSize(),
-                contentScale = ContentScale.FillBounds
+                painterResource(R.drawable.courtquest_signature_wordmark),
+                contentDescription = "CourtQuest Pro",
+                modifier = Modifier.align(Alignment.TopStart).padding(20.dp).fillMaxWidth(.68f),
+                contentScale = ContentScale.FillWidth
             )
-            Column(
-                Modifier.align(Alignment.CenterStart).padding(start = 18.dp),
-                verticalArrangement = Arrangement.spacedBy(5.dp)
+            Row(
+                Modifier.align(Alignment.BottomStart).padding(horizontal = 20.dp, vertical = 22.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(9.dp)
             ) {
-                Text(
-                    "PLAYER LAB",
-                    color = CourtQuestDesign.accent,
-                    fontSize = 10.sp,
-                    lineHeight = 12.sp,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 1.2.sp
-                )
-                Text(
-                    "TRAINING",
-                    color = CourtQuestDesign.textSecondary,
-                    fontSize = 10.sp,
-                    lineHeight = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    letterSpacing = 0.9.sp
-                )
+                Icon(Icons.Default.SportsBasketball, null, tint = CourtQuestDesign.accent, modifier = Modifier.size(21.dp))
+                Text("YOUR NEXT REP STARTS HERE", color = CourtQuestDesign.textPrimary,
+                    style = androidx.compose.material3.MaterialTheme.typography.labelLarge)
             }
         }
         Column(verticalArrangement = Arrangement.spacedBy(CourtQuestDesign.spacingMd)) {
             Text(
-                "Build your\ngame.",
+                "The work is\nyours.",
                 modifier = Modifier.semantics { heading() },
                 color = CourtQuestDesign.textPrimary,
-                fontSize = 46.sp,
-                lineHeight = 47.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = (-1.4).sp
+                style = androidx.compose.material3.MaterialTheme.typography.displaySmall
             )
             Text(
-                "Choose your level, focus, and training days to shape your daily drills.",
+                "A personal training room for the player you are becoming. Set your level, choose a focus, and build a routine that fits your week.",
                 color = CourtQuestDesign.textSecondary,
-                fontSize = 16.sp,
-                lineHeight = 23.sp
+                style = androidx.compose.material3.MaterialTheme.typography.bodyLarge
             )
+            Spacer(Modifier.height(2.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Bolt, null, tint = CourtQuestDesign.accent, modifier = Modifier.size(18.dp))
+                Text("Your results stay saved on this phone.", color = CourtQuestDesign.textSecondary,
+                    style = androidx.compose.material3.MaterialTheme.typography.bodyMedium)
+            }
         }
     }
 }

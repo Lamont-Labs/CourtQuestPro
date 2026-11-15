@@ -30,14 +30,20 @@ class NativeVisualGuardTest(unittest.TestCase):
         items = [ET.Element('node', {'resource-id': tag, 'bounds': '[40,500][600,650]'}) for tag in
                  ['library-create', 'library-build-mission']]
         items.append(ET.Element('node', {'scrollable': 'true', 'bounds': '[0,96][640,1232]'}))
+        items.extend(ET.Element('node', {'resource-id': 'segment-'+label, 'bounds': '[40,300][600,420]'})
+                     for label in ['today', 'library', 'custom'])
         with patch.object(visual.ui, 'wait_tagged', return_value=rail), \
+                patch.object(visual.ui, 'tap'), patch.object(visual.ui, 'scroll_to'), \
                 patch.object(visual.ui, 'nodes', return_value=items), patch.object(visual, 'capture') as capture:
             visual.audit_large_library()
-        capture.assert_called_once_with('library-actions-large')
+        self.assertEqual(capture.call_args_list[-1].args, ('library-actions-large',))
+        self.assertEqual(capture.call_count, 5)
 
     def test_large_library_rejects_narrow_split_word_layout(self):
-        rail = ET.Element('node', {'bounds': '[40,300][200,420]'})
-        with patch.object(visual.ui, 'wait_tagged', return_value=rail), self.assertRaises(AssertionError):
+        rail = ET.Element('node', {'resource-id':'segment-today', 'bounds': '[40,300][200,420]'})
+        viewport = ET.Element('node', {'scrollable': 'true', 'bounds': '[0,96][640,1232]'})
+        with patch.object(visual.ui, 'nodes', return_value=[rail, viewport]), \
+                patch.object(visual.ui, 'shell'), self.assertRaises(AssertionError):
             visual.audit_large_library()
 
     def test_large_library_rejects_unreachable_actions(self):
@@ -59,18 +65,20 @@ class NativeVisualGuardTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp, ExitStack() as mocks:
             mocks.enter_context(patch.object(visual, 'CONFIGS', [('normal', 720, 1600, '1.0')]))
             mocks.enter_context(patch.object(visual.time, 'sleep'))
+            mocks.enter_context(patch.object(visual, 'require_qa'))
             mocks.enter_context(patch.object(visual, 'capture'))
             mocks.enter_context(patch.object(visual, 'training_action'))
             open_app = mocks.enter_context(patch.object(visual.ui, 'open_app'))
             for name in ['shell', 'seed', 'wait_tagged', 'tap', 'require', 'nodes']:
                 mocks.enter_context(patch.object(visual.ui, name))
+            visual.ui.shell.return_value = 'Success'
             navigate = mocks.enter_context(patch.object(visual.ui, 'navigate'))
             original_output = visual.ui.OUT
             try:
                 visual.capture_phase('before', Path(tmp))
                 self.assertEqual([c.args[0] for c in navigate.call_args_list],
-                                 ['Court', 'Court', 'Train', 'Progress', 'Quests', 'Me', 'Court'])
-                open_app.assert_called_once()
+                                 ['Court', 'Court', 'Train', 'Progress', 'Quests', 'Me', 'Me', 'Court'])
+                self.assertEqual(open_app.call_count, 2)
             finally:
                 visual.ui.OUT = original_output
 

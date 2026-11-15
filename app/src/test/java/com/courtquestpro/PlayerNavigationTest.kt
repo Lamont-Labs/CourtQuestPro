@@ -5,6 +5,15 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class PlayerNavigationTest {
+    @Test fun teamReturnsToItsRealOpenerAndSurvivesRestoration() {
+        for (opener in listOf(listOf("home"), listOf("home", "me"))) {
+            val team = PlayerNavigation.open(opener, "team")
+            assertEquals(opener + "team", PlayerNavigation.restore(team))
+            assertEquals(opener, PlayerNavigation.back(team))
+            assertEquals(PlayerNavigation.tab(opener), PlayerNavigation.tab(team))
+        }
+        assertFalse(PlayerNavigation.retainsState("team"))
+    }
     @Test fun rootsReturnToCourtWithoutCyclingThroughOtherTabs() {
         var history = listOf("home")
         for (route in listOf("library", "quests", "career", "me")) {

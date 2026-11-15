@@ -3,21 +3,55 @@ package com.courtquestpro
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Unit) {
+internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Unit, onTeam: () -> Unit = {}) {
     var section by rememberSaveable { mutableStateOf("Profile") }
+    var settingsMenu by remember { mutableStateOf(false) }
     val days = (save.trainingDays ?: listOf(1, 3, 5)).filter { it in 1..7 }.distinct().sorted()
     val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp)) {
-        item { AppHeader("Me", "Player profile and training setup") }
+        item {
+            Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 14.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    CourtEyebrow("PLAYER ROOM")
+                    Text("Me", color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.displaySmall)
+                }
+                Box {
+                    IconButton(onClick = { settingsMenu = true }, modifier = Modifier.size(52.dp).testTag("me-settings-menu")) {
+                        Icon(Icons.Default.MoreVert, contentDescription = "Player settings menu",
+                            tint = CourtQuestDesign.textPrimary)
+                    }
+                    DropdownMenu(settingsMenu, { settingsMenu = false }) {
+                        DropdownMenuItem(text = { Text("Edit player profile") },
+                            onClick = { settingsMenu = false; onEdit() },
+                            leadingIcon = { Icon(Icons.Default.Edit, null) })
+                        DropdownMenuItem(text = { Text("Training history") },
+                            onClick = { settingsMenu = false; onProgress() },
+                            leadingIcon = { Icon(Icons.Default.History, null) })
+                        DropdownMenuItem(modifier = Modifier.testTag("me-team"), text = { Text("Team") },
+                            onClick = { settingsMenu = false; onTeam() },
+                            leadingIcon = { Icon(Icons.Default.Group, null) })
+                    }
+                }
+            }
+        }
         item {
             CourtQuestSegmentRail(
                 labels = listOf("Profile", "Settings"),
@@ -28,28 +62,44 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
         }
         item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                if (section == "Profile") CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp), highlighted = true) {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (section == "Profile") CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(20.dp), highlighted = true) {
+                    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         CourtEyebrow("PLAYER PROFILE")
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            CourtQuestJerseyArtwork(save.jerseyNumber, Modifier.size(92.dp))
-                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                                Text(save.playerName.ifBlank { "Your player profile" },
-                                    color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineLarge)
-                                Text("Jersey #${displayedJerseyNumber(save.jerseyNumber)}",
-                                    color = CourtQuestDesign.accent, style = MaterialTheme.typography.titleMedium)
-                                Text("${save.difficulty} · ${save.weeklyPlan} focus",
-                                    color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
-                            }
+                        Box(
+                            Modifier.size(190.dp).clip(CircleShape).testTag("me-jersey-hero")
+                                .background(Brush.radialGradient(listOf(Color(0xFF351609), Color(0xFF151517), Color(0xFF0B0B0C))))
+                                .border(1.dp, CourtQuestDesign.accent.copy(alpha = .45f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CourtQuestJerseyArtwork(save.jerseyNumber ?: 7, Modifier.fillMaxSize().padding(8.dp))
                         }
+                        Text(save.playerName.ifBlank { "Your player profile" },
+                            color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.displaySmall,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        Text(if (save.jerseyNumber == null) "JERSEY NOT SET · DISPLAY 7"
+                            else "JERSEY #${displayedJerseyNumber(save.jerseyNumber)}",
+                            color = CourtQuestDesign.accent, style = MaterialTheme.typography.titleMedium)
+                        Text("${rankFor(save.totalXp)}  ·  ${save.totalXp} XP",
+                            color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineSmall)
+                        CourtRankMeter(save.totalXp)
+                        Text("${save.difficulty} · ${save.weeklyPlan} focus",
+                            color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
                         CourtRule()
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                            ProfileStat("TOTAL XP", save.totalXp.toString(), Modifier.weight(1f), true)
-                            Box(Modifier.width(1.dp).height(34.dp).background(CourtQuestDesign.border))
-                            ProfileStat("RECORDED DRILLS", save.drillResults.orEmpty().size.toString(), Modifier.weight(1f))
-                            Box(Modifier.width(1.dp).height(34.dp).background(CourtQuestDesign.border))
-                            ProfileStat("GAMES", save.matches.size.toString(), Modifier.weight(1f))
+                        if (LocalDensity.current.fontScale > 1.3f) {
+                            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                ProfileStat("TOTAL XP", save.totalXp.toString(), Modifier.fillMaxWidth(), true)
+                                ProfileStat("RECORDED DRILLS", save.drillResults.orEmpty().size.toString(), Modifier.fillMaxWidth())
+                                ProfileStat("GAMES", save.matches.size.toString(), Modifier.fillMaxWidth())
+                            }
+                        } else {
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                                ProfileStat("TOTAL XP", save.totalXp.toString(), Modifier.weight(1f), true)
+                                Box(Modifier.width(1.dp).height(34.dp).background(CourtQuestDesign.border))
+                                ProfileStat("RECORDED DRILLS", save.drillResults.orEmpty().size.toString(), Modifier.weight(1f))
+                                Box(Modifier.width(1.dp).height(34.dp).background(CourtQuestDesign.border))
+                                ProfileStat("GAMES", save.matches.size.toString(), Modifier.weight(1f))
+                            }
                         }
                         CourtQuestPrimaryButton(onEdit, Modifier.fillMaxWidth()) {
                             Icon(Icons.Default.Edit, null); Spacer(Modifier.width(8.dp)); Text("Edit profile")

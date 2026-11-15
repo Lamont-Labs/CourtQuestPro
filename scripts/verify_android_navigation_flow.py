@@ -54,7 +54,7 @@ def main():
         click(tab); top(); ui.require(ui.nodes(), heading); snap('navigation-' + tab.lower())
         back(); ui.require(ui.nodes(), 'Start training')
     assert state() == original, 'Browsing must not award XP or create evidence'
-    click('Train'); click('Create custom drill'); replace_text('Abandoned edit')
+    click('Train'); click('Library'); click('Create custom drill'); replace_text('Abandoned edit')
     back(); click('Discard changes')
     click('Create custom drill')
     assert text_field().get('text', '') == '', 'Discarded editor fields must not return in a new drill'

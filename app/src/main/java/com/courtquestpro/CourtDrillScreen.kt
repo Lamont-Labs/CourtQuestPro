@@ -1,6 +1,7 @@
 package com.courtquestpro
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,7 +17,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.platform.testTag
 import kotlinx.coroutines.delay
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.geometry.Offset
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -53,6 +58,7 @@ internal fun DrillScreen(
                 Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
                     CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(20.dp), highlighted = true) {
                       Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        CourtEyebrow("LIVE SESSION")
                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp),
                             verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -68,17 +74,32 @@ internal fun DrillScreen(
                                     style = MaterialTheme.typography.labelSmall)
                             }
                         }
+                    DrillSessionTimer(drill.minutes, timerSeconds) { timerSeconds = it; saveDraft() }
                     CourtRule()
                     CourtMetricStrip(listOf(measurement.successLabel to completedCount.toString(),
                         measurement.attemptLabel to attemptedCount.toString()))
+                    val rate = if (attemptedCount == 0) null else completedCount.toFloat() / attemptedCount
+                    Text(
+                        if (rate == null) "Accuracy appears after your first attempt."
+                        else "Current accuracy · ${(rate * 100).toInt()}%  ·  ${completedCount.coerceAtMost(requiredCount ?: 0)} of ${requiredCount ?: 0} toward target",
+                        color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
+                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        CourtEyebrow("NEXT STEP")
+                        Text(
+                            if (meetsCount) "Confirm safe completion to save your result."
+                            else "Record ${(requiredCount ?: 0).minus(completedCount).coerceAtLeast(0)} more ${measurement.successLabel.lowercase()} toward your target.",
+                            color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                     Text("${completedCount.coerceAtMost(requiredCount ?: 0)} of ${requiredCount ?: 0} successful actions toward your target",
                         color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
                     CourtQuestPrimaryButton(
                         onClick = { completedCount++; attemptedCount++; saveDraft() },
                         enabled = !complete,
-                        modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Record successful attempt" }
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp)
+                            .semantics { contentDescription = "Record successful attempt" }
                     ) {
-                        Icon(Icons.Default.Add, null)
+                        Icon(Icons.Default.Add, null, Modifier.size(25.dp))
                         Spacer(Modifier.width(8.dp))
                         Text(measurement.successButton.removePrefix("+").trim().lowercase().replaceFirstChar { it.uppercase() })
                     }
@@ -97,9 +118,6 @@ internal fun DrillScreen(
                     if (best != null) {
                         Text("Personal best · ${best.completed} successful from ${best.attempted} attempts",
                             color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
-                    }
-                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(20.dp)) {
-                        DrillSessionTimer(drill.minutes, timerSeconds) { timerSeconds = it; saveDraft() }
                     }
                     CourtHeading("The drill guide")
                     Text(drill.instructions, color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyLarge)
@@ -156,8 +174,29 @@ private fun DrillSessionTimer(minutes: Int, initialRemaining: Int, onRemaining: 
     }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         CourtEyebrow(if (remaining == 0) "CLOCK FINISHED" else if (running) "CLOCK RUNNING" else "TRAINING CLOCK")
-        Text("%02d:%02d".format(remaining / 60, remaining % 60), color = CourtQuestDesign.textPrimary,
-            style = MaterialTheme.typography.displayMedium)
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+            Box(Modifier.size(112.dp), contentAlignment = Alignment.Center) {
+                Canvas(Modifier.fillMaxSize().testTag("live-drill-ring").semantics {
+                    contentDescription = "Training clock: %02d minutes %02d seconds".format(remaining / 60, remaining % 60)
+                }) {
+                    val stroke = 6.dp.toPx()
+                    drawCircle(CourtQuestDesign.accentVivid.copy(alpha = .1f), size.minDimension * .47f)
+                    drawArc(Color(0xFF363638), -90f, 360f, false, style = Stroke(stroke))
+                    val fraction = remaining.toFloat() / initialSeconds.coerceAtLeast(1)
+                    drawArc(CourtQuestDesign.accentVivid, -90f, 360f * fraction, false,
+                        style = Stroke(stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round))
+                }
+                Text("%02d:%02d".format(remaining / 60, remaining % 60), color = CourtQuestDesign.textPrimary,
+                    style = MaterialTheme.typography.headlineMedium)
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(if (running) "Stay in rhythm." else "Your session clock.",
+                    color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleLarge)
+                Text("Clock pauses when you leave this drill.",
+                    color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
+            }
+        }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             FilledTonalButton(onClick = {
                 if (remaining == 0) { remaining = initialSeconds; onRemaining(remaining) }

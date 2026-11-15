@@ -10,6 +10,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
@@ -29,6 +31,22 @@ internal fun QuestsScreen(save: SaveState, today: String, onTraining: () -> Unit
     val version = active?.let { MissionTraining.version(save, it) }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp)) {
         item { AppHeader("Quests", "Training goals and completed Missions") }
+        item {
+            CourtArenaHero(R.drawable.court_arena_hoop,
+                Modifier.padding(horizontal = 16.dp).fillMaxWidth()
+                    .height(180.dp * LocalDensity.current.fontScale)
+                    .testTag("quests-challenge-hero"), imageAlignment = Alignment.TopEnd) {
+                Row(Modifier.align(Alignment.BottomStart).padding(18.dp),
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    CourtQuestShield(Modifier.size(58.dp), if (slots.isEmpty()) 0f else done.toFloat() / slots.size)
+                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        CourtEyebrow("YOUR WORK. YOUR RECORD.")
+                        Text("The next challenge is yours.", color = CourtQuestDesign.textPrimary,
+                            style = MaterialTheme.typography.headlineMedium)
+                    }
+                }
+            }
+        }
         item { Row(Modifier.padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf("Active", "Completed").forEach { tab -> FilterChip(section == tab, { section = tab }, label = { Text(tab) }, modifier = Modifier.heightIn(min = 48.dp)) }
         } }
@@ -37,7 +55,15 @@ internal fun QuestsScreen(save: SaveState, today: String, onTraining: () -> Unit
                 if (section == "Active" && active != null) CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(20.dp), highlighted = true) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         CourtEyebrow("YOUR ACTIVE MISSION")
-                        Text(version?.title ?: "Your saved Mission", style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            CourtQuestShield(Modifier.size(52.dp),
+                                (MissionTraining.currentIndex(save, active) ?: version?.steps?.size ?: 0).toFloat() /
+                                    (version?.steps?.size?.coerceAtLeast(1) ?: 1))
+                            Text(version?.title ?: "Your saved Mission", modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
+                        }
+                        Text("${MissionTraining.currentIndex(save, active) ?: version?.steps?.size ?: 0} of ${version?.steps?.size ?: 0} drills recorded",
+                            style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.accent)
                         Text("Your recorded drills and unfinished attempts are safe.", style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textSecondary)
                         CourtQuestPrimaryButton(onResumeMission, Modifier.fillMaxWidth()) { Text("Resume Mission") }
                     }
@@ -45,6 +71,10 @@ internal fun QuestsScreen(save: SaveState, today: String, onTraining: () -> Unit
                 if (section == "Active") CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp), highlighted = active == null) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         CourtEyebrow("TODAY'S DAILY QUEST")
+                        Text(
+                            if ("six_$today" in save.awardedKeys) "100 XP completion bonus recorded"
+                            else "50 XP per daily drill · 100 XP six-drill completion bonus",
+                            style = MaterialTheme.typography.labelLarge, color = CourtQuestDesign.accent)
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text(done.toString().padStart(2, '0'), style = MaterialTheme.typography.displaySmall, color = CourtQuestDesign.accent)
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -94,6 +124,20 @@ internal fun QuestsScreen(save: SaveState, today: String, onTraining: () -> Unit
                 Text(if (count == 0) "No completed Missions yet. Finish a saved Mission to keep its completion receipt in Progress."
                     else "$count completed ${if (count == 1) "Mission" else "Missions"} · Self-recorded · Saved on this device",
                     style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textSecondary)
+                save.missionReceipts.orEmpty().asReversed().forEach { receipt ->
+                    val savedVersion = save.missionVersions.orEmpty().firstOrNull { it.id == receipt.missionVersionId }
+                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            CourtQuestShield(Modifier.size(44.dp))
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                Text(savedVersion?.title ?: "Saved Mission", color = CourtQuestDesign.textPrimary,
+                                    style = MaterialTheme.typography.titleLarge)
+                                Text("Version ${savedVersion?.version ?: "?"} · ${receipt.resultIds.size} saved drills",
+                                    color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                }
                 OutlinedButton(onProgress, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("View saved results") }
                 }
             }

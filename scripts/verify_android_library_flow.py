@@ -121,6 +121,8 @@ def open_library():
     if back is not None:
         ui.tap(back)
         top()
+    # Train now opens the actual saved plan; catalog operations live in Library.
+    click('Library')
 
 
 def confirm_target():

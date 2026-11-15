@@ -24,11 +24,12 @@ import androidx.compose.ui.unit.dp
 internal fun DrillLibraryScreen(
     save: SaveState, swapSlotId: String?, onNew: () -> Unit, onEdit: (String) -> Unit,
     onArchive: (String) -> Unit, onFavorite: (String) -> Unit, onPractice: (String) -> Unit,
-    onUse: (String) -> Unit, onResume: () -> Unit, onHome: () -> Unit, selectedId: String?, onSelect: (String?) -> Unit, onMissionBuilder: () -> Unit
+    onUse: (String) -> Unit, onResume: () -> Unit, onHome: () -> Unit, selectedId: String?, onSelect: (String?) -> Unit, onMissionBuilder: () -> Unit,
+    onStartTraining: () -> Unit = onHome
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var filter by rememberSaveable { mutableStateOf("All") }
-    var section by rememberSaveable { mutableStateOf("Library") }
+    var section by rememberSaveable { mutableStateOf("Today") }
     var category by rememberSaveable(swapSlotId) { mutableStateOf(
         swapSlotId?.let { id -> save.slots.firstOrNull { it.id == id }?.drillId }
             ?.let { id -> TrainingLibrary.catalog(save).firstOrNull { it.id == id }?.category } ?: "All skills") }
@@ -36,6 +37,11 @@ internal fun DrillLibraryScreen(
     val catalog = TrainingLibrary.catalog(save)
     val selected = catalog.firstOrNull { it.id == selectedId }
     val favorites = save.favoriteDrillIds.orEmpty()
+    val resumablePlan = save.slots.any { slot ->
+        !slot.complete && save.drillDrafts.orEmpty().any {
+            it.date == save.activeDate && it.slotId == slot.id && it.drillId == slot.drillId
+        }
+    }
     if (selected != null) {
         BackHandler { onSelect(null) }
         DrillLibraryDetail(selected, save, swapSlotId, onBack = { onSelect(null) },
@@ -59,18 +65,74 @@ internal fun DrillLibraryScreen(
             if (swapSlotId == null) "${shown.size} drills in view · Find your next rep."
             else "Choose a suitable drill for your untouched daily slot.", compact = true) }
         if (swapSlotId == null) item {
+            CourtArenaHero(R.drawable.court_arena_hoop,
+                Modifier.padding(horizontal = 16.dp).fillMaxWidth()
+                    .height(210.dp * LocalDensity.current.fontScale).testTag("train-arena-hero"),
+                imageAlignment = Alignment.TopEnd) {
+                Column(Modifier.align(Alignment.BottomStart).padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                    CourtEyebrow("TRAINING FLOOR")
+                    Text("Make the next rep count.", color = CourtQuestDesign.textPrimary,
+                        style = MaterialTheme.typography.headlineMedium)
+                    Text("${save.difficulty} · ${save.weeklyPlan} focus", color = CourtQuestDesign.textSecondary,
+                        style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
+        if (swapSlotId == null) item {
             CourtQuestSegmentRail(
-                labels = listOf("Today", "Library", "Custom"),
-                selected = section,
+                labels = listOf("My Plan", "Library", "Custom"),
+                tagKeys = listOf("today", "library", "custom"),
+                selected = if (section == "Today") "My Plan" else section,
                 onSelect = { tab ->
-                    if (tab == "Today") onHome()
+                    if (tab == "My Plan") section = "Today"
                     else { section = tab; filter = "All"; category = "All skills"; query = "" }
                 },
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
         }
+        if (section == "Today" && swapSlotId == null) item {
+            Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(18.dp), highlighted = true) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        CourtEyebrow("YOUR SAVED PLAN")
+                        Text("${save.slots.count { it.complete }} of ${save.slots.size} drills recorded",
+                            color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineMedium)
+                        OutlinedButton(onNew, Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("library-create")) {
+                            Icon(Icons.Default.Add, null, Modifier.size(19.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Create custom drill")
+                        }
+                        save.slots.forEachIndexed { index, slot ->
+                            val drill = catalog.firstOrNull { it.id == slot.drillId }
+                            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Text((index + 1).toString().padStart(2, '0'), color = CourtQuestDesign.accent,
+                                    style = MaterialTheme.typography.titleLarge)
+                                Column(Modifier.weight(1f)) {
+                                    Text(drill?.title ?: "Saved drill", color = CourtQuestDesign.textPrimary,
+                                        style = MaterialTheme.typography.titleMedium)
+                                    Text("${drill?.category ?: "Training"} · ${drill?.minutes ?: 0} min",
+                                        color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
+                                }
+                                if (slot.complete) Icon(Icons.Default.CheckCircle, "Recorded",
+                                    tint = CourtQuestDesign.accent)
+                            }
+                        }
+                        CourtQuestPrimaryButton(onStartTraining, Modifier.fillMaxWidth().testTag("train-start-training")) {
+                            Text(if (resumablePlan) "Resume session" else "Start training", Modifier.weight(1f))
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, null)
+                        }
+                    }
+                }
+                OutlinedButton(onClick = onHome, Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                    Text("Back to Court")
+                }
+            }
+        }
         item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(11.dp)) {
+                if (section != "Today") {
                 OutlinedTextField(query, { query = it }, label = { Text("Search drills") }, singleLine = true,
                     leadingIcon = { Icon(Icons.Default.Search, null) },
                     modifier = Modifier.fillMaxWidth().testTag("library-search"), shape = RoundedCornerShape(14.dp))
@@ -119,6 +181,7 @@ internal fun DrillLibraryScreen(
                             modifier = Modifier.defaultMinSize(minWidth = 48.dp).heightIn(min = 48.dp))
                     }
                 }
+                }
             }
         }
         if (section == "Library" && query.isBlank() && filter == "All" && category == "All skills" && swapSlotId == null) {
@@ -139,7 +202,7 @@ internal fun DrillLibraryScreen(
                 }
             }
         }
-        if (shown.isEmpty()) item {
+        if (section != "Today" && shown.isEmpty()) item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(if ((section == "Custom" || filter == "Mine") && query.isBlank()) "Your drills start here." else "Try a different search.",
                     style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
@@ -148,7 +211,7 @@ internal fun DrillLibraryScreen(
                 TextButton({ query = ""; category = "All skills"; filter = "All"; section = "Library" }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Show all drills") }
             }
         }
-        items(shown, key = { it.id }) { drill ->
+        if (section != "Today") items(shown, key = { it.id }) { drill ->
             CourtQuestPremiumSurface(Modifier.padding(horizontal = 20.dp).fillMaxWidth(), PaddingValues(18.dp)) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {

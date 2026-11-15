@@ -3,6 +3,7 @@ package com.courtquestpro
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -17,6 +18,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
@@ -106,6 +114,29 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
                         CourtRule()
                         Text("XP tracks participation. Results are self-recorded.",
                             color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                if (section == "Overview") {
+                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                CourtEyebrow("RECORDED ACTIVITY", Modifier.weight(1f))
+                                Text("LAST 14 DAYS", color = CourtQuestDesign.textSecondary,
+                                    style = MaterialTheme.typography.labelSmall)
+                            }
+                            CourtActivityChart(valid)
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(windowDateLabel(LocalDate.now().minusDays(13)),
+                                    color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.labelSmall)
+                                Text("TODAY", color = CourtQuestDesign.accent,
+                                    style = MaterialTheme.typography.labelSmall)
+                            }
+                            Text(
+                                if (valid.isEmpty()) "Your recorded sessions will build this view."
+                                else "${valid.size} valid ${if (valid.size == 1) "result" else "results"} across ${valid.map { it.date }.distinct().size} training days",
+                                color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                     }
                 }
                 if (section == "History" && save.missionReceipts.orEmpty().isNotEmpty() && !showGames) {
@@ -225,6 +256,41 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
                     }
                 }
                 TextButton(onClick = onHome, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("Back to Court") }
+            }
+        }
+    }
+}
+
+private fun windowDateLabel(date: LocalDate): String = date.format(DateTimeFormatter.ofPattern("MMM d"))
+
+@Composable
+private fun CourtActivityChart(results: List<DrillResult>) {
+    val window = courtActivityWindow(results, LocalDate.now())
+    val daily = window.map { it.count }
+    val maximum = (daily.maxOrNull() ?: 0).coerceAtLeast(1)
+    Canvas(Modifier.fillMaxWidth().height(132.dp).semantics {
+        contentDescription = if (daily.sum() == 0) "No recorded training activity in the last 14 days"
+        else "Recorded drills per day, ${window.first().date} to ${window.last().date}. " +
+            window.joinToString(". ") { "${it.date}: ${it.count}" }
+    }) {
+        val baseline = size.height - 10.dp.toPx()
+        val left = 3.dp.toPx()
+        val gap = 5.dp.toPx()
+        val barWidth = (size.width - left * 2 - gap * (daily.size - 1)) / daily.size
+        listOf(0f, .5f, 1f).forEach { level ->
+            val y = baseline - (baseline - 8.dp.toPx()) * level
+            drawLine(Color(0xFF292A2C), Offset(left, y), Offset(size.width - left, y), 1.dp.toPx())
+        }
+        daily.forEachIndexed { index, count ->
+            if (count > 0) {
+                val height = (baseline - 8.dp.toPx()) * count / maximum
+                val x = left + index * (barWidth + gap)
+                drawRoundRect(
+                    brush = Brush.verticalGradient(listOf(CourtQuestDesign.accent, CourtQuestDesign.accentVivid)),
+                    topLeft = Offset(x, baseline - height),
+                    size = androidx.compose.ui.geometry.Size(barWidth, height),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(barWidth / 2, barWidth / 2)
+                )
             }
         }
     }
