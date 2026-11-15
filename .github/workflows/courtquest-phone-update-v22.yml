@@ -5,7 +5,6 @@ on:
     branches: [dev/premium-flow-toolkit]
     paths:
       - 'app/build.gradle.kts'
-      - '.github/workflows/courtquest-phone-update-v22.yml'
       - 'scripts/phone_v22_release_gate.py'
       - 'scripts/test_phone_v22_release_gate.py'
       - 'scripts/test_android_flow_phone_update.py'
@@ -301,7 +300,7 @@ jobs:
             --pattern 'CourtQuestPro-Update-v22.apk' \
             --dir published
           cmp dist/CourtQuestPro-Update-v22.apk published/CourtQuestPro-Update-v22.apk
-          sha256sum --check dist/CourtQuestPro-Update-v22.apk.sha256
+          (cd dist && sha256sum --check CourtQuestPro-Update-v22.apk.sha256)
           gh api "repos/${GH_REPO}/releases/tags/courtquest-phone-update-v22" > dist/published-release.json
           python3 - <<'PY'
           import hashlib, json
