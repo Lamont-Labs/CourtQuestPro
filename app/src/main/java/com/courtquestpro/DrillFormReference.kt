@@ -9,9 +9,10 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -25,8 +26,9 @@ import kotlinx.coroutines.withContext
 internal fun DrillFormReference(drill: Drill) {
     val coaching = DrillCoachingLibrary.forDrill(drill) ?: return
     val context = LocalContext.current.applicationContext
-    val artwork by produceState<DrillArtworkManifestEntry?>(null, context, drill.id) {
-        value = withContext(Dispatchers.IO) { drillArtworkEntry(context, drill.id) }
+    var artwork by remember(context, drill.id) { mutableStateOf<DrillArtworkManifestEntry?>(null) }
+    LaunchedEffect(context, drill.id) {
+        artwork = withContext(Dispatchers.IO) { drillArtworkEntry(context, drill.id) }
     }
     val hasComparison = artwork?.comparison?.included == true
     var showCorrection by rememberSaveable(drill.id) { mutableStateOf(false) }
@@ -43,13 +45,13 @@ internal fun DrillFormReference(drill: Drill) {
                         selected = !showCorrection,
                         onClick = { showCorrection = false },
                         label = { Text("Technique cues") },
-                        modifier = Modifier.heightIn(min = 48.dp)
+                        modifier = Modifier.weight(1f).heightIn(min = 48.dp)
                     )
                     FilterChip(
                         selected = showCorrection,
                         onClick = { showCorrection = true },
                         label = { Text("Common mistake") },
-                        modifier = Modifier.heightIn(min = 48.dp)
+                        modifier = Modifier.weight(1f).heightIn(min = 48.dp)
                     )
                 }
             }

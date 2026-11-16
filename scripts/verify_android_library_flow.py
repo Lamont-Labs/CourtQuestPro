@@ -171,6 +171,9 @@ def main():
         art_node = tagged('drill-art-' + entry['id'])
         assert art_node.get('bounds') not in ('', '[0,0][0,0]'), entry['id']
         snap('art-' + entry['id'])
+        # Android Back closes detail even when its top Back button is offscreen.
+        ui.shell('input', 'keyevent', 'KEYCODE_BACK')
+        time.sleep(0.5)
         open_library()
     fill('library-search', '')
     click('Create custom drill')

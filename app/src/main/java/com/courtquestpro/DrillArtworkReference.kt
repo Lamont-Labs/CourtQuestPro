@@ -96,9 +96,9 @@ private data class LoadedDrillArtwork(
 @Composable
 internal fun DrillArtworkReference(drill: Drill) {
     val context = LocalContext.current.applicationContext
-    val loaded by produceState<LoadedDrillArtwork?>(initialValue = null, context, drill.id) {
-        value = null
-        value = withContext(Dispatchers.IO) {
+    var loaded by remember(context, drill.id) { mutableStateOf<LoadedDrillArtwork?>(null) }
+    LaunchedEffect(context, drill.id) {
+        loaded = withContext(Dispatchers.IO) {
             val entry = drillArtworkEntry(context, drill.id)
             val bitmap = entry?.let { metadata ->
                 runCatching {
