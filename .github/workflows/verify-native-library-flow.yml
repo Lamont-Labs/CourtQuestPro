@@ -33,7 +33,7 @@ permissions:
 jobs:
   android-flow:
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 25
     env:
       COURTQUEST_UI_EVIDENCE: artifacts/android-daily-flow
       ANDROID_AVD_HOME: /tmp/courtquest-avd
@@ -99,13 +99,13 @@ jobs:
           python3 -u scripts/verify_android_game_flow.py baseline /tmp/courtquest-build5.apk
           echo "::endgroup::"
           echo "::group::Candidate library flow"
-          python3 -u scripts/verify_android_library_flow.py app/build/outputs/apk/debug/app-debug.apk
+          timeout --signal=TERM --kill-after=15s 480s python3 -u scripts/verify_android_library_flow.py app/build/outputs/apk/debug/app-debug.apk
           echo "::endgroup::"
           echo "::group::Candidate mission flow"
-          python3 -u scripts/verify_android_mission_flow.py app/build/outputs/apk/debug/app-debug.apk
+          timeout --signal=TERM --kill-after=15s 180s python3 -u scripts/verify_android_mission_flow.py app/build/outputs/apk/debug/app-debug.apk
           echo "::endgroup::"
           echo "::group::Candidate navigation flow"
-          python3 -u scripts/verify_android_navigation_flow.py app/build/outputs/apk/debug/app-debug.apk
+          timeout --signal=TERM --kill-after=15s 180s python3 -u scripts/verify_android_navigation_flow.py app/build/outputs/apk/debug/app-debug.apk
           echo "::endgroup::"
           echo "::group::Candidate daily flow"
           python3 -u scripts/verify_android_daily_flow.py candidate app/build/outputs/apk/debug/app-debug.apk
