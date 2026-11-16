@@ -1,8 +1,6 @@
 name: Verify native library and training flows
 
 on:
-  push:
-    branches: [dev/drill-library, dev/premium-flow-toolkit, repair/premium-flow-stabilization]
   workflow_dispatch:
 
 permissions:
