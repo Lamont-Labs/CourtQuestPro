@@ -6,6 +6,7 @@ on:
     paths:
       - 'app/build.gradle.kts'
       - '.github/workflows/courtquest-phone-update-v23.yml'
+      - '.github/workflows/verify-compact-navigation.yml'
       - 'scripts/phone_v23_release_gate.py'
       - 'scripts/test_phone_v23_release_gate.py'
       - 'scripts/test_android_flow_phone_update.py'
