@@ -131,6 +131,9 @@ internal fun DrillScreen(
                     Text("The clock pauses when you leave this drill.", color = CourtQuestDesign.textSecondary,
                         style = MaterialTheme.typography.bodySmall)
                     Text(drill.instructions, color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyLarge)
+                    DrillArtworkReference(drill)
+                    DrillCourtReference(drill)
+                    DrillFormReference(drill)
                     TextButton(onClick = onVideo, modifier = Modifier.heightIn(min = 48.dp)) {
                         Icon(Icons.Default.PlayCircleOutline, null)
                         Spacer(Modifier.width(8.dp))

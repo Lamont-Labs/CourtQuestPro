@@ -11,6 +11,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 
 /**
@@ -21,11 +23,23 @@ import androidx.compose.ui.unit.dp
 internal fun DrillCourtReference(drill: Drill) {
     val orange = CourtQuestDesign.accentVivid
     val court = Color(0xFF9AA3AF)
+    val hasKnownRoute = drill.id in setOf(
+        "s1", "s2", "s3", "b1", "b2", "b3", "f1", "f2", "f3",
+        "d1", "d2", "d3", "r1", "r2", "r3", "p1", "p2", "p3"
+    )
     CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("COURT POSITION REFERENCE", color = orange,
                 style = MaterialTheme.typography.labelMedium)
-            Canvas(Modifier.fillMaxWidth().height(188.dp)) {
+            Canvas(
+                Modifier.fillMaxWidth().height(188.dp).semantics {
+                    contentDescription = if (hasKnownRoute) {
+                        "Schematic court route for ${drill.title}; orange marks show the sequence."
+                    } else {
+                        "Court outline only. No route is inferred for this custom drill."
+                    }
+                }
+            ) {
                 val w = size.width
                 val h = size.height
                 val left = w * .08f
@@ -80,7 +94,12 @@ internal fun DrillCourtReference(drill: Drill) {
                 }
                 }
             }
-            Text("Schematic overhead guide: orange marks the start; the line represents a simplified route or spacing reference for this drill. Consult the written coaching steps for actual technique.",
+            Text(
+                if (hasKnownRoute) {
+                    "Schematic overhead guide: orange marks show a simplified route or spacing reference. Consult the written coaching steps for actual technique."
+                } else {
+                    "Generic court outline only. No movement is inferred for this custom drill; follow its saved instructions."
+                },
                 color = CourtQuestDesign.textSecondary,
                 style = MaterialTheme.typography.bodySmall)
         }
