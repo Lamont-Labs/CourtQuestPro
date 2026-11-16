@@ -400,9 +400,23 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                             Text("Coaching focus", color = CourtQuestDesign.textPrimary,
                                 style = MaterialTheme.typography.titleMedium)
                         }
-                        Text("Perform each repetition with control. Prioritize correct technique over speed, and reset your stance when your form breaks down.",
-                            color = CourtQuestDesign.textSecondary,
-                            style = MaterialTheme.typography.bodyMedium)
+                        val coaching = DrillCoachingLibrary.forDrill(drill)
+                        if (coaching != null) {
+                            listOf(
+                                "SETUP" to coaching.setup,
+                                "MOVEMENT" to coaching.movement,
+                                "TECHNIQUE CHECK" to coaching.checkpoint,
+                                "COMMON MISTAKE & FIX" to coaching.correction
+                            ).forEach { (heading, guidance) ->
+                                CourtEyebrow(heading)
+                                Text(guidance, color = CourtQuestDesign.textPrimary,
+                                    style = MaterialTheme.typography.bodyMedium)
+                            }
+                        } else {
+                            Text("Use your written instructions as the primary guide. Practice with control and stop if the movement feels unsafe.",
+                                color = CourtQuestDesign.textSecondary,
+                                style = MaterialTheme.typography.bodyMedium)
+                        }
                         Text("Target: ${drill.minimumSuccesses} successful actions · ${drill.minutes} min",
                             color = CourtQuestDesign.accent, style = MaterialTheme.typography.labelLarge)
                     }
