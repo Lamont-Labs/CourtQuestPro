@@ -4,6 +4,10 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -49,6 +53,7 @@ internal fun DrillFormReference(drill: Drill) {
         "p3" -> "Identify the target before stepping into the lane"
         else -> null
     }
+    var showCorrection by rememberSaveable(drill.id) { mutableStateOf(false) }
     CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("PLAYER POSITION", color = accent, style = MaterialTheme.typography.labelMedium)
@@ -114,13 +119,33 @@ internal fun DrillFormReference(drill: Drill) {
                         Offset(it.x+10.dp.toPx(),it.y), 1.dp.toPx())
                 }
             }
-            if (focus != null) {
-                Text("FORM CHECK", color = accent, style = MaterialTheme.typography.labelMedium)
-                Text(focus, color = CourtQuestDesign.textPrimary,
-                    style = MaterialTheme.typography.bodyLarge)
-                technique?.let {
-                    Text("AVOID", color = accent, style = MaterialTheme.typography.labelMedium)
-                    Text(it.correction, color = CourtQuestDesign.textSecondary,
+            if (focus != null && technique != null) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(
+                        selected = !showCorrection,
+                        onClick = { showCorrection = false },
+                        label = { Text("Correct form") }
+                    )
+                    FilterChip(
+                        selected = showCorrection,
+                        onClick = { showCorrection = true },
+                        label = { Text("Mistake & fix") }
+                    )
+                }
+                if (showCorrection) {
+                    Text("COMMON MISTAKE & CORRECTION", color = accent,
+                        style = MaterialTheme.typography.labelMedium)
+                    Text(technique.correction, color = CourtQuestDesign.textPrimary,
+                        style = MaterialTheme.typography.bodyLarge)
+                    Text("The pose above is a general reference, not an illustration of the mistake.",
+                        color = CourtQuestDesign.textSecondary,
+                        style = MaterialTheme.typography.bodySmall)
+                } else {
+                    Text("CORRECT FORM CHECK", color = accent,
+                        style = MaterialTheme.typography.labelMedium)
+                    Text(focus, color = CourtQuestDesign.textPrimary,
+                        style = MaterialTheme.typography.bodyLarge)
+                    Text(technique.checkpoint, color = CourtQuestDesign.textSecondary,
                         style = MaterialTheme.typography.bodyMedium)
                 }
             }
