@@ -194,20 +194,36 @@ internal fun DrillLibraryScreen(
                 }
             }
         }
-        if (section == "Library" && query.isBlank() && filter == "All" && category == "All skills" && swapSlotId == null) {
-            item { Box(Modifier.padding(horizontal = 20.dp)) { CourtHeading("Suggested for you") } }
+        if (section == "Library" && query.isBlank() && filter == "All" && category == "All skills" &&
+            swapSlotId == null && suggestions.isNotEmpty()) {
             item {
-                LazyRow(contentPadding = PaddingValues(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    items(suggestions, key = { it.drill.id }) { suggestion ->
-                        CourtQuestPremiumSurface(Modifier.width(264.dp).clickable { onSelect(suggestion.drill.id) }, PaddingValues(20.dp)) {
-                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                CourtEyebrow(suggestion.drill.category)
-                                Text(suggestion.drill.title, color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleLarge)
-                                Text(suggestion.reason, color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
-                                Text("${suggestion.drill.level} · ${suggestion.drill.minutes} min", color = CourtQuestDesign.accent, style = MaterialTheme.typography.labelMedium)
-                                TextButton({ onSelect(suggestion.drill.id) }, modifier = Modifier.heightIn(min = 48.dp)) { Text("View drill") }
+                val featured = suggestions.first()
+                CourtQuestPremiumSurface(
+                    Modifier.padding(horizontal = 20.dp).fillMaxWidth()
+                        .clickable { onSelect(featured.drill.id) }
+                        .testTag("library-featured-drill"),
+                    PaddingValues(16.dp), highlighted = true
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Surface(color = CourtQuestDesign.surface, shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier.size(68.dp)) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(Icons.Default.SportsBasketball, null,
+                                    tint = CourtQuestDesign.accentVivid, modifier = Modifier.size(32.dp))
                             }
                         }
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            CourtEyebrow("RECOMMENDED · ${featured.drill.category}")
+                            Text(featured.drill.title, style = MaterialTheme.typography.titleLarge,
+                                color = CourtQuestDesign.textPrimary)
+                            Text(featured.reason, style = MaterialTheme.typography.bodySmall,
+                                color = CourtQuestDesign.textSecondary, maxLines = 2)
+                            Text("${featured.drill.level} · ${featured.drill.minutes} min",
+                                style = MaterialTheme.typography.labelMedium, color = CourtQuestDesign.accent)
+                        }
+                        Icon(Icons.AutoMirrored.Filled.ArrowForward, "View recommended drill",
+                            tint = CourtQuestDesign.accent)
                     }
                 }
             }
@@ -221,24 +237,48 @@ internal fun DrillLibraryScreen(
                 TextButton({ query = ""; category = "All skills"; filter = "All"; onSectionChange("Library") }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Show all drills") }
             }
         }
-        if (section != "Today") items(shown, key = { it.id }) { drill ->
-            CourtQuestPremiumSurface(Modifier.padding(horizontal = 20.dp).fillMaxWidth(), PaddingValues(18.dp)) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        CourtEyebrow(if (drill.id.startsWith("custom_")) "YOUR DRILL · ${drill.category}" else drill.category, Modifier.weight(1f))
-                        IconButton({ onFavorite(drill.id) }) {
-                            Icon(if (drill.id in favorites) Icons.Default.Star else Icons.Default.StarBorder,
-                                if (drill.id in favorites) "Remove ${drill.title} from favorites" else "Favorite ${drill.title}", tint = CourtQuestDesign.accent)
-                        }
-                    }
-                    Text(drill.title, style = MaterialTheme.typography.headlineSmall, color = CourtQuestDesign.textPrimary)
-                    Text("${drill.level} · ${drill.minutes} min · ${DrillTargets.minimum(drill)} successful actions",
-                        style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)
-                    OutlinedButton({ onSelect(drill.id) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                        Text("View ${drill.title}", Modifier.weight(1f)); Icon(Icons.AutoMirrored.Filled.ArrowForward, null, Modifier.size(18.dp))
-                    }
+        if (section != "Today" && shown.isNotEmpty()) {
+            item {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    CourtHeading("Browse drills")
+                    Spacer(Modifier.weight(1f))
+                    Text("${shown.size} drills", color = CourtQuestDesign.textSecondary,
+                        style = MaterialTheme.typography.labelMedium)
                 }
             }
+        }
+        if (section != "Today") items(shown, key = { it.id }) { drill ->
+            Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp)
+                .clickable { onSelect(drill.id) }
+                .heightIn(min = 72.dp).testTag("library-drill-${drill.id}"),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Surface(color = CourtQuestDesign.surface, shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.size(52.dp)) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.SportsBasketball, null,
+                            tint = CourtQuestDesign.accentVivid, modifier = Modifier.size(23.dp))
+                    }
+                }
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(drill.title, color = CourtQuestDesign.textPrimary,
+                        style = MaterialTheme.typography.titleMedium, maxLines = 2)
+                    Text("${drill.category} · ${drill.level} · ${drill.minutes} min",
+                        color = CourtQuestDesign.textSecondary,
+                        style = MaterialTheme.typography.bodySmall, maxLines = 1)
+                }
+                IconButton({ onFavorite(drill.id) },
+                    modifier = Modifier.testTag("library-favorite-${drill.id}")) {
+                    Icon(if (drill.id in favorites) Icons.Default.Star else Icons.Default.StarBorder,
+                        if (drill.id in favorites) "Remove ${drill.title} from favorites"
+                        else "Favorite ${drill.title}", tint = CourtQuestDesign.accent)
+                }
+                Icon(Icons.Default.ChevronRight, "View ${drill.title}",
+                    tint = CourtQuestDesign.textSecondary, modifier = Modifier.size(18.dp))
+            }
+            HorizontalDivider(Modifier.padding(start = 84.dp, end = 20.dp),
+                color = CourtQuestDesign.surface)
         }
         item { TextButton(onHome, Modifier.padding(horizontal = 20.dp).heightIn(min = 48.dp)) { Text("Back to Court") } }
     }
