@@ -1,12 +1,7 @@
 name: Verify premium native visual transformation
 on:
-  push:
-    branches: [dev/premium-flow-toolkit]
-    paths:
-      - 'app/src/**'
-      - 'scripts/verify_premium_visuals.py'
-      - '.github/workflows/verify-premium-visuals.yml'
   workflow_dispatch:
+
 permissions:
   contents: read
   actions: read
