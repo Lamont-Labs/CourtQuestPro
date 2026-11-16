@@ -365,6 +365,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                         Text(drill.target, color = CourtQuestDesign.accent, style = MaterialTheme.typography.titleLarge)
                     }
                 }
+                DrillArtworkReference(drill)
                 if (DrillCoachingLibrary.forDrill(drill) != null) {
                     DrillCourtReference(drill)
                     DrillFormReference(drill)
