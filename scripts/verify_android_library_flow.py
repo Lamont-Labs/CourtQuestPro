@@ -92,8 +92,29 @@ def fill(name, text):
     ui.tap(node)
     ui.shell('input', 'keyevent', 'KEYCODE_MOVE_END')
     ui.shell('input', 'keyevent', *(['KEYCODE_DEL'] * max(1, len(node.get('text', '')))))
-    ui.shell('input', 'text', text.replace(' ', '%s'))
+    if text:
+        ui.shell('input', 'text', text.replace(' ', '%s'))
     ui.shell('input', 'keyevent', 'KEYCODE_BACK')
+
+
+def capture_artwork(entry):
+    node = tagged('drill-art-' + entry['id'])
+    left, top, right, bottom = map(int, re.findall(r'\d+', node.get('bounds')))
+    assert right > left and bottom > top, entry['id']
+    # Put the image below the status bar, leaving the entire plate above the dock.
+    # UIAutomator bounds are clipped, so finding the tag alone is not sufficient.
+    if top > 200:
+        screen_height = int(re.search(r'\d+x(\d+)', ui.shell('wm', 'size')).group(1))
+        start = screen_height - 260
+        end = max(200, start - (top - 200))
+        ui.shell('input', 'swipe', str((left + right) // 2), str(start),
+                 str((left + right) // 2), str(end), '350')
+        time.sleep(0.5)
+    node = tagged('drill-art-' + entry['id'])
+    left, top, right, bottom = map(int, re.findall(r'\d+', node.get('bounds')))
+    expected_height = (right - left) * entry['height'] / entry['width']
+    assert bottom - top >= expected_height - 3, f"Illustration is clipped: {entry['id']}"
+    snap('art-' + entry['id'])
 
 
 def click(text):
@@ -168,9 +189,7 @@ def main():
     for entry in artwork['drills']:
         fill('library-search', entry['title'])
         click('View ' + entry['title'])
-        art_node = tagged('drill-art-' + entry['id'])
-        assert art_node.get('bounds') not in ('', '[0,0][0,0]'), entry['id']
-        snap('art-' + entry['id'])
+        capture_artwork(entry)
         # Android Back closes detail even when its top Back button is offscreen.
         ui.shell('input', 'keyevent', 'KEYCODE_BACK')
         time.sleep(0.5)
