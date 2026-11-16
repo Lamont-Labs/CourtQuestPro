@@ -95,7 +95,7 @@ def upgrade(args):
                    missionVersions=[dict(id='upgrade-version', missionId='upgrade-mission', version=1,
                                          title='Upgrade mission', source='MANUAL', steps=[step],
                                          createdAt=fixture['activeDate'] + 'T12:00:00Z')])
-    seed_state(fixture)  # Let the actual v20 application deserialize/canonicalize its saved state.
+    seed_state(fixture)  # Let the released baseline application deserialize/canonicalize its saved state.
     before = json.loads(ui.prefs()['state'].text)
     require(before['totalXp'] == 100 and len(before['matches']) == 8 and len(before['drillResults']) == 2
             and before['jerseyNumber'] == 42 and before['playerScore'] == 3
@@ -116,7 +116,12 @@ def upgrade(args):
     after = json.loads(ui.prefs()['state'].text)
     require(saved_values_preserved(before, after),
             f'Existing v{previous_version} player data changed on first v{candidate_version} launch')
-    ui.wait_tagged('nav-open-handle')
+    if candidate_version >= 23:
+        ui.wait_tagged('player-bottom-dock')
+        for route in ui.NAV_ROUTES.values():
+            ui.wait_tagged('dock-' + route)
+    else:
+        ui.wait_tagged('nav-open-handle')
     ui.screenshot(f'v{candidate_version}-after-update')
     ui.shell('am', 'force-stop', ui.PACKAGE)
     ui.open_app()
