@@ -365,8 +365,48 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                         Text(drill.target, color = CourtQuestDesign.accent, style = MaterialTheme.typography.titleLarge)
                     }
                 }
-                CourtHeading("The drill guide")
-                Text(drill.instructions, color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyLarge)
+                CourtHeading("How to perform this drill")
+                CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(18.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Icon(Icons.Default.MenuBook, null, tint = CourtQuestDesign.accentVivid)
+                            Text("Step-by-step technique", color = CourtQuestDesign.textPrimary,
+                                style = MaterialTheme.typography.titleMedium)
+                        }
+                        val steps = drill.instructions.split(Regex("(?<=[.!?])\\s+|\\n+"))
+                            .map { it.trim() }.filter { it.isNotBlank() }
+                        steps.forEachIndexed { index, step ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.Top) {
+                                Surface(color = CourtQuestDesign.surface,
+                                    shape = RoundedCornerShape(10.dp)) {
+                                    Text((index + 1).toString().padStart(2, '0'),
+                                        modifier = Modifier.padding(horizontal = 11.dp, vertical = 8.dp),
+                                        color = CourtQuestDesign.accentVivid,
+                                        style = MaterialTheme.typography.labelLarge)
+                                }
+                                Text(step, Modifier.weight(1f), color = CourtQuestDesign.textPrimary,
+                                    style = MaterialTheme.typography.bodyLarge)
+                            }
+                        }
+                    }
+                }
+                CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(18.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Icon(Icons.Default.TipsAndUpdates, null, tint = CourtQuestDesign.accentVivid)
+                            Text("Coaching focus", color = CourtQuestDesign.textPrimary,
+                                style = MaterialTheme.typography.titleMedium)
+                        }
+                        Text("Perform each repetition with control. Prioritize correct technique over speed, and reset your stance when your form breaks down.",
+                            color = CourtQuestDesign.textSecondary,
+                            style = MaterialTheme.typography.bodyMedium)
+                        Text("Target: ${drill.minimumSuccesses} successful actions · ${drill.minutes} min",
+                            color = CourtQuestDesign.accent, style = MaterialTheme.typography.labelLarge)
+                    }
+                }
                 CourtQuestPrimaryButton(onPractice, Modifier.fillMaxWidth(), canPractice) { Text(if (samePractice) "Resume practice" else "Start extra practice") }
                 Text("Extra practice saves your results in Progress. Daily workout XP and streaks stay with your daily workout.",
                     style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)
