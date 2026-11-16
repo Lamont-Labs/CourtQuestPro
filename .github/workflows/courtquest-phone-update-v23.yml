@@ -11,6 +11,7 @@ on:
       - 'scripts/test_phone_v23_release_gate.py'
       - 'scripts/test_android_flow_phone_update.py'
       - 'scripts/verify_phone_update.py'
+      - 'scripts/phone_v23_release_gate.py'
   workflow_dispatch:
 
 permissions:
