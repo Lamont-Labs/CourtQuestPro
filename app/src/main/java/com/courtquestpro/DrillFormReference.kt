@@ -7,6 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
 
@@ -65,8 +67,17 @@ internal fun DrillFormReference(drill: Drill) {
                 val leftFoot = pt(if (low) .26f else .37f, .91f)
                 val rightFoot = pt(if (low) .74f else .64f, .91f)
                 drawLine(Color(0xFF808895), pt(.13f,.93f),pt(.87f,.93f),2.dp.toPx())
+                drawCircle(Color(0xFF222833), 15.dp.toPx(), head)
                 drawCircle(Color.White, 12.dp.toPx(), head)
-                limb(neck, hip)
+                val jersey = Path().apply {
+                    moveTo(w*.41f,h*.34f)
+                    lineTo(w*.59f,h*.34f)
+                    lineTo(w*.57f,h*.54f)
+                    lineTo(w*.43f,h*.54f)
+                    close()
+                }
+                drawPath(jersey, Color(0xFF303744))
+                drawPath(jersey, accent.copy(alpha=.9f), style=Stroke(2.dp.toPx()))
                 limb(hip,pt(.40f,.72f))
                 limb(pt(.40f,.72f),leftFoot)
                 limb(hip,pt(.61f,.72f))
@@ -96,7 +107,12 @@ internal fun DrillFormReference(drill: Drill) {
                 limb(pt(.38f,.40f),leftHand)
                 limb(pt(.5f,.35f),pt(.62f,.40f))
                 limb(pt(.62f,.40f),rightHand)
-                ball?.let { drawCircle(accent, 10.dp.toPx(),it) }
+                ball?.let {
+                    drawCircle(accent, 12.dp.toPx(), it)
+                    drawCircle(Color(0xFF111318), 12.dp.toPx(), it, style=Stroke(1.5.dp.toPx()))
+                    drawLine(Color(0xFF111318), Offset(it.x-10.dp.toPx(),it.y),
+                        Offset(it.x+10.dp.toPx(),it.y), 1.dp.toPx())
+                }
             }
             if (focus != null) {
                 Text("FORM CHECK", color = accent, style = MaterialTheme.typography.labelMedium)
@@ -108,7 +124,7 @@ internal fun DrillFormReference(drill: Drill) {
                         style = MaterialTheme.typography.bodyMedium)
                 }
             }
-            Text("Illustrative posture cue only. Use the setup, movement and technique-check instructions for this specific drill.",
+            Text("Stylized silhouette and posture cue only. Use the setup, movement and technique-check instructions for this specific drill.",
                 color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
         }
     }
