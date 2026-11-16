@@ -365,6 +365,9 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                         Text(drill.target, color = CourtQuestDesign.accent, style = MaterialTheme.typography.titleLarge)
                     }
                 }
+                if (DrillCoachingLibrary.forDrill(drill) != null) {
+                    DrillCourtReference(drill)
+                }
                 CourtHeading("How to perform this drill")
                 CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(18.dp)) {
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
