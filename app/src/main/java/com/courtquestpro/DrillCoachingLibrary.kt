@@ -1,0 +1,34 @@
+package com.courtquestpro
+
+/** Drill-specific instruction cues. These are text coaching references, not verified motion imagery. */
+internal data class DrillCoaching(
+    val setup: String,
+    val movement: String,
+    val checkpoint: String,
+    val correction: String
+)
+
+internal object DrillCoachingLibrary {
+    private val guides = mapOf(
+        "s1" to DrillCoaching("Stand close enough to shoot without straining; mark five comfortable spots.", "Set feet, align the shooting elbow, extend smoothly and hold the wrist follow-through.", "Finish balanced with the shooting hand pointing toward the rim.", "If shots drift, slow down and check foot alignment before adding range."),
+        "s2" to DrillCoaching("Face the passer with knees flexed and hands ready.", "Receive into the shooting pocket, set both feet and release without rushing.", "Land balanced after every catch-and-shoot attempt.", "If the ball dips too low, prepare hands earlier and shorten the catch-to-shot motion."),
+        "s3" to DrillCoaching("Begin on the wing with a clear lane and a safe stopping area.", "Change direction, plant under control, square shoulders and rise into the jumper.", "Your final stop should be balanced before the ball leaves your hands.", "If momentum carries you sideways, reduce approach speed and rehearse the stop."),
+        "b1" to DrillCoaching("Bend knees, widen stance and keep the ball below the waist.", "Push the ball across the body using the fingertips, alternating hands.", "Keep eyes forward and the off-hand ready to protect space.", "If the dribble rises high, lower your hips and reduce speed."),
+        "b2" to DrillCoaching("Start at the baseline with an unobstructed path to half court.", "Dribble slowly, accelerate for several steps, then decelerate while retaining control.", "Change pace without losing the ball or leaning off balance.", "If you lose control at speed, shorten the acceleration phase."),
+        "b3" to DrillCoaching("Choose two moves and identify an open driving lane.", "Chain the moves at controlled height, shield the ball and explode into space.", "Keep the final move purposeful and the first driving step decisive.", "If moves become loose, practice each move separately before combining."),
+        "f1" to DrillCoaching("Start near the basket with room for an approach from either side.", "For a right-hand layup step right then left and jump off the left foot; reverse for the left hand.", "Aim softly at the backboard and land under control.", "If steps feel tangled, walk the two-step pattern without a ball first."),
+        "f2" to DrillCoaching("Place a cone or choose a court marking as the change-of-direction point.", "Approach, plant safely, change direction and finish with the outside hand.", "Keep the ball away from the imaginary defender.", "If the plant slips or feels unstable, slow down and shorten the cut."),
+        "f3" to DrillCoaching("Begin on one side of the rim and identify the safe path beneath it.", "Move under the basket, shield the ball with your body and finish on the far side.", "Keep eyes on the far-side target and protect the ball through the move.", "If you drift too far under the rim, rehearse the approach without shooting."),
+        "d1" to DrillCoaching("Take an athletic stance with hips low and feet slightly wider than shoulders.", "Push laterally off the trailing foot; slide without crossing feet.", "Keep your head level and chest upright.", "If feet click together or cross, shorten each slide."),
+        "d2" to DrillCoaching("Start several steps away from a safe imaginary shooter position.", "Approach quickly, shorten the last steps, raise a hand and stop without contact.", "Finish close enough to contest while remaining balanced.", "If you fly past the target, begin decelerating sooner."),
+        "d3" to DrillCoaching("Face a partner at a safe distance on a clear surface.", "Mirror their lateral movement while keeping your hips low.", "Maintain spacing without crossing feet or reaching.", "If you fall behind, reduce speed and anticipate with shorter slides."),
+        "r1" to DrillCoaching("Position between an imaginary opponent and the basket.", "Find the player, turn into a legal box-out position and then locate the ball.", "Hold position without pushing or extending elbows.", "If you lose the rebound line, establish position before looking up."),
+        "r2" to DrillCoaching("Begin beneath a safe rebound path with a passing target available.", "Secure the rebound with both hands, land, pivot and deliver a controlled outlet.", "Keep the ball protected and eyes up before passing.", "If the outlet is rushed, pause in a stable pivot before releasing."),
+        "r3" to DrillCoaching("Have a partner shoot from a comfortable distance with clear landing space.", "Read the shot, move to the rebound, secure it and alternate roles.", "Track the ball while staying aware of the other player's position.", "If you collide or overrun the bounce, reduce pace and widen spacing."),
+        "p1" to DrillCoaching("Face a partner or safe wall target with feet set and hands behind the ball.", "Step toward the target and extend arms; for a bounce pass aim at the floor before the receiver.", "Finish with thumbs rotating downward and the pass on target.", "If passes float or bounce too high, adjust the release angle and step."),
+        "p2" to DrillCoaching("Use a safe passing lane and a clearly visible target.", "Move into position, square to the target and pass with controlled force.", "Prioritize accuracy and balanced footwork over throwing harder.", "If accuracy drops, reduce distance and reset your stance."),
+        "p3" to DrillCoaching("Set a safe partner or wall target and leave room for movement.", "Read the target, step into the passing lane and release decisively.", "Keep your head up and recover balance after the pass.", "If passes are late, identify the target before beginning the move.")
+    )
+
+    fun forDrill(drill: Drill): DrillCoaching? = guides[drill.id]
+}
