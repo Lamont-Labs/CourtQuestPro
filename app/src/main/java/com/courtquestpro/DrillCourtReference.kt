@@ -45,14 +45,29 @@ internal fun DrillCourtReference(drill: Drill) {
                     size = androidx.compose.ui.geometry.Size(w*.3f,h*.35f),
                     style = Stroke(lineWidth))
                 drawCircle(court, 7.dp.toPx(), Offset(mid, h*.17f), style = Stroke(lineWidth))
-                val positions = when (drill.category) {
-                    "Shooting" -> listOf(Offset(.25f,.65f),Offset(.5f,.61f),Offset(.75f,.65f))
-                    "Ball Handling" -> listOf(Offset(.28f,.76f),Offset(.5f,.61f),Offset(.72f,.46f))
-                    "Finishing" -> listOf(Offset(.24f,.64f),Offset(.40f,.43f),Offset(.5f,.25f))
-                    "Defense" -> listOf(Offset(.24f,.66f),Offset(.50f,.66f),Offset(.76f,.66f))
-                    "Rebounding" -> listOf(Offset(.32f,.47f),Offset(.5f,.34f),Offset(.68f,.47f))
-                    else -> listOf(Offset(.22f,.7f),Offset(.5f,.58f),Offset(.78f,.7f))
-                }.map { Offset(it.x*w,it.y*h) }
+                val normalizedPositions = when (drill.id) {
+                    "s1" -> listOf(Offset(0.25f, 0.64f), Offset(0.38f, 0.53f), Offset(0.5f, 0.5f), Offset(0.62f, 0.53f), Offset(0.75f, 0.64f))
+                    "s2" -> listOf(Offset(0.48f, 0.72f), Offset(0.5f, 0.56f), Offset(0.5f, 0.42f))
+                    "s3" -> listOf(Offset(0.2f, 0.72f), Offset(0.38f, 0.55f), Offset(0.48f, 0.48f))
+                    "b1" -> listOf(Offset(0.42f, 0.72f), Offset(0.55f, 0.72f), Offset(0.42f, 0.72f))
+                    "b2" -> listOf(Offset(0.5f, 0.85f), Offset(0.5f, 0.67f), Offset(0.5f, 0.43f))
+                    "b3" -> listOf(Offset(0.28f, 0.8f), Offset(0.42f, 0.67f), Offset(0.3f, 0.59f), Offset(0.58f, 0.4f))
+                    "f1" -> listOf(Offset(0.22f, 0.78f), Offset(0.38f, 0.53f), Offset(0.5f, 0.23f))
+                    "f2" -> listOf(Offset(0.22f, 0.8f), Offset(0.44f, 0.62f), Offset(0.32f, 0.49f), Offset(0.5f, 0.24f))
+                    "f3" -> listOf(Offset(0.22f, 0.7f), Offset(0.44f, 0.38f), Offset(0.58f, 0.22f))
+                    "d1" -> listOf(Offset(0.2f, 0.65f), Offset(0.5f, 0.65f), Offset(0.8f, 0.65f))
+                    "d2" -> listOf(Offset(0.5f, 0.84f), Offset(0.5f, 0.58f), Offset(0.5f, 0.4f))
+                    "d3" -> listOf(Offset(0.28f, 0.66f), Offset(0.5f, 0.57f), Offset(0.72f, 0.66f))
+                    "r1" -> listOf(Offset(0.5f, 0.65f), Offset(0.5f, 0.48f), Offset(0.5f, 0.31f))
+                    "r2" -> listOf(Offset(0.5f, 0.35f), Offset(0.48f, 0.5f), Offset(0.2f, 0.72f))
+                    "r3" -> listOf(Offset(0.28f, 0.6f), Offset(0.48f, 0.43f), Offset(0.66f, 0.36f))
+                    "p1" -> listOf(Offset(0.2f, 0.65f), Offset(0.5f, 0.65f), Offset(0.8f, 0.65f))
+                    "p2" -> listOf(Offset(0.2f, 0.75f), Offset(0.4f, 0.6f), Offset(0.72f, 0.5f))
+                    "p3" -> listOf(Offset(0.2f, 0.65f), Offset(0.5f, 0.48f), Offset(0.8f, 0.65f))
+                    else -> emptyList()
+                }
+                val positions = normalizedPositions.map { Offset(it.x*w, it.y*h) }
+                if (positions.isNotEmpty()) {
                 val route = Path().apply {
                     moveTo(positions.first().x,positions.first().y)
                     positions.drop(1).forEach { lineTo(it.x,it.y) }
@@ -63,8 +78,9 @@ internal fun DrillCourtReference(drill: Drill) {
                     drawCircle(if (i==0) orange else Color.White, 8.dp.toPx(),p)
                     drawCircle(Color(0xFF111318), 3.dp.toPx(),p)
                 }
+                }
             }
-            Text("Schematic overhead guide: orange marks the starting point; the line shows a general movement or spacing pattern. Not a drill-specific footwork demonstration.",
+            Text("Schematic overhead guide: orange marks the start; the line represents a simplified route or spacing reference for this drill. Consult the written coaching steps for actual technique.",
                 color = CourtQuestDesign.textSecondary,
                 style = MaterialTheme.typography.bodySmall)
         }
