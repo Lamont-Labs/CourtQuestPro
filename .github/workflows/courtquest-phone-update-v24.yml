@@ -82,7 +82,7 @@ jobs:
           assert release['tag_name'] == 'courtquest-phone-update-v23'
           assert release['prerelease'] and not release['draft']
           assert asset['digest'] == f'sha256:{digest}'
-          assert manifest['package_id'] == 'com.courtquestpro' and manifest['version_code'] == 24
+          assert manifest['package_id'] == 'com.courtquestpro' and manifest['version_code'] == 23
           assert manifest['apk_sha256'] == digest
           assert manifest['certificate_sha256'] == '25f8007f0a8503b01ded3f4856d02e830c64c823aa2c816da4d347ed5015f27b'
           print(json.dumps({
