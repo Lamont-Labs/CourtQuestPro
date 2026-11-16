@@ -182,3 +182,17 @@ mtime_ms = 1794714270252
 storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/3b0b8745-ee13-4978-af79-1cc120986c82/22a5a684-37b9-407f-a212-5dd01e21fc48"
 storage_version_token = "1794714406929755"
 content_type = "image/png"
+
+[[outputs]]
+id = "WuH8ceSEbFpFtWEYNeJMe"
+uri = "file://generated-artifacts/drill-art-overview.jpg"
+type = "image"
+title = "All 18 bundled drill illustration plates"
+description = "Overview of the actual offline assets in the Android source—not app screenshots. Five drills use safe variants or spacing references instead of a misleading mistake panel."
+logical_id = "0097e6b5-3b06-4582-ba47-3333eff3849e"
+content_hash = "sha256:5e438d4b0ed741e62dc05a98ee5b1e00a4e811c19715fe8f3179e366d17b6358"
+size = 828395
+mtime_ms = 1794869175115
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/0097e6b5-3b06-4582-ba47-3333eff3849e/bac5756b-98c9-4f1f-9acd-3660f86aa460"
+storage_version_token = "1794869245011437"
+content_type = "image/jpeg"
