@@ -1,13 +1,7 @@
 name: CourtQuest Pro fast phone-test APK v24
 on:
-  push:
-    branches: [dev/premium-flow-toolkit]
-    paths:
-      - 'app/build.gradle.kts'
-      - '.github/workflows/courtquest-phone-update-v24.yml'
-      - 'scripts/phone_v24_release_gate.py'
-      - 'scripts/verify_phone_update.py'
   workflow_dispatch:
+
 permissions:
   contents: write
   actions: read
