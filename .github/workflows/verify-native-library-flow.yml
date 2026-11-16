@@ -2,6 +2,19 @@ name: Verify native library and training flows
 
 on:
   workflow_dispatch:
+    inputs:
+      verification_scope:
+        description: 'Focused drill library or full regression'
+        type: choice
+        required: true
+        default: focused
+        options:
+          - focused
+          - full
+
+concurrency:
+  group: native-library-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -9,7 +22,7 @@ permissions:
 jobs:
   android-flow:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 45
     env:
       COURTQUEST_UI_EVIDENCE: artifacts/android-daily-flow
       ANDROID_AVD_HOME: /tmp/courtquest-avd
@@ -33,6 +46,7 @@ jobs:
           distribution: temurin
           java-version: '21'
       - name: Prepare Android emulator and preserved build 5
+        if: inputs.verification_scope == 'full'
         run: |
           test -e /dev/kvm
           sudo chmod 666 /dev/kvm
@@ -55,6 +69,7 @@ jobs:
           "${ANDROID_HOME}/build-tools/35.0.1/apksigner" verify --print-certs /tmp/courtquest-build5.apk
           sha256sum /tmp/courtquest-build5.apk
       - name: Capture baseline, update in place, and verify the daily flow
+        if: inputs.verification_scope == 'full'
         run: |
           mkdir -p "$COURTQUEST_UI_EVIDENCE"
           export PATH="${ANDROID_HOME}/platform-tools:${PATH}"
@@ -91,6 +106,12 @@ jobs:
           echo "::group::APK verification"
           python3 scripts/verify_apk.py --apk app/build/outputs/apk/debug/app-debug.apk --build-tools "${ANDROID_HOME}/build-tools/35.0.1" --output artifacts/apk-verified
           echo "::endgroup::"
+          git rev-parse HEAD HEAD:app/src > artifacts/source-revisions.txt
+      - name: Focused drill library checks (no emulator)
+        if: inputs.verification_scope == 'focused'
+        run: |
+          python3 -m unittest discover -s scripts -p 'test_android_flow_*.py' -v
+          python3 scripts/verify_apk.py --apk app/build/outputs/apk/debug/app-debug.apk --build-tools "${ANDROID_HOME}/build-tools/35.0.1" --output artifacts/apk-verified
           git rev-parse HEAD HEAD:app/src > artifacts/source-revisions.txt
       - name: Capture Android diagnostics
         if: always()
