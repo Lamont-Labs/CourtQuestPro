@@ -1,8 +1,6 @@
 name: Premium flow toolkit checks
 
 on:
-  push:
-    branches: [dev/premium-flow-toolkit]
   workflow_dispatch:
 
 permissions:
