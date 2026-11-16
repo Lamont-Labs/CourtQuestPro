@@ -28,6 +28,23 @@ omitted:
 
 # CourtQuest Pro design standard
 
+## Offline drill illustrations
+
+The current library contains 18 drill-specific generated athlete plates, bundled
+as WebP with a deterministic catalog-derived manifest. The original court diagrams,
+written instructions, practice controls, branding and navigation remain intact.
+Generic posture silhouettes are replaced by illustrated sequences and drill-specific
+setup/movement/checkpoint cues. Comparison panels are omitted when unsafe or misleading;
+the coverage report explains each exclusion.
+
+The installed UI/UX Pro Max guidance was unavailable in this workspace for this pass.
+Existing native tokens, Barlow typography, responsive image aspect ratios and 48dp
+controls remain authoritative; no newer Compose APIs or web patterns were introduced.
+Generated plates were visually reviewed before compression, including removal of an
+unsafe contact inset from the box-out plate. This is not biomechanical certification.
+Android display/scrolling evidence is captured through the existing native library run,
+separately from image integrity, catalog coverage, compilation, tests and lint.
+
 ## Overview
 
 CourtQuest Pro is a basketball performance studio for a player on a phone. It opens onto a clear training decision, supports a focused drill or one-on-one game, then makes the recorded result easy to find. The latest owner-selected direction is deep black, brighter orange, polished glass layers, crisp high-definition rendering, and Signature branding. Use basketball court geometry, confident typography, and carefully prioritized data to give CourtQuest its own identity. Use calmer, more direct layouts while the player is recording attempts or keeping score.

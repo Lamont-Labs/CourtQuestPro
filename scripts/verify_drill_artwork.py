@@ -160,6 +160,11 @@ def webp_dimensions(path: Path) -> tuple[int, int]:
     height = struct.unpack_from("<H", frame, 8)[0] & 0x3FFF
     if not (1 <= width <= 4096 and 1 <= height <= 4096):
         raise ValueError(f"{path.name} has invalid dimensions {width}x{height}.")
+    from PIL import Image
+    with Image.open(path) as image:
+        image.load()
+        if image.size != (width, height):
+            raise ValueError(f"{path.name} decoded dimensions differ from its header.")
     return width, height
 
 

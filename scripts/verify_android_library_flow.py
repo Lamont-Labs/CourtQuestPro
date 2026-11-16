@@ -162,6 +162,17 @@ def main():
     ui.open_app()
     open_library()
     snap('home')
+    # Decode and display every built-in plate through the actual detail UI.
+    # Reuse this emulator rather than creating a separate artwork workflow.
+    artwork = json.loads(Path('app/src/main/assets/drill_art/manifest.json').read_text())
+    for entry in artwork['drills']:
+        fill('library-search', entry['title'])
+        click('View ' + entry['title'])
+        art_node = tagged('drill-art-' + entry['id'])
+        assert art_node.get('bounds') not in ('', '[0,0][0,0]'), entry['id']
+        snap('art-' + entry['id'])
+        open_library()
+    fill('library-search', '')
     click('Create custom drill')
     click('Save drill')
     ui.require(ui.nodes(), 'Give your drill a name of 1–60 characters.')
@@ -183,6 +194,8 @@ def main():
     old_id = created['id']
     assert created['title'] == 'Corner Touch' and created['minimumSuccesses'] == 5
     snap('detail')
+    tagged('drill-art-custom-fallback')
+    snap('custom-art-fallback')
     click('Save to favorites')
     assert old_id in state()['favoriteDrillIds']
     click('Use in daily workout')

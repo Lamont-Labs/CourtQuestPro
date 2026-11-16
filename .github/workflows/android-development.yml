@@ -30,6 +30,11 @@ jobs:
       - name: Install Android SDK
         run: |
           "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.1"
+      - name: Verify complete offline drill artwork
+        run: |
+          python3 -m pip install 'Pillow==11.3.0'
+          python3 scripts/verify_drill_artwork.py --check
+          python3 -m unittest scripts.test_drill_artwork -v
       - name: Unit tests, APK compilation, and lint
         run: |
           chmod +x gradlew

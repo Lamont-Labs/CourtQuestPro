@@ -3,29 +3,31 @@ package com.courtquestpro
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /** Drill-specific text cues paired with the bundled illustration, never a generic pose drawing. */
 @Composable
 internal fun DrillFormReference(drill: Drill) {
     val coaching = DrillCoachingLibrary.forDrill(drill) ?: return
     val context = LocalContext.current.applicationContext
-    val artwork = remember(context, drill.id) { drillArtworkEntry(context, drill.id) }
+    val artwork by produceState<DrillArtworkManifestEntry?>(null, context, drill.id) {
+        value = withContext(Dispatchers.IO) { drillArtworkEntry(context, drill.id) }
+    }
     val hasComparison = artwork?.comparison?.included == true
     var showCorrection by rememberSaveable(drill.id) { mutableStateOf(false) }
 
