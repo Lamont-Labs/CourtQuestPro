@@ -36,6 +36,9 @@ internal fun DrillLibraryScreen(
         swapSlotId?.let { id -> save.slots.firstOrNull { it.id == id }?.drillId }
             ?.let { id -> TrainingLibrary.catalog(save).firstOrNull { it.id == id }?.category } ?: "All skills") }
     var categoryMenu by remember { mutableStateOf(false) }
+    var levelFilter by rememberSaveable { mutableStateOf("All levels") }
+    var durationFilter by rememberSaveable { mutableStateOf("Any length") }
+    var expandedCategory by rememberSaveable { mutableStateOf<String?>(null) }
     val catalog = TrainingLibrary.catalog(save)
     val selected = catalog.firstOrNull { it.id == selectedId }
     val favorites = save.favoriteDrillIds.orEmpty()
@@ -56,6 +59,12 @@ internal fun DrillLibraryScreen(
     val shown = available.filter { drill ->
         (section != "Custom" || drill.id.startsWith("custom_")) &&
         (category == "All skills" || drill.category == category) &&
+        (levelFilter == "All levels" || drill.level == levelFilter) &&
+        (durationFilter == "Any length" || when (durationFilter) {
+            "Under 10 min" -> drill.minutes < 10
+            "10–20 min" -> drill.minutes in 10..20
+            else -> drill.minutes > 20
+        }) &&
             (filter != "Mine" || drill.id.startsWith("custom_")) &&
             (filter != "Favorites" || drill.id in favorites) &&
             (query.isBlank() || listOf(drill.title, drill.category, drill.instructions).any { it.contains(query.trim(), true) })
@@ -182,6 +191,26 @@ internal fun DrillLibraryScreen(
                             }
                         }
                     }
+                    listOf("Level" to levelFilter, "Duration" to durationFilter).forEach { (kind, current) ->
+                        var open by remember { mutableStateOf(false) }
+                        Box {
+                            OutlinedButton({ open = true }, modifier = Modifier.heightIn(min = 48.dp)) {
+                                Icon(Icons.Default.Tune, null, Modifier.size(16.dp))
+                                Spacer(Modifier.width(5.dp))
+                                Text(current, style = MaterialTheme.typography.labelMedium)
+                            }
+                            DropdownMenu(open, { open = false }) {
+                                val choices = if (kind == "Level") listOf("All levels") + TrainingLibrary.levels
+                                    else listOf("Any length", "Under 10 min", "10–20 min", "Over 20 min")
+                                choices.forEach { value ->
+                                    DropdownMenuItem(text = { Text(value) }, onClick = {
+                                        if (kind == "Level") levelFilter = value else durationFilter = value
+                                        open = false
+                                    })
+                                }
+                            }
+                        }
+                    }
                     listOf("All", "Mine", "Favorites").forEach { value ->
                         FilterChip(filter == value, { filter = value },
                             label = { Text(value, style = MaterialTheme.typography.labelMedium) },
@@ -248,7 +277,32 @@ internal fun DrillLibraryScreen(
                 }
             }
         }
-        if (section != "Today") items(shown, key = { it.id }) { drill ->
+        if (section != "Today") {
+            val grouped = section == "Library" && category == "All skills" && query.isBlank() && filter == "All"
+            val groups = if (grouped) TrainingLibrary.categories.map { skill ->
+                skill to shown.filter { it.category == skill }
+            }.filter { it.second.isNotEmpty() } else listOf("Results" to shown)
+            groups.forEach { (skill, groupDrills) ->
+                if (grouped) item(key = "skill-$skill") {
+                    CourtQuestPremiumSurface(Modifier.padding(horizontal = 20.dp).fillMaxWidth()
+                        .clickable { expandedCategory = if (expandedCategory == skill) null else skill }
+                        .testTag("library-category-$skill"), PaddingValues(16.dp),
+                        highlighted = expandedCategory == skill) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.SportsBasketball, null, tint = CourtQuestDesign.accentVivid)
+                            Spacer(Modifier.width(12.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(skill, color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleMedium)
+                                Text("${groupDrills.size} drills", color = CourtQuestDesign.textSecondary,
+                                    style = MaterialTheme.typography.bodySmall)
+                            }
+                            Icon(if (expandedCategory == skill) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                "Toggle $skill", tint = CourtQuestDesign.accent)
+                        }
+                    }
+                }
+                if (!grouped || expandedCategory == skill) {
+                items(groupDrills, key = { it.id }) { drill ->
             Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp)
                 .clickable { onSelect(drill.id) }
                 .heightIn(min = 72.dp).testTag("library-drill-${drill.id}"),
@@ -279,6 +333,9 @@ internal fun DrillLibraryScreen(
             }
             HorizontalDivider(Modifier.padding(start = 84.dp, end = 20.dp),
                 color = CourtQuestDesign.surface)
+        }
+                }
+            }
         }
         item { TextButton(onHome, Modifier.padding(horizontal = 20.dp).heightIn(min = 48.dp)) { Text("Back to Court") } }
     }
