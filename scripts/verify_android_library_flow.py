@@ -98,23 +98,33 @@ def fill(name, text):
 
 
 def capture_artwork(entry):
-    node = tagged('drill-art-' + entry['id'])
-    left, top, right, bottom = map(int, re.findall(r'\d+', node.get('bounds')))
-    assert right > left and bottom > top, entry['id']
-    # Put the image below the status bar, leaving the entire plate above the dock.
-    # UIAutomator bounds are clipped, so finding the tag alone is not sufficient.
-    if top > 200:
-        screen_height = int(re.search(r'\d+x(\d+)', ui.shell('wm', 'size')).group(1))
-        start = screen_height - 260
-        end = max(200, start - (top - 200))
-        ui.shell('input', 'swipe', str((left + right) // 2), str(start),
-                 str((left + right) // 2), str(end), '350')
+    def bounds(node):
+        return list(map(int, re.findall(r'\d+', node.get('bounds'))))
+
+    # Use the actual scroll viewport, not wm's physical panel dimensions:
+    # a resized AVD reports both physical and override sizes.
+    for _ in range(5):
+        node = tagged('drill-art-' + entry['id'])
+        left, top, right, bottom = bounds(node)
+        assert right > left and bottom > top, entry['id']
+        expected_height = (right - left) * entry['height'] / entry['width']
+        if bottom - top >= expected_height - 3:
+            snap('art-' + entry['id'])
+            return
+        regions = [n for n in ui.nodes() if n.get('scrollable') == 'true']
+        assert regions, 'No scroll viewport for illustration capture'
+        viewport = max(regions, key=lambda n: (bounds(n)[2] - bounds(n)[0]) *
+                       (bounds(n)[3] - bounds(n)[1]))
+        vl, vt, vr, vb = bounds(viewport)
+        assert expected_height <= vb - vt, f"Illustration exceeds viewport: {entry['id']}"
+        distance = min(300, int(expected_height - (bottom - top)) + 64)
+        start = (vt + vb) // 2
+        # Small, slow gestures avoid flinging the image out of view.
+        end = start + distance if top <= vt + 3 else start - distance
+        ui.shell('input', 'swipe', str((vl + vr) // 2), str(start),
+                 str((vl + vr) // 2), str(end), '650')
         time.sleep(0.5)
-    node = tagged('drill-art-' + entry['id'])
-    left, top, right, bottom = map(int, re.findall(r'\d+', node.get('bounds')))
-    expected_height = (right - left) * entry['height'] / entry['width']
-    assert bottom - top >= expected_height - 3, f"Illustration is clipped: {entry['id']}"
-    snap('art-' + entry['id'])
+    raise AssertionError(f"Illustration is clipped: {entry['id']}")
 
 
 def click(text):

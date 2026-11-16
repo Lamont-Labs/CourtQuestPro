@@ -45,3 +45,14 @@ system navigation. Its apparently valid center tap did not reach the row.
 **How to apply:** Keep native controls out of system bars using platform insets,
 then scroll clipped rows fully into their viewport before testing the hit area.
 Do not remove auto-dismiss or selection assertions to accommodate a failed tap.
+
+Use the actual exported scroll viewport for emulator gesture coordinates.
+
+**Why:** A resized AVD can report both a larger physical panel and a smaller
+override in `wm size`. Reading the first size placed an illustration-capture swipe
+outside the displayed screen, leaving the image clipped despite a successful
+Android input command.
+
+**How to apply:** Derive swipe bounds from the current scrollable node, or explicitly
+use the effective override size. Keep gestures inside that viewport and verify
+the resulting full image bounds instead of assuming the swipe moved content.
