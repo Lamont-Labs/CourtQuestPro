@@ -256,7 +256,7 @@ jobs:
           assert manifest['package_id'] == 'com.courtquestpro' and manifest['version_code'] == 24
           assert manifest['source_commit'] == os.environ['GITHUB_SHA']
           assert manifest['source_parent'] == '70125ba92ac1a029e9861829a4a6fce2653a43a9'
-          assert manifest['checks']['emulator_test'] == 'PASS_V22_TO_V23_IN_PLACE_AND_FULL_NATIVE_SAME_APK'
+          assert manifest['checks']['emulator_test'] == 'PASS_V23_TO_V24_IN_PLACE_AND_FULL_NATIVE_SAME_APK'
           assert manifest['apk_sha256'] == digest
           assert identity['previous']['version_code'] == 23 and identity['candidate']['version_code'] == 24
           assert identity['previous']['package_id'] == identity['candidate']['package_id'] == 'com.courtquestpro'
