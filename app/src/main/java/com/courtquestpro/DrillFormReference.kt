@@ -25,6 +25,28 @@ internal fun DrillFormReference(drill: Drill) {
         "Rebounding" -> "Base, reach and secure"
         else -> "Step and passing extension"
     }
+    val technique = DrillCoachingLibrary.forDrill(drill)
+    val focus = when (drill.id) {
+        "s1" -> "Hold a balanced follow-through at each spot"
+        "s2" -> "Prepare hands early and shoot from a stable catch"
+        "s3" -> "Stop under control before rising into the shot"
+        "b1" -> "Keep hips low and the crossover below the waist"
+        "b2" -> "Change speed without leaning or losing control"
+        "b3" -> "Protect the ball while linking two moves"
+        "f1" -> "Match takeoff foot and finishing hand"
+        "f2" -> "Plant safely and finish with the outside hand"
+        "f3" -> "Shield the ball on the far side of the rim"
+        "d1" -> "Slide with a wide base; do not cross feet"
+        "d2" -> "Shorten final steps to contest without contact"
+        "d3" -> "Mirror the partner while maintaining spacing"
+        "r1" -> "Establish legal position before locating the ball"
+        "r2" -> "Land balanced, pivot, then make the outlet"
+        "r3" -> "Track the bounce while keeping safe spacing"
+        "p1" -> "Step toward the target with a controlled release"
+        "p2" -> "Square to the target before releasing the pass"
+        "p3" -> "Identify the target before stepping into the lane"
+        else -> null
+    }
     CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("PLAYER POSITION", color = accent, style = MaterialTheme.typography.labelMedium)
@@ -75,6 +97,16 @@ internal fun DrillFormReference(drill: Drill) {
                 limb(pt(.5f,.35f),pt(.62f,.40f))
                 limb(pt(.62f,.40f),rightHand)
                 ball?.let { drawCircle(accent, 10.dp.toPx(),it) }
+            }
+            if (focus != null) {
+                Text("FORM CHECK", color = accent, style = MaterialTheme.typography.labelMedium)
+                Text(focus, color = CourtQuestDesign.textPrimary,
+                    style = MaterialTheme.typography.bodyLarge)
+                technique?.let {
+                    Text("AVOID", color = accent, style = MaterialTheme.typography.labelMedium)
+                    Text(it.correction, color = CourtQuestDesign.textSecondary,
+                        style = MaterialTheme.typography.bodyMedium)
+                }
             }
             Text("Illustrative posture cue only. Use the setup, movement and technique-check instructions for this specific drill.",
                 color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
