@@ -103,6 +103,7 @@ jobs:
           PY
           if gh api "repos/${GH_REPO}/releases/tags/courtquest-phone-update-v24" >/dev/null 2>&1; then echo 'v24 already published; refusing overwrite'; exit 1; fi
           gh release create courtquest-phone-update-v24 dist/CourtQuestPro-Update-v24.apk dist/CourtQuestPro-Update-v24.apk.sha256 dist/apk-manifest.json dist/upgrade-identity.json dist/install-upgrade.json dist/RELEASE_NOTES.md --target "$GITHUB_SHA" --prerelease --latest=false --title 'CourtQuest Pro v24 — fast verified phone update' --notes-file dist/RELEASE_NOTES.md
+          mkdir -p /tmp/courtquest-published
           gh release download courtquest-phone-update-v24 --pattern 'CourtQuestPro-Update-v24.apk' --dir /tmp/courtquest-published
           cmp dist/CourtQuestPro-Update-v24.apk /tmp/courtquest-published/CourtQuestPro-Update-v24.apk
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
