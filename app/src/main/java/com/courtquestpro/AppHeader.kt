@@ -19,16 +19,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun AppHeader(title: String, subtitle: String = "", compact: Boolean = false) {
     Column(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 14.dp)) {
-        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
-            verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Image(painterResource(R.drawable.courtquest_signature_emblem), null,
-                    modifier = Modifier.size(30.dp).clip(RoundedCornerShape(9.dp))
-                        .background(CourtQuestDesign.accentVivid).padding(2.dp))
-                Image(painterResource(R.drawable.courtquest_signature_wordmark), "CourtQuest Pro",
-                    modifier = Modifier.width(116.dp).height(36.dp))
-            }
-            Box(Modifier.heightIn(min = 40.dp), contentAlignment = Alignment.CenterStart) { CourtEyebrow("PLAYER LAB") }
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Image(painterResource(R.drawable.courtquest_signature_wordmark), "CourtQuest Pro",
+                modifier = Modifier.width(190.dp).height(56.dp))
         }
         Spacer(Modifier.height(8.dp))
         Text(title, color = CourtQuestDesign.textPrimary,
