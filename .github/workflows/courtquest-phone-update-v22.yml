@@ -1,14 +1,6 @@
 name: CourtQuest Pro phone-test APK v22
 
 on:
-  push:
-    branches: [dev/premium-flow-toolkit]
-    paths:
-      - 'app/build.gradle.kts'
-      - 'scripts/phone_v22_release_gate.py'
-      - 'scripts/test_phone_v22_release_gate.py'
-      - 'scripts/test_android_flow_phone_update.py'
-      - 'scripts/verify_phone_update.py'
   workflow_dispatch:
 
 permissions:
