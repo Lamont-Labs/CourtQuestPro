@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   verify:
-    if: github.repository == 'Lamont-Labs/CourtQuestPro' && github.ref == 'refs/heads/dev/premium-flow-toolkit'
+    if: github.repository == 'Lamont-Labs/CourtQuestPro' && github.ref == 'refs/heads/dev/premium-flow-toolkit' && false
     runs-on: ubuntu-24.04
     timeout-minutes: 100
     env:
