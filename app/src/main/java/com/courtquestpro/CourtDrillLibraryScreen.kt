@@ -367,6 +367,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                 }
                 if (DrillCoachingLibrary.forDrill(drill) != null) {
                     DrillCourtReference(drill)
+                    DrillFormReference(drill)
                 }
                 CourtHeading("How to perform this drill")
                 CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(18.dp)) {
