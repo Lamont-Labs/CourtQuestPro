@@ -94,8 +94,30 @@ internal fun DrillScreen(
                          else "Record ${(requiredCount ?: 0).minus(completedCount).coerceAtLeast(0)} more ${measurement.successLabel.lowercase()} toward your target.",
                          color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.bodyMedium
                      )
-                     Text("${completedCount.coerceAtMost(requiredCount ?: 0)} of ${requiredCount ?: 0} successful actions toward your target",
-                         color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
+                     if (requiredCount != null && requiredCount > 0) {
+                         val progress = (completedCount.toFloat() / requiredCount).coerceIn(0f, 1f)
+                         LinearProgressIndicator(
+                             progress = { progress },
+                             modifier = Modifier.fillMaxWidth().height(8.dp)
+                                 .testTag("live-target-progress"),
+                             color = CourtQuestDesign.accentVivid,
+                             trackColor = CourtQuestDesign.surface
+                         )
+                         Row(Modifier.fillMaxWidth(),
+                             horizontalArrangement = Arrangement.SpaceBetween) {
+                             Text("${completedCount.coerceAtMost(requiredCount)} / ${requiredCount} successful actions",
+                                 color = CourtQuestDesign.textSecondary,
+                                 style = MaterialTheme.typography.bodySmall)
+                             Text("${(progress * 100).toInt()}% of target",
+                                 color = if (meetsCount) CourtQuestDesign.accentVivid
+                                     else CourtQuestDesign.textSecondary,
+                                 style = MaterialTheme.typography.labelMedium)
+                         }
+                     } else {
+                         Text("Follow the drill target and confirm completion when ready.",
+                             color = CourtQuestDesign.textSecondary,
+                             style = MaterialTheme.typography.bodySmall)
+                     }
                       }
                     }
                      // Completion remains explicit and count-gated, but no longer
