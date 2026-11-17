@@ -209,6 +209,15 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     }
     var routeHistory by rememberSaveable { mutableStateOf(listOf("home")) }
     var navigationExpanded by rememberSaveable { mutableStateOf(false) }
+    var tourStep by rememberSaveable { mutableIntStateOf(-1) }
+    val tourCompleted = prefs.getBoolean("navigation_tour_complete", false)
+    fun closeTour() {
+        prefs.edit().putBoolean("navigation_tour_complete", true).apply()
+        tourStep = -1
+    }
+    LaunchedEffect(onboardingComplete) {
+        if (onboardingComplete && !tourCompleted && tourStep < 0) tourStep = 0
+    }
     val screen = PlayerNavigation.restore(routeHistory).last()
     val destinationState = rememberSaveableStateHolder()
     fun navigate(route: String) { routeHistory = PlayerNavigation.open(routeHistory, route) }
@@ -616,6 +625,14 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 if (PlayerNavigation.retainsState(target)) {
                     destinationState.SaveableStateProvider(target) { DestinationContent() }
                 } else DestinationContent()
+            }
+            if (onboardingComplete && tourStep >= 0) {
+                CourtNavigationTour(
+                    step = tourStep,
+                    onNext = { if (tourStep >= 4) closeTour() else tourStep++ },
+                    onSkip = { closeTour() },
+                    onBack = { if (tourStep > 0) tourStep-- }
+                )
             }
             }
             }
