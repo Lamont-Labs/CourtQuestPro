@@ -151,9 +151,14 @@ internal fun DrillArtworkReference(drill: Drill) {
                         }
                     }
                     if (entry.comparison.included) {
+                        HorizontalDivider(color = CourtQuestDesign.textSecondary.copy(alpha = 0.18f))
                         Text("${entry.comparison.leftLabel}  /  ${entry.comparison.rightLabel}",
                             color = CourtQuestDesign.accentVivid,
                             style = MaterialTheme.typography.labelMedium)
+                        entry.comparison.note?.let { guidance ->
+                            Text(guidance, color = CourtQuestDesign.textPrimary,
+                                style = MaterialTheme.typography.bodyMedium)
+                        }
                     }
                     Text("The illustration supports the sequence; use the written coaching cues for the drill.",
                         color = CourtQuestDesign.textSecondary,
