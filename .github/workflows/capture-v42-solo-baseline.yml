@@ -1,0 +1,58 @@
+name: Capture v42 solo-player v41 baseline
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: courtquest-solo-baseline-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Fetch immutable published v41 APK and inspect package
+        run: |
+          set -euo pipefail
+          mkdir -p previous artifacts/v42-v41-baseline
+          curl --fail --location --retry 3 --output previous/CourtQuestPro-Update-v41.apk \
+            https://github.com/Lamont-Labs/CourtQuestPro/releases/download/courtquest-phone-update-v41/CourtQuestPro-Update-v41.apk
+          sha256sum previous/CourtQuestPro-Update-v41.apk | tee artifacts/v42-v41-baseline/release-apk.sha256
+          "${ANDROID_HOME}/build-tools/35.0.0/aapt" dump badging previous/CourtQuestPro-Update-v41.apk | tee artifacts/v42-v41-baseline/package.txt
+          grep -q "name='com.courtquestpro'" artifacts/v42-v41-baseline/package.txt
+          grep -q "versionCode='41'" artifacts/v42-v41-baseline/package.txt
+      - name: Install Python image dependency
+        run: python3 -m pip install Pillow==12.0.0
+      - name: Boot guarded Android 35 QA emulator and capture solo baseline
+        env:
+          ANDROID_AVD_HOME: /tmp/courtquest-avd
+        run: |
+          set -euo pipefail
+          test -e /dev/kvm
+          sudo chmod 666 /dev/kvm
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" 'system-images;android-35;default;x86_64' emulator
+          mkdir -p "$ANDROID_AVD_HOME"
+          printf 'no\n' | "${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager" create avd \
+            --name CourtQuest_PremiumQA --package 'system-images;android-35;default;x86_64' \
+            --device pixel_2 --path "$ANDROID_AVD_HOME/CourtQuest_PremiumQA.avd"
+          "${ANDROID_HOME}/emulator/emulator" -avd CourtQuest_PremiumQA -port 5562 \
+            -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect \
+            -accel on -cores 2 -memory 2048 > artifacts/v42-v41-baseline/emulator.log 2>&1 &
+          emulator_pid=$!
+          trap 'kill "$emulator_pid" 2>/dev/null || true' EXIT
+          "${ANDROID_HOME}/platform-tools/adb" -s emulator-5562 wait-for-device
+          for i in $(seq 1 120); do
+            if [ "$("${ANDROID_HOME}/platform-tools/adb" -s emulator-5562 shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; then break; fi
+            sleep 3
+          done
+          python3 -u scripts/capture_v42_solo_baseline.py --apk previous/CourtQuestPro-Update-v41.apk
+      - name: Upload screenshot evidence and diagnostics even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: courtquest-v42-v41-solo-baseline
+          path: artifacts/v42-v41-baseline/
+          retention-days: 30
