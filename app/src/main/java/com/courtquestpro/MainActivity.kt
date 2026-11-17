@@ -207,6 +207,8 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             .remove("onboarding_focus").remove("onboarding_days").apply()
         onboardingComplete = true
     }
+    // A fresh Activity launch opens the welcome; returning from background does not.
+    var showWelcome by remember { mutableStateOf(true) }
     var routeHistory by rememberSaveable { mutableStateOf(listOf("home")) }
     var navigationExpanded by rememberSaveable { mutableStateOf(false) }
     var tourStep by rememberSaveable { mutableIntStateOf(-1) }
@@ -216,7 +218,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         tourStep = -1
     }
     LaunchedEffect(onboardingComplete) {
-        if (onboardingComplete && !tourCompleted && tourStep < 0) tourStep = 0
+        if (onboardingComplete && !showWelcome && !tourCompleted && tourStep < 0) tourStep = 0
     }
     val screen = PlayerNavigation.restore(routeHistory).last()
     val destinationState = rememberSaveableStateHolder()
@@ -376,7 +378,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             }
             navigate(tab.route)
         }
-        val showPlayerNavigation = onboardingComplete &&
+        val showPlayerNavigation = onboardingComplete && !showWelcome &&
             screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings", "team")
         CourtQuestScene {
         Scaffold(
@@ -403,11 +405,11 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         ) { padding ->
             Box(Modifier.fillMaxSize()) {
                 Box(Modifier.fillMaxSize()) {
-            if (!onboardingComplete) {
+            if (showWelcome) {
                 CourtWelcomeScreen(
                     modifier = Modifier.padding(padding).consumeWindowInsets(padding),
-                    onGetStarted = { finishOnboarding() },
-                    onGuest = { finishOnboarding() }
+                    onGetStarted = { if (!onboardingComplete) finishOnboarding(); showWelcome = false },
+                    onGuest = { if (!onboardingComplete) finishOnboarding(); showWelcome = false }
                 )
             } else AnimatedContent(targetState = screen, label = "screen-transition", modifier = Modifier.padding(padding).consumeWindowInsets(padding)) { target ->
                 @Composable fun DestinationContent() {
@@ -636,7 +638,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     destinationState.SaveableStateProvider(target) { DestinationContent() }
                 } else DestinationContent()
             }
-            if (onboardingComplete && tourStep >= 0) {
+            if (onboardingComplete && !showWelcome && tourStep >= 0) {
                 CourtNavigationTour(
                     step = tourStep,
                     onNext = { if (tourStep >= 4) closeTour() else tourStep++ },
