@@ -177,6 +177,27 @@ internal fun DrillLibraryScreen(
                     Text(catalog.firstOrNull { it.id == save.practiceSession?.drillId }?.title ?: "Your saved practice",
                         style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)
                 }
+                if (section == "Library" && (query.isNotBlank() || category != "All skills" ||
+                    levelFilter != "All levels" || durationFilter != "Any length" || filter != "All")) {
+                    Row(Modifier.fillMaxWidth().testTag("library-active-filters"),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        Text("${shown.size} matching drills", modifier = Modifier.weight(1f),
+                            color = CourtQuestDesign.textSecondary,
+                            style = MaterialTheme.typography.labelMedium)
+                        TextButton(onClick = {
+                            query = ""
+                            category = "All skills"
+                            levelFilter = "All levels"
+                            durationFilter = "Any length"
+                            filter = "All"
+                            expandedCategory = null
+                        }, modifier = Modifier.testTag("library-clear-filters")) {
+                            Icon(Icons.Default.Close, null, Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("Clear filters")
+                        }
+                    }
+                }
                 if (section == "Library") FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Box {
