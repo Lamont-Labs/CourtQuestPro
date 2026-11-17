@@ -400,6 +400,9 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         CourtEyebrow("YOUR TARGET")
                         Text(drill.target, color = CourtQuestDesign.accent, style = MaterialTheme.typography.titleLarge)
+                        HorizontalDivider(color = CourtQuestDesign.textSecondary.copy(alpha = 0.18f))
+                        Text("${drill.minutes} MIN  ·  ${drill.minimumSuccesses} SUCCESSFUL ACTIONS  ·  ${drill.level.uppercase()}",
+                            color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.labelMedium)
                     }
                 }
                 CourtEyebrow("READY TO PRACTICE")
