@@ -33,50 +33,43 @@ internal fun CourtNavigationTour(
     val current = stops[step.coerceIn(stops.indices)]
     val tabs = listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)
     val tab = tabs[step.coerceIn(tabs.indices)]
-    Box(
-        Modifier.fillMaxSize().background(Color(0xD9000000)).testTag("navigation-tour"),
-        contentAlignment = Alignment.TopCenter
-    ) {
+    Box(Modifier.fillMaxSize().testTag("navigation-tour"), contentAlignment = Alignment.TopCenter) {
         Column(
-            Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 42.dp)
-                .background(Color(0xFF171311), RoundedCornerShape(24.dp))
-                .border(1.dp, CourtQuestDesign.accentVivid.copy(alpha = .45f), RoundedCornerShape(24.dp))
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 12.dp)
+                .background(Color(0xF7191513), RoundedCornerShape(18.dp))
+                .border(1.dp, CourtQuestDesign.accentVivid.copy(alpha = .5f), RoundedCornerShape(18.dp))
+                .padding(horizontal = 18.dp, vertical = 14.dp),
+            horizontalAlignment = Alignment.Start
         ) {
-            Text("COURTQUEST PRO  /  QUICK TOUR", color = CourtQuestDesign.accent,
-                fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.3.sp)
-            Spacer(Modifier.height(18.dp))
-            Text(current.first, color = CourtQuestDesign.accentVivid,
-                fontSize = 14.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
-            Spacer(Modifier.height(12.dp))
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("EXPLORE COURTQUEST", color = CourtQuestDesign.accentVivid,
+                    fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+                Text("${step + 1} / ${stops.size}", color = CourtQuestDesign.textSecondary, fontSize = 11.sp)
+            }
+            Spacer(Modifier.height(8.dp))
             Text(current.second, color = CourtQuestDesign.textPrimary,
-                style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
-            Spacer(Modifier.height(10.dp))
+                style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(4.dp))
             Text(current.third, color = CourtQuestDesign.textSecondary,
-                style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
-            Spacer(Modifier.height(18.dp))
-            Text("Tap the highlighted navigation icon below to open this section.",
-                color = CourtQuestDesign.accentVivid, textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodySmall)
-            Spacer(Modifier.height(12.dp))
-            Text("${step + 1} / ${stops.size}", color = CourtQuestDesign.textSecondary)
-            Spacer(Modifier.height(18.dp))
-            Button(onClick = onNext, modifier = Modifier.fillMaxWidth().height(52.dp)
-                .testTag("tour-next"), colors = ButtonDefaults.buttonColors(
-                containerColor = CourtQuestDesign.accentVivid, contentColor = Color.Black
-            )) { Text(if (step == stops.lastIndex) "FINISH TOUR" else "NEXT WITHOUT OPENING", fontWeight = FontWeight.Bold) }
+                style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(8.dp))
+            Text("Tap ${tab.label} in the highlighted dock below", color = CourtQuestDesign.accentVivid,
+                style = MaterialTheme.typography.labelMedium)
+            Spacer(Modifier.height(10.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = onBack, enabled = step > 0) { Text("Back") }
-                TextButton(onClick = onSkip) { Text("Skip tour") }
+                TextButton(onClick = onSkip, modifier = Modifier.testTag("tour-skip")) {
+                    Text("Skip")
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(onClick = onBack, enabled = step > 0) { Text("Back") }
+                    Button(onClick = onNext, modifier = Modifier.testTag("tour-next"),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = CourtQuestDesign.accentVivid, contentColor = Color.Black
+                        )) { Text(if (step == stops.lastIndex) "Finish" else "Next") }
+                }
             }
-        }
-        Column(Modifier.align(Alignment.BottomCenter), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("TAP ${tab.label.uppercase()} TO EXPLORE", color = CourtQuestDesign.accentVivid,
-                fontWeight = FontWeight.Bold, fontSize = 12.sp)
-            Spacer(Modifier.height(8.dp))
-            Text("Use the highlighted icon in the navigation bar below.", color = CourtQuestDesign.textSecondary, fontSize = 12.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp))
         }
     }
 }
