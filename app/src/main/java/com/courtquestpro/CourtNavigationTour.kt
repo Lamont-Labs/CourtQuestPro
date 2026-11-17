@@ -22,8 +22,6 @@ internal fun CourtNavigationTour(
     onNext: () -> Unit,
     onSkip: () -> Unit,
     onBack: () -> Unit,
-    jerseyNumber: Int?,
-    onDestination: (PlayerTab) -> Unit
 ) {
     val stops = listOf(
         Triple("TRAINING", "Find your drills", "Open Training to explore drills and start a practice session."),
@@ -36,7 +34,7 @@ internal fun CourtNavigationTour(
     val tabs = listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)
     val tab = tabs[step.coerceIn(tabs.indices)]
     Box(
-        Modifier.fillMaxSize().background(Color(0xE9000000)).testTag("navigation-tour"),
+        Modifier.fillMaxSize().background(Color(0xD9000000)).testTag("navigation-tour"),
         contentAlignment = Alignment.TopCenter
     ) {
         Column(
