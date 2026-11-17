@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,12 +40,14 @@ internal fun CourtNavigationTour(
     val current = stops[step.coerceIn(stops.indices)]
     val tabs = listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)
     val tab = tabs[step.coerceIn(tabs.indices)]
+    val tourScroll = rememberScrollState()
+    LaunchedEffect(step) { tourScroll.scrollTo(0) }
     Box(Modifier.fillMaxSize().testTag("navigation-tour"), contentAlignment = Alignment.TopCenter) {
         Column(
             Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 12.dp, bottom = 12.dp)
                 .background(Color(0xF7191513), RoundedCornerShape(18.dp))
                 .border(1.dp, CourtQuestDesign.accentVivid.copy(alpha = .5f), RoundedCornerShape(18.dp))
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(tourScroll)
                 .padding(horizontal = 18.dp, vertical = 14.dp),
             horizontalAlignment = Alignment.Start
         ) {
