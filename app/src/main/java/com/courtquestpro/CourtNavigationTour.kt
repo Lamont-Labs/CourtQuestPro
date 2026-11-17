@@ -1,14 +1,11 @@
 package com.courtquestpro
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,105 +36,54 @@ internal fun CourtNavigationTour(
         Triple("QUESTS", "Build your momentum", "Explore challenges that make your practice more engaging."),
         Triple("PLAYER", "Make it yours", "Manage your player details and customize your jersey.")
     )
-    val tips = listOf(
-        "Start with a drill that matches today's goal, then record your attempts to track consistency.",
-        "Review completed sessions to spot patterns and choose what to practice next.",
-        "Use Court as your starting point when returning to the app.",
-        "Check Quests when you want a specific challenge to work toward.",
-        "Keep your player details and jersey up to date so the app feels like yours."
-    )
-    val currentTip = tips[step.coerceIn(tips.indices)]
     val current = stops[step.coerceIn(stops.indices)]
-    val tourScroll = rememberScrollState()
-    LaunchedEffect(step) { tourScroll.scrollTo(0) }
-    Box(Modifier.fillMaxSize().testTag("navigation-tour"), contentAlignment = Alignment.TopCenter) {
-        Column(
-            Modifier.fillMaxWidth().padding(horizontal = 10.dp).padding(top = 6.dp, bottom = 6.dp)
-                .background(Color(0xF7191513), RoundedCornerShape(16.dp))
-                .border(1.dp, CourtQuestDesign.accentVivid.copy(alpha = .5f), RoundedCornerShape(16.dp))
-                .verticalScroll(tourScroll)
-                .padding(horizontal = 12.dp, vertical = 7.dp),
-            horizontalAlignment = Alignment.Start
-        ) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("EXPLORE COURTQUEST", modifier = Modifier.weight(1f),
-                    color = CourtQuestDesign.accentVivid,
-                    fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = .7.sp)
-                Text("${step + 1} / ${stops.size}", color = CourtQuestDesign.textSecondary, fontSize = 10.sp)
+    Column(
+        Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
+            .testTag("navigation-tour")
+            .background(Color(0xF7191513), RoundedCornerShape(14.dp))
+            .border(1.dp, CourtQuestDesign.accentVivid.copy(alpha = .55f), RoundedCornerShape(14.dp))
+            .padding(horizontal = 12.dp, vertical = 9.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("${step + 1}/${stops.size}", color = CourtQuestDesign.accentVivid,
+                fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text(current.second, modifier = Modifier.weight(1f).testTag("tour-current-step")
+                .semantics {
+                    liveRegion = LiveRegionMode.Polite
+                    contentDescription = "Step ${step + 1} of ${stops.size}: ${current.second}. ${current.third}"
+                }, color = CourtQuestDesign.textPrimary, fontSize = 14.sp,
+                fontWeight = FontWeight.Bold, maxLines = 1)
+            TextButton(onClick = onSkip, contentPadding = PaddingValues(horizontal = 5.dp),
+                modifier = Modifier.heightIn(min = 40.dp).testTag("tour-skip")) {
+                Text("Skip", fontSize = 12.sp)
             }
-            Spacer(Modifier.height(4.dp))
-            Row(Modifier.fillMaxWidth().clearAndSetSemantics { },
-                horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        }
+        Text(current.third, color = CourtQuestDesign.textSecondary,
+            fontSize = 11.sp, lineHeight = 14.sp, maxLines = 2)
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.weight(1f).clearAndSetSemantics { },
+                horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 stops.indices.forEach { index ->
-                    Box(
-                        Modifier.weight(1f).height(3.dp)
-                            .clip(RoundedCornerShape(3.dp))
-                            .background(if (index <= step) CourtQuestDesign.accentVivid else CourtQuestDesign.border)
-                    )
+                    Box(Modifier.weight(1f).height(3.dp)
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(if (index <= step) CourtQuestDesign.accentVivid else CourtQuestDesign.border))
                 }
             }
-            Spacer(Modifier.height(5.dp))
-            Row(Modifier.testTag("tour-current-step").semantics {
-                liveRegion = LiveRegionMode.Polite
-                contentDescription = "Step ${step + 1} of ${stops.size}: ${current.second}. ${current.third} Quick tip: ${currentTip}"
-            }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Box(
-                    Modifier.size(28.dp).clip(RoundedCornerShape(8.dp))
-                        .background(CourtQuestDesign.accentVivid.copy(alpha = .13f))
-                        .border(1.dp, CourtQuestDesign.accentVivid.copy(alpha = .55f), RoundedCornerShape(8.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text((step + 1).toString().padStart(2, '0'), color = CourtQuestDesign.accentVivid,
-                        fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                }
-                Column(Modifier.weight(1f)) {
-                    Text(current.first, color = CourtQuestDesign.accentVivid,
-                        fontSize = 9.sp, letterSpacing = .5.sp)
-                    Text(current.second, color = CourtQuestDesign.textPrimary,
-                        fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                }
+            TextButton(onClick = onBack, enabled = step > 0,
+                modifier = Modifier.heightIn(min = 40.dp).testTag("tour-back")) {
+                Text("Back", fontSize = 12.sp)
             }
-            Spacer(Modifier.height(4.dp))
-            Text(current.third, color = CourtQuestDesign.textSecondary,
-                fontSize = 11.sp, lineHeight = 14.sp)
-            Spacer(Modifier.height(2.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(
-                    onClick = onSkip,
-                    modifier = Modifier.testTag("tour-skip").semantics {
-                        contentDescription = "Skip the walkthrough and continue using CourtQuest"
-                    }
-                ) {
-                    Text("Skip tour")
-                }
+            Button(onClick = onNext,
+                modifier = Modifier.heightIn(min = 40.dp).testTag("tour-next"),
+                contentPadding = PaddingValues(horizontal = 14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = CourtQuestDesign.accentVivid, contentColor = Color.Black
+                )) {
+                Text(if (step == stops.lastIndex) "Done" else "Next", fontSize = 12.sp)
             }
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TextButton(
-                    onClick = onBack,
-                    enabled = step > 0,
-                    modifier = Modifier.weight(1f).testTag("tour-back").semantics {
-                        if (step == 0) stateDescription = "Unavailable on the first step"
-                    }
-                ) { Text("Back") }
-                Button(
-                    onClick = onNext,
-                    modifier = Modifier.weight(1f).testTag("tour-next").semantics {
-                        contentDescription = if (step == stops.lastIndex)
-                            "Finish walkthrough and return to CourtQuest"
-                        else "Next walkthrough step"
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = CourtQuestDesign.accentVivid,
-                        contentColor = Color.Black
-                    )
-                ) { Text(if (step == stops.lastIndex) "Finish tour" else "Next") }
-            }
-
         }
     }
 }
