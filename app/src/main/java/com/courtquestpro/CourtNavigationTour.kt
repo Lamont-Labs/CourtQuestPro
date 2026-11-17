@@ -12,6 +12,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
@@ -51,7 +55,9 @@ internal fun CourtNavigationTour(
                 Text("${step + 1} / ${stops.size}", color = CourtQuestDesign.textSecondary, fontSize = 11.sp)
             }
             Spacer(Modifier.height(12.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            Row(Modifier.fillMaxWidth().semantics {
+                contentDescription = "Walkthrough progress: step ${step + 1} of ${stops.size}"
+            }, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                 stops.indices.forEach { index ->
                     Box(
                         Modifier.weight(1f).height(3.dp)
@@ -61,7 +67,10 @@ internal fun CourtNavigationTour(
                 }
             }
             Spacer(Modifier.height(14.dp))
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(Modifier.testTag("tour-current-step").semantics {
+                liveRegion = LiveRegionMode.Polite
+                contentDescription = "Step ${step + 1} of ${stops.size}: ${current.second}. ${current.third}"
+            }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Box(
                     Modifier.size(44.dp).clip(RoundedCornerShape(13.dp))
                         .background(CourtQuestDesign.accentVivid.copy(alpha = .13f))
