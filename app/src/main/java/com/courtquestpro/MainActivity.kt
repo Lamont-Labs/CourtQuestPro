@@ -386,7 +386,17 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 if (showPlayerNavigation) CourtQuestBottomDock(
                     selected = PlayerNavigation.tab(routeHistory),
                     jerseyNumber = save.jerseyNumber,
-                    onSelect = { selectPlayerTab(it) }
+                    onSelect = { tab ->
+                        selectPlayerTab(tab)
+                        if (tourStep >= 0) {
+                            val tabs = listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)
+                            val tappedStep = tabs.indexOf(tab)
+                            if (tappedStep == tourStep) {
+                                if (tourStep == 4) closeTour() else tourStep++
+                            } else if (tappedStep >= 0) tourStep = tappedStep
+                        }
+                    },
+                    spotlightTab = if (tourStep >= 0) listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)[tourStep.coerceIn(0, 4)] else null
                 )
             },
             containerColor = Color.Transparent,
@@ -631,18 +641,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     step = tourStep,
                     onNext = { if (tourStep >= 4) closeTour() else tourStep++ },
                     onSkip = { closeTour() },
-                    onBack = { if (tourStep > 0) tourStep-- },
-                    jerseyNumber = save.jerseyNumber,
-                    onDestination = { tab ->
-                        selectPlayerTab(tab)
-                        val tourTabs = listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)
-                        val selectedStep = tourTabs.indexOf(tab)
-                        if (selectedStep == tourStep) {
-                            if (tourStep >= 4) closeTour() else tourStep++
-                        } else if (selectedStep >= 0) {
-                            tourStep = selectedStep
-                        }
-                    }
+                    onBack = { if (tourStep > 0) tourStep-- }
                 )
             }
             }
