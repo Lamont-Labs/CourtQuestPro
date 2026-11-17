@@ -117,3 +117,5 @@ jobs:
           path: dist/
           retention-days: 30
           if-no-files-found: warn
+
+# Phone update request: publish the current v25 build without changing the app identity.
