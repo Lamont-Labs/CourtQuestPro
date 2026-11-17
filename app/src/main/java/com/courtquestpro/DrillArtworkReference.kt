@@ -140,6 +140,16 @@ internal fun DrillArtworkReference(drill: Drill) {
                     Text(entry.visualSummary,
                         color = CourtQuestDesign.textPrimary,
                         style = MaterialTheme.typography.bodyMedium)
+                    entry.sequence.forEachIndexed { index, cue ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text((index + 1).toString().padStart(2, '0'),
+                                color = CourtQuestDesign.accentVivid,
+                                style = MaterialTheme.typography.labelMedium)
+                            Text(cue, modifier = Modifier.weight(1f),
+                                color = CourtQuestDesign.textPrimary,
+                                style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
                     if (entry.comparison.included) {
                         Text("${entry.comparison.leftLabel}  /  ${entry.comparison.rightLabel}",
                             color = CourtQuestDesign.accentVivid,
