@@ -26,7 +26,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun SettingsScreen(playerName: String, difficulty: String, jerseyNumber: Int?, onDifficulty: (String) -> Unit, onSaveName: (String) -> Unit, onSaveJersey: (Int) -> Unit, onBack: () -> Unit) {
+internal fun SettingsScreen(playerName: String, difficulty: String, jerseyNumber: Int?, onDifficulty: (String) -> Unit, onSaveName: (String) -> Unit, onSaveJersey: (Int) -> Unit, onBack: () -> Unit, onReplayTour: () -> Unit) {
     var name by rememberSaveable(playerName) { mutableStateOf(playerName) }
     var savedNotice by rememberSaveable { mutableStateOf(false) }
     var jerseyDraft by rememberSaveable(jerseyNumber) { mutableStateOf((jerseyNumber ?: 23).toString()) }
@@ -110,6 +110,13 @@ internal fun SettingsScreen(playerName: String, difficulty: String, jerseyNumber
                     }
                     RadioButton(selected, onClick = null)
                 }
+            }
+            CourtRule()
+            CourtHeading("Getting around CourtQuest")
+            Text("Need a refresher? Replay the five-stop navigation walkthrough at any time.",
+                color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
+            CourtQuestPrimaryButton(onClick = onReplayTour, modifier = Modifier.fillMaxWidth()) {
+                Text("Replay app tour")
             }
             CourtRule()
             Text("Your training and player history are saved on this phone. Video demonstrations use the internet.",
