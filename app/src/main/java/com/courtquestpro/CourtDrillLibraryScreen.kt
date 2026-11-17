@@ -416,7 +416,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                     color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
                 DrillArtworkReference(drill)
                 OutlinedButton(onClick = { showCourtDiagram = !showCourtDiagram }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-court")) {
-                    Text("Court positioning diagram", modifier = Modifier.weight(1f))
+                    Text("Court positioning · placement and movement", modifier = Modifier.weight(1f))
                     Icon(if (showCourtDiagram) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
                 }
                 if (showCourtDiagram) {
@@ -424,7 +424,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                 }
                 if (DrillCoachingLibrary.forDrill(drill) != null) {
                     OutlinedButton(onClick = { showFormReference = !showFormReference }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-form")) {
-                        Text("Movement and form reference", modifier = Modifier.weight(1f))
+                        Text("Movement and form · technique checkpoints", modifier = Modifier.weight(1f))
                         Icon(if (showFormReference) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
                     }
                     if (showFormReference) {
@@ -433,7 +433,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                 }
                 CourtEyebrow("TECHNIQUE & COACHING")
                 OutlinedButton(onClick = { showTechnique = !showTechnique }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-technique")) {
-                    Text("Step-by-step technique", modifier = Modifier.weight(1f))
+                    Text("Step-by-step technique · drill instructions", modifier = Modifier.weight(1f))
                     Icon(if (showTechnique) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
                 }
                 if (showTechnique) {
@@ -465,7 +465,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                 }
                 }
                 OutlinedButton(onClick = { showCoaching = !showCoaching }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-coaching")) {
-                    Text("Coaching tips and common mistakes", modifier = Modifier.weight(1f))
+                    Text("Coaching tips · mistakes and corrections", modifier = Modifier.weight(1f))
                     Icon(if (showCoaching) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
                 }
                 if (showCoaching) {
