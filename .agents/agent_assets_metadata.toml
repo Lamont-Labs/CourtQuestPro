@@ -196,3 +196,17 @@ mtime_ms = 1794869175115
 storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/0097e6b5-3b06-4582-ba47-3333eff3849e/bac5756b-98c9-4f1f-9acd-3660f86aa460"
 storage_version_token = "1794869245011437"
 content_type = "image/jpeg"
+
+[[outputs]]
+id = "Rgb1lYT0gCSrVaYgKgd2C"
+uri = "file://generated-artifacts/v42-normal-emulator-comparison.png"
+type = "image"
+title = "CourtQuest Pro: v41 vs. v42 native screens"
+description = "Actual Android emulator screenshots of Court, Train, and the walkthrough. The v42 side shows the passing checkpoint before the final 200% text refinement."
+logical_id = "64d0f645-372a-4977-9565-e58b78ff4646"
+content_hash = "sha256:46a590148d043fa8a9e79379ca7f78a8763cb161bafbc0041cb26e99dea5353a"
+size = 375000
+mtime_ms = 1794954753914
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/64d0f645-372a-4977-9565-e58b78ff4646/733dd2d2-80f4-4855-b216-9f7190e0031e"
+storage_version_token = "1794954787905666"
+content_type = "image/png"
