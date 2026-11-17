@@ -409,7 +409,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                     Text("Step-by-step technique", modifier = Modifier.weight(1f))
                     Icon(if (showTechnique) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
                 }
-                if (showTechnique)
+                if (showTechnique) {
                 CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(18.dp)) {
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically,
@@ -436,11 +436,12 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                         }
                     }
                 }
+                }
                 OutlinedButton(onClick = { showCoaching = !showCoaching }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-coaching")) {
                     Text("Coaching tips and common mistakes", modifier = Modifier.weight(1f))
                     Icon(if (showCoaching) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
                 }
-                if (showCoaching)
+                if (showCoaching) {
                 CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(18.dp)) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically,
@@ -469,6 +470,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                         Text("Target: ${drill.minimumSuccesses} successful actions · ${drill.minutes} min",
                             color = CourtQuestDesign.accent, style = MaterialTheme.typography.labelLarge)
                     }
+                }
                 }
                 CourtQuestPrimaryButton(onPractice, Modifier.fillMaxWidth(), canPractice) { Text(if (samePractice) "Resume practice" else "Start extra practice") }
                 Text("Extra practice saves your results in Progress. Daily workout XP and streaks stay with your daily workout.",
