@@ -83,7 +83,7 @@ internal fun CourtNavigationTour(
                     Text((step + 1).toString().padStart(2, '0'), color = CourtQuestDesign.accentVivid,
                         style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 }
-                Column {
+                Column(Modifier.weight(1f)) {
                     Text(current.first, color = CourtQuestDesign.accentVivid,
                         style = MaterialTheme.typography.labelSmall, letterSpacing = 1.sp)
                     Text(current.second, color = CourtQuestDesign.textPrimary,
