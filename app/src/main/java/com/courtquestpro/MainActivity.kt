@@ -217,12 +217,15 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         prefs.edit().putBoolean("navigation_tour_complete", true).apply()
         tourStep = -1
     }
-    LaunchedEffect(onboardingComplete, showWelcome) {
-        if (onboardingComplete && !showWelcome && !tourCompleted && tourStep < 0) tourStep = 0
-    }
     val screen = PlayerNavigation.restore(routeHistory).last()
     val destinationState = rememberSaveableStateHolder()
     fun navigate(route: String) { routeHistory = PlayerNavigation.open(routeHistory, route) }
+    LaunchedEffect(onboardingComplete, showWelcome) {
+        if (onboardingComplete && !showWelcome && !tourCompleted && tourStep < 0) {
+            tourStep = 0
+            navigate(PlayerTab.TRAIN.route)
+        }
+    }
     fun goBack() { routeHistory = PlayerNavigation.back(routeHistory) }
     var librarySlotId by rememberSaveable { mutableStateOf<String?>(null) }
     var librarySelectedId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -626,11 +629,11 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     "quests" -> QuestsScreen(save, today, onTraining = { openTraining() }, onBuild = { openMissionBuilder() },
                         onResumeMission = { openMission() }, onProgress = { navigate("career") })
                     "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") }, onTeam = { navigate("team") },
-                        onWalkthrough = { navigate("home"); tourStep = 0 })
+                        onWalkthrough = { navigate(PlayerTab.TRAIN.route); tourStep = 0 })
                     "team" -> TeamScreen(onTrain = { openLibrary() }, onBack = { goBack() })
                     "settings" -> SettingsScreen(save.playerName, save.difficulty, save.jerseyNumber, onBack = { goBack() }, onDifficulty = { save.difficulty = it; refresh() }, onSaveJersey = { save.jerseyNumber = it; refresh() }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
-                    }, onReplayTour = { navigate("home"); tourStep = 0 })
+                    }, onReplayTour = { navigate(PlayerTab.TRAIN.route); tourStep = 0 })
                     else -> HomeContent()
                 }
                 }
