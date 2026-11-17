@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -66,9 +67,8 @@ internal fun CourtNavigationTour(
                 Text("${step + 1} / ${stops.size}", color = CourtQuestDesign.textSecondary, fontSize = 11.sp)
             }
             Spacer(Modifier.height(12.dp))
-            Row(Modifier.fillMaxWidth().semantics {
-                contentDescription = "Walkthrough progress: step ${step + 1} of ${stops.size}"
-            }, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            Row(Modifier.fillMaxWidth().clearAndSetSemantics { },
+                horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                 stops.indices.forEach { index ->
                     Box(
                         Modifier.weight(1f).height(3.dp)
