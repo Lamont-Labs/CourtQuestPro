@@ -631,7 +631,14 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     step = tourStep,
                     onNext = { if (tourStep >= 4) closeTour() else tourStep++ },
                     onSkip = { closeTour() },
-                    onBack = { if (tourStep > 0) tourStep-- }
+                    onBack = { if (tourStep > 0) tourStep-- },
+                    jerseyNumber = save.jerseyNumber,
+                    onDestination = { tab ->
+                        selectPlayerTab(tab)
+                        val tourTabs = listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)
+                        val selectedStep = tourTabs.indexOf(tab)
+                        if (selectedStep >= 0) tourStep = selectedStep
+                    }
                 )
             }
             }
