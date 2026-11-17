@@ -128,20 +128,38 @@ internal fun DrillLibraryScreen(
                     resumablePlan -> "Resume session"
                     else -> "Start training"
                 }
+                @Composable fun PlanCounter(modifier: Modifier) {
+                    Column(modifier.testTag("train-plan-summary"),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        CourtEyebrow("YOUR SAVED PLAN")
+                        Text("$done of ${save.slots.size} drills recorded",
+                            color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleLarge)
+                    }
+                }
+                @Composable fun StartAction() {
+                    CourtQuestPrimaryButton(onStartTraining,
+                        Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("train-start-training")) {
+                        Text(startLabel, Modifier.weight(1f))
+                        Icon(Icons.AutoMirrored.Filled.ArrowForward, null)
+                    }
+                }
                 CourtQuestPremiumSurface(
                     Modifier.fillMaxWidth().testTag("train-arena-hero"),
                     PaddingValues(14.dp),
                     highlighted = true
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                CourtEyebrow("YOUR SAVED PLAN")
-                                Text("$done of ${save.slots.size} drills recorded",
-                                    color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleLarge)
-                            }
-                            Text("${save.difficulty.uppercase()}",
+                        if (largeText) {
+                            StartAction()
+                            PlanCounter(Modifier.fillMaxWidth())
+                            Text(save.difficulty.uppercase(),
                                 color = CourtQuestDesign.accent, style = MaterialTheme.typography.labelSmall)
+                        } else {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                PlanCounter(Modifier.weight(1f))
+                                Text(save.difficulty.uppercase(),
+                                    color = CourtQuestDesign.accent, style = MaterialTheme.typography.labelSmall)
+                            }
                         }
                         if (nextDrill != null) {
                             Row(verticalAlignment = Alignment.CenterVertically,
@@ -157,13 +175,7 @@ internal fun DrillLibraryScreen(
                                 )
                             }
                         }
-                        CourtQuestPrimaryButton(
-                            onStartTraining,
-                            Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("train-start-training")
-                        ) {
-                            Text(startLabel, Modifier.weight(1f))
-                            Icon(Icons.AutoMirrored.Filled.ArrowForward, null)
-                        }
+                        if (!largeText) StartAction()
                         save.slots.forEachIndexed { index, slot ->
                             val drill = catalog.firstOrNull { it.id == slot.drillId }
                             Row(

@@ -105,6 +105,17 @@ def verify_candidate(config):
         ui.wait_tagged('court-todays-focus')
     capture('court-no-hint')
     ui.navigate('Train')
+    start = ui.wait_tagged('train-start-training')
+    start_box, dock_box = bounds(start), bounds(ui.wait_tagged('player-bottom-dock'))
+    assert start_box[3] <= dock_box[1] and start_box[3]-start_box[1] >= 104, 'Train action is clipped'
+    if config == 'large':
+        summary = bounds(ui.wait_tagged('train-plan-summary'))
+        assert summary[2]-summary[0] >= 480, 'Enlarged plan summary is squeezed beside difficulty'
+    ui.tap(start)
+    ui.scroll_to('Record successful attempt', 18)
+    ui.shell('input','keyevent','KEYCODE_BACK')
+    ui.wait_tagged('player-bottom-dock', attempts=10)
+    ui.navigate('Train')
     if config != 'large':
         rail = [bounds(ui.wait_tagged('segment-'+key)) for key in ['today','library','custom']]
         assert len({b[1] for b in rail}) == 1, 'Train selector unexpectedly stacked'

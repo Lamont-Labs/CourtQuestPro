@@ -26,3 +26,13 @@ completely hiding a new chart that is obvious at normal text size.
 narrow multi-column controls instead of shrinking or capping the user's chosen font scale.
 Check the initial viewport before scrolling; reachable new content is not necessarily
 an immediately visible redesign.
+
+Capture all primary destinations before deep interaction checks, while retaining failure evidence.
+
+**Why:** A drill-discovery assertion stopped several candidate captures before the other
+primary screens were recorded, preventing a coordinated visual review despite successful builds.
+Declarative initial values alone also did not describe the visible browse state after navigation.
+
+**How to apply:** Keep matched release/candidate fixtures and capture the complete screen set
+first, then exercise transitions and persistence. Check actual post-navigation expansion/filter
+state before assuming a drill is reachable; distinguish a broken UI flow from an obsolete selector.

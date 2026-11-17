@@ -113,7 +113,7 @@ internal fun HomeScreen(
                         modifier = Modifier.semantics { heading() }
                     )
                     Text(
-                        "${save.difficulty} · ${save.weeklyPlan} focus · ${save.totalXp} XP",
+                        "${save.difficulty} · ${save.weeklyPlan} focus",
                         color = CourtQuestDesign.textSecondary,
                         style = MaterialTheme.typography.bodyMedium,
                         maxLines = 2

@@ -47,6 +47,10 @@ short search label, expandable advanced filters and initially expanded drill gro
 keep actual artwork/results closer to search. Level, duration, favorites, custom
 creation and Mission Builder remain available; enlarged text gets more room than
 decorative row thumbnails.
+Rendered 200% text review additionally required a full-width plan count with the
+difficulty label below it, not competing beside it. At enlarged text the same
+Start/Resume control moves to the top of that panel so the primary action remains
+in the first viewport. Normal/130% text retain the compact side-by-side summary.
 
 The optional walkthrough is a contextual strip reserved by Scaffold above the
 dock, not an overlay on the screen. It starts on Court, supports Back/Next/Skip,
