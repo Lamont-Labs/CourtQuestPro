@@ -23,6 +23,9 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -202,12 +205,13 @@ internal fun DrillArtworkReference(drill: Drill, showRepCheck: Boolean = true) {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalComposeUiApi::class)
 @Composable
 private fun DrillPlateViewer(title: String, summary: String, image: ImageBitmap, onClose: () -> Unit) {
     var zoomed by remember { mutableStateOf(false) }
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        CourtQuestPremiumSurface(Modifier.fillMaxWidth().padding(12.dp), PaddingValues(12.dp), highlighted = true) {
+        CourtQuestPremiumSurface(Modifier.fillMaxWidth().padding(12.dp)
+            .semantics { testTagsAsResourceId = true }, PaddingValues(12.dp), highlighted = true) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(title, color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleMedium)
                 FlowRow {

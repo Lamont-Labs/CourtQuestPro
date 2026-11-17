@@ -253,6 +253,25 @@ def verify_drill_batch(config):
     ui.open_app()
     enter_court()
     assert state() == final, 'Relaunch changed the result or awarded duplicate XP'
+    if config == 'normal':
+        ui.navigate('Train')
+        ui.tap(ui.wait_tagged('segment-library'))
+        ui.tap(scroll_to_tag('library-drill-s1'))
+        ui.tap(scroll_to_tag('drill-start-practice'))
+        box = bounds(ui.wait_tagged('live-record-success'))
+        x, y = (box[0]+box[2])//2, (box[1]+box[3])//2
+        ui.shell('; '.join([f'input tap {x} {y}'] * 15))
+        ui.tap(scroll_to_tag('live-confirm-target'))
+        box = bounds(scroll_to_tag('live-save-results'))
+        x, y = (box[0]+box[2])//2, (box[1]+box[3])//2
+        ui.shell(f'input tap {x} {y}; input tap {x} {y}')
+        ui.wait_tagged('drill-saved-receipt')
+        practice = state()
+        assert practice['drillResults'][:-1] == final['drillResults']
+        assert practice['drillResults'][-1]['practice']
+        assert practice['totalXp'] == final['totalXp'] and practice['slots'] == final['slots']
+        assert practice.get('practiceSession') is None
+        capture('extra-practice-receipt')
 
 def main():
     parser=argparse.ArgumentParser()
