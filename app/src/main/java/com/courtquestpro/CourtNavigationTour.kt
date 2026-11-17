@@ -132,7 +132,11 @@ internal fun CourtNavigationTour(
                 ) { Text("Back") }
                 Button(
                     onClick = onNext,
-                    modifier = Modifier.weight(1f).testTag("tour-next"),
+                    modifier = Modifier.weight(1f).testTag("tour-next").semantics {
+                        contentDescription = if (step == stops.lastIndex)
+                            "Finish walkthrough and return to CourtQuest"
+                        else "Next walkthrough step"
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = CourtQuestDesign.accentVivid,
                         contentColor = Color.Black
