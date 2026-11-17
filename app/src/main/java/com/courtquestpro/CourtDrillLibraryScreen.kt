@@ -78,7 +78,7 @@ internal fun DrillLibraryScreen(
         if (swapSlotId == null && section == "Today") item {
             CourtArenaHero(R.drawable.court_arena_hoop,
                 Modifier.padding(horizontal = 16.dp).fillMaxWidth()
-                    .height(210.dp * LocalDensity.current.fontScale).testTag("train-arena-hero"),
+                    .heightIn(min = 170.dp).height(190.dp).testTag("train-arena-hero"),
                 imageAlignment = Alignment.TopEnd) {
                 Column(Modifier.align(Alignment.BottomStart).padding(18.dp),
                     verticalArrangement = Arrangement.spacedBy(7.dp)) {
