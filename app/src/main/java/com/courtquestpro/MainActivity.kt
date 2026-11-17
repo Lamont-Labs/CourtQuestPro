@@ -399,6 +399,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         onboardingDays = if (day in onboardingDays) onboardingDays - day else (onboardingDays + day).sorted()
                         persistOnboardingDraft()
                     },
+                    onGuest = { finishOnboarding() },
                     onBack = { onboardingStep = (onboardingStep - 1).coerceAtLeast(0); persistOnboardingDraft() },
                     onNext = {
                         if (onboardingStep < 4) { onboardingStep++; persistOnboardingDraft() }
@@ -729,7 +730,7 @@ private fun CourtOnboarding(
     modifier: Modifier = Modifier,
     step: Int, name: String, level: String, focus: String, days: List<Int>,
     onName: (String) -> Unit, onLevel: (String) -> Unit, onFocus: (String) -> Unit,
-    onDay: (Int) -> Unit, onBack: () -> Unit, onNext: () -> Unit
+    onDay: (Int) -> Unit, onGuest: () -> Unit, onBack: () -> Unit, onNext: () -> Unit
 ) {
     val scrollState = rememberScrollState()
     LaunchedEffect(step) { scrollState.scrollTo(0) }
@@ -965,6 +966,15 @@ private fun CourtOnboarding(
                     when (step) { 0 -> "Get Started"; 4 -> "ENTER MY COURT"; else -> "CONTINUE" },
                     fontSize = 13.sp, fontWeight = FontWeight.Black, letterSpacing = 0.8.sp
                 )
+            }
+            if (step == 0) {
+                TextButton(onClick = onGuest,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("onboarding-continue-guest")) {
+                    Text("CONTINUE AS GUEST", color = CourtQuestDesign.textPrimary)
+                }
+                Text("Login and account creation are coming later.",
+                    color = CourtQuestDesign.textSecondary,
+                    style = MaterialTheme.typography.bodySmall)
             }
             if (step > 0) {
                 TextButton(
