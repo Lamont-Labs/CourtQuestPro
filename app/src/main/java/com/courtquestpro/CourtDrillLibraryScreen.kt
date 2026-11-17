@@ -378,6 +378,8 @@ internal fun DrillLibraryScreen(
 private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String?, onBack: () -> Unit,
     onFavorite: () -> Unit, onPractice: () -> Unit, onUse: () -> Unit, onEdit: () -> Unit,
     onArchive: () -> Unit, onResume: () -> Unit) {
+    var showTechnique by rememberSaveable(drill.id) { mutableStateOf(false) }
+    var showCoaching by rememberSaveable(drill.id) { mutableStateOf(false) }
     var confirmArchive by remember { mutableStateOf(false) }
     val active = save.practiceSession
     val samePractice = active?.drillId == drill.id
@@ -403,7 +405,11 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                 if (DrillCoachingLibrary.forDrill(drill) != null) {
                     DrillFormReference(drill)
                 }
-                CourtHeading("How to perform this drill")
+                OutlinedButton(onClick = { showTechnique = !showTechnique }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-technique")) {
+                    Text("Step-by-step technique", modifier = Modifier.weight(1f))
+                    Icon(if (showTechnique) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
+                }
+                if (showTechnique)
                 CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(18.dp)) {
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically,
@@ -430,6 +436,11 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                         }
                     }
                 }
+                OutlinedButton(onClick = { showCoaching = !showCoaching }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-coaching")) {
+                    Text("Coaching tips and common mistakes", modifier = Modifier.weight(1f))
+                    Icon(if (showCoaching) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
+                }
+                if (showCoaching)
                 CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(18.dp)) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically,
