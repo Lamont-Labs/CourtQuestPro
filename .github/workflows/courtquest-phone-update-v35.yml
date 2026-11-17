@@ -2,7 +2,9 @@ name: CourtQuest Pro fast phone-test APK v35
 on:
   push:
     branches: [dev/premium-flow-toolkit]
-    paths: ['.github/workflows/courtquest-phone-update-v35.yml']
+    paths:
+      - '.github/workflows/courtquest-phone-update-v35.yml'
+      - 'scripts/verify_phone_update.py'
   workflow_dispatch:
 
 permissions:
