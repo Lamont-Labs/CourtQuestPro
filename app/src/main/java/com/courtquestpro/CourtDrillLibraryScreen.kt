@@ -106,7 +106,15 @@ internal fun DrillLibraryScreen(
                 selected = if (section == "Today") "My Plan" else section,
                 onSelect = { tab ->
                     if (tab == "My Plan") onSectionChange("Today")
-                    else { onSectionChange(tab); filter = "All"; category = "All skills"; query = "" }
+                    else {
+                        onSectionChange(tab)
+                        filter = "All"
+                        category = "All skills"
+                        levelFilter = "All levels"
+                        durationFilter = "Any length"
+                        expandedCategory = null
+                        query = ""
+                    }
                 },
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
