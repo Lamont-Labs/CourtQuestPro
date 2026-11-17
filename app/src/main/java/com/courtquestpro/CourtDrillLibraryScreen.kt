@@ -227,6 +227,7 @@ internal fun DrillLibraryScreen(
             swapSlotId == null && suggestions.isNotEmpty()) {
             item {
                 val featured = suggestions.first()
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 CourtQuestPremiumSurface(
                     Modifier.padding(horizontal = 20.dp).fillMaxWidth()
                         .clickable { onSelect(featured.drill.id) }
@@ -255,6 +256,14 @@ internal fun DrillLibraryScreen(
                             tint = CourtQuestDesign.accent)
                     }
                 }
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        CourtHeading("Browse drills")
+                        Spacer(Modifier.weight(1f))
+                        Text("${shown.size} drills", color = CourtQuestDesign.textSecondary,
+                            style = MaterialTheme.typography.labelMedium)
+                    }
+                }
             }
         }
         if (section != "Today" && shown.isEmpty()) item {
@@ -266,7 +275,9 @@ internal fun DrillLibraryScreen(
                 TextButton({ query = ""; category = "All skills"; filter = "All"; onSectionChange("Library") }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Show all drills") }
             }
         }
-        if (section != "Today" && shown.isNotEmpty()) {
+        if (section != "Today" && shown.isNotEmpty() &&
+            !(section == "Library" && query.isBlank() && filter == "All" &&
+                category == "All skills" && swapSlotId == null && suggestions.isNotEmpty())) {
             item {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically) {
