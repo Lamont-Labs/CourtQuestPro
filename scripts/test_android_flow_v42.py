@@ -53,6 +53,21 @@ class SoloBatchCaptureTest(unittest.TestCase):
             self.assertIs(visible,batch.scroll_to_tag('drill-art-s1'))
         self.assertEqual(2,shell.call_count)
 
+    def test_visible_control_without_an_exported_scroll_node_is_tappable(self):
+        target=Element('node',{'resource-id':'library-drill-s1','bounds':'[40,819][680,963]'})
+        dock=Element('node',{'resource-id':'player-bottom-dock','bounds':'[22,1380][698,1496]'})
+        with patch.object(batch.ui,'nodes',return_value=[target,dock]), \
+                patch.object(batch.ui,'shell',return_value='Override size: 720x1600') as shell:
+            self.assertIs(target,batch.scroll_to_tag('library-drill-s1'))
+        shell.assert_called_once_with('wm','size')
+
+    def test_offscreen_control_without_scroll_support_is_not_tapped(self):
+        target=Element('node',{'resource-id':'live-save-results','bounds':'[72,1333][568,1392]'})
+        with patch.object(batch.ui,'nodes',return_value=[target]), \
+                patch.object(batch.ui,'shell',return_value='Override size: 640x1440'):
+            with self.assertRaisesRegex(AssertionError,'outside the safe screen'):
+                batch.scroll_to_tag('live-save-results')
+
     def test_save_transition_sends_one_tap_then_waits_for_receipt(self):
         button = Element('node', {'bounds':'[20,100][620,200]'})
         receipt = Element('node', {'resource-id':'drill-saved-receipt',

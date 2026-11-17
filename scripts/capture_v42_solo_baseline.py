@@ -50,13 +50,23 @@ def scroll_to_tag(tag):
         items = ui.nodes()
         target = ui.tagged(items, tag)
         regions = [n for n in items if n.get('scrollable') == 'true']
-        if target is not None and regions:
+        if target is not None:
             box = bounds(target)
-            if (len(box) == 4 and box[2] > box[0] and box[3] > box[1] and
-                    any((rb := bounds(region))[0] <= box[0] and rb[1] <= box[1] and
-                        box[2] <= rb[2] and box[3] <= rb[3] for region in regions)):
-                return target
-        assert regions, f'No scroll viewport for {tag}'
+            if len(box) == 4 and box[2] > box[0] and box[3] > box[1]:
+                if any((rb := bounds(region))[0] <= box[0] and rb[1] <= box[1] and
+                       box[2] <= rb[2] and box[3] <= rb[3] for region in regions):
+                    return target
+                if not regions:
+                    sizes = re.findall(r'(\d+)x(\d+)', ui.shell('wm', 'size'))
+                    assert sizes, f'Cannot determine the visible screen for {tag}'
+                    width, height = map(int, sizes[-1])
+                    dock = ui.tagged(items, 'player-bottom-dock')
+                    bottom = min(height - 96, bounds(dock)[1] if dock is not None else height - 96)
+                    if box[0] >= 0 and box[2] <= width and box[1] >= 48 and box[3] <= bottom:
+                        return target
+                    raise AssertionError(f'Control {tag} is outside the safe screen and has no scroll viewport: {box}')
+        if not regions:
+            raise AssertionError(f'No visible control or scroll viewport for {tag}')
         region = max(regions, key=lambda n: (bounds(n)[2]-bounds(n)[0])*(bounds(n)[3]-bounds(n)[1]))
         left, top, right, bottom = bounds(region)
         x = (left+right)//2
