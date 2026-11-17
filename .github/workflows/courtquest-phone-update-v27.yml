@@ -93,7 +93,7 @@ jobs:
           identity=json.loads((root/'upgrade-identity.json').read_text())
           upgrade=json.loads((root/'install-upgrade.json').read_text())
           digest=hashlib.sha256(apk.read_bytes()).hexdigest()
-          assert manifest['package_id']=='com.courtquestpro' and manifest['version_code']==26
+          assert manifest['package_id']=='com.courtquestpro' and manifest['version_code']==27
           assert manifest['apk_sha256']==digest
           assert identity['candidate']['apk_sha256']==digest
           assert identity['previous']['certificate_sha256']==identity['candidate']['certificate_sha256']
@@ -103,7 +103,7 @@ jobs:
           assert upgrade['destructive_phone_operations']=='NONE'
           manifest.update(source_commit=os.environ['GITHUB_SHA'],release_tag='courtquest-phone-update-v27',upgrade_identity=identity,install_upgrade=upgrade)
           (root/'apk-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
-          (root/'RELEASE_NOTES.md').write_text('# CourtQuest Pro v27 phone-test APK\n\nNew streamlined CourtQuest welcome screen replaces the five-step onboarding entry. Install over v24 or v25; do not uninstall or clear app data. Same package and signing identity; v24-to-v27 upgrade and saved-data preservation verified on a disposable Android emulator. Full native-flow and Maestro suites run separately and are not claimed as release gates.\n')
+          (root/'RELEASE_NOTES.md').write_text('# CourtQuest Pro v27 phone-test APK\n\nNew streamlined CourtQuest welcome screen replaces the five-step onboarding entry. Install over v24, v25, or v26; do not uninstall or clear app data. Same package and signing identity; v24-to-v27 upgrade and saved-data preservation verified on a disposable Android emulator. Full native-flow and Maestro suites run separately and are not claimed as release gates.\n')
           PY
           if gh api "repos/${GH_REPO}/releases/tags/courtquest-phone-update-v27" >/dev/null 2>&1; then echo 'v27 already published; refusing overwrite'; exit 1; fi
           gh release create courtquest-phone-update-v27 dist/CourtQuestPro-Update-v27.apk dist/CourtQuestPro-Update-v27.apk.sha256 dist/apk-manifest.json dist/upgrade-identity.json dist/install-upgrade.json dist/RELEASE_NOTES.md --target "$GITHUB_SHA" --prerelease --latest=false --title 'CourtQuest Pro v27 — fast verified phone update' --notes-file dist/RELEASE_NOTES.md
