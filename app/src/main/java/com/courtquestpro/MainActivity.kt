@@ -381,6 +381,15 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             }
             navigate(tab.route)
         }
+        fun startNavigationTour() {
+            // Replaying from a drill or another section must start at the Train root,
+            // not reopen a previously selected drill or an expanded navigation dock.
+            librarySlotId = null
+            librarySelectedId = null
+            navigationExpanded = false
+            tourStep = 0
+            navigate(PlayerTab.TRAIN.route)
+        }
         val showPlayerNavigation = onboardingComplete && !showWelcome &&
             screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings", "team")
         CourtQuestScene {
@@ -629,11 +638,11 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     "quests" -> QuestsScreen(save, today, onTraining = { openTraining() }, onBuild = { openMissionBuilder() },
                         onResumeMission = { openMission() }, onProgress = { navigate("career") })
                     "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") }, onTeam = { navigate("team") },
-                        onWalkthrough = { navigate(PlayerTab.TRAIN.route); tourStep = 0 })
+                        onWalkthrough = { startNavigationTour() })
                     "team" -> TeamScreen(onTrain = { openLibrary() }, onBack = { goBack() })
                     "settings" -> SettingsScreen(save.playerName, save.difficulty, save.jerseyNumber, onBack = { goBack() }, onDifficulty = { save.difficulty = it; refresh() }, onSaveJersey = { save.jerseyNumber = it; refresh() }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
-                    }, onReplayTour = { navigate(PlayerTab.TRAIN.route); tourStep = 0 })
+                    }, onReplayTour = { startNavigationTour() })
                     else -> HomeContent()
                 }
                 }
