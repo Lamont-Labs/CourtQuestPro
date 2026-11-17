@@ -80,7 +80,7 @@ internal fun CourtNavigationTour(
             Spacer(Modifier.height(14.dp))
             Row(Modifier.testTag("tour-current-step").semantics {
                 liveRegion = LiveRegionMode.Polite
-                contentDescription = "Step ${step + 1} of ${stops.size}: ${current.second}. ${current.third}"
+                contentDescription = "Step ${step + 1} of ${stops.size}: ${current.second}. ${current.third} Quick tip: ${currentTip}"
             }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Box(
                     Modifier.size(44.dp).clip(RoundedCornerShape(13.dp))
