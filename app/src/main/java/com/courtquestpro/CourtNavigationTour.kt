@@ -52,21 +52,21 @@ internal fun CourtNavigationTour(
     LaunchedEffect(step) { tourScroll.scrollTo(0) }
     Box(Modifier.fillMaxSize().testTag("navigation-tour"), contentAlignment = Alignment.TopCenter) {
         Column(
-            Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(top = 8.dp, bottom = 8.dp)
+            Modifier.fillMaxWidth().padding(horizontal = 10.dp).padding(top = 6.dp, bottom = 6.dp)
                 .background(Color(0xF7191513), RoundedCornerShape(16.dp))
-                .border(1.dp, CourtQuestDesign.accentVivid.copy(alpha = .5f), RoundedCornerShape(18.dp))
+                .border(1.dp, CourtQuestDesign.accentVivid.copy(alpha = .5f), RoundedCornerShape(16.dp))
                 .verticalScroll(tourScroll)
-                .padding(horizontal = 14.dp, vertical = 10.dp),
+                .padding(horizontal = 12.dp, vertical = 7.dp),
             horizontalAlignment = Alignment.Start
         ) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("EXPLORE COURTQUEST", modifier = Modifier.weight(1f),
                     color = CourtQuestDesign.accentVivid,
-                    fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
-                Text("${step + 1} / ${stops.size}", color = CourtQuestDesign.textSecondary, fontSize = 11.sp)
+                    fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = .7.sp)
+                Text("${step + 1} / ${stops.size}", color = CourtQuestDesign.textSecondary, fontSize = 10.sp)
             }
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(4.dp))
             Row(Modifier.fillMaxWidth().clearAndSetSemantics { },
                 horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                 stops.indices.forEach { index ->
@@ -77,31 +77,31 @@ internal fun CourtNavigationTour(
                     )
                 }
             }
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(5.dp))
             Row(Modifier.testTag("tour-current-step").semantics {
                 liveRegion = LiveRegionMode.Polite
                 contentDescription = "Step ${step + 1} of ${stops.size}: ${current.second}. ${current.third} Quick tip: ${currentTip}"
             }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Box(
-                    Modifier.size(34.dp).clip(RoundedCornerShape(10.dp))
+                    Modifier.size(28.dp).clip(RoundedCornerShape(8.dp))
                         .background(CourtQuestDesign.accentVivid.copy(alpha = .13f))
-                        .border(1.dp, CourtQuestDesign.accentVivid.copy(alpha = .55f), RoundedCornerShape(10.dp)),
+                        .border(1.dp, CourtQuestDesign.accentVivid.copy(alpha = .55f), RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text((step + 1).toString().padStart(2, '0'), color = CourtQuestDesign.accentVivid,
-                        style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
                 Column(Modifier.weight(1f)) {
                     Text(current.first, color = CourtQuestDesign.accentVivid,
-                        style = MaterialTheme.typography.labelSmall, letterSpacing = 1.sp)
+                        fontSize = 9.sp, letterSpacing = .5.sp)
                     Text(current.second, color = CourtQuestDesign.textPrimary,
-                        style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }
             }
-            Spacer(Modifier.height(6.dp))
-            Text(current.third, color = CourtQuestDesign.textSecondary,
-                style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(4.dp))
+            Text(current.third, color = CourtQuestDesign.textSecondary,
+                fontSize = 11.sp, lineHeight = 14.sp)
+            Spacer(Modifier.height(2.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 TextButton(
                     onClick = onSkip,
