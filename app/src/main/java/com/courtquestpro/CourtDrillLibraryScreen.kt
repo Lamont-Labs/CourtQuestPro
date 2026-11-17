@@ -400,6 +400,15 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                         Text(drill.target, color = CourtQuestDesign.accent, style = MaterialTheme.typography.titleLarge)
                     }
                 }
+                CourtEyebrow("READY TO PRACTICE")
+                CourtQuestPrimaryButton(onPractice, Modifier.fillMaxWidth(), canPractice) { Text(if (samePractice) "Resume practice" else "Start extra practice") }
+                Text("Extra practice saves your results in Progress. Daily workout XP and streaks stay with your daily workout.",
+                    style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)
+                if (!canPractice) {
+                    Text("You have another practice in progress. Resume it before starting a different drill.", color = CourtQuestDesign.textSecondary,
+                        style = MaterialTheme.typography.bodyMedium)
+                    OutlinedButton(onResume, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("Resume current practice") }
+                }
                 DrillArtworkReference(drill)
                 DrillCourtReference(drill)
                 if (DrillCoachingLibrary.forDrill(drill) != null) {
@@ -471,14 +480,6 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                             color = CourtQuestDesign.accent, style = MaterialTheme.typography.labelLarge)
                     }
                 }
-                }
-                CourtQuestPrimaryButton(onPractice, Modifier.fillMaxWidth(), canPractice) { Text(if (samePractice) "Resume practice" else "Start extra practice") }
-                Text("Extra practice saves your results in Progress. Daily workout XP and streaks stay with your daily workout.",
-                    style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)
-                if (!canPractice) {
-                    Text("You have another practice in progress. Resume it before starting a different drill.", color = CourtQuestDesign.textSecondary,
-                        style = MaterialTheme.typography.bodyMedium)
-                    OutlinedButton(onResume, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("Resume current practice") }
                 }
                 OutlinedButton(onUse, enabled = canUse, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Use in daily workout") }
                 if (!canUse) Text("A swap needs an untouched ${drill.category.lowercase()} slot and a drill at or below your selected level.",
