@@ -208,7 +208,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         onboardingComplete = true
     }
     // A fresh Activity launch opens the welcome; returning from background does not.
-    var showWelcome by remember { mutableStateOf(true) }
+    var showWelcome by rememberSaveable { mutableStateOf(true) }
     var routeHistory by rememberSaveable { mutableStateOf(listOf("home")) }
     var navigationExpanded by rememberSaveable { mutableStateOf(false) }
     var tourStep by rememberSaveable { mutableIntStateOf(-1) }
