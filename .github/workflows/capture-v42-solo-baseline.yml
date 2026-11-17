@@ -1,5 +1,11 @@
 name: Capture v42 solo-player v41 baseline
 on:
+  push:
+    branches:
+      - dev/premium-flow-toolkit
+    paths:
+      - .github/workflows/capture-v42-solo-baseline.yml
+      - scripts/capture_v42_solo_baseline.py
   workflow_dispatch:
 permissions:
   contents: read
