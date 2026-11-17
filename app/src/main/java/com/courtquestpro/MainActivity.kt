@@ -385,26 +385,10 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             Box(Modifier.fillMaxSize()) {
                 Box(Modifier.fillMaxSize()) {
             if (!onboardingComplete) {
-                CourtOnboarding(
+                CourtWelcomeScreen(
                     modifier = Modifier.padding(padding).consumeWindowInsets(padding),
-                    step = onboardingStep,
-                    name = onboardingName,
-                    level = onboardingLevel,
-                    focus = onboardingFocus,
-                    days = onboardingDays,
-                    onName = { onboardingName = it.take(40); persistOnboardingDraft() },
-                    onLevel = { onboardingLevel = it; persistOnboardingDraft() },
-                    onFocus = { onboardingFocus = it; persistOnboardingDraft() },
-                    onDay = { day ->
-                        onboardingDays = if (day in onboardingDays) onboardingDays - day else (onboardingDays + day).sorted()
-                        persistOnboardingDraft()
-                    },
-                    onGuest = { finishOnboarding() },
-                    onBack = { onboardingStep = (onboardingStep - 1).coerceAtLeast(0); persistOnboardingDraft() },
-                    onNext = {
-                        if (onboardingStep < 4) { onboardingStep++; persistOnboardingDraft() }
-                        else finishOnboarding()
-                    }
+                    onGetStarted = { finishOnboarding() },
+                    onGuest = { finishOnboarding() }
                 )
             } else AnimatedContent(targetState = screen, label = "screen-transition", modifier = Modifier.padding(padding).consumeWindowInsets(padding)) { target ->
                 @Composable fun DestinationContent() {
