@@ -217,7 +217,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         prefs.edit().putBoolean("navigation_tour_complete", true).apply()
         tourStep = -1
     }
-    LaunchedEffect(onboardingComplete) {
+    LaunchedEffect(onboardingComplete, showWelcome) {
         if (onboardingComplete && !showWelcome && !tourCompleted && tourStep < 0) tourStep = 0
     }
     val screen = PlayerNavigation.restore(routeHistory).last()
@@ -408,6 +408,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             if (showWelcome) {
                 CourtWelcomeScreen(
                     modifier = Modifier.padding(padding).consumeWindowInsets(padding),
+                    returningPlayer = onboardingComplete,
                     onGetStarted = { if (!onboardingComplete) finishOnboarding(); showWelcome = false },
                     onGuest = { if (!onboardingComplete) finishOnboarding(); showWelcome = false }
                 )
