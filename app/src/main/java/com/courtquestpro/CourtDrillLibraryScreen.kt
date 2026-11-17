@@ -75,7 +75,7 @@ internal fun DrillLibraryScreen(
         item { AppHeader(if (swapSlotId == null) "Train" else "Make the swap.",
             if (swapSlotId == null) "${shown.size} drills in view · Find your next rep."
             else "Choose a suitable drill for your untouched daily slot.", compact = true) }
-        if (swapSlotId == null) item {
+        if (swapSlotId == null && section == "Today") item {
             CourtArenaHero(R.drawable.court_arena_hoop,
                 Modifier.padding(horizontal = 16.dp).fillMaxWidth()
                     .height(210.dp * LocalDensity.current.fontScale).testTag("train-arena-hero"),
