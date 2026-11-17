@@ -38,8 +38,14 @@ def main():
         capture('onboarding')
         ui.seed('visual-review')
         ui.open_app()
+        capture('seeded-first-frame')
         for destination in DESTINATIONS:
-            ui.navigate(destination)
+            try:
+                ui.navigate(destination)
+            except AssertionError:
+                # Preserve hierarchy and screenshot when a release's navigation differs.
+                capture('navigation-failure-'+destination.lower())
+                raise
             capture(destination.lower())
             records.append({'configuration':label,'screen':destination,'capture':str(ui.OUT/(destination.lower()+'.png'))})
         ui.navigate('Court')
