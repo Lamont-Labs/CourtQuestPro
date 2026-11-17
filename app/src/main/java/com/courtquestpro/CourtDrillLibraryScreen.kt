@@ -407,7 +407,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                 }
                 CourtEyebrow("READY TO PRACTICE")
                 CourtQuestPrimaryButton(onPractice, Modifier.fillMaxWidth(), canPractice) { Text(if (samePractice) "Resume practice" else "Start extra practice") }
-                Text("Extra practice saves your results in Progress. Daily workout XP and streaks stay with your daily workout.",
+                Text("Extra practice records results in Progress. Daily workout rewards are earned in your daily workout.",
                     style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)
                 if (!canPractice) {
                     Text("You have another practice in progress. Resume it before starting a different drill.", color = CourtQuestDesign.textSecondary,
@@ -415,8 +415,6 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                     OutlinedButton(onResume, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("Resume current practice") }
                 }
                 CourtEyebrow("DRILL DEMONSTRATION")
-                Text("Study the movement, then open a court diagram or form guide when you need more detail.",
-                    color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
                 DrillArtworkReference(drill)
                 OutlinedButton(onClick = { showCourtDiagram = !showCourtDiagram }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-court")) {
                     Text("Court positioning · placement and movement", modifier = Modifier.weight(1f))
