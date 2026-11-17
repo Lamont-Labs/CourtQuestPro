@@ -17,6 +17,7 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.clip
@@ -125,7 +126,9 @@ internal fun CourtNavigationTour(
                 TextButton(
                     onClick = onBack,
                     enabled = step > 0,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).testTag("tour-back").semantics {
+                        if (step == 0) stateDescription = "Unavailable on the first step"
+                    }
                 ) { Text("Back") }
                 Button(
                     onClick = onNext,
