@@ -20,7 +20,9 @@ def bounds(node):
 
 def enter_court():
     # v41 opens a welcome on every cold launch, even after fixture seeding.
-    ui.tap(ui.wait_tagged('welcome-continue-guest', attempts=20))
+    # The released APK predates the separate guest CTA in canonical source.
+    target = ui.tagged(ui.nodes(), 'welcome-get-started')
+    ui.tap(target if target is not None else ui.scroll_to('ENTER COURT', 18))
     ui.wait_tagged('player-bottom-dock', attempts=20)
 
 def dismiss_hint():
@@ -188,4 +190,12 @@ def main():
     print(json.dumps(report),flush=True)
 
 if __name__=='__main__':
-    main()
+    try:
+        main()
+    except Exception:
+        ui.OUT.mkdir(parents=True, exist_ok=True)
+        try:
+            capture('failure')
+        except Exception as diagnostic_error:
+            print(f'Could not capture Android failure: {diagnostic_error}', flush=True)
+        raise

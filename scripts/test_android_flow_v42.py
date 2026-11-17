@@ -33,6 +33,16 @@ class SoloBatchCaptureTest(unittest.TestCase):
         self.assertEqual([-5, -10, 20, 40],
                          batch.bounds(Element('node', {'bounds':'[-5,-10][20,40]'})))
 
+    def test_released_welcome_uses_its_actual_existing_enter_court_control(self):
+        button = Element('node', {'resource-id':'welcome-get-started',
+                                 'bounds':'[56,1258][664,1374]'})
+        with patch.object(batch.ui, 'nodes', return_value=[button]), \
+                patch.object(batch.ui, 'tap') as tap, \
+                patch.object(batch.ui, 'wait_tagged') as wait:
+            batch.enter_court()
+        tap.assert_called_once_with(button)
+        wait.assert_called_once_with('player-bottom-dock', attempts=20)
+
 
 if __name__ == '__main__':
     unittest.main()
