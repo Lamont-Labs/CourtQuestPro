@@ -67,7 +67,7 @@ internal fun DrillLibraryScreen(
         }) &&
             (filter != "Mine" || drill.id.startsWith("custom_")) &&
             (filter != "Favorites" || drill.id in favorites) &&
-            (query.isBlank() || listOf(drill.title, drill.category, drill.instructions).any { it.contains(query.trim(), true) })
+            (query.isBlank() || listOf(drill.title, drill.category, drill.level, drill.instructions, drill.target).any { it.contains(query.trim(), true) })
     }
     val suggestions = TrainingLibrary.suggestions(save)
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp),
@@ -152,8 +152,9 @@ internal fun DrillLibraryScreen(
                 .then(if (section == "Library") Modifier.testTag("train-library-content") else Modifier),
                 verticalArrangement = Arrangement.spacedBy(11.dp)) {
                 if (section != "Today") {
-                OutlinedTextField(query, { query = it }, label = { Text("Search drills") }, singleLine = true,
+                OutlinedTextField(query, { query = it }, label = { Text("Search drills, skills or targets") }, singleLine = true,
                     leadingIcon = { Icon(Icons.Default.Search, null) },
+                    trailingIcon = { if (query.isNotBlank()) IconButton(onClick = { query = "" }) { Icon(Icons.Default.Close, "Clear search") } },
                     modifier = Modifier.fillMaxWidth().testTag("library-search"), shape = RoundedCornerShape(14.dp))
                 FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -272,7 +273,7 @@ internal fun DrillLibraryScreen(
                     style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
                 Text(if (filter == "Favorites") "Tap the star on a drill to keep it here." else "Clear a filter or create a drill with your own instructions and target.",
                     style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textSecondary)
-                TextButton({ query = ""; category = "All skills"; filter = "All"; onSectionChange("Library") }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Show all drills") }
+                TextButton({ query = ""; category = "All skills"; filter = "All"; levelFilter = "All levels"; durationFilter = "Any length"; onSectionChange("Library") }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Show all drills") }
             }
         }
         if (section != "Today" && shown.isNotEmpty() &&
