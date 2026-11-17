@@ -450,6 +450,24 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                         style = MaterialTheme.typography.bodyMedium)
                     OutlinedButton(onResume, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("Resume current practice") }
                 }
+                val hasFormGuide = DrillCoachingLibrary.forDrill(drill) != null
+                val allGuidanceOpen = showCourtDiagram && showTechnique && showCoaching &&
+                    (!hasFormGuide || showFormReference)
+                OutlinedButton(
+                    onClick = {
+                        val expand = !allGuidanceOpen
+                        showCourtDiagram = expand
+                        showFormReference = expand && hasFormGuide
+                        showTechnique = expand
+                        showCoaching = expand
+                    },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                        .testTag("drill-toggle-all-guidance")
+                ) {
+                    Icon(if (allGuidanceOpen) Icons.Default.UnfoldLess else Icons.Default.UnfoldMore, null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(if (allGuidanceOpen) "Collapse coaching guides" else "Show all coaching guides")
+                }
                 CourtEyebrow("DRILL DEMONSTRATION")
                 DrillArtworkReference(drill)
                 OutlinedButton(onClick = { showCourtDiagram = !showCourtDiagram }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-court")) {
