@@ -35,7 +35,9 @@ def scroll_to_tag(tag):
         items = ui.nodes()
         target = ui.tagged(items, tag)
         if target is not None:
-            return target
+            box = bounds(target)
+            if len(box) == 4 and box[2] > box[0] and box[3] > box[1]:
+                return target
         regions = [n for n in items if n.get('scrollable') == 'true']
         assert regions, f'No scroll viewport for {tag}'
         region = max(regions, key=lambda n: (bounds(n)[2]-bounds(n)[0])*(bounds(n)[3]-bounds(n)[1]))
@@ -108,9 +110,14 @@ def verify_candidate(config):
         assert len({b[1] for b in rail}) == 1, 'Train selector unexpectedly stacked'
     ui.tap(ui.wait_tagged('segment-library'))
     ui.wait_tagged('library-search')
+    if config == 'normal':
+        first = bounds(ui.wait_tagged('library-drill-s1'))
+        dock = bounds(ui.wait_tagged('player-bottom-dock'))
+        assert first[3] <= dock[1], 'First built-in drill must fit above the dock'
+        assert first[3]-first[1] >= 144, 'First drill row is clipped'
     capture('drill-discovery')
     # All selectors and real built-in detail/artwork remain reachable.
-    ui.tap(ui.scroll_to('View Five-Spot Form Shooting', 18))
+    ui.tap(scroll_to_tag('library-drill-s1'))
     scroll_to_tag('drill-art-s1') if config == 'normal' else None
     capture('drill-detail')
     ui.shell('input', 'keyevent', 'KEYCODE_BACK')
@@ -189,10 +196,7 @@ def main():
         enter_court()
         capture('seeded-first-frame')
         capture('walkthrough')
-        if phase == 'after':
-            verify_candidate(label)
-        else:
-            dismiss_hint()
+        dismiss_hint()
         for destination in DESTINATIONS:
             try:
                 ui.navigate(destination)
@@ -202,6 +206,9 @@ def main():
                 raise
             capture(destination.lower())
             records.append({'phase':phase,'configuration':label,'screen':destination,'capture':str(ui.OUT/(destination.lower()+'.png'))})
+        if phase == 'after':
+            set_tour_complete(False)
+            verify_candidate(label)
         ui.navigate('Court')
         capture('court-return')
         # Do not mutate practice history in this visual-only baseline pass.

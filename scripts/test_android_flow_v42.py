@@ -43,6 +43,15 @@ class SoloBatchCaptureTest(unittest.TestCase):
         tap.assert_called_once_with(button)
         wait.assert_called_once_with('player-bottom-dock', attempts=20)
 
+    def test_artwork_requires_visible_area_not_just_an_exported_tag(self):
+        hidden = Element('node', {'resource-id':'drill-art-s1','bounds':'[0,0][0,0]'})
+        visible = Element('node', {'resource-id':'drill-art-s1','bounds':'[40,300][600,700]'})
+        region = Element('node', {'scrollable':'true','bounds':'[0,48][640,1300]'})
+        with patch.object(batch.ui,'nodes',side_effect=[[hidden,region],[visible,region]]), \
+                patch.object(batch.ui,'shell') as shell, patch.object(batch.time,'sleep'):
+            self.assertIs(visible,batch.scroll_to_tag('drill-art-s1'))
+        shell.assert_called_once()
+
 
 if __name__ == '__main__':
     unittest.main()

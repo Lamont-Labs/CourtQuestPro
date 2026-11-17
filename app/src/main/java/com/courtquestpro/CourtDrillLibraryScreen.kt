@@ -103,7 +103,7 @@ internal fun DrillLibraryScreen(
                         levelFilter = "All levels"
                         durationFilter = "Any length"
                         expandedCategory = null
-                        showAllCategories = false
+                        showAllCategories = true
                         query = ""
                     }
                 },
@@ -342,8 +342,9 @@ internal fun DrillLibraryScreen(
             item {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically) {
-                    CourtHeading("Browse drills")
-                    Spacer(Modifier.weight(1f))
+                    Text("Browse drills", Modifier.weight(1f),
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = CourtQuestDesign.textPrimary)
                     Text("${shown.size} drills", color = CourtQuestDesign.textSecondary,
                         style = MaterialTheme.typography.labelMedium)
                 }
