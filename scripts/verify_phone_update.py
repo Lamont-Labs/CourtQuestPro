@@ -116,6 +116,11 @@ def upgrade(args):
     after = json.loads(ui.prefs()['state'].text)
     require(saved_values_preserved(before, after),
             f'Existing v{previous_version} player data changed on first v{candidate_version} launch')
+    if candidate_version >= 35:
+        ui.wait_tagged('court-welcome-screen')
+        ui.tap(ui.wait_tagged('welcome-get-started'))
+        require(saved_values_preserved(before, json.loads(ui.prefs()['state'].text)),
+                'Welcome entry changed existing player data')
     if candidate_version >= 23:
         ui.wait_tagged('player-bottom-dock')
         for route in ui.NAV_ROUTES.values():
@@ -125,6 +130,10 @@ def upgrade(args):
     ui.screenshot(f'v{candidate_version}-after-update')
     ui.shell('am', 'force-stop', ui.PACKAGE)
     ui.open_app()
+    if candidate_version >= 35:
+        ui.wait_tagged('court-welcome-screen')
+        ui.tap(ui.wait_tagged('welcome-get-started'))
+        ui.wait_tagged('player-bottom-dock')
     require(saved_values_preserved(before, json.loads(ui.prefs()['state'].text)),
             'Existing data changed after relaunch')
     report = dict(input_apk_sha256=digest(args.candidate), baseline_apk_sha256=digest(args.previous),
