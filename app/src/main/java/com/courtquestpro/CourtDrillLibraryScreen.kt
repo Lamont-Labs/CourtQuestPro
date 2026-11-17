@@ -411,6 +411,9 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                         style = MaterialTheme.typography.bodyMedium)
                     OutlinedButton(onResume, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("Resume current practice") }
                 }
+                CourtEyebrow("DRILL DEMONSTRATION")
+                Text("Study the movement, then open a court diagram or form guide when you need more detail.",
+                    color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
                 DrillArtworkReference(drill)
                 OutlinedButton(onClick = { showCourtDiagram = !showCourtDiagram }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-court")) {
                     Text("Court positioning diagram", modifier = Modifier.weight(1f))
@@ -428,6 +431,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                         DrillFormReference(drill)
                     }
                 }
+                CourtEyebrow("TECHNIQUE & COACHING")
                 OutlinedButton(onClick = { showTechnique = !showTechnique }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-technique")) {
                     Text("Step-by-step technique", modifier = Modifier.weight(1f))
                     Icon(if (showTechnique) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
