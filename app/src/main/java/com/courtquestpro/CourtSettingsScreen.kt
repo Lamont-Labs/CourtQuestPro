@@ -112,11 +112,11 @@ internal fun SettingsScreen(playerName: String, difficulty: String, jerseyNumber
                 }
             }
             CourtRule()
-            CourtHeading("Getting around CourtQuest")
-            Text("Need a refresher? Replay the five-stop navigation walkthrough at any time.",
+            CourtHeading("Walkthrough & app guide")
+            Text("Restart the interactive five-stop walkthrough whenever you want. Your player profile, training, and progress stay unchanged.",
                 color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
             CourtQuestPrimaryButton(onClick = onReplayTour, modifier = Modifier.fillMaxWidth()) {
-                Text("Replay app tour")
+                Text("Restart walkthrough")
             }
             CourtRule()
             Text("Your training and player history are saved on this phone. Video demonstrations use the internet.",
