@@ -99,16 +99,29 @@ internal fun CourtNavigationTour(
             Text("Tap ${tab.label} in the navigation dock to explore this area.",
                 color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(12.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = onSkip, modifier = Modifier.testTag("tour-skip")) { Text("Skip tour") }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    TextButton(onClick = onBack, enabled = step > 0) { Text("Back") }
-                    Button(onClick = onNext, modifier = Modifier.testTag("tour-next"),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = CourtQuestDesign.accentVivid, contentColor = Color.Black
-                        )) { Text(if (step == stops.lastIndex) "Finish tour" else "Next") }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = onSkip, modifier = Modifier.testTag("tour-skip")) {
+                    Text("Skip tour")
                 }
+            }
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(
+                    onClick = onBack,
+                    enabled = step > 0,
+                    modifier = Modifier.weight(1f)
+                ) { Text("Back") }
+                Button(
+                    onClick = onNext,
+                    modifier = Modifier.weight(1f).testTag("tour-next"),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = CourtQuestDesign.accentVivid,
+                        contentColor = Color.Black
+                    )
+                ) { Text(if (step == stops.lastIndex) "Finish tour" else "Next") }
             }
 
         }
