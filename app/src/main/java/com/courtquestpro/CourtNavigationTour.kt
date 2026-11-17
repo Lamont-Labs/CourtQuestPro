@@ -94,9 +94,9 @@ internal fun CourtNavigationTour(
             Text(current.third, color = CourtQuestDesign.textSecondary,
                 style = MaterialTheme.typography.bodyMedium)
             Spacer(Modifier.height(10.dp))
-            Text("SELECT THE HIGHLIGHTED TAB", color = CourtQuestDesign.accentVivid,
+            Text("EXPLORE THIS SECTION", color = CourtQuestDesign.accentVivid,
                 style = MaterialTheme.typography.labelSmall, letterSpacing = .7.sp)
-            Text("Tap ${tab.label} in the navigation dock to explore this area.",
+            Text("You're viewing ${tab.label}. Use Next to continue, or choose another dock tab to explore.",
                 color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
