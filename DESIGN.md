@@ -28,6 +28,36 @@ omitted:
 
 # CourtQuest Pro design standard
 
+## v42 first solo-player implementation batch
+
+The owner authorized implementation of Court, Train, five-tab navigation and the
+walkthrough as one substantial batch. “We will be leaving school and coach
+functions out completely for now. Walkthrough is still huge. I dont want to have
+to do 100 tasks.” Team entry points are also excluded from these active surfaces;
+historical data/models remain untouched.
+
+Court prioritizes the actual saved next drill and Start/Resume action, with the
+approved Signature wordmark and arena artwork retained. Train uses a compact
+header, real saved-plan actions and closer search/results rather than a 190dp
+decorative hero. The segmented selector uses a true equal-width Row at normal
+font sizes and an explicit vertical accessibility layout above 130%.
+
+The optional walkthrough is a contextual strip reserved by Scaffold above the
+dock, not an overlay on the screen. It starts on Court, supports Back/Next/Skip,
+persists dismissal, and leaves all five destinations available. Its controls have
+48dp targets. The 58dp dock retains original navigation artwork, adds readable
+labels at normal text sizes, and keeps accessible full names at enlarged text
+without capping font scaling. No new libraries, web mockups or generated art.
+
+Reuse review applied the bundled Impeccable shape/critique/clarify/onboard guidance
+and existing native controls. The UI/UX Pro Max installation was not found in
+this workspace; no use of the historical Product Design/Figma/Context7
+installations is claimed. Existing pinned Compose
+APIs and native tokens remain authoritative. Rendered acceptance requires the
+matched v41/candidate Android captures, separate from build/unit/lint checks.
+This batch does not authorize publication or change package, signer, version or
+the saved-data schema.
+
 ## Offline drill illustrations
 
 The current library contains 18 drill-specific generated athlete plates, bundled

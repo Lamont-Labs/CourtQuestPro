@@ -4,7 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -73,31 +72,16 @@ internal fun DrillLibraryScreen(
     val suggestions = TrainingLibrary.suggestions(save)
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item { AppHeader(if (swapSlotId == null) "Train" else "Make the swap.",
-            if (swapSlotId == null) "${shown.size} drills in view · Find your next rep."
-            else "Choose a suitable drill for your untouched daily slot.", compact = true) }
-        if (swapSlotId == null && section == "Today") item {
-            CourtArenaHero(R.drawable.court_arena_hoop,
-                Modifier.padding(horizontal = 16.dp).fillMaxWidth()
-                    .heightIn(min = 170.dp).height(190.dp).testTag("train-arena-hero"),
-                imageAlignment = Alignment.TopEnd) {
-                Column(Modifier.align(Alignment.BottomStart).padding(18.dp),
-                    verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                    CourtEyebrow("TRAINING FLOOR")
-                    Text("Make the next rep count.", color = CourtQuestDesign.textPrimary,
-                        style = MaterialTheme.typography.headlineMedium)
-                    Text("${save.difficulty} · ${save.weeklyPlan} focus", color = CourtQuestDesign.textSecondary,
-                        style = MaterialTheme.typography.bodyMedium)
-                    CourtQuestPrimaryButton(onStartTraining, Modifier.fillMaxWidth().testTag("train-start-training")) {
-                        Text(when {
-                            MissionTraining.active(save) != null -> "Resume Mission"
-                            save.slots.isNotEmpty() && save.slots.all { it.complete } -> "Play 1-on-1"
-                            resumablePlan -> "Resume session"
-                            else -> "Start training"
-                        }, Modifier.weight(1f))
-                        Icon(Icons.AutoMirrored.Filled.ArrowForward, null)
-                    }
-                }
+        item {
+            Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(if (swapSlotId == null) "Train" else "Make the swap.",
+                    color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineMedium)
+                Text(
+                    if (swapSlotId == null) "${shown.size} drills ready to explore"
+                    else "Choose a matching drill for your untouched slot.",
+                    color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall
+                )
             }
         }
         if (swapSlotId == null) item {
@@ -124,25 +108,70 @@ internal fun DrillLibraryScreen(
         if (section == "Today" && swapSlotId == null) item {
             Column(Modifier.padding(horizontal = 20.dp).testTag("train-plan-content"),
                 verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(18.dp), highlighted = true) {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        CourtEyebrow("YOUR SAVED PLAN")
-                        Text("${save.slots.count { it.complete }} of ${save.slots.size} drills recorded",
-                            color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineMedium)
-                        OutlinedButton(onNew, Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("library-create")) {
-                            Icon(Icons.Default.Add, null, Modifier.size(19.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text("Create custom drill")
+                val done = save.slots.count { it.complete }
+                val inProgressSlot = save.slots.firstOrNull { slot ->
+                    !slot.complete && save.drillDrafts.orEmpty().any {
+                        it.date == save.activeDate && it.slotId == slot.id && it.drillId == slot.drillId
+                    }
+                }
+                val nextSlot = inProgressSlot ?: save.slots.firstOrNull { !TrainingLibrary.locked(save, it) }
+                val nextDrill = nextSlot?.let { slot -> catalog.firstOrNull { it.id == slot.drillId } }
+                val activeMission = MissionTraining.active(save)
+                val startLabel = when {
+                    activeMission != null -> "Resume Mission"
+                    save.slots.isNotEmpty() && save.slots.all { it.complete } -> "Play 1-on-1"
+                    resumablePlan -> "Resume session"
+                    else -> "Start training"
+                }
+                CourtQuestPremiumSurface(
+                    Modifier.fillMaxWidth().testTag("train-arena-hero"),
+                    PaddingValues(14.dp),
+                    highlighted = true
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                CourtEyebrow("YOUR SAVED PLAN")
+                                Text("$done of ${save.slots.size} drills recorded",
+                                    color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleLarge)
+                            }
+                            Text("${save.difficulty.uppercase()}",
+                                color = CourtQuestDesign.accent, style = MaterialTheme.typography.labelSmall)
+                        }
+                        if (nextDrill != null) {
+                            Row(verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                                Icon(Icons.Default.SportsBasketball, null,
+                                    tint = CourtQuestDesign.accentVivid, modifier = Modifier.size(20.dp))
+                                Text(
+                                    "NEXT  ${nextDrill.title} · ${nextDrill.minutes} min",
+                                    color = CourtQuestDesign.textSecondary,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    maxLines = 2,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                        CourtQuestPrimaryButton(
+                            onStartTraining,
+                            Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("train-start-training")
+                        ) {
+                            Text(startLabel, Modifier.weight(1f))
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, null)
                         }
                         save.slots.forEachIndexed { index, slot ->
                             val drill = catalog.firstOrNull { it.id == slot.drillId }
-                            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Text((index + 1).toString().padStart(2, '0'), color = CourtQuestDesign.accent,
-                                    style = MaterialTheme.typography.titleLarge)
+                            Row(
+                                Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Text((index + 1).toString().padStart(2, '0'),
+                                    color = CourtQuestDesign.accent, style = MaterialTheme.typography.titleLarge)
                                 Column(Modifier.weight(1f)) {
                                     Text(drill?.title ?: "Saved drill", color = CourtQuestDesign.textPrimary,
-                                        style = MaterialTheme.typography.titleMedium)
+                                        style = MaterialTheme.typography.titleMedium, maxLines = 1,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                                     Text("${drill?.category ?: "Training"} · ${drill?.minutes ?: 0} min",
                                         color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
                                 }
@@ -151,9 +180,6 @@ internal fun DrillLibraryScreen(
                             }
                         }
                     }
-                }
-                OutlinedButton(onClick = onHome, Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
-                    Text("Back to Court")
                 }
             }
         }
@@ -166,18 +192,11 @@ internal fun DrillLibraryScreen(
                     leadingIcon = { Icon(Icons.Default.Search, null) },
                     trailingIcon = { if (query.isNotBlank()) IconButton(onClick = { query = "" }) { Icon(Icons.Default.Close, "Clear search") } },
                     modifier = Modifier.fillMaxWidth().testTag("library-search"), shape = RoundedCornerShape(14.dp))
-                FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    maxItemsInEachRow = if (LocalDensity.current.fontScale > 1.3f) 1 else 2) {
-                    CourtQuestPrimaryButton(onNew, Modifier.weight(1f).testTag("library-create")) {
-                        Icon(Icons.Default.Add, null, Modifier.size(19.dp)); Spacer(Modifier.width(6.dp))
-                        Text("Create custom drill", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                    }
-                    if (swapSlotId == null && section == "Library") {
-                        OutlinedButton(onMissionBuilder, Modifier.weight(1f).heightIn(min = 52.dp).testTag("library-build-mission")) {
-                            Text("Build a Mission", style = MaterialTheme.typography.labelLarge)
-                        }
+                if (section == "Custom" && swapSlotId == null) {
+                    CourtQuestPrimaryButton(onNew, Modifier.fillMaxWidth().testTag("library-create")) {
+                        Icon(Icons.Default.Add, null, Modifier.size(19.dp)); Spacer(Modifier.width(8.dp))
+                        Text("Create custom drill", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
+                        Icon(Icons.Default.ArrowForward, null, Modifier.size(18.dp))
                     }
                 }
                 if (save.practiceSession != null) {
@@ -270,10 +289,7 @@ internal fun DrillLibraryScreen(
                         horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         Surface(color = CourtQuestDesign.surface, shape = RoundedCornerShape(14.dp),
                             modifier = Modifier.size(68.dp)) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.SportsBasketball, null,
-                                    tint = CourtQuestDesign.accentVivid, modifier = Modifier.size(32.dp))
-                            }
+                            DrillArtworkThumbnail(featured.drill, Modifier.fillMaxSize())
                         }
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             CourtEyebrow("RECOMMENDED · ${featured.drill.category}")
@@ -406,7 +422,29 @@ internal fun DrillLibraryScreen(
                 }
             }
         }
-        item { TextButton(onHome, Modifier.padding(horizontal = 20.dp).heightIn(min = 48.dp)) { Text("Back to Court") } }
+        if (section == "Library" && swapSlotId == null) item {
+            CourtQuestPrimaryButton(
+                onNew,
+                Modifier.padding(horizontal = 20.dp).fillMaxWidth().testTag("library-create")
+            ) {
+                Icon(Icons.Default.Add, null, Modifier.size(19.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Create custom drill", Modifier.weight(1f))
+                Icon(Icons.Default.ArrowForward, null, Modifier.size(18.dp))
+            }
+        }
+        if (section == "Library" && swapSlotId == null) item {
+            OutlinedButton(
+                onClick = onMissionBuilder,
+                Modifier.padding(horizontal = 20.dp).fillMaxWidth().heightIn(min = 48.dp)
+                    .testTag("library-build-mission")
+            ) {
+                Icon(Icons.Default.Tune, null, Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Build a Mission", Modifier.weight(1f))
+                Icon(Icons.Default.ChevronRight, null, Modifier.size(18.dp))
+            }
+        }
     }
 }
 

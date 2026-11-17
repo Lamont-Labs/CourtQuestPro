@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -37,6 +38,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 internal fun CourtQuestBottomDock(selected: PlayerTab, jerseyNumber: Int?, onSelect: (PlayerTab) -> Unit, spotlightTab: PlayerTab? = null) {
     val atlas = rememberNavigationAtlas()
+    val showLabels = LocalDensity.current.fontScale <= 1.3f
     val order = listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)
     val shape = RoundedCornerShape(21.dp)
     Box(Modifier.fillMaxWidth().background(CourtQuestDesign.background).navigationBarsPadding()
@@ -53,7 +55,6 @@ internal fun CourtQuestBottomDock(selected: PlayerTab, jerseyNumber: Int?, onSel
                 Box(
                     Modifier.weight(1f).fillMaxHeight()
                         .clip(RoundedCornerShape(14.dp))
-                        .alpha(if (spotlightTab == null || spotlightTab == tab) 1f else .24f)
                         .border(
                             if (spotlightTab == tab) 1.5.dp else 0.dp,
                             if (spotlightTab == tab) CourtQuestDesign.accentVivid else Color.Transparent,
@@ -64,14 +65,18 @@ internal fun CourtQuestBottomDock(selected: PlayerTab, jerseyNumber: Int?, onSel
                         .testTag("dock-${tab.route}"),
                     contentAlignment = Alignment.Center
                 ) {
+                    Column(Modifier.clearAndSetSemantics { },
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center) {
+                    Box(contentAlignment = Alignment.Center) {
                     if (atlas != null) {
-                        // Use the original approved side-navigation art, without cards or labels.
+                        // Retain the original artwork, sized for a low-profile labeled dock.
                         NavigationSpriteArtwork(
                             atlas, tab.ordinal,
-                            Modifier.size(if (tab == PlayerTab.COURT) 52.dp else 47.dp)
+                            Modifier.size(if (tab == PlayerTab.COURT) 36.dp else 28.dp)
                         )
                     } else if (tab == PlayerTab.COURT) {
-                        CourtBasketballMedallion(Modifier.size(44.dp), active)
+                        CourtBasketballMedallion(Modifier.size(34.dp), active)
                     } else {
                         val fallback = when (tab) {
                             PlayerTab.TRAIN -> Icons.Outlined.FitnessCenter
@@ -80,21 +85,27 @@ internal fun CourtQuestBottomDock(selected: PlayerTab, jerseyNumber: Int?, onSel
                             PlayerTab.ME -> Icons.Outlined.Person
                             PlayerTab.COURT -> Icons.Outlined.SportsBasketball
                         }
-                        Icon(fallback, contentDescription = null, modifier = Modifier.size(27.dp),
+                        Icon(fallback, contentDescription = null, modifier = Modifier.size(25.dp),
                             tint = if (active) CourtQuestDesign.accent else CourtQuestDesign.textSecondary)
                     }
                     if (tab == PlayerTab.ME) {
                         Text(
                             displayedJerseyNumber(jerseyNumber).toString(),
-                            modifier = Modifier.align(Alignment.Center).offset(y = (-5).dp),
+                            modifier = Modifier.align(Alignment.Center).offset(y = (-3).dp),
                             color = CourtQuestDesign.accent,
                             fontFamily = CourtDisplay,
                             fontWeight = FontWeight.Black,
-                            fontSize = 11.sp,
-                            lineHeight = 12.sp,
+                            fontSize = 9.sp,
+                            lineHeight = 10.sp,
                             textAlign = TextAlign.Center,
                             maxLines = 1
                         )
+                    }
+                    }
+                    if (showLabels) Text(tab.label,
+                        color = if (active) CourtQuestDesign.textPrimary else CourtQuestDesign.textSecondary,
+                        fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+                        fontSize = 10.sp, lineHeight = 12.sp, maxLines = 1)
                     }
                     if (active) {
                         Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 2.dp)

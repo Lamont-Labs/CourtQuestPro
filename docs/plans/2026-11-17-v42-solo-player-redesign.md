@@ -1,6 +1,6 @@
 # CourtQuest Pro — v42 Solo Player Redesign Specification
 Date: 2026-11-17
-Status: APPROVED SCOPE / PROPOSED IMPLEMENTATION; NO CODE OR APK RELEASE AUTHORIZED
+Status: FIRST COURT/TRAIN/NAVIGATION/WALKTHROUGH BATCH AUTHORIZED FOR IMPLEMENTATION; NO APK RELEASE AUTHORIZED
 Repository: Lamont-Labs/CourtQuestPro
 Baseline: released v41 (versionCode 41), with separately verified but unreleased walkthrough compactness correction fb63df89.
 Source basis: AGENTS.md; DESIGN.md; docs/specs/CourtQuest_Pro_Master_Product_UX_Engineering_Spec_v1.md; v41 Kotlin/Compose source review.

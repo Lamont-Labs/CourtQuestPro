@@ -5,6 +5,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -36,22 +38,20 @@ internal fun CourtQuestSegmentRail(
 ) {
     require(tagKeys.size == labels.size) { "Each segment needs one stable semantic key" }
     val railShape = RoundedCornerShape(13.dp)
-    FlowRow(
+    Column(
         modifier.fillMaxWidth()
             .clip(railShape)
             .background(CourtQuestDesign.surface.copy(alpha = 0.88f))
             .border(1.dp, CourtQuestDesign.border.copy(alpha = 0.88f), railShape)
             .selectableGroup()
             .padding(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(3.dp),
-        verticalArrangement = Arrangement.spacedBy(3.dp),
-        maxItemsInEachRow = if (LocalDensity.current.fontScale > 1.3f) 1 else labels.size
     ) {
-        labels.forEachIndexed { index, label ->
+        @Composable fun Segment(index: Int, itemModifier: Modifier) {
+            val label = labels[index]
             val active = label == selected
             val itemShape = RoundedCornerShape(10.dp)
             Box(
-                Modifier.weight(1f)
+                itemModifier
                     .heightIn(min = 48.dp)
                     .testTag("segment-${tagKeys[index]}")
                     .clip(itemShape)
@@ -64,8 +64,6 @@ internal fun CourtQuestSegmentRail(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 8.dp),
                     color = if (active) CourtQuestDesign.textPrimary else CourtQuestDesign.textSecondary,
                     style = MaterialTheme.typography.labelLarge,
-                    maxLines = 1,
-                    softWrap = false,
                     textAlign = TextAlign.Center
                 )
                 if (active) {
@@ -77,6 +75,15 @@ internal fun CourtQuestSegmentRail(
                             .background(CourtQuestDesign.accentVivid, RoundedCornerShape(2.dp))
                     )
                 }
+            }
+        }
+        if (LocalDensity.current.fontScale > 1.3f) {
+            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                labels.indices.forEach { Segment(it, Modifier.fillMaxWidth()) }
+            }
+        } else {
+            Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                labels.indices.forEach { Segment(it, Modifier.weight(1f)) }
             }
         }
     }

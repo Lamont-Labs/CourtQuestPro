@@ -1,4 +1,4 @@
-name: Capture v42 solo-player v41 baseline
+name: Verify v42 solo-player native batch
 on:
   push:
     branches:
@@ -20,6 +20,15 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Build and verify the native candidate without publishing
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon --console=plain :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
       - name: Fetch immutable published v41 APK and inspect package
         run: |
           set -euo pipefail
@@ -30,6 +39,11 @@ jobs:
           "${ANDROID_HOME}/build-tools/35.0.0/aapt" dump badging previous/CourtQuestPro-Update-v41.apk | tee artifacts/v42-v41-baseline/package.txt
           grep -q "name='com.courtquestpro'" artifacts/v42-v41-baseline/package.txt
           grep -q "versionCode='41'" artifacts/v42-v41-baseline/package.txt
+          "${ANDROID_HOME}/build-tools/35.0.0/apksigner" verify --print-certs previous/CourtQuestPro-Update-v41.apk \
+            | grep 'Signer #1 certificate SHA-256 digest:' > artifacts/v42-v41-baseline/baseline-signer.txt
+          "${ANDROID_HOME}/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk \
+            | grep 'Signer #1 certificate SHA-256 digest:' > artifacts/v42-v41-baseline/candidate-signer.txt
+          diff -u artifacts/v42-v41-baseline/baseline-signer.txt artifacts/v42-v41-baseline/candidate-signer.txt
       - name: Install Python image dependency
         run: python3 -m pip install Pillow==12.0.0
       - name: Boot guarded Android 35 QA emulator and capture solo baseline
@@ -54,7 +68,9 @@ jobs:
             if [ "$("${ANDROID_HOME}/platform-tools/adb" -s emulator-5562 shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; then break; fi
             sleep 3
           done
-          python3 -u scripts/capture_v42_solo_baseline.py --apk previous/CourtQuestPro-Update-v41.apk
+          python3 -u scripts/capture_v42_solo_baseline.py \
+            --apk previous/CourtQuestPro-Update-v41.apk \
+            --candidate-apk app/build/outputs/apk/debug/app-debug.apk
       - name: Upload screenshot evidence and diagnostics even on failure
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

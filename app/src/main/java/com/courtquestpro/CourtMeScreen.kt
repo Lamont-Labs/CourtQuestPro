@@ -53,9 +53,6 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                         DropdownMenuItem(text = { Text("Training history") },
                             onClick = { settingsMenu = false; onProgress() },
                             leadingIcon = { Icon(Icons.Default.History, null) })
-                        DropdownMenuItem(modifier = Modifier.testTag("me-team"), text = { Text("Team") },
-                            onClick = { settingsMenu = false; onTeam() },
-                            leadingIcon = { Icon(Icons.Default.Group, null) })
                     }
                 }
             }

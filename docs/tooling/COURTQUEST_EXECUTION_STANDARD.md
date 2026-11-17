@@ -23,4 +23,12 @@ Workflows should trigger on relevant source changes or be started by available c
 Track time spent in CI queue/build vs implementation, failure root causes, repeated regressions, first-viewport space, drill start taps, recording action visibility, font scale 1.0/1.3/2.0, saved-data persistence and APK upgrade continuity. Favor reliable native improvements over dependency count or novelty.
 
 ## Immediate state
-Existing Replit CourtQuestPro app confirmed; its GitHub synchronization has NOT yet been verified. GitHub screenshot baseline run 44173344482 failed due to a missing expected navigation tag after fixture seed; diagnostic capture change ce4c355d committed. v41 remains the installed stable release. Do not claim screenshot baseline success or v42 implementation completion.
+The Replit workspace was synchronized with canonical development at
+`1ea78b56aa3f151946ff54ec9a028329ff95a6c1`, retaining its metadata-only commit
+and recoverable pre-sync backup. The first Court/Train/navigation/walkthrough
+implementation batch is isolated on `dev/v42-solo-first-batch`; do not overwrite
+canonical updates. The failed historical baseline run was blocked by the v41
+welcome screen after fixture seeding. The existing capture workflow now explicitly
+enters Court, captures matched before/after states and verifies the candidate on
+one guarded emulator. Pending runs are not evidence of acceptance. v41 remains
+the stable phone APK; no publication is authorized.

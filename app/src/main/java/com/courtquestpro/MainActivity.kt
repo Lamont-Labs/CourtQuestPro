@@ -223,7 +223,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     LaunchedEffect(onboardingComplete, showWelcome) {
         if (onboardingComplete && !showWelcome && !tourCompleted && tourStep < 0) {
             tourStep = 0
-            navigate(PlayerTab.TRAIN.route)
+            navigate(PlayerTab.COURT.route)
         }
     }
     fun goBack() { routeHistory = PlayerNavigation.back(routeHistory) }
@@ -286,9 +286,10 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         }
     }
     BackHandler(enabled = onboardingComplete && navigationExpanded) { navigationExpanded = false }
-    BackHandler(enabled = onboardingComplete && !navigationExpanded && screen != "home") {
+    BackHandler(enabled = onboardingComplete && !navigationExpanded && tourStep < 0 && screen != "home") {
         if (screen == "mission") leaveMission() else goBack()
     }
+    BackHandler(enabled = onboardingComplete && !showWelcome && tourStep >= 0) { closeTour() }
     LaunchedEffect(today) {
         if (save.activeDate != today) {
             save.drillDrafts = mutableListOf()
@@ -336,7 +337,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 if (changed > 0) { refresh(); notice("$changed untouched drills shuffled.") }
                 else notice("No suitable alternatives yet. Started and completed drills stay protected.")
             }, onResumePractice = { navigate("practice") }, onMissionBuilder = { openMissionBuilder() }, onResumeMission = { openMission() },
-            onTeam = { navigate("team") }, onQuests = { navigate("quests") },
+            onQuests = { navigate("quests") },
             onDrills = { openLibrary(initialSection = "Library") })
     }
 
@@ -382,13 +383,13 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             navigate(tab.route)
         }
         fun startNavigationTour() {
-            // Replaying from a drill or another section must start at the Train root,
+            // Replaying from a drill or another section must start at the Court root,
             // not reopen a previously selected drill or an expanded navigation dock.
             librarySlotId = null
             librarySelectedId = null
             navigationExpanded = false
             tourStep = 0
-            navigate(PlayerTab.TRAIN.route)
+            navigate(PlayerTab.COURT.route)
         }
         val showPlayerNavigation = onboardingComplete && !showWelcome &&
             screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings", "team")
@@ -397,19 +398,37 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             modifier = Modifier.semantics { testTagsAsResourceId = true },
             snackbarHost = { SnackbarHost(snackbar) },
             bottomBar = {
+                if (showPlayerNavigation) Column {
+                if (tourStep >= 0) CourtNavigationTour(
+                    step = tourStep,
+                    onNext = {
+                        if (tourStep >= SoloNavigationTour.tabs.lastIndex) closeTour() else {
+                            tourStep++
+                            selectPlayerTab(SoloNavigationTour.tabs[tourStep])
+                        }
+                    },
+                    onSkip = { closeTour() },
+                    onBack = {
+                        if (tourStep > 0) {
+                            tourStep--
+                            selectPlayerTab(SoloNavigationTour.tabs[tourStep])
+                        }
+                    }
+                )
                 if (showPlayerNavigation) CourtQuestBottomDock(
                     selected = PlayerNavigation.tab(routeHistory),
                     jerseyNumber = save.jerseyNumber,
                     onSelect = { tab ->
                         selectPlayerTab(tab)
                         if (tourStep >= 0) {
-                            val tabs = listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)
+                            val tabs = SoloNavigationTour.tabs
                             val tappedStep = tabs.indexOf(tab)
                             if (tappedStep >= 0) tourStep = tappedStep
                         }
                     },
-                    spotlightTab = if (tourStep >= 0) listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)[tourStep.coerceIn(0, 4)] else null
+                    spotlightTab = if (tourStep >= 0) SoloNavigationTour.tabs[tourStep.coerceIn(0, 4)] else null
                 )
+                }
             },
             containerColor = Color.Transparent,
         ) { padding ->
@@ -637,7 +656,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     "career" -> CareerScreen(save, onHome = { navigate("home") }, onMissionReceipt = { missionReceiptId = it; navigate("missionReceipt") })
                     "quests" -> QuestsScreen(save, today, onTraining = { openTraining() }, onBuild = { openMissionBuilder() },
                         onResumeMission = { openMission() }, onProgress = { navigate("career") })
-                    "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") }, onTeam = { navigate("team") },
+                    "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") },
                         onWalkthrough = { startNavigationTour() })
                     "team" -> TeamScreen(onTrain = { openLibrary() }, onBack = { goBack() })
                     "settings" -> SettingsScreen(save.playerName, save.difficulty, save.jerseyNumber, onBack = { goBack() }, onDifficulty = { save.difficulty = it; refresh() }, onSaveJersey = { save.jerseyNumber = it; refresh() }, onSaveName = {
@@ -649,24 +668,6 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 if (PlayerNavigation.retainsState(target)) {
                     destinationState.SaveableStateProvider(target) { DestinationContent() }
                 } else DestinationContent()
-            }
-            if (onboardingComplete && !showWelcome && tourStep >= 0) {
-                CourtNavigationTour(
-                    step = tourStep,
-                    onNext = {
-                        if (tourStep >= 4) closeTour() else {
-                            tourStep++
-                            selectPlayerTab(listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)[tourStep])
-                        }
-                    },
-                    onSkip = { closeTour() },
-                    onBack = {
-                        if (tourStep > 0) {
-                            tourStep--
-                            selectPlayerTab(listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)[tourStep])
-                        }
-                    }
-                )
             }
             }
             }
