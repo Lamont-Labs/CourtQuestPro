@@ -19,10 +19,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/** First-launch entry. Account authentication is deliberately not implied or simulated. */
+/** Branded entry on every fresh app launch; never implies account authentication. */
 @Composable
 internal fun CourtWelcomeScreen(
     modifier: Modifier = Modifier,
+    returningPlayer: Boolean = false,
     onGetStarted: () -> Unit,
     onGuest: () -> Unit
 ) {
@@ -86,10 +87,10 @@ internal fun CourtWelcomeScreen(
                     contentColor = Color(0xFF160A04)
                 )
             ) {
-                Text("GET STARTED", fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                Text(if (returningPlayer) "ENTER COURT" else "GET STARTED", fontWeight = FontWeight.Black, letterSpacing = 1.sp)
             }
             Spacer(Modifier.height(12.dp))
-            OutlinedButton(
+            if (!returningPlayer) OutlinedButton(
                 onClick = onGuest,
                 modifier = Modifier.fillMaxWidth().height(56.dp).testTag("welcome-continue-guest"),
                 shape = RoundedCornerShape(18.dp),
