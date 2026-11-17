@@ -39,6 +39,7 @@ internal fun DrillLibraryScreen(
     var levelFilter by rememberSaveable { mutableStateOf("All levels") }
     var durationFilter by rememberSaveable { mutableStateOf("Any length") }
     var expandedCategory by rememberSaveable { mutableStateOf<String?>(null) }
+    var showAllCategories by rememberSaveable { mutableStateOf(false) }
     val catalog = TrainingLibrary.catalog(save)
     val selected = catalog.firstOrNull { it.id == selectedId }
     val favorites = save.favoriteDrillIds.orEmpty()
@@ -113,6 +114,7 @@ internal fun DrillLibraryScreen(
                         levelFilter = "All levels"
                         durationFilter = "Any length"
                         expandedCategory = null
+                        showAllCategories = false
                         query = ""
                     }
                 },
@@ -323,12 +325,32 @@ internal fun DrillLibraryScreen(
             val groups = if (grouped) TrainingLibrary.categories.map { skill ->
                 skill to shown.filter { it.category == skill }
             }.filter { it.second.isNotEmpty() } else listOf("Results" to shown)
+            if (grouped) item(key = "library-browse-mode") {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Browse by skill", color = CourtQuestDesign.textSecondary,
+                        style = MaterialTheme.typography.labelMedium)
+                    TextButton(
+                        onClick = {
+                            showAllCategories = !showAllCategories
+                            if (showAllCategories) expandedCategory = null
+                        },
+                        modifier = Modifier.testTag("library-toggle-all-categories")
+                    ) {
+                        Text(if (showAllCategories) "Collapse all" else "Show all drills")
+                        Spacer(Modifier.width(4.dp))
+                        Icon(if (showAllCategories) Icons.Default.UnfoldLess else Icons.Default.UnfoldMore,
+                            null, Modifier.size(18.dp))
+                    }
+                }
+            }
             groups.forEach { (skill, groupDrills) ->
                 if (grouped) item(key = "skill-$skill") {
                     CourtQuestPremiumSurface(Modifier.padding(horizontal = 20.dp).fillMaxWidth()
-                        .clickable { expandedCategory = if (expandedCategory == skill) null else skill }
+                        .clickable { expandedCategory = if (expandedCategory == skill && !showAllCategories) null else skill; showAllCategories = false }
                         .testTag("library-category-$skill"), PaddingValues(16.dp),
-                        highlighted = expandedCategory == skill) {
+                        highlighted = showAllCategories || expandedCategory == skill) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.SportsBasketball, null, tint = CourtQuestDesign.accentVivid)
                             Spacer(Modifier.width(12.dp))
@@ -337,12 +359,12 @@ internal fun DrillLibraryScreen(
                                 Text("${groupDrills.size} drills", color = CourtQuestDesign.textSecondary,
                                     style = MaterialTheme.typography.bodySmall)
                             }
-                            Icon(if (expandedCategory == skill) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            Icon(if (showAllCategories || expandedCategory == skill) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                                 "Toggle $skill", tint = CourtQuestDesign.accent)
                         }
                     }
                 }
-                if (!grouped || expandedCategory == skill) {
+                if (!grouped || showAllCategories || expandedCategory == skill) {
                 items(groupDrills, key = { it.id }) { drill ->
             Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp)
                 .clickable { onSelect(drill.id) }
