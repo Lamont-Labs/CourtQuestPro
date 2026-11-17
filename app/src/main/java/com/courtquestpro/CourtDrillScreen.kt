@@ -61,7 +61,7 @@ internal fun DrillScreen(
                     CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp), highlighted = true) {
                       Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         CourtEyebrow("LIVE SESSION")
-                    DrillSessionTimer(drill.minutes, timerSeconds) { timerSeconds = it; saveDraft() }
+                    DrillSessionTimer(drill.minutes, timerSeconds, draft.slotId) { timerSeconds = it; saveDraft() }
                     val rate = if (attemptedCount == 0) null else completedCount.toFloat() / attemptedCount
                      Box(Modifier.testTag("live-drill-stats")) {
                          CourtMetricStrip(listOf(measurement.successLabel to completedCount.toString(),
@@ -187,10 +187,10 @@ internal fun DrillScreen(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun DrillSessionTimer(minutes: Int, initialRemaining: Int, onRemaining: (Int) -> Unit) {
+private fun DrillSessionTimer(minutes: Int, initialRemaining: Int, sessionId: String, onRemaining: (Int) -> Unit) {
     val initialSeconds = minutes.coerceAtLeast(1) * 60
-    var remaining by remember(minutes) { mutableIntStateOf(initialRemaining.coerceIn(0, initialSeconds)) }
-    var running by remember(minutes) { mutableStateOf(false) }
+    var remaining by remember(sessionId) { mutableIntStateOf(initialRemaining.coerceIn(0, initialSeconds)) }
+    var running by remember(sessionId) { mutableStateOf(false) }
     LaunchedEffect(running, remaining) {
         if (running && remaining > 0) {
             delay(1000L)
@@ -202,7 +202,7 @@ private fun DrillSessionTimer(minutes: Int, initialRemaining: Int, onRemaining: 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         CourtEyebrow(if (remaining == 0) "CLOCK FINISHED" else if (running) "CLOCK RUNNING" else "TRAINING CLOCK")
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(Modifier.widthIn(max = 200.dp * LocalDensity.current.fontScale).fillMaxWidth().aspectRatio(1f), contentAlignment = Alignment.Center) {
+            Box(Modifier.widthIn(max = 152.dp * LocalDensity.current.fontScale).fillMaxWidth().aspectRatio(1f), contentAlignment = Alignment.Center) {
                 Canvas(Modifier.fillMaxSize().testTag("live-drill-ring").semantics {
                     contentDescription = "Training clock: %02d minutes %02d seconds".format(remaining / 60, remaining % 60)
                 }) {
@@ -214,7 +214,7 @@ private fun DrillSessionTimer(minutes: Int, initialRemaining: Int, onRemaining: 
                         style = Stroke(stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round))
                 }
                 Text("%02d:%02d".format(remaining / 60, remaining % 60), color = CourtQuestDesign.textPrimary,
-                    style = MaterialTheme.typography.displayMedium)
+                    style = MaterialTheme.typography.headlineLarge)
             }
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
