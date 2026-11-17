@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,29 +48,55 @@ internal fun CourtNavigationTour(
                     fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
                 Text("${step + 1} / ${stops.size}", color = CourtQuestDesign.textSecondary, fontSize = 11.sp)
             }
-            Spacer(Modifier.height(8.dp))
-            Text(current.second, color = CourtQuestDesign.textPrimary,
-                style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(12.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                stops.indices.forEach { index ->
+                    Box(
+                        Modifier.weight(1f).height(3.dp)
+                            .clip(RoundedCornerShape(3.dp))
+                            .background(if (index <= step) CourtQuestDesign.accentVivid else CourtQuestDesign.border)
+                    )
+                }
+            }
+            Spacer(Modifier.height(14.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Box(
+                    Modifier.size(44.dp).clip(RoundedCornerShape(13.dp))
+                        .background(CourtQuestDesign.accentVivid.copy(alpha = .13f))
+                        .border(1.dp, CourtQuestDesign.accentVivid.copy(alpha = .55f), RoundedCornerShape(13.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text((step + 1).toString().padStart(2, '0'), color = CourtQuestDesign.accentVivid,
+                        style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                }
+                Column {
+                    Text(current.first, color = CourtQuestDesign.accentVivid,
+                        style = MaterialTheme.typography.labelSmall, letterSpacing = 1.sp)
+                    Text(current.second, color = CourtQuestDesign.textPrimary,
+                        style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                }
+            }
+            Spacer(Modifier.height(10.dp))
             Text(current.third, color = CourtQuestDesign.textSecondary,
                 style = MaterialTheme.typography.bodyMedium)
-            Spacer(Modifier.height(8.dp))
-            Text("Tap ${tab.label} in the highlighted dock below", color = CourtQuestDesign.accentVivid,
-                style = MaterialTheme.typography.labelMedium)
             Spacer(Modifier.height(10.dp))
+            Text("SELECT THE HIGHLIGHTED TAB", color = CourtQuestDesign.accentVivid,
+                style = MaterialTheme.typography.labelSmall, letterSpacing = .7.sp)
+            Text("Tap ${tab.label} in the navigation dock to explore this area.",
+                color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = onSkip, modifier = Modifier.testTag("tour-skip")) {
-                    Text("Skip")
-                }
+                TextButton(onClick = onSkip, modifier = Modifier.testTag("tour-skip")) { Text("Skip tour") }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     TextButton(onClick = onBack, enabled = step > 0) { Text("Back") }
                     Button(onClick = onNext, modifier = Modifier.testTag("tour-next"),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = CourtQuestDesign.accentVivid, contentColor = Color.Black
-                        )) { Text(if (step == stops.lastIndex) "Finish" else "Next") }
+                        )) { Text(if (step == stops.lastIndex) "Finish tour" else "Next") }
                 }
             }
+
         }
     }
 }
