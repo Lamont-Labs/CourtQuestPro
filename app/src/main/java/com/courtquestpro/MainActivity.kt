@@ -393,9 +393,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         if (tourStep >= 0) {
                             val tabs = listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)
                             val tappedStep = tabs.indexOf(tab)
-                            if (tappedStep == tourStep) {
-                                if (tourStep == 4) closeTour() else tourStep++
-                            } else if (tappedStep >= 0) tourStep = tappedStep
+                            if (tappedStep >= 0) tourStep = tappedStep
                         }
                     },
                     spotlightTab = if (tourStep >= 0) listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)[tourStep.coerceIn(0, 4)] else null
@@ -643,9 +641,19 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             if (onboardingComplete && !showWelcome && tourStep >= 0) {
                 CourtNavigationTour(
                     step = tourStep,
-                    onNext = { if (tourStep >= 4) closeTour() else tourStep++ },
+                    onNext = {
+                        if (tourStep >= 4) closeTour() else {
+                            tourStep++
+                            selectPlayerTab(listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)[tourStep])
+                        }
+                    },
                     onSkip = { closeTour() },
-                    onBack = { if (tourStep > 0) tourStep-- }
+                    onBack = {
+                        if (tourStep > 0) {
+                            tourStep--
+                            selectPlayerTab(listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)[tourStep])
+                        }
+                    }
                 )
             }
             }
