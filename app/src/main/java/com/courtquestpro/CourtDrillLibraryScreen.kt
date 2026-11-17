@@ -373,10 +373,7 @@ internal fun DrillLibraryScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Surface(color = CourtQuestDesign.surface, shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.size(52.dp)) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.SportsBasketball, null,
-                            tint = CourtQuestDesign.accentVivid, modifier = Modifier.size(23.dp))
-                    }
+                    DrillArtworkThumbnail(drill, Modifier.fillMaxSize())
                 }
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(drill.title, color = CourtQuestDesign.textPrimary,
