@@ -378,6 +378,7 @@ internal fun DrillLibraryScreen(
 private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String?, onBack: () -> Unit,
     onFavorite: () -> Unit, onPractice: () -> Unit, onUse: () -> Unit, onEdit: () -> Unit,
     onArchive: () -> Unit, onResume: () -> Unit) {
+    var showCourtDiagram by rememberSaveable(drill.id) { mutableStateOf(false) }
     var showTechnique by rememberSaveable(drill.id) { mutableStateOf(false) }
     var showCoaching by rememberSaveable(drill.id) { mutableStateOf(false) }
     var confirmArchive by remember { mutableStateOf(false) }
@@ -410,7 +411,13 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                     OutlinedButton(onResume, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("Resume current practice") }
                 }
                 DrillArtworkReference(drill)
-                DrillCourtReference(drill)
+                OutlinedButton(onClick = { showCourtDiagram = !showCourtDiagram }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-court")) {
+                    Text("Court positioning diagram", modifier = Modifier.weight(1f))
+                    Icon(if (showCourtDiagram) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
+                }
+                if (showCourtDiagram) {
+                    DrillCourtReference(drill)
+                }
                 if (DrillCoachingLibrary.forDrill(drill) != null) {
                     DrillFormReference(drill)
                 }
