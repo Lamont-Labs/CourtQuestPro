@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -34,7 +35,7 @@ import androidx.compose.ui.unit.sp
 
 /** Same five destinations, with Court at the center. Hit areas never overlap the medallion. */
 @Composable
-internal fun CourtQuestBottomDock(selected: PlayerTab, jerseyNumber: Int?, onSelect: (PlayerTab) -> Unit) {
+internal fun CourtQuestBottomDock(selected: PlayerTab, jerseyNumber: Int?, onSelect: (PlayerTab) -> Unit, spotlightTab: PlayerTab? = null) {
     val atlas = rememberNavigationAtlas()
     val order = listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)
     val shape = RoundedCornerShape(21.dp)
@@ -52,6 +53,12 @@ internal fun CourtQuestBottomDock(selected: PlayerTab, jerseyNumber: Int?, onSel
                 Box(
                     Modifier.weight(1f).fillMaxHeight()
                         .clip(RoundedCornerShape(14.dp))
+                        .alpha(if (spotlightTab == null || spotlightTab == tab) 1f else .24f)
+                        .border(
+                            if (spotlightTab == tab) 1.5.dp else 0.dp,
+                            if (spotlightTab == tab) CourtQuestDesign.accentVivid else Color.Transparent,
+                            RoundedCornerShape(14.dp)
+                        )
                         .selectable(selected = active, role = Role.Tab, onClick = { onSelect(tab) })
                         .semantics { contentDescription = tab.label }
                         .testTag("dock-${tab.route}"),
