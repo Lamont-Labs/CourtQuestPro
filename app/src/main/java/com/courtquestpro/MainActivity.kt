@@ -618,7 +618,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     "team" -> TeamScreen(onTrain = { openLibrary() }, onBack = { goBack() })
                     "settings" -> SettingsScreen(save.playerName, save.difficulty, save.jerseyNumber, onBack = { goBack() }, onDifficulty = { save.difficulty = it; refresh() }, onSaveJersey = { save.jerseyNumber = it; refresh() }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
-                    })
+                    }, onReplayTour = { navigate("home"); tourStep = 0 })
                     else -> HomeContent()
                 }
                 }
