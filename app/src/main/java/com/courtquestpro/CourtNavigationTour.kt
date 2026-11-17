@@ -1,6 +1,7 @@
 package com.courtquestpro
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -41,6 +42,7 @@ internal fun CourtNavigationTour(
         Column(
             Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 42.dp)
                 .background(Color(0xFF171311), RoundedCornerShape(24.dp))
+                .border(1.dp, CourtQuestDesign.accentVivid.copy(alpha = .45f), RoundedCornerShape(24.dp))
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -56,12 +58,16 @@ internal fun CourtNavigationTour(
             Text(current.third, color = CourtQuestDesign.textSecondary,
                 style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
             Spacer(Modifier.height(18.dp))
+            Text("Tap the highlighted navigation icon below to open this section.",
+                color = CourtQuestDesign.accentVivid, textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.height(12.dp))
             Text("${step + 1} / ${stops.size}", color = CourtQuestDesign.textSecondary)
             Spacer(Modifier.height(18.dp))
             Button(onClick = onNext, modifier = Modifier.fillMaxWidth().height(52.dp)
                 .testTag("tour-next"), colors = ButtonDefaults.buttonColors(
                 containerColor = CourtQuestDesign.accentVivid, contentColor = Color.Black
-            )) { Text(if (step == stops.lastIndex) "FINISH TOUR" else "NEXT", fontWeight = FontWeight.Bold) }
+            )) { Text(if (step == stops.lastIndex) "FINISH TOUR" else "NEXT WITHOUT OPENING", fontWeight = FontWeight.Bold) }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically) {
                 TextButton(onClick = onBack, enabled = step > 0) { Text("Back") }
