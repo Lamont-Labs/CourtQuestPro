@@ -114,7 +114,12 @@ internal fun CourtNavigationTour(
                 color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = onSkip, modifier = Modifier.testTag("tour-skip")) {
+                TextButton(
+                    onClick = onSkip,
+                    modifier = Modifier.testTag("tour-skip").semantics {
+                        contentDescription = "Skip the walkthrough and continue using CourtQuest"
+                    }
+                ) {
                     Text("Skip tour")
                 }
             }
