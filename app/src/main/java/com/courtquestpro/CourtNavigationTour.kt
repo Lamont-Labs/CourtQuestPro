@@ -48,7 +48,6 @@ internal fun CourtNavigationTour(
     )
     val currentTip = tips[step.coerceIn(tips.indices)]
     val current = stops[step.coerceIn(stops.indices)]
-    val tabs = listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)
     val tourScroll = rememberScrollState()
     LaunchedEffect(step) { tourScroll.scrollTo(0) }
     Box(Modifier.fillMaxSize().testTag("navigation-tour"), contentAlignment = Alignment.TopCenter) {
