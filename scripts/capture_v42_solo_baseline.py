@@ -30,6 +30,11 @@ def dismiss_hint():
     if skip is not None:
         ui.tap(skip)
 
+def tap_once_then_wait(node, ready_tag):
+    """Issue one tap, then wait for the destination; never replay at its new coordinates."""
+    ui.tap(node)
+    return ui.wait_tagged(ready_tag, attempts=12)
+
 def scroll_to_tag(tag):
     for _ in range(18):
         items = ui.nodes()
@@ -240,8 +245,10 @@ def verify_drill_batch(config):
     assert save.get('enabled') == 'true'
     box = bounds(save)
     x, y = (box[0]+box[2])//2, (box[1]+box[3])//2
-    ui.shell(f'input tap {x} {y}; input tap {x} {y}')
-    ui.wait_tagged('drill-saved-receipt')
+    # A duplicate physical tap after the route changes can land on the receipt's
+    # Continue action. Verify save-once through persisted result count/relaunch,
+    # not by sending a second tap into a different screen.
+    tap_once_then_wait(save, 'drill-saved-receipt')
     capture('drill-receipt')
     final = state()
     receipts = [r for r in final['drillResults'] if r['slotId'] == 'slot-0']
@@ -264,8 +271,7 @@ def verify_drill_batch(config):
         ui.tap(scroll_to_tag('live-confirm-target'))
         box = bounds(scroll_to_tag('live-save-results'))
         x, y = (box[0]+box[2])//2, (box[1]+box[3])//2
-        ui.shell(f'input tap {x} {y}; input tap {x} {y}')
-        ui.wait_tagged('drill-saved-receipt')
+        tap_once_then_wait(scroll_to_tag('live-save-results'), 'drill-saved-receipt')
         practice = state()
         assert practice['drillResults'][:-1] == final['drillResults']
         assert practice['drillResults'][-1]['practice']

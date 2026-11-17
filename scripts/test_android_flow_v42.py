@@ -52,6 +52,16 @@ class SoloBatchCaptureTest(unittest.TestCase):
             self.assertIs(visible,batch.scroll_to_tag('drill-art-s1'))
         shell.assert_called_once()
 
+    def test_save_transition_sends_one_tap_then_waits_for_receipt(self):
+        button = Element('node', {'bounds':'[20,100][620,200]'})
+        receipt = Element('node', {'resource-id':'drill-saved-receipt',
+                                  'bounds':'[20,220][620,600]'})
+        with patch.object(batch.ui,'tap') as tap, \
+                patch.object(batch.ui,'wait_tagged',return_value=receipt) as wait:
+            self.assertIs(receipt,batch.tap_once_then_wait(button,'drill-saved-receipt'))
+        tap.assert_called_once_with(button)
+        wait.assert_called_once_with('drill-saved-receipt',attempts=12)
+
 
 if __name__ == '__main__':
     unittest.main()
