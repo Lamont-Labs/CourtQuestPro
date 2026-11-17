@@ -369,8 +369,17 @@ internal fun DrillLibraryScreen(
                         if (drill.id in favorites) "Remove ${drill.title} from favorites"
                         else "Favorite ${drill.title}", tint = CourtQuestDesign.accent)
                 }
-                Icon(Icons.Default.ChevronRight, "View ${drill.title}",
-                    tint = CourtQuestDesign.textSecondary, modifier = Modifier.size(18.dp))
+                IconButton(
+                    onClick = { if (swapSlotId != null) onUse(drill.id) else onPractice(drill.id) },
+                    modifier = Modifier.testTag("library-quick-practice-${drill.id}")
+                ) {
+                    Icon(
+                        if (swapSlotId != null) Icons.Default.SwapHoriz else Icons.Default.PlayArrow,
+                        if (swapSlotId != null) "Use ${drill.title} for this training slot"
+                        else "Practice ${drill.title} now",
+                        tint = CourtQuestDesign.accentVivid
+                    )
+                }
             }
             HorizontalDivider(Modifier.padding(start = 84.dp, end = 20.dp),
                 color = CourtQuestDesign.surface)
