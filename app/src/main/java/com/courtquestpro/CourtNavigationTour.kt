@@ -78,7 +78,7 @@ internal fun CourtNavigationTour(
             Text("TAP ${tab.label.uppercase()} TO EXPLORE", color = CourtQuestDesign.accentVivid,
                 fontWeight = FontWeight.Bold, fontSize = 12.sp)
             Spacer(Modifier.height(8.dp))
-            CourtQuestBottomDock(selected = tab, jerseyNumber = jerseyNumber, onSelect = onDestination)
+            CourtQuestBottomDock(selected = tab, jerseyNumber = jerseyNumber, onSelect = onDestination, spotlightTab = tab)
         }
     }
 }
