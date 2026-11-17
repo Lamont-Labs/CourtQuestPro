@@ -1,5 +1,11 @@
 package com.courtquestpro
 
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.util.Log
@@ -98,8 +104,9 @@ private data class LoadedDrillArtwork(
 
 /** Displays the drill-specific offline WebP or an explicit custom/missing-art fallback. */
 @Composable
-internal fun DrillArtworkReference(drill: Drill) {
+internal fun DrillArtworkReference(drill: Drill, showRepCheck: Boolean = true) {
     val context = LocalContext.current.applicationContext
+    var enlarged by remember(drill.id) { mutableStateOf(false) }
     var loaded by remember(context, drill.id) { mutableStateOf<LoadedDrillArtwork?>(null) }
     LaunchedEffect(context, drill.id) {
         loaded = withContext(Dispatchers.IO) {
@@ -132,6 +139,7 @@ internal fun DrillArtworkReference(drill: Drill) {
                 loaded?.entry != null && loaded?.image != null -> {
                     val entry = requireNotNull(loaded?.entry)
                     val image = requireNotNull(loaded?.image)
+                    if (enlarged) DrillPlateViewer(drill.title, entry.visualSummary, image) { enlarged = false }
                     Image(
                         bitmap = image,
                         contentDescription = "${entry.sequence.size}-phase technique illustration for ${drill.title}. ${entry.visualSummary}",
@@ -141,6 +149,10 @@ internal fun DrillArtworkReference(drill: Drill) {
                             .testTag("drill-art-${drill.id}"),
                         contentScale = ContentScale.Fit
                     )
+                    TextButton(onClick = { enlarged = true },
+                        modifier = Modifier.heightIn(min = 48.dp).testTag("drill-enlarge-art")) {
+                        Text("Enlarge illustration")
+                    }
                     Text(entry.visualSummary,
                         color = CourtQuestDesign.textPrimary,
                         style = MaterialTheme.typography.bodyMedium)
@@ -164,7 +176,7 @@ internal fun DrillArtworkReference(drill: Drill) {
                                 style = MaterialTheme.typography.bodyMedium)
                         }
                     }
-                    Text("The illustration supports the sequence; use the written coaching cues for the drill.",
+                    Text("Use the illustration to orient yourself. Follow the written cues for footwork, timing and safe spacing.",
                         color = CourtQuestDesign.textSecondary,
                         style = MaterialTheme.typography.bodySmall)
                 }
@@ -180,6 +192,41 @@ internal fun DrillArtworkReference(drill: Drill) {
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.testTag("drill-art-missing-${drill.id}")
                 )
+            }
+            if (showRepCheck) DrillCoachingLibrary.repCheck(drill)?.let {
+                CourtEyebrow("WHAT COUNTS AS A REP")
+                Text(it, Modifier.testTag("drill-rep-check-${drill.id}"),
+                    color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun DrillPlateViewer(title: String, summary: String, image: ImageBitmap, onClose: () -> Unit) {
+    var zoomed by remember { mutableStateOf(false) }
+    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        CourtQuestPremiumSurface(Modifier.fillMaxWidth().padding(12.dp), PaddingValues(12.dp), highlighted = true) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(title, color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleMedium)
+                FlowRow {
+                    TextButton(onClick = { zoomed = !zoomed }, modifier = Modifier.heightIn(min = 48.dp).testTag("drill-zoom-art")) {
+                        Text(if (zoomed) "Fit illustration" else "Zoom in")
+                    }
+                    TextButton(onClick = onClose, modifier = Modifier.heightIn(min = 48.dp).testTag("drill-close-art")) { Text("Close") }
+                }
+                BoxWithConstraints(Modifier.fillMaxWidth().heightIn(max = 380.dp)) {
+                    val width = maxWidth
+                    val height = width * (image.height.toFloat() / image.width)
+                    val scale = if (zoomed) 2f else 1f
+                    Box(Modifier.horizontalScroll(rememberScrollState()).verticalScroll(rememberScrollState())) {
+                        Image(image, summary, Modifier.size(width * scale, height * scale)
+                            .testTag("drill-art-viewer"))
+                    }
+                }
+                if (zoomed) Text("Scroll to inspect the footwork, hands and ball.",
+                    color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
             }
         }
     }

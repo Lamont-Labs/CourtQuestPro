@@ -166,11 +166,100 @@ def verify_candidate(config):
     enter_court()
     dismiss_hint()
 
+def verify_drill_batch(config):
+    # Run the exact feature journey on the guarded Android device at each text size.
+    assert_dock()
+    ui.navigate('Train')
+    ui.tap(ui.wait_tagged('segment-library'))
+    search = ui.wait_tagged('library-search')
+    ui.tap(search)
+    ui.shell('input', 'text', 'beginner%sfive')
+    ui.shell('input', 'keyevent', 'KEYCODE_BACK')
+    ui.tap(scroll_to_tag('library-drill-s1'))
+    capture('drill-detail')
+    scroll_to_tag('drill-art-s1')
+    ui.tap(scroll_to_tag('drill-enlarge-art'))
+    ui.wait_tagged('drill-art-viewer')
+    ui.tap(ui.wait_tagged('drill-zoom-art'))
+    ui.scroll_to('Fit illustration')
+    capture('drill-art-zoom')
+    ui.tap(ui.wait_tagged('drill-close-art'))
+    scroll_to_tag('drill-rep-check-s1')
+    ui.shell('input','keyevent','KEYCODE_BACK')
+    ui.navigate('Court')
+
+    def state():
+        return json.loads(ui.prefs()['state'].text)
+
+    def draft():
+        return next(d for d in state()['drillDrafts'] if d['slotId'] == 'slot-0')
+
+    def counts(expected):
+        actual = draft()
+        assert (actual['successful'], actual['attempted']) == expected, actual
+
+    ui.tap(ui.scroll_to('Resume session', 18))
+    success = ui.wait_tagged('live-record-success')
+    hit = bounds(success)
+    assert hit[3]-hit[1] >= 128, 'Primary recorder is not fully visible'
+    capture('drill-recorder')
+    ui.tap(success)
+    ui.tap(scroll_to_tag('live-record-miss'))
+    counts((1, 2))
+    saved_draft = draft()
+    ui.shell('am','force-stop',ui.PACKAGE)
+    ui.open_app()
+    enter_court()
+    ui.tap(ui.scroll_to('Resume session', 18))
+    assert draft() == saved_draft, 'Cold resume changed the recorder draft'
+    ui.tap(scroll_to_tag('live-undo-miss'))
+    counts((1, 1))
+    ui.tap(scroll_to_tag('live-undo-success'))
+    counts((0, 0))
+    ui.shell('input','keyevent','KEYCODE_BACK')
+    ui.tap(ui.scroll_to('Resume session', 18))
+    box = bounds(ui.wait_tagged('live-record-success'))
+    x, y = (box[0]+box[2])//2, (box[1]+box[3])//2
+    ui.shell('; '.join([f'input tap {x} {y}'] * 15))
+    counts((15, 15))
+    confirm = scroll_to_tag('live-confirm-target')
+    ui.tap(confirm)
+    if config == 'normal':
+        ui.shell('input','keyevent','KEYCODE_BACK')
+        ui.tap(ui.scroll_to('Resume session', 18))
+        ui.tap(scroll_to_tag('live-undo-success'))
+        counts((14, 14))
+        assert not draft()['targetConfirmed']
+        assert scroll_to_tag('live-save-results').get('enabled') == 'false'
+        ui.shell('input','keyevent','KEYCODE_BACK')
+        ui.tap(ui.scroll_to('Resume session', 18))
+        ui.tap(ui.wait_tagged('live-record-success'))
+        counts((15, 15))
+        ui.tap(scroll_to_tag('live-confirm-target'))
+    save = scroll_to_tag('live-save-results')
+    assert save.get('enabled') == 'true'
+    box = bounds(save)
+    x, y = (box[0]+box[2])//2, (box[1]+box[3])//2
+    ui.shell(f'input tap {x} {y}; input tap {x} {y}')
+    ui.wait_tagged('drill-saved-receipt')
+    capture('drill-receipt')
+    final = state()
+    receipts = [r for r in final['drillResults'] if r['slotId'] == 'slot-0']
+    assert len(receipts) == 1
+    assert (receipts[0]['completed'], receipts[0]['attempted']) == (15, 15)
+    assert len(final['drillResults']) == 3 and final['totalXp'] == 150
+    assert final['slots'][0]['complete'] and not final['drillDrafts']
+    ui.shell('am','force-stop',ui.PACKAGE)
+    ui.open_app()
+    enter_court()
+    assert state() == final, 'Relaunch changed the result or awarded duplicate XP'
+
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--apk',required=True,type=Path)
     parser.add_argument('--output',default='artifacts/v42-v41-baseline',type=Path)
     parser.add_argument('--candidate-apk',type=Path)
+    parser.add_argument('--drill-batch', action='store_true')
     args=parser.parse_args()
     assert args.apk.is_file() and args.apk.stat().st_size > 1000000, 'Missing real release APK'
     # Safety: seed() and pm clear operate only on the disposable AVD.
@@ -178,6 +267,24 @@ def main():
     assert ui.adb('emu','avd','name').decode().splitlines()[0].strip() == 'CourtQuest_PremiumQA'
     apk_sha=hashlib.sha256(args.apk.read_bytes()).hexdigest()
     assert 'Success' in ui.adb('install',str(args.apk.resolve()),timeout=180).decode()
+    if args.drill_batch:
+        assert args.candidate_apk and args.candidate_apk.is_file(), 'Drill batch requires a candidate APK'
+        ui.seed('visual-review')
+        saved = ui.prefs()['state'].text
+        assert 'Success' in ui.adb('install','-r',str(args.candidate_apk.resolve()),timeout=180).decode()
+        assert ui.prefs()['state'].text == saved, 'Update changed saved player state'
+        for label,width,height,font in CONFIGS:
+            ui.OUT = args.output/'drills'/label
+            ui.OUT.mkdir(parents=True, exist_ok=True)
+            ui.shell('wm','size',f'{width}x{height}')
+            ui.shell('wm','density','320')
+            ui.shell('settings','put','system','font_scale',font)
+            ui.seed('visual-review')
+            ui.open_app()
+            enter_court()
+            dismiss_hint()
+            verify_drill_batch(label)
+        return
     records=[]
     phases = [('before', args.apk)]
     if args.candidate_apk:

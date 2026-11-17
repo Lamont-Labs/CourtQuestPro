@@ -28,6 +28,25 @@ omitted:
 
 # CourtQuest Pro design standard
 
+## v42 drill-to-receipt batch
+
+Drill discovery matches words across the catalog and written technique cues.
+Drill detail puts the target and observable technique checkpoint before the
+practice action, then uses the actual bundled plate with an offline pan-and-zoom
+viewer. The 18 approved plates are preserved. Illustrated sequences and
+comparisons are references, not proof of technique; written cues specify what to
+count, including side balance, intervals, spacing and controlled attempts rather
+than treating every successful action as a made basket. Custom drills keep their
+own instructions without inferring a movement pattern.
+
+Live recording prioritizes counts and large attempt actions over the timer.
+Corrections persist to the draft; falling below the target clears confirmation.
+Saving requires matching confirmed counts on the current daily slot and refuses
+an existing result for that slot and date. Receipts separate self-recorded
+counts and participation XP from skill claims and have no second Save action.
+New drill-specific measurement wording is frozen when recorded; old result and
+Mission snapshots are not rewritten.
+
 ## v42 first solo-player implementation batch
 
 The owner authorized implementation of Court, Train, five-tab navigation and the

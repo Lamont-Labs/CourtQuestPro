@@ -31,4 +31,28 @@ internal object DrillCoachingLibrary {
     )
 
     fun forDrill(drill: Drill): DrillCoaching? = guides[drill.id]
+
+    /** What to log, not a claim that the app can verify form or time spent. */
+    private val repChecks = mapOf(
+        "s1" to "Count made shots. Keep separate track of the three makes at each of your five spots.",
+        "s2" to "Count a controlled catch, set and shot even if it misses. A rushed or off-balance release is an other attempt.",
+        "s3" to "Count a balanced stop and shot, not only a make. Track ten controlled attempts from each side.",
+        "b1" to "Count a crossover once the receiving hand controls the bounce. Switch direction after thirty clean reps.",
+        "b2" to "Count one full baseline-to-half-court trip with both speed changes and no loss of control.",
+        "b3" to "Count one combination only after both moves and a controlled first driving step. Do eight per hand.",
+        "f1" to "Count made layups; alternate or track sides separately so each hand gets five makes.",
+        "f2" to "Count a finish only after a stable cut and a release with the hand away from the defender. Track eight per side.",
+        "f3" to "Count a controlled reverse on the far side of the rim. Track six from each side; reset clear of the basket.",
+        "d1" to "Count one completed 20-second slide interval, not every step. Rest 20 seconds and reset before the next round.",
+        "d2" to "Count a closeout only if you finish balanced outside the shooter's landing space. Track eight approaches per side.",
+        "d3" to "Count one full 30-second mirror round. Stop and reset if either player loses footing or spacing.",
+        "r1" to "Count one controlled turn, legal position and rebound read. This drill does not require a jump or a caught ball.",
+        "r2" to "Count one secure rebound, balanced landing and controlled outlet. Regain balance before pivoting.",
+        "r3" to "Count each secured rebound and alternate shooter and rebounder. Wait until both players are clear before the next shot.",
+        "p1" to "Count accurate passes. Track ten chest passes and ten bounce passes separately.",
+        "p2" to "Count a full pass, cut and controlled return catch. A good first pass alone does not complete the sequence.",
+        "p3" to "Count the outlet only after a secure gather, scan and accurate pass through a clear lane."
+    )
+
+    fun repCheck(drill: Drill): String? = repChecks[drill.id]
 }

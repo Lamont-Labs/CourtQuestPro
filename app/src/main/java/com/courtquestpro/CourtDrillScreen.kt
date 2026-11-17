@@ -23,6 +23,10 @@ import kotlinx.coroutines.delay
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.geometry.Offset
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -37,16 +41,21 @@ internal fun DrillScreen(
     var attemptedCount by remember(draft.slotId) { mutableIntStateOf(draft.attempted) }
     var targetConfirmed by remember(draft.slotId) { mutableStateOf(draft.targetConfirmed) }
     var timerSeconds by remember(draft.slotId) { mutableIntStateOf(draft.remainingSeconds) }
-    val measurement = frozenMeasurement?.vocabulary() ?: measurementFor(drill.category)
+    val specific = drillSpecificMeasurement(drill)
+    val measurement = frozenMeasurement?.vocabulary() ?: specific ?: measurementFor(drill.category)
     val requiredCount = frozenMeasurement?.minimumSuccesses ?: DrillTargets.minimum(drill)
     val meetsCount = requiredCount != null && completedCount >= requiredCount && attemptedCount >= completedCount
     var confirmDiscard by remember(drill.id) { mutableStateOf(false) }
     var showFullGuide by remember(drill.id) { mutableStateOf(false) }
+    val largeText = LocalDensity.current.fontScale > 1.3f
     if (confirmDiscard) AlertDialog(onDismissRequest = { confirmDiscard = false }, title = { Text(if (sessionLabel != null) "Discard this Mission session?" else "Discard this practice?") },
         text = { Text("Unrecorded attempts will be removed. Your saved results stay in Progress.") },
         confirmButton = { TextButton({ confirmDiscard = false; onDiscard?.invoke() }) { Text(if (sessionLabel != null) "Discard Mission session" else "Discard practice") } },
         dismissButton = { TextButton({ confirmDiscard = false }) { Text("Keep practicing") } })
-    val best = previousResults.filter { it.attempted > 0 && it.completed in 0..it.attempted }.maxByOrNull { it.completed }
+    val best = previousResults.filter {
+        it.attempted > 0 && it.completed in 0..it.attempted &&
+            (specific == null || it.measurementSnapshot?.vocabulary() == measurement)
+    }.maxByOrNull { it.completed }
 
     fun saveDraft() {
         onDraft(draft.copy(successful = completedCount, attempted = attemptedCount,
@@ -55,38 +64,55 @@ internal fun DrillScreen(
 
     Column(Modifier.fillMaxSize()) {
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 20.dp)) {
-            item { AppHeader(drill.title, sessionLabel ?: if (practice) "Extra practice · ${drill.category}" else "Drill ${slotNumber.coerceIn(1, 6)} of 6 · ${drill.category}", compact = true) }
+            item {
+                Column(Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    CourtEyebrow(sessionLabel ?: if (practice) "EXTRA PRACTICE" else "DAILY DRILL ${slotNumber.coerceIn(1, 6)} OF 6")
+                    Text(drill.title, style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
+                }
+            }
             item {
                 Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp), highlighted = true) {
                       Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        CourtEyebrow("LIVE SESSION")
-                    DrillSessionTimer(drill.minutes, timerSeconds, draft.slotId) { timerSeconds = it; saveDraft() }
                     val rate = if (attemptedCount == 0) null else completedCount.toFloat() / attemptedCount
-                     Box(Modifier.testTag("live-drill-stats")) {
+                    @Composable fun Counts() {
+                      Box(Modifier.testTag("live-drill-stats")) {
                          CourtMetricStrip(listOf(measurement.successLabel to completedCount.toString(),
                              measurement.attemptLabel to attemptedCount.toString(),
-                             "Accuracy" to (rate?.let { "${(it * 100).toInt()}%" } ?: "—")))
+                             "Success rate" to
+                                 (rate?.let { "${(it * 100).toInt()}%" } ?: "—")))
+                      }
                     }
+                    if (!largeText) Counts()
                     CourtQuestPrimaryButton(
-                        onClick = { completedCount++; attemptedCount++; saveDraft() },
+                        onClick = {
+                            if (!meetsCount) targetConfirmed = false
+                            completedCount++; attemptedCount++; saveDraft()
+                        },
                         enabled = !complete,
                          modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp).testTag("live-record-success")
                             .semantics { contentDescription = "Record successful attempt" }
                     ) {
                         Icon(Icons.Default.Add, null, Modifier.size(25.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text(measurement.successButton.removePrefix("+").trim().lowercase().replaceFirstChar { it.uppercase() })
+                        Text(measurement.successButton.removePrefix("+").trim())
                     }
                     OutlinedButton(
                         onClick = { attemptedCount++; saveDraft() }, enabled = !complete,
                          modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("live-record-miss"), shape = RoundedCornerShape(16.dp)
                     ) { Text("Record missed / other attempt") }
+                    if (largeText) Counts()
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = { if (completedCount > 0) { completedCount--; attemptedCount--; saveDraft() } },
-                            enabled = !complete && completedCount > 0, modifier = Modifier.heightIn(min = 48.dp)) { Text("− Success") }
+                        TextButton(onClick = { if (completedCount > 0) {
+                            completedCount--; attemptedCount--
+                            if (requiredCount == null || completedCount < requiredCount) targetConfirmed = false
+                            saveDraft()
+                        } }, enabled = !complete && completedCount > 0,
+                            modifier = Modifier.heightIn(min = 48.dp).testTag("live-undo-success")) { Text("− Success") }
                         TextButton(onClick = { if (attemptedCount > completedCount) { attemptedCount--; saveDraft() } },
-                            enabled = !complete && attemptedCount > completedCount, modifier = Modifier.heightIn(min = 48.dp)) { Text("− Miss") }
+                            enabled = !complete && attemptedCount > completedCount,
+                            modifier = Modifier.heightIn(min = 48.dp).testTag("live-undo-miss")) { Text("− Miss") }
                     }
                      CourtEyebrow("NEXT STEP")
                      Text(
@@ -103,8 +129,7 @@ internal fun DrillScreen(
                              color = CourtQuestDesign.accentVivid,
                              trackColor = CourtQuestDesign.surface
                          )
-                         Row(Modifier.fillMaxWidth(),
-                             horizontalArrangement = Arrangement.SpaceBetween) {
+                         FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                              Text("${completedCount.coerceAtMost(requiredCount)} / ${requiredCount} successful actions",
                                  color = CourtQuestDesign.textSecondary,
                                  style = MaterialTheme.typography.bodySmall)
@@ -125,10 +150,11 @@ internal fun DrillScreen(
                      CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp), blurred = true) {
                          Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                              Row(Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                                 .toggleable(targetConfirmed, enabled = !complete, role = Role.Checkbox,
+                                 .testTag("live-confirm-target")
+                                 .toggleable(targetConfirmed && meetsCount, enabled = !complete && meetsCount, role = Role.Checkbox,
                                      onValueChange = { targetConfirmed = it; saveDraft() }),
                                  verticalAlignment = Alignment.CenterVertically) {
-                                 Checkbox(checked = targetConfirmed, onCheckedChange = null, enabled = !complete)
+                                 Checkbox(checked = targetConfirmed && meetsCount, onCheckedChange = null, enabled = !complete && meetsCount)
                                  Spacer(Modifier.width(10.dp))
                                  Text("Full target completed safely.", color = CourtQuestDesign.textPrimary,
                                      style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
@@ -143,6 +169,9 @@ internal fun DrillScreen(
                              }
                          }
                      }
+                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(12.dp)) {
+                        DrillSessionTimer(drill.minutes, timerSeconds, draft.slotId) { timerSeconds = it; saveDraft() }
+                    }
                     if (best != null) {
                         Text("Personal best · ${best.completed} successful from ${best.attempted} attempts",
                             color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
@@ -166,7 +195,14 @@ internal fun DrillScreen(
                     Text("The clock pauses when you leave this drill.", color = CourtQuestDesign.textSecondary,
                         style = MaterialTheme.typography.bodySmall)
                     Text(drill.instructions, color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyLarge)
-                    DrillArtworkReference(drill)
+                    DrillCoachingLibrary.forDrill(drill)?.let {
+                        CourtEyebrow("TECHNIQUE CHECK")
+                        Text(it.checkpoint, color = CourtQuestDesign.textPrimary)
+                        CourtEyebrow("COMMON MISTAKE & FIX")
+                        Text(it.correction, color = CourtQuestDesign.textSecondary)
+                    }
+                    DrillArtworkReference(drill, showRepCheck = frozenMeasurement == null ||
+                        specific == null || frozenMeasurement.vocabulary() == specific)
                     DrillCourtReference(drill)
                     DrillFormReference(drill)
                     TextButton(onClick = onVideo, modifier = Modifier.heightIn(min = 48.dp)) {
@@ -242,12 +278,12 @@ internal fun DrillResultScreen(
     val workoutComplete = !result.practice && completedSlots == 6
     Column(Modifier.fillMaxSize()) {
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 20.dp)) {
-            item { AppHeader(if (result.practice) "Practice recorded." else "Session recorded.",
-                "${drill.category} · ${result.date}", compact = true) }
             item {
-                Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(24.dp), highlighted = true) {
-                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(if (result.practice) "Practice recorded." else "Session recorded.",
+                        style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
+                    CourtQuestPremiumSurface(Modifier.fillMaxWidth().testTag("drill-saved-receipt"), PaddingValues(16.dp), highlighted = true) {
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                 CourtSavedStamp(Modifier.size(36.dp))
                                 CourtEyebrow("SAVED TO PROGRESS", Modifier.weight(1f).semantics { liveRegion = LiveRegionMode.Polite })
@@ -255,13 +291,19 @@ internal fun DrillResultScreen(
                             Text(drill.title, color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineMedium)
                             Text("Self-recorded · Saved on this device", color = CourtQuestDesign.textSecondary,
                                 style = MaterialTheme.typography.bodySmall)
+                            val recordedTime = result.recordedAt?.let {
+                                runCatching { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
+                                    .withZone(ZoneId.systemDefault()).format(Instant.parse(it)) }.getOrNull()
+                            }
+                            Text(listOfNotNull(result.date, recordedTime).joinToString(" · "),
+                                color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
                             val accuracy = if (result.attempted > 0)
                                 "${(result.completed * 100.0 / result.attempted).toInt()}%" else "—"
-                            CourtMetricStrip(listOf(
-                                "Successful" to result.completed.toString(),
-                                "Attempts" to result.attempted.toString(),
-                                "Accuracy" to accuracy
-                            ))
+                            val vocabulary = result.measurementSnapshot?.vocabulary() ?: measurementFor(drill.category)
+                            Text("${result.completed} / ${result.attempted} · $accuracy",
+                                color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineMedium)
+                            Text("${vocabulary.successLabel} / ${vocabulary.attemptLabel} · Success rate",
+                                color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
                             val target = DrillTargets.minimum(drill)
                             if (target != null && target > 0) {
                                 val targetProgress = (result.completed.toFloat() / target).coerceIn(0f, 1f)
@@ -272,8 +314,7 @@ internal fun DrillResultScreen(
                                     color = CourtQuestDesign.accentVivid,
                                     trackColor = CourtQuestDesign.surface
                                 )
-                                Row(Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween) {
+                                FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     Text("Target: ${result.completed} / $target",
                                         color = CourtQuestDesign.textSecondary,
                                         style = MaterialTheme.typography.bodySmall)
@@ -288,7 +329,8 @@ internal fun DrillResultScreen(
                                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text(if (result.practice) "Extra practice" else "$completedSlots of 6 drills recorded",
                                     color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
-                                Text("+$earnedXp XP", color = CourtQuestDesign.accent, style = MaterialTheme.typography.labelLarge)
+                                Text(if (result.practice) "No daily XP awarded" else "+$earnedXp participation XP",
+                                    color = CourtQuestDesign.accent, style = MaterialTheme.typography.labelLarge)
                             }
                         }
                     }

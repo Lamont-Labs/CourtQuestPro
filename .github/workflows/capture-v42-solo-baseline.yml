@@ -7,6 +7,12 @@ on:
       - .github/workflows/capture-v42-solo-baseline.yml
       - scripts/capture_v42_solo_baseline.py
   workflow_dispatch:
+    inputs:
+      scope:
+        description: Native flow to verify
+        type: choice
+        default: solo
+        options: [solo, drills]
 permissions:
   contents: read
 concurrency:
@@ -49,6 +55,7 @@ jobs:
       - name: Boot guarded Android 35 QA emulator and capture solo baseline
         env:
           ANDROID_AVD_HOME: /tmp/courtquest-avd
+          VERIFY_SCOPE: ${{ inputs.scope }}
         run: |
           set -euo pipefail
           test -e /dev/kvm
@@ -68,9 +75,11 @@ jobs:
             if [ "$("${ANDROID_HOME}/platform-tools/adb" -s emulator-5562 shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; then break; fi
             sleep 3
           done
+          extra=()
+          if [ "$VERIFY_SCOPE" = drills ]; then extra+=(--drill-batch); fi
           python3 -u scripts/capture_v42_solo_baseline.py \
             --apk previous/CourtQuestPro-Update-v41.apk \
-            --candidate-apk app/build/outputs/apk/debug/app-debug.apk
+            --candidate-apk app/build/outputs/apk/debug/app-debug.apk "${extra[@]}"
       - name: Upload screenshot evidence and diagnostics even on failure
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

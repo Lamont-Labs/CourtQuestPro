@@ -72,7 +72,7 @@ internal fun DrillLibraryScreen(
         }) &&
             (filter != "Mine" || drill.id.startsWith("custom_")) &&
             (filter != "Favorites" || drill.id in favorites) &&
-            (query.isBlank() || listOf(drill.title, drill.category, drill.level, drill.instructions, drill.target).any { it.contains(query.trim(), true) })
+        DrillDiscovery.matches(drill, query)
     }
     val suggestions = TrainingLibrary.suggestions(save)
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp),
@@ -495,21 +495,22 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
         confirmButton = { TextButton({ confirmArchive = false; onArchive() }) { Text("Archive drill") } },
         dismissButton = { TextButton({ confirmArchive = false }) { Text("Keep drill") } })
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        item { AppHeader(drill.title, "${drill.category} · ${drill.level} · ${drill.minutes} min") }
         item {
-            Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 TextButton(onBack, modifier = Modifier.heightIn(min = 48.dp)) { Text("Back to library") }
-                CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(20.dp)) {
+                CourtEyebrow("${drill.category.uppercase()} · ${drill.level.uppercase()} · ${drill.minutes} MIN")
+                Text(drill.title, style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
+                CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(14.dp), highlighted = true) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         CourtEyebrow("YOUR TARGET")
-                        Text(drill.target, color = CourtQuestDesign.accent, style = MaterialTheme.typography.titleLarge)
-                        HorizontalDivider(color = CourtQuestDesign.textSecondary.copy(alpha = 0.18f))
-                        Text("${drill.minutes} MIN  ·  ${drill.minimumSuccesses} SUCCESSFUL ACTIONS  ·  ${drill.level.uppercase()}",
-                            color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.labelMedium)
+                        Text(drill.target, color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleMedium)
+                        DrillCoachingLibrary.forDrill(drill)?.let {
+                            Text(it.checkpoint, color = CourtQuestDesign.textSecondary,
+                                style = MaterialTheme.typography.bodyMedium)
+                        }
                     }
                 }
-                CourtEyebrow("READY TO PRACTICE")
-                CourtQuestPrimaryButton(onPractice, Modifier.fillMaxWidth(), canPractice) { Text(if (samePractice) "Resume practice" else "Start extra practice") }
+                CourtQuestPrimaryButton(onPractice, Modifier.fillMaxWidth().testTag("drill-start-practice"), canPractice) { Text(if (samePractice) "Resume practice" else "Start extra practice") }
                 Text("Extra practice records results in Progress. Daily workout rewards are earned in your daily workout.",
                     style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)
                 if (!canPractice) {
@@ -520,6 +521,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                 val hasFormGuide = DrillCoachingLibrary.forDrill(drill) != null
                 val allGuidanceOpen = showCourtDiagram && showTechnique && showCoaching &&
                     (!hasFormGuide || showFormReference)
+                DrillArtworkReference(drill)
                 OutlinedButton(
                     onClick = {
                         val expand = !allGuidanceOpen
@@ -535,8 +537,6 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                     Spacer(Modifier.width(8.dp))
                     Text(if (allGuidanceOpen) "Collapse coaching guides" else "Show all coaching guides")
                 }
-                CourtEyebrow("DRILL DEMONSTRATION")
-                DrillArtworkReference(drill)
                 OutlinedButton(onClick = { showCourtDiagram = !showCourtDiagram }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-court")) {
                     Text("Court positioning · placement and movement", modifier = Modifier.weight(1f))
                     Icon(if (showCourtDiagram) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
@@ -618,7 +618,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                                 color = CourtQuestDesign.textSecondary,
                                 style = MaterialTheme.typography.bodyMedium)
                         }
-                        Text("Target: ${drill.minimumSuccesses} successful actions · ${drill.minutes} min",
+                        Text("Target: ${drill.target}",
                             color = CourtQuestDesign.accent, style = MaterialTheme.typography.labelLarge)
                     }
                 }

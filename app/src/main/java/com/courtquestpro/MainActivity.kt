@@ -553,8 +553,14 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                             },
                             onVideo = { openUrl("https://www.youtube.com/results?search_query=" + Uri.encode(drill.videoQuery)) },
                             onComplete = { completed, attempted ->
-                                if (save.activeDate == today && selectedSlot in save.slots.indices && !save.slots[selectedSlot].complete &&
-                                    save.slots[selectedSlot].drillId == drill.id && DrillTargets.eligible(drill, completed, attempted)) {
+                                val current = save.slots.getOrNull(selectedSlot)
+                                val confirmed = save.drillDrafts.orEmpty().any {
+                                    it.date == today && it.slotId == current?.id && it.drillId == drill.id &&
+                                        it.targetConfirmed && it.successful == completed && it.attempted == attempted
+                                }
+                                if (save.activeDate == today && current != null && current.id == slot?.id && !current.complete &&
+                                    current.drillId == drill.id && confirmed && DrillTargets.eligible(drill, completed, attempted) &&
+                                    save.drillResults.orEmpty().none { !it.practice && it.date == today && it.slotId == current.id }) {
                                     val xpBefore = save.totalXp
                                     val result = DrillResult(save.activeDate, save.slots[selectedSlot].id, drill.id, completed, attempted, drillSnapshot = drill)
                                     save.drillResults = (save.drillResults.orEmpty() + MissionTraining.legacyEvidence(save, result, Instant.now().toString())).toMutableList()

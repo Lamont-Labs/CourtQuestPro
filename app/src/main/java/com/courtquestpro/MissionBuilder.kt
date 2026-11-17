@@ -22,8 +22,9 @@ internal object MissionBuilder {
     fun snapshot(drill: Drill, id: String = "step_${UUID.randomUUID()}", required: Boolean = false): MissionStep? {
         val minimum = DrillTargets.minimum(drill) ?: return null
         if (drill.minutes !in 1..60) return null
-        val vocabulary = measurementFor(drill.category)
-        return MissionStep(id, drill.copy(), MissionMeasurement("success-attempt-v1", minimum,
+        val specific = drillSpecificMeasurement(drill)
+        val vocabulary = specific ?: measurementFor(drill.category)
+        return MissionStep(id, drill.copy(), MissionMeasurement(if (specific == null) "success-attempt-v1" else "drill-actions-v2", minimum,
             vocabulary.successLabel, vocabulary.attemptLabel, vocabulary.successButton, vocabulary.description), required)
     }
     fun ensureDraft(save: SaveState): MissionBuilderDraft = save.missionDraft ?: MissionBuilderDraft(
