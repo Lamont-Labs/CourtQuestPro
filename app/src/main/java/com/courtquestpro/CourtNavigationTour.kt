@@ -20,22 +20,26 @@ internal fun CourtNavigationTour(
     step: Int,
     onNext: () -> Unit,
     onSkip: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    jerseyNumber: Int?,
+    onDestination: (PlayerTab) -> Unit
 ) {
     val stops = listOf(
         Triple("TRAINING", "Find your drills", "Open Training to explore drills and start a practice session."),
         Triple("PROGRESS", "See your improvement", "Follow your training history and watch your progress build."),
         Triple("COURT", "Your basketball home", "Return to Court whenever you want your main dashboard."),
-        Triple("ACHIEVEMENTS", "Celebrate every milestone", "Find your rewards and accomplishments as you train."),
+        Triple("QUESTS", "Build your momentum", "Explore challenges that make your practice more engaging."),
         Triple("PLAYER", "Make it yours", "Manage your player details and customize your jersey.")
     )
     val current = stops[step.coerceIn(stops.indices)]
+    val tabs = listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)
+    val tab = tabs[step.coerceIn(tabs.indices)]
     Box(
         Modifier.fillMaxSize().background(Color(0xE9000000)).testTag("navigation-tour"),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.TopCenter
     ) {
         Column(
-            Modifier.fillMaxWidth().padding(24.dp)
+            Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 42.dp)
                 .background(Color(0xFF171311), RoundedCornerShape(24.dp))
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -63,6 +67,12 @@ internal fun CourtNavigationTour(
                 TextButton(onClick = onBack, enabled = step > 0) { Text("Back") }
                 TextButton(onClick = onSkip) { Text("Skip tour") }
             }
+        }
+        Column(Modifier.align(Alignment.BottomCenter), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("TAP ${tab.label.uppercase()} TO EXPLORE", color = CourtQuestDesign.accentVivid,
+                fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            Spacer(Modifier.height(8.dp))
+            CourtQuestBottomDock(selected = tab, jerseyNumber = jerseyNumber, onSelect = onDestination)
         }
     }
 }
