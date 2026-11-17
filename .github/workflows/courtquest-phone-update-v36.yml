@@ -95,11 +95,11 @@ jobs:
           identity=json.loads((root/'upgrade-identity.json').read_text())
           upgrade=json.loads((root/'install-upgrade.json').read_text())
           digest=hashlib.sha256(apk.read_bytes()).hexdigest()
-          assert manifest['package_id']=='com.courtquestpro' and manifest['version_code']==35
+          assert manifest['package_id']=='com.courtquestpro' and manifest['version_code']==36
           assert manifest['apk_sha256']==digest
           assert identity['candidate']['apk_sha256']==digest
           assert identity['previous']['certificate_sha256']==identity['candidate']['certificate_sha256']
-          assert upgrade['versions']==[24,35] and upgrade['input_apk_sha256']==digest
+          assert upgrade['versions']==[24,36] and upgrade['input_apk_sha256']==digest
           assert upgrade['android_install_replace'] and upgrade['preferences_byte_identical_after_install']
           assert upgrade['saved_values_preserved_after_launch'] and upgrade['saved_values_preserved_after_relaunch']
           assert upgrade['destructive_phone_operations']=='NONE'
