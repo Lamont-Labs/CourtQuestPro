@@ -4,6 +4,10 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SportsBasketball
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -177,6 +181,43 @@ internal fun DrillArtworkReference(drill: Drill) {
                     modifier = Modifier.testTag("drill-art-missing-${drill.id}")
                 )
             }
+        }
+    }
+}
+
+/** Lightweight, offline artwork preview for drill discovery; no full coaching guide in list rows. */
+@Composable
+internal fun DrillArtworkThumbnail(drill: Drill, modifier: Modifier = Modifier) {
+    val context = LocalContext.current.applicationContext
+    var image by remember(context, drill.id) { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(context, drill.id) {
+        image = withContext(Dispatchers.IO) {
+            drillArtworkEntry(context, drill.id)?.let { metadata ->
+                runCatching {
+                    context.assets.open(metadata.assetPath).use { input ->
+                        BitmapFactory.Options().apply { inSampleSize = 4 }.let { options ->
+                            BitmapFactory.decodeStream(input, null, options)?.asImageBitmap()
+                        }
+                    }
+                }.getOrNull()
+            }
+        }
+    }
+    if (image != null) {
+        Image(
+            bitmap = requireNotNull(image),
+            contentDescription = "Technique illustration for ${drill.title}",
+            modifier = modifier.testTag("library-art-${drill.id}"),
+            contentScale = ContentScale.Crop
+        )
+    } else {
+        Box(modifier, contentAlignment = androidx.compose.ui.Alignment.Center) {
+            Icon(
+                androidx.compose.material.icons.Icons.Default.SportsBasketball,
+                contentDescription = null,
+                tint = CourtQuestDesign.accentVivid,
+                modifier = Modifier.size(23.dp)
+            )
         }
     }
 }
