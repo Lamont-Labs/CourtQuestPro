@@ -255,7 +255,34 @@ internal fun DrillResultScreen(
                             Text(drill.title, color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineMedium)
                             Text("Self-recorded · Saved on this device", color = CourtQuestDesign.textSecondary,
                                 style = MaterialTheme.typography.bodySmall)
-                            CourtMetricStrip(listOf("Successful" to result.completed.toString(), "Attempts" to result.attempted.toString()))
+                            val accuracy = if (result.attempted > 0)
+                                "${(result.completed * 100.0 / result.attempted).toInt()}%" else "—"
+                            CourtMetricStrip(listOf(
+                                "Successful" to result.completed.toString(),
+                                "Attempts" to result.attempted.toString(),
+                                "Accuracy" to accuracy
+                            ))
+                            val target = DrillTargets.minimum(drill)
+                            if (target != null && target > 0) {
+                                val targetProgress = (result.completed.toFloat() / target).coerceIn(0f, 1f)
+                                LinearProgressIndicator(
+                                    progress = { targetProgress },
+                                    modifier = Modifier.fillMaxWidth().height(8.dp)
+                                        .testTag("result-target-progress"),
+                                    color = CourtQuestDesign.accentVivid,
+                                    trackColor = CourtQuestDesign.surface
+                                )
+                                Row(Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Text("Target: ${result.completed} / $target",
+                                        color = CourtQuestDesign.textSecondary,
+                                        style = MaterialTheme.typography.bodySmall)
+                                    Text(if (result.completed >= target) "TARGET MET"
+                                        else "${(targetProgress * 100).toInt()}% complete",
+                                        color = CourtQuestDesign.accentVivid,
+                                        style = MaterialTheme.typography.labelMedium)
+                                }
+                            }
                             CourtRule()
                             FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
