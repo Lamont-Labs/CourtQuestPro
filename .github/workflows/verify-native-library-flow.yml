@@ -82,7 +82,7 @@ jobs:
           "${ANDROID_HOME}/build-tools/35.0.1/apksigner" verify --print-certs /tmp/courtquest-build5.apk
           sha256sum /tmp/courtquest-build5.apk
       - name: Capture baseline, update in place, and verify the daily flow
-        if: inputs.verification_scope == 'full'
+        if: (github.event_name == 'workflow_dispatch' && inputs.verification_scope == 'full') || (github.event_name == 'push' && contains(github.event.head_commit.message, '[visual-regression]'))
         run: |
           mkdir -p "$COURTQUEST_UI_EVIDENCE"
           export PATH="${ANDROID_HOME}/platform-tools:${PATH}"
