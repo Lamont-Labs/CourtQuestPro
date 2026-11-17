@@ -433,6 +433,8 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                     }
                 }
                 CourtEyebrow("TECHNIQUE & COACHING")
+                Text("Open the guidance you need before your next attempt.",
+                    color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
                 OutlinedButton(onClick = { showTechnique = !showTechnique }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-technique")) {
                     Text("Step-by-step technique · drill instructions", modifier = Modifier.weight(1f))
                     Icon(if (showTechnique) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
