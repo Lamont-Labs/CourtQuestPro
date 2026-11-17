@@ -53,7 +53,7 @@ jobs:
           gh release download courtquest-phone-update-v24 --pattern 'CourtQuestPro-Update-v24.apk' --pattern 'CourtQuestPro-Update-v24.apk.sha256' --dir previous
           (cd previous && sha256sum --check CourtQuestPro-Update-v24.apk.sha256)
           python3 scripts/verify_apk.py --apk app/build/outputs/apk/debug/app-debug.apk --build-tools "${ANDROID_HOME}/build-tools/35.0.1" --output dist
-          python3 scripts/verify_phone_update.py identity --previous previous/CourtQuestPro-Update-v24.apk --candidate app/build/outputs/apk/debug/app-debug.apk --previous-version 24 --candidate-version 29 --tools "${ANDROID_HOME}/build-tools/35.0.1" --output dist
+          python3 scripts/verify_phone_update.py identity --previous previous/CourtQuestPro-Update-v24.apk --candidate app/build/outputs/apk/debug/app-debug.apk --previous-version 24 --candidate-version 30 --tools "${ANDROID_HOME}/build-tools/35.0.1" --output dist
       - name: Prepare one disposable upgrade emulator
         run: |
           set -euo pipefail
@@ -78,7 +78,7 @@ jobs:
           PY
       - name: Verify v24-to-v30 upgrade preserves saved player data
         run: |
-          python3 scripts/verify_phone_update.py upgrade --previous previous/CourtQuestPro-Update-v24.apk --candidate app/build/outputs/apk/debug/app-debug.apk --previous-version 24 --candidate-version 29 --output dist
+          python3 scripts/verify_phone_update.py upgrade --previous previous/CourtQuestPro-Update-v24.apk --candidate app/build/outputs/apk/debug/app-debug.apk --previous-version 24 --candidate-version 30 --output dist
       - name: Seal exact binary and publish immutable prerelease
         run: |
           set -euo pipefail
