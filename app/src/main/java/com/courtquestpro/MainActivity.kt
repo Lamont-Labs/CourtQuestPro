@@ -627,7 +627,8 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     "career" -> CareerScreen(save, onHome = { navigate("home") }, onMissionReceipt = { missionReceiptId = it; navigate("missionReceipt") })
                     "quests" -> QuestsScreen(save, today, onTraining = { openTraining() }, onBuild = { openMissionBuilder() },
                         onResumeMission = { openMission() }, onProgress = { navigate("career") })
-                    "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") }, onTeam = { navigate("team") })
+                    "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") }, onTeam = { navigate("team") },
+                        onWalkthrough = { navigate("home"); tourStep = 0 })
                     "team" -> TeamScreen(onTrain = { openLibrary() }, onBack = { goBack() })
                     "settings" -> SettingsScreen(save.playerName, save.difficulty, save.jerseyNumber, onBack = { goBack() }, onDifficulty = { save.difficulty = it; refresh() }, onSaveJersey = { save.jerseyNumber = it; refresh() }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
