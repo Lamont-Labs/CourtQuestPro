@@ -45,12 +45,13 @@ class SoloBatchCaptureTest(unittest.TestCase):
 
     def test_artwork_requires_visible_area_not_just_an_exported_tag(self):
         hidden = Element('node', {'resource-id':'drill-art-s1','bounds':'[0,0][0,0]'})
+        clipped = Element('node', {'resource-id':'drill-art-s1','bounds':'[40,1200][600,1400]'})
         visible = Element('node', {'resource-id':'drill-art-s1','bounds':'[40,300][600,700]'})
         region = Element('node', {'scrollable':'true','bounds':'[0,48][640,1300]'})
-        with patch.object(batch.ui,'nodes',side_effect=[[hidden,region],[visible,region]]), \
+        with patch.object(batch.ui,'nodes',side_effect=[[hidden,region],[clipped,region],[visible,region]]), \
                 patch.object(batch.ui,'shell') as shell, patch.object(batch.time,'sleep'):
             self.assertIs(visible,batch.scroll_to_tag('drill-art-s1'))
-        shell.assert_called_once()
+        self.assertEqual(2,shell.call_count)
 
     def test_save_transition_sends_one_tap_then_waits_for_receipt(self):
         button = Element('node', {'bounds':'[20,100][620,200]'})

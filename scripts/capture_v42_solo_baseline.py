@@ -49,11 +49,13 @@ def scroll_to_tag(tag):
     for _ in range(18):
         items = ui.nodes()
         target = ui.tagged(items, tag)
-        if target is not None:
-            box = bounds(target)
-            if len(box) == 4 and box[2] > box[0] and box[3] > box[1]:
-                return target
         regions = [n for n in items if n.get('scrollable') == 'true']
+        if target is not None and regions:
+            box = bounds(target)
+            if (len(box) == 4 and box[2] > box[0] and box[3] > box[1] and
+                    any((rb := bounds(region))[0] <= box[0] and rb[1] <= box[1] and
+                        box[2] <= rb[2] and box[3] <= rb[3] for region in regions)):
+                return target
         assert regions, f'No scroll viewport for {tag}'
         region = max(regions, key=lambda n: (bounds(n)[2]-bounds(n)[0])*(bounds(n)[3]-bounds(n)[1]))
         left, top, right, bottom = bounds(region)
@@ -61,7 +63,9 @@ def scroll_to_tag(tag):
         height = bottom-top
         ui.shell('input','swipe',str(x),str(top+height*4//5),str(x),str(top+height//4),'350')
         time.sleep(.5)
-    raise AssertionError(f'Artwork {tag} was not reachable')
+    last = ui.tagged(ui.nodes(), tag)
+    raise AssertionError(f'Control {tag} did not fit inside its scroll viewport: '
+                         f'{bounds(last) if last is not None else "not exported"}')
 
 def assert_dock():
     items = ui.nodes()
