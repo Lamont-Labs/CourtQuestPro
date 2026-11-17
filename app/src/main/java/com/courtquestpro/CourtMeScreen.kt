@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
-internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Unit, onTeam: () -> Unit = {}) {
+internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Unit, onTeam: () -> Unit = {}, onWalkthrough: () -> Unit = {}) {
     var section by rememberSaveable { mutableStateOf("Profile") }
     var settingsMenu by remember { mutableStateOf(false) }
     val days = (save.trainingDays ?: listOf(1, 3, 5)).filter { it in 1..7 }.distinct().sorted()
@@ -47,6 +47,9 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                         DropdownMenuItem(text = { Text("Edit player profile") },
                             onClick = { settingsMenu = false; onEdit() },
                             leadingIcon = { Icon(Icons.Default.Edit, null) })
+                        DropdownMenuItem(modifier = Modifier.testTag("me-start-walkthrough"), text = { Text("Start app walkthrough") },
+                            onClick = { settingsMenu = false; onWalkthrough() },
+                            leadingIcon = { Icon(Icons.Default.HelpOutline, null) })
                         DropdownMenuItem(text = { Text("Training history") },
                             onClick = { settingsMenu = false; onProgress() },
                             leadingIcon = { Icon(Icons.Default.History, null) })
@@ -138,6 +141,12 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                             Text("Your focus and weekly schedule can be adjusted on Court. Your level applies to new daily workouts.",
                                 color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
                             OutlinedButton(onEdit, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Edit player settings") }
+                            OutlinedButton(onWalkthrough, Modifier.fillMaxWidth().heightIn(min = 52.dp)
+                                .testTag("me-settings-start-walkthrough")) {
+                                Icon(Icons.Default.HelpOutline, null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Start app walkthrough")
+                            }
                         }
                     }
                 }
