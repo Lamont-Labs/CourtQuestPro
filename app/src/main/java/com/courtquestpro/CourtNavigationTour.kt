@@ -1,6 +1,8 @@
 package com.courtquestpro
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,7 +14,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -36,9 +37,10 @@ internal fun CourtNavigationTour(
     val tab = tabs[step.coerceIn(tabs.indices)]
     Box(Modifier.fillMaxSize().testTag("navigation-tour"), contentAlignment = Alignment.TopCenter) {
         Column(
-            Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 12.dp)
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 12.dp, bottom = 12.dp)
                 .background(Color(0xF7191513), RoundedCornerShape(18.dp))
                 .border(1.dp, CourtQuestDesign.accentVivid.copy(alpha = .5f), RoundedCornerShape(18.dp))
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 18.dp, vertical = 14.dp),
             horizontalAlignment = Alignment.Start
         ) {
