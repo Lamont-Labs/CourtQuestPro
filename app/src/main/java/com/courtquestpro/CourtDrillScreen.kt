@@ -41,6 +41,7 @@ internal fun DrillScreen(
     val requiredCount = frozenMeasurement?.minimumSuccesses ?: DrillTargets.minimum(drill)
     val meetsCount = requiredCount != null && completedCount >= requiredCount && attemptedCount >= completedCount
     var confirmDiscard by remember(drill.id) { mutableStateOf(false) }
+    var showFullGuide by remember(drill.id) { mutableStateOf(false) }
     if (confirmDiscard) AlertDialog(onDismissRequest = { confirmDiscard = false }, title = { Text(if (sessionLabel != null) "Discard this Mission session?" else "Discard this practice?") },
         text = { Text("Unrecorded attempts will be removed. Your saved results stay in Progress.") },
         confirmButton = { TextButton({ confirmDiscard = false; onDiscard?.invoke() }) { Text(if (sessionLabel != null) "Discard Mission session" else "Discard practice") } },
@@ -124,6 +125,18 @@ internal fun DrillScreen(
                         Text("Personal best · ${best.completed} successful from ${best.attempted} attempts",
                             color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
                     }
+                    OutlinedButton(
+                        onClick = { showFullGuide = !showFullGuide },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)
+                            .testTag("live-toggle-drill-guide")
+                    ) {
+                        Icon(if (showFullGuide) Icons.Default.ExpandLess else Icons.Default.MenuBook, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(if (showFullGuide) "Hide full drill guide" else "Open drill guide",
+                            modifier = Modifier.weight(1f))
+                        Icon(if (showFullGuide) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
+                    }
+                    if (showFullGuide) {
                     CourtHeading("The drill guide")
                     CourtEyebrow("YOUR TARGET · ${drill.minutes} MIN PLAN")
                     Text(drill.target, color = CourtQuestDesign.textPrimary,
@@ -141,6 +154,7 @@ internal fun DrillScreen(
                     }
                     Text("Use a dry, clear court. Warm up first, keep movements controlled, and stop if the surface is slippery or something hurts.",
                         color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
+                    }
                     TextButton(onClick = onBack, modifier = Modifier.heightIn(min = 48.dp)) { Text("Back to Court") }
                     if (practice && onDiscard != null) TextButton({ confirmDiscard = true }, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (sessionLabel != null) "Discard Mission session" else "Discard practice") }
                 }
