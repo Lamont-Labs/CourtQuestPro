@@ -63,7 +63,8 @@ internal fun CourtNavigationTour(
         ) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("EXPLORE COURTQUEST", color = CourtQuestDesign.accentVivid,
+                Text("EXPLORE COURTQUEST", modifier = Modifier.weight(1f),
+                    color = CourtQuestDesign.accentVivid,
                     fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
                 Text("${step + 1} / ${stops.size}", color = CourtQuestDesign.textSecondary, fontSize = 11.sp)
             }
