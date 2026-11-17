@@ -41,6 +41,12 @@ approved Signature wordmark and arena artwork retained. Train uses a compact
 header, real saved-plan actions and closer search/results rather than a 190dp
 decorative hero. The segmented selector uses a true equal-width Row at normal
 font sizes and an explicit vertical accessibility layout above 130%.
+Emulator review caught a nested full-width heading that starved the adjacent drill
+count of width and inflated the Library header. The corrected weighted heading,
+short search label, expandable advanced filters and initially expanded drill groups
+keep actual artwork/results closer to search. Level, duration, favorites, custom
+creation and Mission Builder remain available; enlarged text gets more room than
+decorative row thumbnails.
 
 The optional walkthrough is a contextual strip reserved by Scaffold above the
 dock, not an overlay on the screen. It starts on Court, supports Back/Next/Skip,

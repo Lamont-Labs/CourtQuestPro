@@ -30,6 +30,22 @@ def dismiss_hint():
     if skip is not None:
         ui.tap(skip)
 
+def scroll_to_tag(tag):
+    for _ in range(18):
+        items = ui.nodes()
+        target = ui.tagged(items, tag)
+        if target is not None:
+            return target
+        regions = [n for n in items if n.get('scrollable') == 'true']
+        assert regions, f'No scroll viewport for {tag}'
+        region = max(regions, key=lambda n: (bounds(n)[2]-bounds(n)[0])*(bounds(n)[3]-bounds(n)[1]))
+        left, top, right, bottom = bounds(region)
+        x = (left+right)//2
+        height = bottom-top
+        ui.shell('input','swipe',str(x),str(top+height*4//5),str(x),str(top+height//4),'350')
+        time.sleep(.5)
+    raise AssertionError(f'Artwork {tag} was not reachable')
+
 def assert_dock():
     items = ui.nodes()
     dock = ui.wait_tagged('player-bottom-dock')
@@ -95,16 +111,19 @@ def verify_candidate(config):
     capture('drill-discovery')
     # All selectors and real built-in detail/artwork remain reachable.
     ui.tap(ui.scroll_to('View Five-Spot Form Shooting', 18))
-    ui.wait_tagged('drill-art-s1', attempts=10) if config == 'normal' else None
+    scroll_to_tag('drill-art-s1') if config == 'normal' else None
     capture('drill-detail')
     ui.shell('input', 'keyevent', 'KEYCODE_BACK')
     ui.navigate('Court')
     # Opening and leaving the current workout must preserve attempts and history.
     ui.tap(ui.scroll_to('Resume session', 18))
-    ui.require(ui.nodes(), 'Record successful attempt')
+    prior = next(d for d in json.loads(ui.prefs()['state'].text)['drillDrafts']
+                 if d['slotId'] == 'slot-0')
     ui.tap(ui.scroll_to('Record successful attempt', 18))
     state = json.loads(ui.prefs()['state'].text)
-    assert any(d['successful'] >= 1 for d in state.get('drillDrafts', []))
+    recorded = next(d for d in state['drillDrafts'] if d['slotId'] == 'slot-0')
+    assert recorded['successful'] == prior['successful'] + 1
+    assert recorded['attempted'] == prior['attempted'] + 1
     capture('active-drill')
     ui.shell('input','keyevent','KEYCODE_BACK')
     ui.wait_tagged('player-bottom-dock', attempts=10)
@@ -120,7 +139,7 @@ def verify_candidate(config):
     ui.shell('input','keyevent','KEYCODE_BACK')
     ui.navigate('Train')
     ui.tap(ui.wait_tagged('segment-library'))
-    ui.tap(ui.scroll_to('Mission Builder', 18))
+    ui.tap(ui.scroll_to('Build a Mission', 18))
     capture('mission-builder')
     ui.shell('input','keyevent','KEYCODE_BACK')
     # Restore the identical fixture before the matched screen captures.
@@ -150,6 +169,12 @@ def main():
         saved = ui.prefs()['state'].text
         assert 'Success' in ui.adb('install','-r',str(apk.resolve()),timeout=180).decode()
         assert ui.prefs()['state'].text == saved, 'Update changed saved player state'
+        ui.open_app()
+        enter_court()
+        assert json.loads(ui.prefs()['state'].text) == json.loads(saved), 'Relaunch changed saved player state'
+        ui.OUT = args.output/'upgrade'
+        ui.OUT.mkdir(parents=True, exist_ok=True)
+        capture('preserved-after-relaunch')
       for label,width,height,font in CONFIGS:
         ui.OUT=args.output/phase/label
         ui.OUT.mkdir(parents=True,exist_ok=True)

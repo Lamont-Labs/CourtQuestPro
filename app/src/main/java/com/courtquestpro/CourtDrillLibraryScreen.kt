@@ -16,6 +16,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -35,10 +38,12 @@ internal fun DrillLibraryScreen(
         swapSlotId?.let { id -> save.slots.firstOrNull { it.id == id }?.drillId }
             ?.let { id -> TrainingLibrary.catalog(save).firstOrNull { it.id == id }?.category } ?: "All skills") }
     var categoryMenu by remember { mutableStateOf(false) }
+    var showFilters by rememberSaveable { mutableStateOf(false) }
     var levelFilter by rememberSaveable { mutableStateOf("All levels") }
     var durationFilter by rememberSaveable { mutableStateOf("Any length") }
     var expandedCategory by rememberSaveable { mutableStateOf<String?>(null) }
-    var showAllCategories by rememberSaveable { mutableStateOf(false) }
+    var showAllCategories by rememberSaveable { mutableStateOf(true) }
+    val largeText = LocalDensity.current.fontScale > 1.3f
     val catalog = TrainingLibrary.catalog(save)
     val selected = catalog.firstOrNull { it.id == selectedId }
     val favorites = save.favoriteDrillIds.orEmpty()
@@ -188,7 +193,7 @@ internal fun DrillLibraryScreen(
                 .then(if (section == "Library") Modifier.testTag("train-library-content") else Modifier),
                 verticalArrangement = Arrangement.spacedBy(11.dp)) {
                 if (section != "Today") {
-                OutlinedTextField(query, { query = it }, label = { Text("Search drills, skills or targets") }, singleLine = true,
+                OutlinedTextField(query, { query = it }, label = { Text("Search drills") }, singleLine = true,
                     leadingIcon = { Icon(Icons.Default.Search, null) },
                     trailingIcon = { if (query.isNotBlank()) IconButton(onClick = { query = "" }) { Icon(Icons.Default.Close, "Clear search") } },
                     modifier = Modifier.fillMaxWidth().testTag("library-search"), shape = RoundedCornerShape(14.dp))
@@ -242,6 +247,14 @@ internal fun DrillLibraryScreen(
                             }
                         }
                     }
+                    OutlinedButton({ showFilters = !showFilters },
+                        modifier = Modifier.heightIn(min = 48.dp).testTag("library-toggle-filters")) {
+                        Icon(Icons.Default.Tune, null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(5.dp))
+                        Text(if (showFilters) "Less filters" else "Filters",
+                            style = MaterialTheme.typography.labelMedium)
+                    }
+                    if (showFilters) {
                     listOf("Level" to levelFilter, "Duration" to durationFilter).forEach { (kind, current) ->
                         var open by remember { mutableStateOf(false) }
                         Box {
@@ -270,6 +283,7 @@ internal fun DrillLibraryScreen(
                                 selectedLabelColor = CourtQuestDesign.accentVivid),
                             modifier = Modifier.defaultMinSize(minWidth = 48.dp).heightIn(min = 48.dp))
                     }
+                    }
                 }
                 }
             }
@@ -295,8 +309,6 @@ internal fun DrillLibraryScreen(
                             CourtEyebrow("RECOMMENDED · ${featured.drill.category}")
                             Text(featured.drill.title, style = MaterialTheme.typography.titleLarge,
                                 color = CourtQuestDesign.textPrimary)
-                            Text(featured.reason, style = MaterialTheme.typography.bodySmall,
-                                color = CourtQuestDesign.textSecondary, maxLines = 2)
                             Text("${featured.drill.level} · ${featured.drill.minutes} min",
                                 style = MaterialTheme.typography.labelMedium, color = CourtQuestDesign.accent)
                         }
@@ -306,8 +318,9 @@ internal fun DrillLibraryScreen(
                 }
                     Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp),
                         verticalAlignment = Alignment.CenterVertically) {
-                        CourtHeading("Browse drills")
-                        Spacer(Modifier.weight(1f))
+                        Text("Browse drills", Modifier.weight(1f),
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = CourtQuestDesign.textPrimary)
                         Text("${shown.size} drills", color = CourtQuestDesign.textSecondary,
                             style = MaterialTheme.typography.labelMedium)
                     }
@@ -384,19 +397,22 @@ internal fun DrillLibraryScreen(
                 items(groupDrills, key = { it.id }) { drill ->
             Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp)
                 .clickable { onSelect(drill.id) }
+                .semantics { contentDescription = "View ${drill.title}" }
                 .heightIn(min = 72.dp).testTag("library-drill-${drill.id}"),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Surface(color = CourtQuestDesign.surface, shape = RoundedCornerShape(12.dp),
+                if (!largeText) Surface(color = CourtQuestDesign.surface, shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.size(52.dp)) {
                     DrillArtworkThumbnail(drill, Modifier.fillMaxSize())
                 }
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(drill.title, color = CourtQuestDesign.textPrimary,
-                        style = MaterialTheme.typography.titleMedium, maxLines = 2)
+                        style = MaterialTheme.typography.titleMedium, maxLines = if (largeText) 4 else 2,
+                        overflow = TextOverflow.Ellipsis)
                     Text("${drill.category} · ${drill.level} · ${drill.minutes} min",
                         color = CourtQuestDesign.textSecondary,
-                        style = MaterialTheme.typography.bodySmall, maxLines = 1)
+                        style = MaterialTheme.typography.bodySmall, maxLines = if (largeText) 3 else 1,
+                        overflow = TextOverflow.Ellipsis)
                 }
                 IconButton({ onFavorite(drill.id) },
                     modifier = Modifier.testTag("library-favorite-${drill.id}")) {
