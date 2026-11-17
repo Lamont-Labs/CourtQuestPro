@@ -37,6 +37,14 @@ internal fun CourtNavigationTour(
         Triple("QUESTS", "Build your momentum", "Explore challenges that make your practice more engaging."),
         Triple("PLAYER", "Make it yours", "Manage your player details and customize your jersey.")
     )
+    val tips = listOf(
+        "Start with a drill that matches today's goal, then record your attempts to track consistency.",
+        "Review completed sessions to spot patterns and choose what to practice next.",
+        "Use Court as your starting point when returning to the app.",
+        "Check Quests when you want a specific challenge to work toward.",
+        "Keep your player details and jersey up to date so the app feels like yours."
+    )
+    val currentTip = tips[step.coerceIn(tips.indices)]
     val current = stops[step.coerceIn(stops.indices)]
     val tabs = listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)
     val tab = tabs[step.coerceIn(tabs.indices)]
@@ -93,6 +101,11 @@ internal fun CourtNavigationTour(
             Spacer(Modifier.height(10.dp))
             Text(current.third, color = CourtQuestDesign.textSecondary,
                 style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(8.dp))
+            Text("QUICK TIP", color = CourtQuestDesign.accentVivid,
+                style = MaterialTheme.typography.labelSmall, letterSpacing = .7.sp)
+            Text(currentTip, color = CourtQuestDesign.textPrimary,
+                style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(10.dp))
             Text("EXPLORE THIS SECTION", color = CourtQuestDesign.accentVivid,
                 style = MaterialTheme.typography.labelSmall, letterSpacing = .7.sp)
