@@ -1,5 +1,6 @@
 package com.courtquestpro
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,6 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -33,43 +37,61 @@ internal fun CourtWelcomeScreen(
                 .padding(horizontal = 28.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.weight(1f))
-            Text(
-                "COURTQUEST",
-                color = CourtQuestDesign.textPrimary,
-                fontFamily = CourtDisplay,
-                fontSize = 43.sp,
-                lineHeight = 49.sp,
-                fontWeight = FontWeight.Black,
-                textAlign = TextAlign.Center
+            Spacer(Modifier.height(16.dp))
+            Image(
+                painter = painterResource(R.drawable.courtquest_signature_wordmark),
+                contentDescription = "CourtQuest Pro",
+                modifier = Modifier.fillMaxWidth(0.77f).height(92.dp).testTag("welcome-signature-wordmark"),
+                contentScale = ContentScale.Fit
             )
-            Text(
-                "PRO",
-                color = CourtQuestDesign.accentVivid,
-                fontFamily = CourtDisplay,
-                fontSize = 26.sp,
-                letterSpacing = 8.sp,
-                fontWeight = FontWeight.Black
-            )
-            Spacer(Modifier.height(38.dp))
-            Text(
-                "WELCOME TO\nCOURTQUEST PRO",
-                color = CourtQuestDesign.textPrimary,
-                fontFamily = CourtDisplay,
-                fontWeight = FontWeight.Black,
-                fontSize = 32.sp,
-                lineHeight = 38.sp,
-                textAlign = TextAlign.Center
-            )
-            Spacer(Modifier.height(14.dp))
-            Text(
-                "Your court. Your progress. Your game.",
-                color = CourtQuestDesign.textSecondary,
-                fontSize = 16.sp,
-                lineHeight = 23.sp,
-                textAlign = TextAlign.Center
-            )
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.height(24.dp))
+            Box(
+                Modifier.fillMaxWidth().weight(1f)
+                    .clip(RoundedCornerShape(26.dp))
+                    .background(CourtQuestDesign.surface)
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.court_arena_player),
+                    contentDescription = "Basketball player entering the court",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+                Box(
+                    Modifier.fillMaxSize().background(
+                        Brush.verticalGradient(
+                            listOf(Color.Transparent, Color(0x33050505), Color(0xED050505)),
+                            startY = 130f
+                        )
+                    )
+                )
+                Column(
+                    Modifier.align(Alignment.BottomStart).padding(22.dp)
+                ) {
+                    Text(
+                        "WELCOME TO THE COURT",
+                        color = CourtQuestDesign.accent,
+                        fontSize = 12.sp,
+                        letterSpacing = 2.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "YOUR GAME.\nYOUR NEXT LEVEL.",
+                        color = CourtQuestDesign.textPrimary,
+                        fontFamily = CourtDisplay,
+                        fontWeight = FontWeight.Black,
+                        fontSize = 30.sp,
+                        lineHeight = 34.sp
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "Train with purpose. Track every rep.",
+                        color = CourtQuestDesign.textPrimary.copy(alpha = 0.88f),
+                        fontSize = 14.sp
+                    )
+                }
+            }
+            Spacer(Modifier.height(24.dp))
             Button(
                 onClick = onGetStarted,
                 modifier = Modifier.fillMaxWidth().height(58.dp).testTag("welcome-get-started"),
@@ -90,9 +112,9 @@ internal fun CourtWelcomeScreen(
             ) {
                 Text("CONTINUE AS GUEST", color = CourtQuestDesign.textPrimary, fontWeight = FontWeight.Bold)
             }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
             Text(
-                "Play offline. Your progress stays on this device.",
+                "Offline training · Progress saved on this device",
                 color = CourtQuestDesign.textSecondary,
                 fontSize = 12.sp,
                 lineHeight = 17.sp,
