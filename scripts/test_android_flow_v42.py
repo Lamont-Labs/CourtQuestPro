@@ -62,6 +62,22 @@ class SoloBatchCaptureTest(unittest.TestCase):
         tap.assert_called_once_with(button)
         wait.assert_called_once_with('drill-saved-receipt',attempts=12)
 
+    def test_persistence_check_waits_for_observed_state_not_a_fixed_delay(self):
+        reads = iter([{'count':13},{'count':14},{'count':15}])
+        with patch.object(batch.time,'monotonic',side_effect=[0.0,0.1,0.2,0.3]), \
+                patch.object(batch.time,'sleep') as sleep:
+            value=batch.wait_until(lambda: next(reads),lambda state: state['count']==15,'saved counter')
+        self.assertEqual(15,value['count'])
+        self.assertEqual(2,sleep.call_count)
+
+    def test_persistence_check_times_out_with_the_last_observed_state(self):
+        reads=iter([{'count':14},{'count':14},{'count':14}])
+        with patch.object(batch.time,'monotonic',side_effect=[0.0,0.2,0.4]), \
+                patch.object(batch.time,'sleep'):
+            with self.assertRaisesRegex(AssertionError,'Persisted drill counters'):
+                batch.wait_until(lambda:next(reads),lambda state:state['count']==15,
+                                 'Persisted drill counters',timeout=0.3)
+
 
 if __name__ == '__main__':
     unittest.main()

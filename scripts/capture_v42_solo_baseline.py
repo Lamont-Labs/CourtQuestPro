@@ -35,6 +35,16 @@ def tap_once_then_wait(node, ready_tag):
     ui.tap(node)
     return ui.wait_tagged(ready_tag, attempts=12)
 
+def wait_until(read, predicate, label, timeout=8.0):
+    """Wait for persisted state to reach an expected value, with a real deadline."""
+    deadline = time.monotonic() + timeout
+    latest = read()
+    while not predicate(latest) and time.monotonic() < deadline:
+        time.sleep(0.1)
+        latest = read()
+    assert predicate(latest), f'{label} did not persist before timeout: {latest!r}'
+    return latest
+
 def scroll_to_tag(tag):
     for _ in range(18):
         items = ui.nodes()
@@ -200,8 +210,12 @@ def verify_drill_batch(config):
         return next(d for d in state()['drillDrafts'] if d['slotId'] == 'slot-0')
 
     def counts(expected):
-        actual = draft()
-        assert (actual['successful'], actual['attempted']) == expected, actual
+        actual = wait_until(
+            draft,
+            lambda value: (value['successful'], value['attempted']) == expected,
+            f'Persisted drill counters {expected}'
+        )
+        return actual
 
     ui.tap(ui.scroll_to('Resume session', 18))
     success = ui.wait_tagged('live-record-success')
