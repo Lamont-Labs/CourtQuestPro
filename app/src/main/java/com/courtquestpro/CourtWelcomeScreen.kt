@@ -28,7 +28,7 @@ internal fun CourtWelcomeScreen(
 ) {
     Box(
         modifier.fillMaxSize().background(
-            Brush.verticalGradient(listOf(Color(0xFF050505), Color(0xFF15100D), Color(0xFF050505)))
+            Brush.verticalGradient(listOf(Color(0xFF050505), Color(0xFF100B08), Color(0xFF050505)))
         ).testTag("court-welcome-screen")
     ) {
         Column(
@@ -37,61 +37,46 @@ internal fun CourtWelcomeScreen(
                 .padding(horizontal = 28.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.weight(0.85f))
+            Text(
+                "WELCOME TO",
+                color = CourtQuestDesign.textSecondary,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 3.sp
+            )
+            Spacer(Modifier.height(26.dp))
             Image(
                 painter = painterResource(R.drawable.courtquest_signature_wordmark),
                 contentDescription = "CourtQuest Pro",
-                modifier = Modifier.fillMaxWidth(0.77f).height(92.dp).testTag("welcome-signature-wordmark"),
+                modifier = Modifier.fillMaxWidth(0.94f).height(136.dp)
+                    .testTag("welcome-signature-wordmark"),
                 contentScale = ContentScale.Fit
             )
             Spacer(Modifier.height(24.dp))
             Box(
-                Modifier.fillMaxWidth().weight(1f)
-                    .clip(RoundedCornerShape(26.dp))
-                    .background(CourtQuestDesign.surface)
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.court_arena_player),
-                    contentDescription = "Basketball player entering the court",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-                Box(
-                    Modifier.fillMaxSize().background(
-                        Brush.verticalGradient(
-                            listOf(Color.Transparent, Color(0x33050505), Color(0xED050505)),
-                            startY = 130f
-                        )
-                    )
-                )
-                Column(
-                    Modifier.align(Alignment.BottomStart).padding(22.dp)
-                ) {
-                    Text(
-                        "WELCOME TO THE COURT",
-                        color = CourtQuestDesign.accent,
-                        fontSize = 12.sp,
-                        letterSpacing = 2.sp,
-                        fontWeight = FontWeight.Black
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        "YOUR GAME.\nYOUR NEXT LEVEL.",
-                        color = CourtQuestDesign.textPrimary,
-                        fontFamily = CourtDisplay,
-                        fontWeight = FontWeight.Black,
-                        fontSize = 30.sp,
-                        lineHeight = 34.sp
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        "Train with purpose. Track every rep.",
-                        color = CourtQuestDesign.textPrimary.copy(alpha = 0.88f),
-                        fontSize = 14.sp
-                    )
-                }
-            }
+                Modifier.width(58.dp).height(3.dp)
+                    .background(CourtQuestDesign.accentVivid, RoundedCornerShape(3.dp))
+            )
             Spacer(Modifier.height(24.dp))
+            Text(
+                "YOUR GAME. YOUR NEXT LEVEL.",
+                color = CourtQuestDesign.textPrimary,
+                fontFamily = CourtDisplay,
+                fontWeight = FontWeight.Black,
+                fontSize = 19.sp,
+                textAlign = TextAlign.Center,
+                letterSpacing = 0.6.sp
+            )
+            Spacer(Modifier.height(12.dp))
+            Text(
+                "Train with purpose. Build your skills.\nSee how far you can go.",
+                color = CourtQuestDesign.textSecondary,
+                fontSize = 15.sp,
+                lineHeight = 23.sp,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.weight(1.15f))
             Button(
                 onClick = onGetStarted,
                 modifier = Modifier.fillMaxWidth().height(58.dp).testTag("welcome-get-started"),
