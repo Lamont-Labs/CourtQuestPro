@@ -1,6 +1,7 @@
 package com.courtquestpro
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,6 +16,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
@@ -85,15 +92,7 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                                 .border(1.dp, CourtQuestDesign.accent.copy(alpha = .45f), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            CourtQuestJerseyArtwork(save.jerseyNumber, Modifier.fillMaxSize().padding(8.dp))
-                            Box(Modifier.align(Alignment.BottomEnd).padding(30.dp).size(44.dp)
-                                .testTag("me-neutral-avatar")
-                                .background(CourtQuestDesign.surface, CircleShape)
-                                .border(1.dp, CourtQuestDesign.accent, CircleShape),
-                                contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.Person, "Player avatar not set",
-                                    Modifier.size(25.dp), tint = CourtQuestDesign.textPrimary)
-                            }
+                            ProfileJerseyHero(save.jerseyNumber, Modifier.fillMaxSize().padding(12.dp))
                         }
                         Text(save.playerName.ifBlank { "Your player profile" },
                             color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.displaySmall,
@@ -212,5 +211,55 @@ private fun ProfileStat(label: String, value: String, modifier: Modifier = Modif
         Text(value, color = if (highlighted) CourtQuestDesign.accent else CourtQuestDesign.textPrimary,
             style = MaterialTheme.typography.headlineSmall, maxLines = 1)
         Text(label, color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.labelSmall)
+    }
+}
+
+
+/** Profile-only jersey hero. The bottom navigation retains its approved atlas artwork. */
+@Composable
+private fun ProfileJerseyHero(jerseyNumber: Int?, modifier: Modifier = Modifier) {
+    Box(modifier, contentAlignment = Alignment.Center) {
+        Canvas(Modifier.fillMaxSize()) {
+            val sx = size.width / 120f
+            val sy = size.height / 140f
+            fun point(x: Float, y: Float) = Offset(x * sx, y * sy)
+            val jersey = Path().apply {
+                moveTo(30f * sx, 13f * sy)
+                lineTo(44f * sx, 6f * sy)
+                quadraticTo(60f * sx, 18f * sy, 76f * sx, 6f * sy)
+                lineTo(90f * sx, 13f * sy)
+                lineTo(114f * sx, 43f * sy)
+                lineTo(97f * sx, 57f * sy)
+                lineTo(85f * sx, 43f * sy)
+                lineTo(88f * sx, 132f * sy)
+                lineTo(32f * sx, 132f * sy)
+                lineTo(35f * sx, 43f * sy)
+                lineTo(23f * sx, 57f * sy)
+                lineTo(6f * sx, 43f * sy)
+                close()
+            }
+            drawPath(jersey, Brush.verticalGradient(listOf(Color(0xFF39393B), Color(0xFF101012), Color(0xFF050505))))
+            drawPath(jersey, Color(0xFFFF650D), style = Stroke(width = 2.5f * sx))
+            drawLine(Color(0xFFFFA15B), point(32f, 16f), point(13f, 43f), 3f * sx)
+            drawLine(Color(0xFFFFA15B), point(88f, 16f), point(107f, 43f), 3f * sx)
+            val collar = Path().apply {
+                moveTo(44f * sx, 7f * sy)
+                quadraticTo(60f * sx, 30f * sy, 76f * sx, 7f * sy)
+            }
+            drawPath(collar, Color(0xFFFF8A36), style = Stroke(width = 4f * sx))
+            drawLine(Color(0xFF6D3218), point(35f, 43f), point(32f, 130f), 1.5f * sx)
+            drawLine(Color(0xFF6D3218), point(85f, 43f), point(88f, 130f), 1.5f * sx)
+        }
+        Text(
+            displayedJerseyNumber(jerseyNumber).toString(),
+            modifier = Modifier.offset(y = 4.dp),
+            color = Color(0xFFFF9A51),
+            fontFamily = CourtDisplay,
+            fontWeight = FontWeight.Black,
+            fontSize = 42.sp,
+            lineHeight = 44.sp,
+            textAlign = TextAlign.Center,
+            maxLines = 1
+        )
     }
 }
