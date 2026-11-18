@@ -102,22 +102,22 @@ jobs:
             "${adb[@]}" shell settings put system font_scale "$scale"
             if [ "$label" != normal ]; then "${adb[@]}" shell pm clear "$pkg"; fi
             "${adb[@]}" shell am instrument -w -e class "$pkg.JerseyStudioTest#customizationRestoresAcrossRecreationAndReturnsToCourt" "$runner" | tee "dist/$label/studio.txt"
-            rg -F 'OK (1 test)' "dist/$label/studio.txt"
+            grep -F 'OK (1 test)' "dist/$label/studio.txt"
             for capture in jersey-studio-front jersey-studio-back jersey-court; do
               "${adb[@]}" exec-out run-as "$pkg" cat "files/$capture.png" > "dist/$label/$capture.png"
               test -s "dist/$label/$capture.png"
             done
             "${adb[@]}" shell am force-stop "$pkg"
             "${adb[@]}" shell am instrument -w -e class "$pkg.JerseyStudioTest#coldStartRestoresPreviouslySavedJersey" "$runner" | tee "dist/$label/studio-cold-start.txt"
-            rg -F 'OK (1 test)' "dist/$label/studio-cold-start.txt"
+            grep -F 'OK (1 test)' "dist/$label/studio-cold-start.txt"
             "${adb[@]}" shell am instrument -w -e class "$pkg.NavigationTourTest" "$runner" | tee "dist/$label/walkthrough.txt"
-            rg -F 'OK (1 test)' "dist/$label/walkthrough.txt"
+            grep -F 'OK (1 test)' "dist/$label/walkthrough.txt"
           done
           "${adb[@]}" shell wm size 720x1440
           "${adb[@]}" shell settings put system font_scale 1.0
           "${adb[@]}" shell pm clear "$pkg"
           "${adb[@]}" shell am instrument -w -e class "$pkg.TrainingEntryTest" "$runner" | tee dist/training.txt
-          rg -F 'OK (1 test)' dist/training.txt
+          grep -F 'OK (1 test)' dist/training.txt
       - name: Seal exact binary and publish immutable prerelease
         run: |
           set -euo pipefail
