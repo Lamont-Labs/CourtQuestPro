@@ -79,6 +79,19 @@ internal fun DrillScreen(
             }
             item {
                 Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    // Keep the essential instruction visible while attempts are being recorded.
+                    // The full illustrated guide remains available below on demand.
+                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(14.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            CourtEyebrow("FOCUS FOR THIS SET")
+                            Text(drill.target, color = CourtQuestDesign.textPrimary,
+                                style = MaterialTheme.typography.titleMedium)
+                            DrillCoachingLibrary.forDrill(drill)?.let { guide ->
+                                Text(guide.checkpoint, color = CourtQuestDesign.textSecondary,
+                                    style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    }
                     CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp), highlighted = true) {
                       Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     val rate = if (attemptedCount == 0) null else completedCount.toFloat() / attemptedCount
@@ -122,9 +135,10 @@ internal fun DrillScreen(
                     }
                      CourtEyebrow("NEXT STEP")
                      Text(
-                         if (meetsCount) "Confirm safe completion to save your result."
+                         if (meetsCount) "Target reached. Confirm safe completion, then save your result."
                          else if (requiredCount != null) "Record ${(requiredCount - completedCount).coerceAtLeast(0)} more ${measurement.successLabel.lowercase()} toward your target."
-                         else "Follow the drill target below.",
+                         else "Follow the drill target above.",
+                         modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                          color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.bodyMedium
                      )
                      if (requiredCount != null && requiredCount > 0) {
