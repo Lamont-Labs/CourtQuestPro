@@ -25,6 +25,28 @@ class EmptyProgressTest(unittest.TestCase):
     def test_redesigned_record_requires_real_empty_values(self):
         assert_empty_progress(empty_progress())
 
+    def test_offscreen_metrics_are_scrolled_into_view_before_asserting(self):
+        complete = empty_progress()
+        initial = [node for node in complete
+                   if node.get('resource-id') == 'progress-lifetime-xp'
+                   or node.get('text') in {'PLAYER LEVEL', 'TOTAL XP'}]
+        visits = []
+
+        def read_tag(tag):
+            visits.append(tag)
+            return complete
+
+        assert_empty_progress(initial, read_tag)
+        self.assertEqual(['progress-record-sessions', 'progress-training-days'], visits)
+
+    def test_scrolled_nonzero_empty_metric_is_still_rejected(self):
+        complete = empty_progress(drills='1')
+        initial = [node for node in complete
+                   if node.get('resource-id') == 'progress-lifetime-xp'
+                   or node.get('text') in {'PLAYER LEVEL', 'TOTAL XP'}]
+        with self.assertRaises(AssertionError):
+            assert_empty_progress(initial, lambda _tag: complete)
+
     def test_nonempty_or_obsolete_record_is_rejected(self):
         for change in [dict(xp='100'), dict(drills='2'), dict(days='1'),
                        dict(heading='YOUR PLAYER LEVEL')]:

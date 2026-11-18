@@ -89,6 +89,10 @@ def scroll_to_tag(tag):
     raise AssertionError(f'Control {tag} did not fit inside its scroll viewport: '
                          f'{bounds(last) if last is not None else "not exported"}')
 
+def visible_progress_metric_nodes(tag):
+    scroll_to_tag(tag)
+    return ui.nodes()
+
 def assert_dock():
     items = ui.nodes()
     dock = ui.wait_tagged('player-bottom-dock')
@@ -214,7 +218,7 @@ def verify_progression_screens(config):
     enter_court()
     dismiss_hint()
     ui.navigate('Progress')
-    ui.assert_empty_progress(ui.nodes())
+    ui.assert_empty_progress(ui.nodes(), visible_progress_metric_nodes)
     ui.scroll_to_tag('progress-empty')
     assert ui.tagged(ui.nodes(), 'progress-record-sessions') is not None
     capture('progress-empty')

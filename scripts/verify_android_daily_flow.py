@@ -161,22 +161,28 @@ def require(items, text):
     return node
 
 
-def assert_empty_progress(items):
+def assert_empty_progress(items, read_tag=None):
     xp_card = tagged(items, 'progress-lifetime-xp')
     assert xp_card is not None, 'Player level and lifetime XP card is missing'
     require(list(xp_card.iter('node')), 'PLAYER LEVEL')
     require(list(xp_card.iter('node')), 'TOTAL XP')
     require(list(xp_card.iter('node')), '0')
-    record = tagged(items, 'progress-record-sessions')
+    record_items = items
+    record = tagged(record_items, 'progress-record-sessions')
+    if record is None and read_tag is not None:
+        record_items = read_tag('progress-record-sessions')
+        record = tagged(record_items, 'progress-record-sessions')
     assert record is not None, 'Empty recorded-drills metric is missing'
     require(list(record.iter('node')), 'RECORDED DRILLS')
     require(list(record.iter('node')), '0')
-    days = tagged(items, 'progress-training-days')
+    days_items = items
+    days = tagged(days_items, 'progress-training-days')
+    if days is None and read_tag is not None:
+        days_items = read_tag('progress-training-days')
+        days = tagged(days_items, 'progress-training-days')
     assert days is not None, 'Empty training-days metric is missing'
     require(list(days.iter('node')), 'TRAINING DAYS')
     require(list(days.iter('node')), '0')
-    assert sum(node.get('text') == '0' for node in items) >= 2, \
-        'Empty Progress must show zero XP and zero recorded drills'
 
 
 def tap(node):
@@ -273,6 +279,16 @@ def scroll_to(text, limit=10):
         shell('input', 'swipe', str(x), str(top + height * 4 // 5), str(x), str(top + height // 4), '350')
         time.sleep(0.5)
     raise AssertionError(f'Control {text!r} was not reachable by scrolling')
+
+
+def progress_metric_nodes(tag):
+    labels = {
+        'progress-record-sessions': 'RECORDED DRILLS',
+        'progress-training-days': 'TRAINING DAYS',
+    }
+    assert tag in labels, f'Unexpected empty-progress metric: {tag}'
+    scroll_to(labels[tag])
+    return nodes()
 
 
 def main():
@@ -431,7 +447,7 @@ def main():
     seed('empty')
     open_app()
     navigate('Progress')
-    assert_empty_progress(nodes('candidate-empty-progress'))
+    assert_empty_progress(nodes('candidate-empty-progress'), progress_metric_nodes)
     empty_state = json.loads(prefs()['state'].text)
     assert empty_state['totalXp'] == 0 and empty_state['drillResults'] == [], \
         'Viewing empty Progress changed the saved XP or recorded results'
