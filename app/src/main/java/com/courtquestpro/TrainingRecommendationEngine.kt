@@ -3,7 +3,7 @@ package com.courtquestpro
 import java.time.LocalDate
 
 /** A reproducible, non-mutating recommendation receipt. No claims about athletic ability. */
-internal data class TrainingRecommendationReceipt(
+data class TrainingRecommendationReceipt(
     val version: String,
     val date: String,
     val focus: String,
