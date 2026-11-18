@@ -23,7 +23,20 @@ def enter_court():
     # The released APK predates the separate guest CTA in canonical source.
     target = ui.tagged(ui.nodes(), 'welcome-get-started')
     ui.tap(target if target is not None else ui.scroll_to('ENTER COURT', 18))
-    ui.wait_tagged('player-bottom-dock', attempts=20)
+    try:
+        return ui.wait_tagged('player-bottom-dock', attempts=4)
+    except AssertionError:
+        items = ui.nodes()
+        if ui.tagged(items, 'player-bottom-dock') is not None:
+            return ui.tagged(items, 'player-bottom-dock')
+        retry = ui.tagged(items, 'welcome-get-started')
+        assert retry is not None and retry.get('clickable') == 'true' and retry.get('enabled') == 'true', (
+            'Welcome changed without opening the player dock; refusing to replay navigation'
+        )
+        # Retry only while a fresh hierarchy confirms the same transition CTA
+        # remains visible and actionable. This is safe and does not replay data.
+        ui.tap(retry)
+        return ui.wait_tagged('player-bottom-dock', attempts=20)
 
 def dismiss_hint():
     skip = ui.tagged(ui.nodes(), 'tour-skip')

@@ -73,7 +73,34 @@ class SoloBatchCaptureTest(unittest.TestCase):
                 patch.object(batch.ui, 'wait_tagged') as wait:
             batch.enter_court()
         tap.assert_called_once_with(button)
-        wait.assert_called_once_with('player-bottom-dock', attempts=20)
+        wait.assert_called_once_with('player-bottom-dock', attempts=4)
+
+    def test_welcome_retries_only_when_same_actionable_button_remains(self):
+        button = Element('node', {'resource-id':'welcome-get-started',
+                                 'bounds':'[56,1258][664,1374]',
+                                 'clickable':'true','enabled':'true'})
+        dock = Element('node', {'resource-id':'player-bottom-dock',
+                               'bounds':'[22,1380][698,1496]'})
+        with patch.object(batch.ui, 'nodes', side_effect=[[button], [button]]), \
+                patch.object(batch.ui, 'tap') as tap, \
+                patch.object(batch.ui, 'wait_tagged',
+                             side_effect=[AssertionError('not yet'), dock]) as wait:
+            self.assertIs(dock, batch.enter_court())
+        self.assertEqual([button, button], [call.args[0] for call in tap.call_args_list])
+        self.assertEqual([('player-bottom-dock',), ('player-bottom-dock',)],
+                         [call.args for call in wait.call_args_list])
+        self.assertEqual([4, 20], [call.kwargs['attempts'] for call in wait.call_args_list])
+
+    def test_welcome_does_not_replay_if_the_ui_changed(self):
+        button = Element('node', {'resource-id':'welcome-get-started',
+                                 'bounds':'[56,1258][664,1374]'})
+        with patch.object(batch.ui, 'nodes', side_effect=[[button], []]), \
+                patch.object(batch.ui, 'tap') as tap, \
+                patch.object(batch.ui, 'wait_tagged',
+                             side_effect=AssertionError('not yet')):
+            with self.assertRaisesRegex(AssertionError, 'refusing to replay navigation'):
+                batch.enter_court()
+        tap.assert_called_once_with(button)
 
     def test_artwork_requires_visible_area_not_just_an_exported_tag(self):
         hidden = Element('node', {'resource-id':'drill-art-s1','bounds':'[0,0][0,0]'})
