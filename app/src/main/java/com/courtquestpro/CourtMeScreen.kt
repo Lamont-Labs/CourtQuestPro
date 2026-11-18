@@ -223,8 +223,8 @@ private fun ProfileJerseyHero(jerseyNumber: Int?, modifier: Modifier = Modifier)
             color = Color(0xFFFF9A51),
             fontFamily = CourtDisplay,
             fontWeight = FontWeight.Black,
-            fontSize = 40.sp,
-            lineHeight = 42.sp,
+            fontSize = 49.sp,
+            lineHeight = 51.sp,
             textAlign = TextAlign.Center,
             maxLines = 1
         )
