@@ -28,11 +28,17 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
-internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGames: Boolean = false, onMissionReceipt: (String) -> Unit = {}) {
+internal fun CareerScreen(
+    save: SaveState,
+    onHome: () -> Unit,
+    initiallyShowGames: Boolean = false,
+    initiallyShowTrainingHistory: Boolean = false,
+    onMissionReceipt: (String) -> Unit = {}
+) {
     val drills = TrainingLibrary.catalog(save)
     var showGames by rememberSaveable(initiallyShowGames) { mutableStateOf(initiallyShowGames) }
     var section by rememberSaveable { mutableStateOf("Overview") }
-    var showAllSessions by rememberSaveable { mutableStateOf(false) }
+    var showAllSessions by rememberSaveable(initiallyShowTrainingHistory) { mutableStateOf(initiallyShowTrainingHistory) }
     var showAllGames by rememberSaveable { mutableStateOf(false) }
     val recorded = save.drillResults.orEmpty()
     val valid = recorded.filter { it.attempted > 0 && it.completed in 0..it.attempted }
@@ -55,12 +61,16 @@ internal fun CareerScreen(save: SaveState, onHome: () -> Unit, initiallyShowGame
         return
     }
     if (showAllSessions) {
-        BackHandler { showAllSessions = false }
+        BackHandler {
+            if (initiallyShowTrainingHistory) onHome() else showAllSessions = false
+        }
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            item { AppHeader("Training history", "${recorded.size} recorded sessions") }
+            item { AppHeader("Training history", "${recorded.size} saved drill results") }
             item {
-                TextButton(onClick = { showAllSessions = false },
+                TextButton(onClick = {
+                    if (initiallyShowTrainingHistory) onHome() else showAllSessions = false
+                },
                     modifier = Modifier.padding(horizontal = 20.dp).heightIn(min = 48.dp)) { Text("Back to Progress") }
             }
             items(recorded.asReversed()) { result ->
@@ -298,9 +308,14 @@ private fun CourtActivityChart(results: List<DrillResult>) {
 
 @Composable
 private fun TrainingSessionCard(result: DrillResult, catalog: List<Drill>, modifier: Modifier = Modifier) {
+    val kind = when {
+        result.missionSessionId?.startsWith("mission-session_") == true -> "Mission"
+        result.practice -> "Extra practice"
+        else -> "Training"
+    }
     CourtQuestPremiumSurface(modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            CourtEyebrow(if (result.missionSessionId?.startsWith("mission-session_") == true) "${result.date} · Mission" else if (result.practice) "${result.date} · Extra practice" else result.date)
+            CourtEyebrow("${result.date} · $kind")
             Text(result.drillSnapshot?.title ?: catalog.firstOrNull { it.id == result.drillId }?.title ?: "Saved drill",
                 color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleMedium)
             Text("${result.completed} successful / ${result.attempted} attempts",

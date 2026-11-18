@@ -79,6 +79,14 @@ Do not treat each WP as a single small 'improvement'; split implementation into 
 - Validate one-handed attempt recording, accessible 48dp targets, reduced motion, no lost drafts on interruption, no duplicate result or award on retry.
 - Test no-history, many-history, custom drill archived/edited, six daily slots, Mission pause/resume, app upgrade v41->v42, offline mode, malformed data.
 - Verify APK appId com.courtquestpro, versionCode >41, same signer, checksum, clean install and upgrade, preserved saved profile and records.
+
+## Progression batch implementation notes
+
+- Progress summaries use valid dated saved drill results, verified Mission receipts, and the existing participation XP/rank. Filters are 7 days, 30 days, and all time; all-time activity is graphed as monthly buckets for the most recent 12 months.
+- New daily check-in and weekly three-distinct-days rewards use stable versioned keys. A single additive quest activation timestamp prevents upgrade-time retroactive XP; saved-result writes and app restart reconcile rewards idempotently. Existing per-drill XP and the six-drill daily bonus are unchanged.
+- Achievements are deterministic projections of saved results, frozen measurement snapshots, and verifiable Mission receipts. Personal bests require matching drill definition, schema, and attempts. Unverifiable receipts remain visible as saved receipts but do not unlock the Mission achievement.
+- Progress, Quests, and Me remain native Compose screens, use the existing black/orange system and artwork, and expose no active team/school/coach route. Team data is not removed. No new network services or dependencies are introduced.
+- The v42 APK/signing/release gates in this plan are deliberately not run for this batch; the request explicitly excludes publishing an APK. Build, lint, unit and guarded emulator evidence is recorded in the branch’s GitHub Actions runs.
 - No claim of visual acceptance from CI alone. Owner confirms installed build before next release batch.
 
 ## 10. Audit limits

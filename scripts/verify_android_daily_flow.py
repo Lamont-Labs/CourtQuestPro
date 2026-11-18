@@ -162,15 +162,21 @@ def require(items, text):
 
 
 def assert_empty_progress(items):
-    require(items, 'PLAYER RECORD')
-    require(items, 'TOTAL XP')
-    require(items, '0 training days')
+    xp_card = tagged(items, 'progress-lifetime-xp')
+    assert xp_card is not None, 'Player level and lifetime XP card is missing'
+    require(list(xp_card.iter('node')), 'PLAYER LEVEL')
+    require(list(xp_card.iter('node')), 'TOTAL XP')
+    require(list(xp_card.iter('node')), '0')
     record = tagged(items, 'progress-record-sessions')
-    assert record is not None, 'Empty session record is missing'
-    require(list(record.iter('node')), 'SESSIONS')
+    assert record is not None, 'Empty recorded-drills metric is missing'
+    require(list(record.iter('node')), 'RECORDED DRILLS')
     require(list(record.iter('node')), '0')
+    days = tagged(items, 'progress-training-days')
+    assert days is not None, 'Empty training-days metric is missing'
+    require(list(days.iter('node')), 'TRAINING DAYS')
+    require(list(days.iter('node')), '0')
     assert sum(node.get('text') == '0' for node in items) >= 2, \
-        'Empty Progress must show zero XP and zero sessions'
+        'Empty Progress must show zero XP and zero recorded drills'
 
 
 def tap(node):
@@ -212,6 +218,10 @@ def seed(variant="normal"):
                                   attempted=0, targetConfirmed=False, remainingSeconds=360)], showWarmupDone=False)
     if variant == 'empty':
         state.update(totalXp=0, currentStreak=0, longestStreak=0, drillResults=[], drillDrafts=[])
+    elif variant == 'progression-empty':
+        # QA-only first-run fixture: no history or XP, but a resumable recorder draft.
+        state.update(playerName='CourtQuest QA', jerseyNumber=14, totalXp=0,
+                     currentStreak=0, longestStreak=0, drillResults=[], awardedKeys=[])
     elif variant == 'visual-review':
         # Clearly synthetic, identically persisted before/after screenshot data.
         # These are fixture values, never runtime defaults or a real user's identity.

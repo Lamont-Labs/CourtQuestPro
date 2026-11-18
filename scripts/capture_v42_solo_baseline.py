@@ -45,6 +45,11 @@ def wait_until(read, predicate, label, timeout=8.0):
     assert predicate(latest), f'{label} did not persist before timeout: {latest!r}'
     return latest
 
+def without_progression_migration(raw_state):
+    state = json.loads(raw_state) if isinstance(raw_state, str) else dict(raw_state)
+    state.pop('questSystemActivatedAt', None)
+    return state
+
 def scroll_to_tag(tag):
     for _ in range(18):
         items = ui.nodes()
@@ -195,8 +200,45 @@ def verify_candidate(config):
     enter_court()
     dismiss_hint()
 
+def verify_progression_screens(config):
+    # Explicitly inspect first-time empty and returning-player states on the disposable AVD.
+    ui.seed('empty')
+    ui.open_app()
+    enter_court()
+    dismiss_hint()
+    ui.navigate('Progress')
+    ui.assert_empty_progress(ui.nodes())
+    ui.scroll_to_tag('progress-empty')
+    assert ui.tagged(ui.nodes(), 'progress-record-sessions') is not None
+    capture('progress-empty')
+    ui.navigate('Quests')
+    assert ui.wait_tagged('quests-daily-checkin')
+    assert ui.wait_tagged('quests-weekly-consistency')
+    capture('quests-empty')
+    ui.navigate('Me')
+    capture('me-empty')
+
+    ui.seed('visual-review')
+    ui.open_app()
+    enter_court()
+    dismiss_hint()
+    ui.navigate('Progress')
+    capture('progress-returning')
+    ui.scroll_to_tag('progress-milestone-first-saved-drill')
+    capture('progress-earned-history-milestone')
+    ui.navigate('Quests')
+    assert ui.wait_tagged('quests-daily-checkin')
+    capture('quests-returning')
+    ui.navigate('Me')
+    ui.scroll_to_tag('me-achievement-first-saved-drill')
+    capture('me-returning')
+
 def verify_drill_batch(config):
     # Run the exact feature journey on the guarded Android device at each text size.
+    ui.seed('progression-empty')
+    ui.open_app()
+    enter_court()
+    dismiss_hint()
     assert_dock()
     ui.navigate('Train')
     ui.tap(ui.wait_tagged('segment-library'))
@@ -282,8 +324,22 @@ def verify_drill_batch(config):
     receipts = [r for r in final['drillResults'] if r['slotId'] == 'slot-0']
     assert len(receipts) == 1
     assert (receipts[0]['completed'], receipts[0]['attempted']) == (15, 15)
-    assert len(final['drillResults']) == 3 and final['totalXp'] == 150
+    assert len(final['drillResults']) == 1 and final['totalXp'] == 75
+    daily_key = f"quest_daily_first_saved_drill_v1_{final['activeDate']}"
+    assert final['awardedKeys'].count(daily_key) == 1, 'Daily quest reward must be granted exactly once'
+    assert final.get('questSystemActivatedAt'), 'Quest activation must persist in the saved state'
     assert final['slots'][0]['complete'] and not final['drillDrafts']
+    ui.navigate('Quests')
+    ui.wait_tagged('quests-daily-checkin-earned')
+    capture('quests-daily-earned')
+    ui.tap(scroll_to_tag('quests-tab-achievements'))
+    ui.scroll_to_tag('quests-achievement-first-saved-drill')
+    capture('achievement-first-saved-drill')
+    ui.navigate('Me')
+    ui.scroll_to_tag('me-achievement-first-saved-drill')
+    capture('me-first-saved-drill')
+    ui.navigate('Progress')
+    capture('progress-first-saved-drill')
     ui.shell('am','force-stop',ui.PACKAGE)
     ui.open_app()
     enter_court()
@@ -305,7 +361,12 @@ def verify_drill_batch(config):
         assert practice['drillResults'][-1]['practice']
         assert practice['totalXp'] == final['totalXp'] and practice['slots'] == final['slots']
         assert practice.get('practiceSession') is None
+        assert practice['awardedKeys'].count(daily_key) == 1, 'Extra practice duplicated the daily quest award'
         capture('extra-practice-receipt')
+        ui.shell('am','force-stop',ui.PACKAGE)
+        ui.open_app()
+        enter_court()
+        assert state() == practice, 'Extra-practice result or quest award changed after restart'
 
 def main():
     parser=argparse.ArgumentParser()
@@ -313,6 +374,7 @@ def main():
     parser.add_argument('--output',default='artifacts/v42-v41-baseline',type=Path)
     parser.add_argument('--candidate-apk',type=Path)
     parser.add_argument('--drill-batch', action='store_true')
+    parser.add_argument('--all-v42-checks', action='store_true')
     args=parser.parse_args()
     assert args.apk.is_file() and args.apk.stat().st_size > 1000000, 'Missing real release APK'
     # Safety: seed() and pm clear operate only on the disposable AVD.
@@ -332,10 +394,6 @@ def main():
             ui.shell('wm','size',f'{width}x{height}')
             ui.shell('wm','density','320')
             ui.shell('settings','put','system','font_scale',font)
-            ui.seed('visual-review')
-            ui.open_app()
-            enter_court()
-            dismiss_hint()
             verify_drill_batch(label)
         return
     records=[]
@@ -349,7 +407,11 @@ def main():
         assert ui.prefs()['state'].text == saved, 'Update changed saved player state'
         ui.open_app()
         enter_court()
-        assert json.loads(ui.prefs()['state'].text) == json.loads(saved), 'Relaunch changed saved player state'
+        restored = ui.prefs()['state'].text
+        assert without_progression_migration(restored) == without_progression_migration(saved), \
+            'Progression migration changed existing player data'
+        assert json.loads(restored).get('questSystemActivatedAt'), \
+            'Additive quest activation timestamp was not saved after launch'
         ui.OUT = args.output/'upgrade'
         ui.OUT.mkdir(parents=True, exist_ok=True)
         capture('preserved-after-relaunch')
@@ -380,14 +442,25 @@ def main():
         if phase == 'after':
             set_tour_complete(False)
             verify_candidate(label)
+            verify_progression_screens(label)
+            if args.all_v42_checks:
+                ui.OUT = args.output/'drills'/label
+                ui.OUT.mkdir(parents=True, exist_ok=True)
+                verify_drill_batch(label)
         ui.navigate('Court')
         capture('court-return')
         # Do not mutate practice history in this visual-only baseline pass.
+    scope = 'all' if args.all_v42_checks else ('drills' if args.drill_batch else 'solo')
     report={'release_tag':'courtquest-phone-update-v41','apk_sha256':apk_sha,
             'reference':'released v41, not unreleased walkthrough fix',
             'guarded_emulator':True,'candidate_captured':bool(args.candidate_apk),
+            'verification_scope':scope,
             'owner_visual_approval':'PENDING','screens':records,
-            'omitted':'Team/coach/school; deeper drill/receipt journeys pending dedicated fixture'}
+            'omitted':(
+                'Team/coach/school are intentionally out of scope.'
+                if args.all_v42_checks else
+                'Team/coach/school are intentionally out of scope; scope-specific drill or progression checks are not run.'
+            )}
     args.output.mkdir(parents=True,exist_ok=True)
     (args.output/'baseline-manifest.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps(report),flush=True)

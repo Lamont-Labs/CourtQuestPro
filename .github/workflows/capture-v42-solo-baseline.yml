@@ -12,7 +12,7 @@ on:
         description: Native flow to verify
         type: choice
         default: solo
-        options: [solo, drills]
+        options: [solo, drills, all]
 permissions:
   contents: read
 concurrency:
@@ -21,7 +21,7 @@ concurrency:
 jobs:
   capture:
     runs-on: ubuntu-24.04
-    timeout-minutes: 40
+    timeout-minutes: 55
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -77,6 +77,7 @@ jobs:
           done
           extra=()
           if [ "$VERIFY_SCOPE" = drills ]; then extra+=(--drill-batch); fi
+          if [ "$VERIFY_SCOPE" = all ]; then extra+=(--all-v42-checks); fi
           python3 -u scripts/capture_v42_solo_baseline.py \
             --apk previous/CourtQuestPro-Update-v41.apk \
             --candidate-apk app/build/outputs/apk/debug/app-debug.apk "${extra[@]}"

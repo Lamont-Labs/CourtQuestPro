@@ -103,7 +103,9 @@ data class SaveState(
     var missionDraft: MissionBuilderDraft? = null,
     var missionVersions: MutableList<MissionVersion>? = null,
     var missionSessions: MutableList<MissionSession>? = null,
-    var missionReceipts: MutableList<MissionReceipt>? = null
+    var missionReceipts: MutableList<MissionReceipt>? = null,
+    // Additive migration: null for saves created before evidence-backed quests existed.
+    var questSystemActivatedAt: String? = null
 )
 
 internal val drills = listOf(
@@ -152,7 +154,13 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         )
     }
     fun persist() { prefs.edit().putString("state", gson.toJson(save)).apply() }
-    fun refresh() { save = gson.fromJson(gson.toJson(save), SaveState::class.java); persist() }
+    fun refresh() {
+        val now = Instant.now()
+        CourtQuestEngine.activate(save, now)
+        CourtQuestEngine.reconcile(save, LocalDate.now(ZoneId.systemDefault()), now)
+        save = gson.fromJson(gson.toJson(save), SaveState::class.java)
+        persist()
+    }
 
     val catalog = TrainingLibrary.catalog(save)
     val snackbar = remember { SnackbarHostState() }
@@ -291,6 +299,10 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     }
     BackHandler(enabled = onboardingComplete && !showWelcome && tourStep >= 0) { closeTour() }
     LaunchedEffect(today) {
+        val now = Instant.now()
+        val activated = CourtQuestEngine.activate(save, now)
+        val questRewarded = CourtQuestEngine.reconcile(save, LocalDate.parse(today), now)
+        if (activated || questRewarded) refresh()
         if (save.activeDate != today) {
             save.drillDrafts = mutableListOf()
             save.activeDate = today
@@ -392,7 +404,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             navigate(PlayerTab.COURT.route)
         }
         val showPlayerNavigation = onboardingComplete && !showWelcome &&
-            screen in listOf("home", "library", "quests", "career", "gameHistory", "me", "settings", "team")
+            screen in listOf("home", "library", "quests", "career", "gameHistory", "trainingHistory", "me", "settings")
         CourtQuestScene {
         Scaffold(
             modifier = Modifier.semantics { testTagsAsResourceId = true },
@@ -568,8 +580,8 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                                     save.drillDrafts = save.drillDrafts.orEmpty().filterNot {
                                         it.date == save.activeDate && it.slotId == save.slots[selectedSlot].id
                                     }.toMutableList()
-                                    award(save, "drill_${save.activeDate}_${save.slots[selectedSlot].id}", 50)
-                                    if (save.slots.all { it.complete }) award(save, "six_${save.activeDate}", 100)
+                                    awardXpOnce(save, "drill_${save.activeDate}_${save.slots[selectedSlot].id}", 50)
+                                    if (save.slots.all { it.complete }) awardXpOnce(save, "six_${save.activeDate}", 100)
                                     refresh()
                                     recordedDrillId = result.slotId
                                     recordedXp = save.totalXp - xpBefore
@@ -626,8 +638,8 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                                     val won = save.playerScore > save.opponentScore
                                     val winner = if (won) save.matchPlayer else save.matchOpponent
                                     val previousXp = save.totalXp
-                                    award(save, "champ_${save.activeDate}", 100)
-                                    if (won) award(save, "win_${save.activeDate}", 50)
+                                    awardXpOnce(save, "champ_${save.activeDate}", 100)
+                                    if (won) awardXpOnce(save, "win_${save.activeDate}", 50)
                                     val matchXp = save.totalXp - previousXp
                                     save.championshipDone = true
                                     val record = MatchRecord(save.activeDate, save.matchPlayer, save.matchOpponent,
@@ -658,13 +670,19 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         lastScorer = save.pointHistory?.lastOrNull()?.let { if (it) save.matchPlayer else save.matchOpponent }
                     )
                     "recap" -> (recap ?: save.matches.firstOrNull())?.let { MatchRecapScreen(it, save.totalXp, onHome = { navigate("home") }, onCareer = { navigate("gameHistory") }) } ?: HomeContent()
-                    "gameHistory" -> CareerScreen(save, onHome = { navigate("home") }, initiallyShowGames = true)
-                    "career" -> CareerScreen(save, onHome = { navigate("home") }, onMissionReceipt = { missionReceiptId = it; navigate("missionReceipt") })
+                    "gameHistory" -> CareerScreen(save, onHome = { navigate("career") }, initiallyShowGames = true)
+                    "trainingHistory" -> CareerScreen(save, onHome = { navigate("career") }, initiallyShowTrainingHistory = true)
+                    "career" -> ProgressDashboardScreen(
+                        save,
+                        onHome = { navigate("home") },
+                        onGames = { navigate("gameHistory") },
+                        onAllTraining = { navigate("trainingHistory") },
+                        onMissionReceipt = { missionReceiptId = it; navigate("missionReceipt") }
+                    )
                     "quests" -> QuestsScreen(save, today, onTraining = { openTraining() }, onBuild = { openMissionBuilder() },
                         onResumeMission = { openMission() }, onProgress = { navigate("career") })
                     "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") },
                         onWalkthrough = { startNavigationTour() })
-                    "team" -> TeamScreen(onTrain = { openLibrary() }, onBack = { goBack() })
                     "settings" -> SettingsScreen(save.playerName, save.difficulty, save.jerseyNumber, onBack = { goBack() }, onDifficulty = { save.difficulty = it; refresh() }, onSaveJersey = { save.jerseyNumber = it; refresh() }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
                     }, onReplayTour = { startNavigationTour() })
@@ -718,9 +736,6 @@ private fun makeDailySlots(level: String, weeklyPlan: String = "Balanced", catal
     }
 }
 
-private fun award(s: SaveState, key: String, xp: Int) {
-    if (key !in s.awardedKeys) { s.awardedKeys.add(key); s.totalXp += xp }
-}
 private fun updateStreak(s: SaveState, sessionDate: LocalDate, today: String) {
     if (sessionDate.toString() != today || !s.slots.all { it.complete }) return
     val previous = s.lastStreakDate

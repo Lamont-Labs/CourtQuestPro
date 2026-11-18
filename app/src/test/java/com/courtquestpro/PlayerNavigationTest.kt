@@ -5,14 +5,16 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class PlayerNavigationTest {
-    @Test fun teamReturnsToItsRealOpenerAndSurvivesRestoration() {
-        for (opener in listOf(listOf("home"), listOf("home", "me"))) {
-            val team = PlayerNavigation.open(opener, "team")
-            assertEquals(opener + "team", PlayerNavigation.restore(team))
-            assertEquals(opener, PlayerNavigation.back(team))
-            assertEquals(PlayerNavigation.tab(opener), PlayerNavigation.tab(team))
-        }
+    @Test fun teamRouteIsNotExposedInTheSoloPlayerNavigation() {
+        assertEquals(listOf("home"), PlayerNavigation.open(listOf("home"), "team"))
+        assertEquals(listOf("home"), PlayerNavigation.restore(listOf("home", "team")))
         assertFalse(PlayerNavigation.retainsState("team"))
+    }
+    @Test fun fullTrainingHistoryReturnsToProgress() {
+        val history = PlayerNavigation.open(listOf("home", "career"), "trainingHistory")
+        assertEquals(listOf("home", "career", "trainingHistory"), history)
+        assertEquals(listOf("home", "career"), PlayerNavigation.back(history))
+        assertEquals(PlayerTab.PROGRESS, PlayerNavigation.tab(history))
     }
     @Test fun rootsReturnToCourtWithoutCyclingThroughOtherTabs() {
         var history = listOf("home")

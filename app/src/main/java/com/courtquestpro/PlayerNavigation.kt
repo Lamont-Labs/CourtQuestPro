@@ -9,7 +9,7 @@ internal enum class PlayerTab(val route: String, val label: String) {
 internal object PlayerNavigation {
     private val roots = PlayerTab.entries.map { it.route }
     private val trainingFlow = setOf("drill", "practice", "drillResult", "mission", "missionStepReceipt", "missionReceipt")
-    private val known = roots + trainingFlow + listOf("team", "settings", "missionBuilder", "drillEditor", "champSetup", "score", "recap", "gameHistory")
+    private val known = roots + trainingFlow + listOf("settings", "missionBuilder", "drillEditor", "champSetup", "score", "recap", "gameHistory", "trainingHistory")
 
     fun retainsState(route: String): Boolean = route in roots || route == "settings"
 
@@ -38,8 +38,8 @@ internal object PlayerNavigation {
         "library" -> "Back to Train"
         "quests" -> "Back to Quests"
         "career", "gameHistory" -> "Back to Progress"
+        "trainingHistory" -> "Back to Progress"
         "me" -> "Back to Me"
-        "team" -> "Back to Team"
         "missionBuilder" -> "Back to Mission Builder"
         else -> "Back to Court"
     }

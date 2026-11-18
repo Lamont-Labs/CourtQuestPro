@@ -4,14 +4,20 @@ from xml.etree import ElementTree as ET
 from verify_android_daily_flow import assert_empty_progress
 
 
-def empty_progress(xp='0', sessions='0', days='0 training days', heading='PLAYER RECORD'):
+def empty_progress(xp='0', drills='0', days='0', heading='PLAYER LEVEL'):
     root = ET.Element('node')
-    for text in [heading, 'TOTAL XP', xp, days]:
-        ET.SubElement(root, 'node', {'text': text, 'bounds': '[40,300][600,360]'})
+    xp_card = ET.SubElement(root, 'node', {'resource-id': 'progress-lifetime-xp',
+                                          'bounds': '[40,300][600,420]'})
+    for text in [heading, xp, 'TOTAL XP']:
+        ET.SubElement(xp_card, 'node', {'text': text, 'bounds': '[40,300][600,360]'})
     record = ET.SubElement(root, 'node', {'resource-id': 'progress-record-sessions',
                                         'bounds': '[40,400][600,520]'})
-    for text in ['SESSIONS', sessions]:
+    for text in ['RECORDED DRILLS', drills]:
         ET.SubElement(record, 'node', {'text': text, 'bounds': '[40,400][600,460]'})
+    training_days = ET.SubElement(root, 'node', {'resource-id': 'progress-training-days',
+                                                'bounds': '[40,540][600,660]'})
+    for text in ['TRAINING DAYS', days]:
+        ET.SubElement(training_days, 'node', {'text': text, 'bounds': '[40,540][600,600]'})
     return list(root.iter('node'))
 
 
@@ -20,8 +26,8 @@ class EmptyProgressTest(unittest.TestCase):
         assert_empty_progress(empty_progress())
 
     def test_nonempty_or_obsolete_record_is_rejected(self):
-        for change in [dict(xp='100'), dict(sessions='2'), dict(days='1 training days'),
-                       dict(heading='YOUR TRAINING RECORD')]:
+        for change in [dict(xp='100'), dict(drills='2'), dict(days='1'),
+                       dict(heading='YOUR PLAYER LEVEL')]:
             with self.subTest(change=change), self.assertRaises(AssertionError):
                 assert_empty_progress(empty_progress(**change))
 

@@ -20,14 +20,21 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
+import java.time.LocalDate
 
 @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
-internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Unit, onTeam: () -> Unit = {}, onWalkthrough: () -> Unit = {}) {
+internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Unit, onWalkthrough: () -> Unit = {}) {
     var section by rememberSaveable { mutableStateOf("Profile") }
     var settingsMenu by remember { mutableStateOf(false) }
-    val days = (save.trainingDays ?: listOf(1, 3, 5)).filter { it in 1..7 }.distinct().sorted()
+    val days = save.trainingDays.orEmpty().filter { it in 1..7 }.distinct().sorted()
     val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+    val catalog = TrainingLibrary.catalog(save)
+    val today = LocalDate.now()
+    val achievements = playerAchievements(save, catalog, today)
+    val earnedAchievements = achievements.filter { it.earned }
+    val validResults = resultsInProgressRange(save.drillResults.orEmpty(), today, ProgressRange.ALL_TIME)
+    val trainingDays = validResults.map { it.date }.distinct().size
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp)) {
         item {
             Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 14.dp, bottom = 8.dp),
@@ -72,7 +79,8 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                         verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         CourtEyebrow("PLAYER PROFILE")
                         Box(
-                            Modifier.size(190.dp).clip(CircleShape).testTag("me-jersey-hero")
+                            Modifier.size(if (LocalDensity.current.fontScale > 1.5f) 132.dp else 148.dp)
+                                .clip(CircleShape).testTag("me-jersey-hero")
                                 .background(Brush.radialGradient(listOf(Color(0xFF351609), Color(0xFF151517), Color(0xFF0B0B0C))))
                                 .border(1.dp, CourtQuestDesign.accent.copy(alpha = .45f), CircleShape),
                             contentAlignment = Alignment.Center
@@ -102,16 +110,19 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                         if (LocalDensity.current.fontScale > 1.3f) {
                             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 ProfileStat("TOTAL XP", save.totalXp.toString(), Modifier.fillMaxWidth(), true)
-                                ProfileStat("RECORDED DRILLS", save.drillResults.orEmpty().size.toString(), Modifier.fillMaxWidth())
-                                ProfileStat("GAMES", save.matches.size.toString(), Modifier.fillMaxWidth())
+                                ProfileStat("RECORDED DRILLS", validResults.size.toString(), Modifier.fillMaxWidth())
+                                ProfileStat("TRAINING DAYS", trainingDays.toString(), Modifier.fillMaxWidth())
+                                ProfileStat("ACHIEVEMENTS", earnedAchievements.size.toString(), Modifier.fillMaxWidth())
                             }
                         } else {
                             Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                                 ProfileStat("TOTAL XP", save.totalXp.toString(), Modifier.weight(1f), true)
                                 Box(Modifier.width(1.dp).height(34.dp).background(CourtQuestDesign.border))
-                                ProfileStat("RECORDED DRILLS", save.drillResults.orEmpty().size.toString(), Modifier.weight(1f))
+                                ProfileStat("RECORDED DRILLS", validResults.size.toString(), Modifier.weight(1f))
                                 Box(Modifier.width(1.dp).height(34.dp).background(CourtQuestDesign.border))
-                                ProfileStat("GAMES", save.matches.size.toString(), Modifier.weight(1f))
+                                ProfileStat("TRAINING DAYS", trainingDays.toString(), Modifier.weight(1f))
+                                Box(Modifier.width(1.dp).height(34.dp).background(CourtQuestDesign.border))
+                                ProfileStat("ACHIEVEMENTS", earnedAchievements.size.toString(), Modifier.weight(1f))
                             }
                         }
                         CourtQuestPrimaryButton(onEdit, Modifier.fillMaxWidth()) {
@@ -148,9 +159,36 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                     }
                 }
                 if (section == "Profile") {
+                    CourtHeading("Milestones", "${earnedAchievements.size} earned")
+                    if (earnedAchievements.isEmpty()) {
+                        CourtQuestPremiumSurface(Modifier.fillMaxWidth().testTag("me-achievements-empty"),
+                            PaddingValues(14.dp)) {
+                            Text("Save a completed drill to unlock your first evidence-based milestone.",
+                                color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
+                        }
+                    } else {
+                        earnedAchievements.take(2).forEach { achievement ->
+                            CourtQuestPremiumSurface(
+                                Modifier.fillMaxWidth().testTag("me-achievement-${achievement.id}"),
+                                PaddingValues(14.dp), highlighted = true
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    Icon(Icons.Default.EmojiEvents, null, tint = CourtQuestDesign.accent)
+                                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                        Text(achievement.title, color = CourtQuestDesign.textPrimary,
+                                            style = MaterialTheme.typography.titleMedium)
+                                        Text("Earned ${achievement.earnedDate ?: "date unavailable"}",
+                                            color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+                            }
+                        }
+                    }
                     Text("XP tracks participation. Results are self-recorded.",
                         color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
-                    OutlinedButton(onProgress, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Open training history") }
+                    OutlinedButton(onProgress, Modifier.fillMaxWidth().heightIn(min = 52.dp)
+                        .testTag("me-open-progress")) { Text("Open Progress and history") }
                 }
                 if (section == "Settings") {
                     CourtRule()
@@ -160,7 +198,7 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                         Text("Saved on this phone", color = CourtQuestDesign.textPrimary,
                             style = MaterialTheme.typography.titleMedium)
                     }
-                    Text("Your profile, Missions and results stay on this device. Cloud backup and team sharing are not connected.",
+                    Text("Your profile, training and results stay on this device. Cloud backup is not connected.",
                         color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
                 }
             }

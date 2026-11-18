@@ -10,13 +10,19 @@ The comprehensive run 43244651522 was cancelled at its 35-minute limit after wri
 
 Build 9 is published at the existing fixed download URL. Release commit `ca6238a5bdb23ff0c0dfa301fddbc1d7cde5d3a0`; [publication run 43253825911](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43253825911) succeeded. Unauthenticated public download is byte-identical to the Android-tested APK and independently checked manifests/API asset digest match version, size, original signer and SHA-256. [Public-download evidence](tooling/evidence/player-build9-public-download.json).
 
-Next open issue: CQ-PLAYER-004: versioned evidence-backed Quest rules/achievements. The current Quest activity screen does not implement those award rules. Preserve Google Play/free-paid roadmap and future school/security gates.
+CQ-PLAYER-004 is implemented on the v42 solo-player feature branch. Versioned evidence-backed quest rewards and achievements, the Progress dashboard, and player-first Me updates are described below. This is not a v42 APK release; keep the stable v41 build unchanged.
+
+## CQ-PLAYER-004 — evidence-backed player progression implemented
+
+The v42 branch adds daily and weekly saved-training quests, replay-safe XP award keys, and achievements derived from valid saved results or verified Mission receipts. A one-time activation timestamp is an additive save field: old records remain visible but do not receive retroactive quest rewards. Existing daily-drill XP keys and the six-drill bonus are unchanged. Progress filters use dated records, personal bests compare only the same frozen drill definition, measurement schema, and attempt count, and saved Mission receipts remain visible even when their evidence cannot be verified.
+
+Progress and Me now show saved activity, participation XP/rank, exact recorded skill totals, supported personal bests, achievement highlights, training history, and the existing profile preferences. Team navigation was removed from the active solo-player route set; team-related saved data and source remain untouched. No new network service, telemetry, dependency, app identity, signing change, or APK publication is part of this implementation.
 
 ## CQ-PLAYER-002 — complete and delivered
 
 The versioned solo Mission Builder has passed native acceptance on source `f6db205d3b8d7a10621acd3b39bc6fda0f576ecc`, app/src `826dc7c4f6eecbd0147b04e2cbc50a107ed4d089`. [Native run 43147187632](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43147187632), [development 43147187607](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43147187607) and [toolkit/Maestro 43147187655](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43147187655) succeeded. Results: 61 Android unit tests, 7 Python checks, lint 0 errors/11 warnings, all library/daily/game/Mission journeys and guarded Maestro. The exact 21,103,354-byte APK is version 1.0 (8), SHA-256 `7bee93ac1870911008db5973c9a374f0d4eb8db6e05ed917ba0df0db144ca04d`, with the original signer. [Native evidence](tooling/evidence/mission-build8-native.json), [rendered review](tooling/MISSION_BUILDER_RENDERED_REVIEW.md). Build 8 is published in release commit `cea3890f7958998f5c1afa885893aff13a669053`; [publication run 43233289181](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43233289181) succeeded. An independent public download matched every byte and passed version/package/original-signer/v2/ZIP/16KB alignment checks. [Public-download evidence](tooling/evidence/mission-build8-public-download.json).
 
-Implemented: separate durable builder, ordered selection/reorder/remove, saved immutable revisions, frozen target/vocabulary, seeded constrained generation with stored inputs/candidates, protected required steps, start/pause/resume/discard, exact-once drill results, one completion receipt and receipt reopening in Progress. New legacy daily/practice evidence is additive; old history, awards and session identities are preserved. [Current verification](tooling/MISSION_BUILDER_VERIFICATION.md). CQ-PLAYER-003 is the current candidate above; CQ-PLAYER-004 evidence-backed Quest rules follows after its release gate.
+Implemented: separate durable builder, ordered selection/reorder/remove, saved immutable revisions, frozen target/vocabulary, seeded constrained generation with stored inputs/candidates, protected required steps, start/pause/resume/discard, exact-once drill results, one completion receipt and receipt reopening in Progress. New legacy daily/practice evidence is additive; old history, awards and session identities are preserved. [Current verification](tooling/MISSION_BUILDER_VERIFICATION.md). CQ-PLAYER-003 is the stable prior player experience; CQ-PLAYER-004 progression is an unreleased v42 feature-branch implementation.
 
 
 The owner authorized implementation of the saved v1 master specification on November 11, 2026. The exact contract is [Master Product, UX & Engineering Specification v1](specs/CourtQuest_Pro_Master_Product_UX_Engineering_Spec_v1.md), copied from the current saved document `libfile_23352bc73e84819196bde99e72d137f5`. This tracker distinguishes implemented features from the proposal.
@@ -31,7 +37,7 @@ Native source: `375a607fd7be33bf30ad56c2337cf9acf3ae2253`; app/src tree: `839a30
 | --- | --- | --- |
 | 0 | Baseline and brand lock | Complete for this pass: original Signature contours/letterforms retained; real Android baseline; signer/package/save schema preserved. [Brand hashes](tooling/evidence/master-spec-preservation.json), [core preservation](tooling/evidence/master-core-preservation.json). |
 | 1 | Canonical premium journey | Complete and published as development build 7; current-source native acceptance and independent public-download verification passed. |
-| 2 | Player Mode | CQ-PLAYER-002 and CQ-PLAYER-003 complete, published as builds 8 and 9 with native and public-download verification. Versioned evidence-backed Quest rules, comparable Progress and resumable setup follow. [Scoped sequence and migration contract](plans/2026-11-11-player-mode-sequence.md). |
+| 2 | Player Mode | CQ-PLAYER-002 and CQ-PLAYER-003 remain published as builds 8 and 9. CQ-PLAYER-004 progression and comparable Progress are implemented on the v42 feature branch; no v42 APK is published. [Scoped sequence and migration contract](plans/2026-11-11-player-mode-sequence.md). |
 | 3 | Team/coach foundation | Planned: verified roles, consent-aware membership, server authorization and scoped roster access. |
 | 4 | Connected assignments | Planned: immutable Mission versions, explicit recipients and evidence-derived completion/offline reconciliation. |
 | 5 | Pilot polish | Planned: approved notifications, cooperative quests, exports and security/privacy/accessibility review. |
@@ -56,7 +62,7 @@ The original handoff runs 43096106238/43096106289 remain queued at the latest ch
 
 ## Remaining limits and next issue
 
-Physical-phone operation/performance, owner visual acceptance, full TalkBack traversal, API 26–30 fallback rendering and alternate launcher/theme masks remain unverified. Do not redefine Phase 1 as a school-ready release or claim the whole master specification is implemented. Proceed with CQ-PLAYER-004 under the saved Player Mode sequence. Build-8 exact-binary delivery has passed.
+Physical-phone operation/performance, owner visual acceptance, full TalkBack traversal, API 26–30 fallback rendering and alternate launcher/theme masks remain unverified. Do not redefine Phase 1 as a school-ready release or claim the whole master specification is implemented. CQ-PLAYER-004 is implemented but remains an unreleased v42 feature; build-8 exact-binary delivery has passed.
 
 ## Exact-binary delivery
 

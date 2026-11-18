@@ -1,5 +1,6 @@
 .gradle/
 .kotlin/
+*.class
 local.properties
 **/build/
 dist/
