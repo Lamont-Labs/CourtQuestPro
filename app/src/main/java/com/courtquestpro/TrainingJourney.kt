@@ -7,7 +7,11 @@ internal fun nextDailySlot(save: SaveState): Int? {
     return pending.firstOrNull { index ->
         val slot = save.slots[index]
         val drill = catalog.firstOrNull { it.id == slot.drillId } ?: return@firstOrNull false
-        DrillDraftRecovery.recover(save.drillDrafts.orEmpty(), save.activeDate, slot,
-            drill.minutes.coerceAtLeast(1) * 60) != null
+        recoverDailyDraft(save, slot, drill) != null
     } ?: pending.firstOrNull()
 }
+
+
+internal fun recoverDailyDraft(save: SaveState, slot: Slot, drill: Drill): DrillDraft? =
+    DrillDraftRecovery.recover(save.drillDrafts.orEmpty(), save.activeDate, slot,
+        drill.minutes.coerceAtLeast(1) * 60)
