@@ -227,8 +227,8 @@ def verify_progression_screens(config):
     assert ui.tagged(ui.nodes(), 'progress-empty') is not None
     capture('progress-empty')
     ui.navigate('Quests')
-    assert ui.wait_tagged('quests-daily-checkin')
-    assert ui.wait_tagged('quests-weekly-consistency')
+    assert ui.wait_tagged('quests-daily-checkin') is not None
+    assert scroll_to_tag('quests-weekly-consistency') is not None
     capture('quests-empty')
     ui.navigate('Me')
     capture('me-empty')
@@ -242,7 +242,7 @@ def verify_progression_screens(config):
     scroll_to_tag('progress-milestone-first-saved-drill')
     capture('progress-earned-history-milestone')
     ui.navigate('Quests')
-    assert ui.wait_tagged('quests-daily-checkin')
+    assert ui.wait_tagged('quests-daily-checkin') is not None
     capture('quests-returning')
     ui.navigate('Me')
     scroll_to_tag('me-achievement-first-saved-drill')
