@@ -313,13 +313,32 @@ private fun TrainingSessionCard(result: DrillResult, catalog: List<Drill>, modif
         result.practice -> "Extra practice"
         else -> "Training"
     }
+    val comparable = catalog.firstOrNull { it.id == result.drillId }
+    val rate = if (result.attempted > 0 && result.completed in 0..result.attempted)
+        result.completed.toFloat() / result.attempted else null
     CourtQuestPremiumSurface(modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             CourtEyebrow("${result.date} · $kind")
-            Text(result.drillSnapshot?.title ?: catalog.firstOrNull { it.id == result.drillId }?.title ?: "Saved drill",
+            Text(result.drillSnapshot?.title ?: comparable?.title ?: "Saved drill",
                 color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleMedium)
-            Text("${result.completed} successful / ${result.attempted} attempts",
-                color = CourtQuestDesign.accent, style = MaterialTheme.typography.bodyMedium)
+            CourtMetricStrip(listOf(
+                "Successful" to result.completed.toString(),
+                "Attempts" to result.attempted.toString(),
+                "Success rate" to (rate?.let { "${(it * 100).toInt()}%" } ?: "—")
+            ))
+            if (rate != null) {
+                LinearProgressIndicator(
+                    progress = { rate },
+                    modifier = Modifier.fillMaxWidth().height(6.dp),
+                    color = CourtQuestDesign.accentVivid,
+                    trackColor = CourtQuestDesign.surface
+                )
+            }
+            val target = result.drillSnapshot?.target ?: comparable?.target
+            if (!target.isNullOrBlank()) {
+                Text(target, color = CourtQuestDesign.textSecondary,
+                    style = MaterialTheme.typography.bodySmall)
+            }
         }
     }
 }
