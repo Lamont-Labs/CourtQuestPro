@@ -90,7 +90,7 @@ internal fun CourtQuestBottomDock(selected: PlayerTab, jersey: PlayerJersey, cus
                         Icon(fallback, contentDescription = null, modifier = Modifier.size(30.dp),
                             tint = if (active) CourtQuestDesign.accent else CourtQuestDesign.textSecondary)
                     }
-                    if (tab == PlayerTab.ME && jersey.number != null) {
+                    if (tab == PlayerTab.ME && customizedJersey && jersey.number != null) {
                         // Number belongs on the jersey chest, not in a detached badge.
                         // Dual-layer ink gives contrast at dock scale without extra chrome.
                         Box(Modifier.align(Alignment.Center).offset(y = 2.dp),
