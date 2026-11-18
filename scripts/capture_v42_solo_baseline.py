@@ -346,7 +346,7 @@ def verify_drill_batch(config):
     assert final['slots'][0]['complete'] and not final['drillDrafts']
     open_progress_from_receipt()
     ui.navigate('Quests')
-    ui.wait_tagged('quests-daily-checkin-earned')
+    assert scroll_to_tag('quests-daily-checkin-earned') is not None
     capture('quests-daily-earned')
     ui.tap(scroll_to_tag('quests-tab-achievements'))
     scroll_to_tag('quests-achievement-first-saved-drill')
