@@ -31,7 +31,7 @@ design workflows for these passes use existing connections.
 
 | Surface | What the current app does | Next native acceptance check |
 | --- | --- | --- |
-| Welcome | Signature wordmark and separate first-launch and returning-player entry. Content sits in a fixed viewport with weighted spacers. | Show both initial actions at 320 dp and 200% text, including short landscape. |
+| Welcome | Signature wordmark and distinct first-launch and returning-player entry. This branch gives the content a bounded scroll area and pins the actions below it. | Show both initial actions at 320 dp and 200% text, including short landscape. |
 | Court | Arena header, next session panel, drill shortcuts, workout and schedule. This branch aligns the preview with the training route and uses the selected weekly schedule. | Capture fresh, saved-draft, active Mission and completed day states. Verify the first action and the weekly goal with changed training days. |
 | Dock | One 58 dp row with approved artwork, a customizable jersey and accessible selected tabs. | Check the five tap bounds, target names and selection at compact and enlarged text. Verify the guide clears the bar and system navigation. |
 | Drill Library and discovery | Today, Library and Custom segments with search, filters, categories, favorites and quick practice. | Check search-to-result distance, filter reset, and minimum action size on 320 dp devices. |
@@ -53,3 +53,9 @@ A Mission shows its own actual drill position. The weekly metric uses selected
 training days, and the two shortcut actions stack at enlarged text.
 The initial Court build, unit tests and lint passed. Device review of these
 dashboard changes is pending.
+
+The Welcome layout gives the Signature wordmark and explanatory copy a bounded
+scroll viewport. Its primary entry and guest actions measure at their natural
+text height with Android safe insets. The pre-existing first-run and
+returning-player behavior keeps the same handlers. The updated branch passed
+119 unit tests and lint reported zero errors. Native visual review is pending.
