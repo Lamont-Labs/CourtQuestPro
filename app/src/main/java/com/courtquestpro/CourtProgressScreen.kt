@@ -42,6 +42,10 @@ internal fun CareerScreen(
     var showAllGames by rememberSaveable { mutableStateOf(false) }
     val recorded = save.drillResults.orEmpty()
     val valid = recorded.filter { it.attempted > 0 && it.completed in 0..it.attempted }
+    val totalAttempts = valid.sumOf { it.attempted }
+    val totalSuccessful = valid.sumOf { it.completed }
+    val trainingRate = if (totalAttempts > 0) "${totalSuccessful * 100 / totalAttempts}%" else "—"
+    val practicedDrills = valid.map { it.drillId }.distinct().size
     val recordCount = if (showGames) save.matches.size else recorded.size
     val recordedDays = if (showGames) save.matches.map { it.date }.distinct().size
         else valid.map { it.date }.distinct().size
@@ -74,7 +78,7 @@ internal fun CareerScreen(
                     modifier = Modifier.padding(horizontal = 20.dp).heightIn(min = 48.dp)) { Text("Back to Progress") }
             }
             items(recorded.asReversed()) { result ->
-                TrainingSessionCard(result, drills, Modifier.padding(horizontal = 20.dp))
+                TrainingSessionCard(result, drills, recorded, Modifier.padding(horizontal = 20.dp))
             }
         }
         return
@@ -120,6 +124,38 @@ internal fun CareerScreen(
                         CourtRule()
                         Text("XP tracks participation. Results are self-recorded.",
                             color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                if (section == "Overview") {
+                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            CourtEyebrow("TRAINING PERFORMANCE")
+                            Text("Your recorded baseline", style = MaterialTheme.typography.titleLarge,
+                                color = CourtQuestDesign.textPrimary)
+                            CourtMetricStrip(listOf(
+                                "Successful" to totalSuccessful.toString(),
+                                "Attempts" to totalAttempts.toString(),
+                                "Success rate" to trainingRate
+                            ))
+                            if (totalAttempts > 0) {
+                                LinearProgressIndicator(
+                                    progress = { totalSuccessful.toFloat() / totalAttempts },
+                                    modifier = Modifier.fillMaxWidth().height(7.dp),
+                                    color = CourtQuestDesign.accentVivid,
+                                    trackColor = CourtQuestDesign.surface
+                                )
+                                Text("$practicedDrills distinct drills practiced across ${valid.size} valid saved results.",
+                                    color = CourtQuestDesign.textSecondary,
+                                    style = MaterialTheme.typography.bodySmall)
+                            } else {
+                                Text("Record your first drill to establish a training baseline.",
+                                    color = CourtQuestDesign.textSecondary,
+                                    style = MaterialTheme.typography.bodyMedium)
+                            }
+                            Text("Success rate combines self-recorded attempts across drills with different targets; use same-drill history for fairer comparisons.",
+                                color = CourtQuestDesign.textSecondary,
+                                style = MaterialTheme.typography.bodySmall)
+                        }
                     }
                 }
                 if (section == "History" && save.missionReceipts.orEmpty().isNotEmpty() && !showGames) {
@@ -174,7 +210,7 @@ internal fun CareerScreen(
                 } else {
                     CourtHeading("Recorded sessions")
                     val sessionHistory = recorded.asReversed()
-                    sessionHistory.take(3).forEach { result -> TrainingSessionCard(result, drills) }
+                    sessionHistory.take(3).forEach { result -> TrainingSessionCard(result, drills, recorded) }
                     if (sessionHistory.size > 3) {
                         TextButton(onClick = { showAllSessions = true }, modifier = Modifier.heightIn(min = 48.dp)) {
                             Text("View all ${sessionHistory.size} sessions")
@@ -191,6 +227,38 @@ internal fun CareerScreen(
                     }
                     if (section == "Skills") {
                     CourtRule()
+                    val skillCategories = listOf("Shooting", "Ball Handling", "Finishing", "Defense", "Rebounding", "Passing")
+                    val skillRates = skillCategories.mapNotNull { category ->
+                        val categoryResults = valid.filter { result ->
+                            result.drillSnapshot?.category == category ||
+                                drills.any { it.id == result.drillId && it.category == category }
+                        }
+                        val attempts = categoryResults.sumOf { it.attempted }
+                        if (attempts >= 20) Triple(category, categoryResults.sumOf { it.completed }, attempts)
+                        else null
+                    }.sortedBy { it.second.toFloat() / it.third }
+                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            CourtEyebrow("PRACTICE PRIORITY")
+                            if (skillRates.isNotEmpty()) {
+                                val focus = skillRates.first()
+                                Text(focus.first, color = CourtQuestDesign.textPrimary,
+                                    style = MaterialTheme.typography.titleLarge)
+                                Text("${focus.second * 100 / focus.third}% recorded success across ${focus.third} attempts",
+                                    color = CourtQuestDesign.accentVivid,
+                                    style = MaterialTheme.typography.bodyMedium)
+                                Text("Lowest recorded success rate among skills with at least 20 attempts. This is a practice suggestion, not a measure of ability across different drills.",
+                                    color = CourtQuestDesign.textSecondary,
+                                    style = MaterialTheme.typography.bodySmall)
+                            } else {
+                                Text("Keep building your baseline", color = CourtQuestDesign.textPrimary,
+                                    style = MaterialTheme.typography.titleMedium)
+                                Text("Record at least 20 attempts in a skill to unlock a data-based practice priority.",
+                                    color = CourtQuestDesign.textSecondary,
+                                    style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    }
                     CourtHeading("By skill")
                     listOf("Shooting", "Ball Handling", "Finishing", "Defense", "Rebounding", "Passing").forEach { category ->
                         val results = valid.filter { result -> result.drillSnapshot?.category == category || drills.any { it.id == result.drillId && it.category == category } }
@@ -307,19 +375,56 @@ private fun CourtActivityChart(results: List<DrillResult>) {
 }
 
 @Composable
-private fun TrainingSessionCard(result: DrillResult, catalog: List<Drill>, modifier: Modifier = Modifier) {
+private fun TrainingSessionCard(result: DrillResult, catalog: List<Drill>, history: List<DrillResult>, modifier: Modifier = Modifier) {
     val kind = when {
         result.missionSessionId?.startsWith("mission-session_") == true -> "Mission"
         result.practice -> "Extra practice"
         else -> "Training"
     }
+    val comparable = catalog.firstOrNull { it.id == result.drillId }
+    val rate = if (result.attempted > 0 && result.completed in 0..result.attempted)
+        result.completed.toFloat() / result.attempted else null
+    // Only compare earlier results for the same drill and attempt count.
+    // This avoids presenting changes in drill difficulty or volume as improvement.
+    val position = history.indexOfLast { it.slotId == result.slotId }
+    val previous = if (position > 0) history.subList(0, position).lastOrNull {
+        it.drillId == result.drillId && it.attempted == result.attempted &&
+            it.attempted > 0 && it.completed in 0..it.attempted
+    } else null
     CourtQuestPremiumSurface(modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             CourtEyebrow("${result.date} · $kind")
-            Text(result.drillSnapshot?.title ?: catalog.firstOrNull { it.id == result.drillId }?.title ?: "Saved drill",
+            Text(result.drillSnapshot?.title ?: comparable?.title ?: "Saved drill",
                 color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleMedium)
-            Text("${result.completed} successful / ${result.attempted} attempts",
-                color = CourtQuestDesign.accent, style = MaterialTheme.typography.bodyMedium)
+            CourtMetricStrip(listOf(
+                "Successful" to result.completed.toString(),
+                "Attempts" to result.attempted.toString(),
+                "Success rate" to (rate?.let { "${(it * 100).toInt()}%" } ?: "—")
+            ))
+            if (rate != null) {
+                LinearProgressIndicator(
+                    progress = { rate },
+                    modifier = Modifier.fillMaxWidth().height(6.dp),
+                    color = CourtQuestDesign.accentVivid,
+                    trackColor = CourtQuestDesign.surface
+                )
+            }
+            if (previous != null && rate != null) {
+                val difference = result.completed - previous.completed
+                val label = when {
+                    difference > 0 -> "+$difference successful vs previous same-volume session"
+                    difference < 0 -> "$difference successful vs previous same-volume session"
+                    else -> "Matched previous same-volume session"
+                }
+                Text(label, color = if (difference > 0) CourtQuestDesign.accentVivid
+                    else CourtQuestDesign.textSecondary,
+                    style = MaterialTheme.typography.bodySmall)
+            }
+            val target = result.drillSnapshot?.target ?: comparable?.target
+            if (!target.isNullOrBlank()) {
+                Text(target, color = CourtQuestDesign.textSecondary,
+                    style = MaterialTheme.typography.bodySmall)
+            }
         }
     }
 }

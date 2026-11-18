@@ -84,6 +84,44 @@ class TrainingRecommendationEngineTest {
             TrainingLibrary.suggestions(save, day).first { it.drill.id == "s1" }.reason)
     }
 
+    @Test fun insufficientEvidenceDoesNotClaimPerformanceAndRemainsDeterministic() {
+        val save = state()
+        val drill = drills.first { it.id == "s1" }
+        val schema = MissionMeasurement("shots-made-v1", 3, "Shots made",
+            "Shots attempted", "+ MAKE", "Count made baskets.")
+        save.drillResults = mutableListOf(
+            DrillResult("2026-11-16", "one", "s1", 2, 10,
+                drillSnapshot = drill, measurementSnapshot = schema),
+            DrillResult("2026-11-17", "two", "s1", 3, 10,
+                drillSnapshot = drill, measurementSnapshot = schema)
+        )
+        val updated = TrainingRecommendationEngine.evaluate(save, day)
+        assertEquals(updated, TrainingRecommendationEngine.evaluate(save, day))
+        assertFalse(updated.evidenceCounts.containsKey("s1"))
+        assertFalse(updated.explanations["s1"].orEmpty().contains("self-recorded"))
+    }
+
+    @Test fun qualifiedEvidenceMovesMatchingFocusDrillAheadOfUnqualifiedDrills() {
+        val save = state()
+        val drill = drills.first { it.id == "s1" }
+        val schema = MissionMeasurement("shots-made-v1", 3, "Shots made",
+            "Shots attempted", "+ MAKE", "Count made baskets.")
+        save.drillResults = mutableListOf(
+            DrillResult("2026-11-15", "one", "s1", 2, 10,
+                drillSnapshot = drill, measurementSnapshot = schema),
+            DrillResult("2026-11-16", "two", "s1", 3, 10,
+                drillSnapshot = drill, measurementSnapshot = schema),
+            DrillResult("2026-11-17", "three", "s1", 4, 10,
+                drillSnapshot = drill, measurementSnapshot = schema)
+        )
+        val first = TrainingRecommendationEngine.evaluate(save, day)
+        assertEquals("s1", first.selectedIds.first())
+        assertTrue(first.evidenceCounts.containsKey("s1"))
+        assertEquals(first, TrainingRecommendationEngine.evaluate(save, day))
+        assertEquals(first, TrainingRecommendationEngine.evaluate(
+            Gson().fromJson(Gson().toJson(save), SaveState::class.java), day))
+    }
+
     @Test fun incompatibleSchemasDoNotProduceEvidenceClaims() {
         val save = state()
         val drill = drills.first { it.id == "s1" }

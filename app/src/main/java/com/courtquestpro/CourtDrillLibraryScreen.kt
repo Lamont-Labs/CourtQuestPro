@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -16,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -42,9 +44,11 @@ internal fun DrillLibraryScreen(
     var levelFilter by rememberSaveable { mutableStateOf("All levels") }
     var durationFilter by rememberSaveable { mutableStateOf("Any length") }
     var expandedCategory by rememberSaveable { mutableStateOf<String?>(null) }
-    var showAllCategories by rememberSaveable { mutableStateOf(true) }
+    var showAllCategories by rememberSaveable { mutableStateOf(false) }
     val largeText = LocalDensity.current.fontScale > 1.3f
     val catalog = TrainingLibrary.catalog(save)
+    val browseState = rememberLazyListState()
+    var lastRandomId by rememberSaveable { mutableStateOf<String?>(null) }
     val selected = catalog.firstOrNull { it.id == selectedId }
     val favorites = save.favoriteDrillIds.orEmpty()
     val resumablePlan = save.slots.any { slot ->
@@ -74,8 +78,19 @@ internal fun DrillLibraryScreen(
             (filter != "Favorites" || drill.id in favorites) &&
         DrillDiscovery.matches(drill, query)
     }
+    val validResults = save.drillResults.orEmpty().filter {
+        it.attempted > 0 && it.completed in 0..it.attempted
+    }
+    val practicePriority = TrainingLibrary.categories.mapNotNull { skill ->
+        val skillResults = validResults.filter { result ->
+            result.drillSnapshot?.category == skill ||
+                catalog.any { it.id == result.drillId && it.category == skill }
+        }
+        val attempts = skillResults.sumOf { it.attempted }
+        if (attempts >= 20) Triple(skill, skillResults.sumOf { it.completed }, attempts) else null
+    }.minByOrNull { it.second.toFloat() / it.third }
     val suggestions = TrainingLibrary.suggestions(save)
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp),
+    LazyColumn(Modifier.fillMaxSize(), state = browseState, contentPadding = PaddingValues(bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
             Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
@@ -205,6 +220,35 @@ internal fun DrillLibraryScreen(
                 .then(if (section == "Library") Modifier.testTag("train-library-content") else Modifier),
                 verticalArrangement = Arrangement.spacedBy(11.dp)) {
                 if (section != "Today") {
+                if (section == "Library" && swapSlotId == null && practicePriority != null) {
+                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(14.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            CourtEyebrow("YOUR PRACTICE FOCUS")
+                            Text(practicePriority.first, color = CourtQuestDesign.textPrimary,
+                                style = MaterialTheme.typography.titleLarge)
+                            Text("${practicePriority.second * 100 / practicePriority.third}% success across ${practicePriority.third} recorded attempts",
+                                color = CourtQuestDesign.textSecondary,
+                                style = MaterialTheme.typography.bodySmall)
+                            OutlinedButton(
+                                onClick = {
+                                    category = practicePriority.first
+                                    query = ""
+                                    levelFilter = "All levels"
+                                    durationFilter = "Any length"
+                                    filter = "All"
+                                    expandedCategory = practicePriority.first
+                                    showAllCategories = true
+                                },
+                                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                                    .testTag("library-practice-focus")
+                            ) {
+                                Icon(Icons.Default.Tune, null, Modifier.size(18.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text("Explore ${practicePriority.first} drills")
+                            }
+                        }
+                    }
+                }
                 OutlinedTextField(query, { query = it }, label = { Text("Search drills") }, singleLine = true,
                     leadingIcon = { Icon(Icons.Default.Search, null) },
                     trailingIcon = { if (query.isNotBlank()) IconButton(onClick = { query = "" }) { Icon(Icons.Default.Close, "Clear search") } },
@@ -266,6 +310,22 @@ internal fun DrillLibraryScreen(
                         Text(if (showFilters) "Less filters" else "Filters",
                             style = MaterialTheme.typography.labelMedium)
                     }
+                    if (swapSlotId == null && shown.isNotEmpty()) {
+                        OutlinedButton(
+                            onClick = {
+                                val candidates = if (shown.size > 1) shown.filterNot { it.id == lastRandomId } else shown
+                                val pick = candidates.random()
+                                lastRandomId = pick.id
+                                onSelect(pick.id)
+                            },
+                            modifier = Modifier.heightIn(min = 48.dp).testTag("library-random-drill"),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                        ) {
+                            Icon(Icons.Default.Shuffle, null, Modifier.size(18.dp))
+                            Spacer(Modifier.width(5.dp))
+                            Text("Random drill", style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
                     if (showFilters) {
                     listOf("Level" to levelFilter, "Duration" to durationFilter).forEach { (kind, current) ->
                         var open by remember { mutableStateOf(false) }
@@ -307,7 +367,10 @@ internal fun DrillLibraryScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 CourtQuestPremiumSurface(
                     Modifier.padding(horizontal = 20.dp).fillMaxWidth()
-                        .clickable { onSelect(featured.drill.id) }
+                        .clickable(
+                            role = Role.Button,
+                            onClickLabel = "View recommended drill: ${featured.drill.title}"
+                        ) { onSelect(featured.drill.id) }
                         .testTag("library-featured-drill"),
                     PaddingValues(16.dp), highlighted = true
                 ) {
@@ -323,11 +386,60 @@ internal fun DrillLibraryScreen(
                                 color = CourtQuestDesign.textPrimary)
                             Text("${featured.drill.level} · ${featured.drill.minutes} min",
                                 style = MaterialTheme.typography.labelMedium, color = CourtQuestDesign.accent)
+                            Text(featured.reason,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = CourtQuestDesign.textSecondary,
+                                maxLines = 4,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.testTag("library-recommendation-reason"))
                         }
                         Icon(Icons.AutoMirrored.Filled.ArrowForward, "View recommended drill",
                             tint = CourtQuestDesign.accent)
                     }
                 }
+                    if (suggestions.size > 1) {
+                        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            CourtEyebrow("MORE PICKS FOR YOU")
+                            suggestions.drop(1).take(3).forEach { suggestion ->
+                                CourtQuestPremiumSurface(
+                                    Modifier.fillMaxWidth()
+                                        .clickable(
+                                            role = Role.Button,
+                                            onClickLabel = "View ${suggestion.drill.title} drill details"
+                                        ) { onSelect(suggestion.drill.id) }
+                                        .testTag("library-alternative-${suggestion.drill.id}"),
+                                    PaddingValues(horizontal = 12.dp, vertical = 10.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                        if (!largeText) {
+                                            DrillArtworkThumbnail(suggestion.drill, Modifier.size(52.dp))
+                                        }
+                                        Column(Modifier.weight(1f),
+                                            verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                            Text(suggestion.drill.title,
+                                                color = CourtQuestDesign.textPrimary,
+                                                style = MaterialTheme.typography.titleMedium,
+                                                maxLines = if (largeText) 3 else 2,
+                                                overflow = TextOverflow.Ellipsis)
+                                            Text("${suggestion.drill.category} · ${suggestion.drill.minutes} min",
+                                                color = CourtQuestDesign.accent,
+                                                style = MaterialTheme.typography.labelSmall)
+                                            Text(suggestion.reason,
+                                                color = CourtQuestDesign.textSecondary,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                maxLines = if (largeText) 4 else 2,
+                                                overflow = TextOverflow.Ellipsis)
+                                        }
+                                        Icon(Icons.AutoMirrored.Filled.ArrowForward,
+                                            "View ${suggestion.drill.title}",
+                                            tint = CourtQuestDesign.accent)
+                                    }
+                                }
+                            }
+                        }
+                    }
                     Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp),
                         verticalAlignment = Alignment.CenterVertically) {
                         Text("Browse drills", Modifier.weight(1f),
@@ -371,7 +483,7 @@ internal fun DrillLibraryScreen(
                 Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Browse by skill", color = CourtQuestDesign.textSecondary,
+                    Text("Choose a skill to reveal its drills", color = CourtQuestDesign.textSecondary,
                         style = MaterialTheme.typography.labelMedium)
                     TextButton(
                         onClick = {
@@ -445,7 +557,7 @@ internal fun DrillLibraryScreen(
                     )
                 }
             }
-            HorizontalDivider(Modifier.padding(start = 84.dp, end = 20.dp),
+            HorizontalDivider(Modifier.padding(start = if (largeText) 20.dp else 84.dp, end = 20.dp),
                 color = CourtQuestDesign.surface)
         }
                 }
@@ -483,7 +595,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
     onArchive: () -> Unit, onResume: () -> Unit) {
     var showCourtDiagram by rememberSaveable(drill.id) { mutableStateOf(false) }
     var showFormReference by rememberSaveable(drill.id) { mutableStateOf(false) }
-    var showTechnique by rememberSaveable(drill.id) { mutableStateOf(false) }
+    var showTechnique by rememberSaveable(drill.id) { mutableStateOf(true) }
     var showCoaching by rememberSaveable(drill.id) { mutableStateOf(false) }
     var confirmArchive by remember { mutableStateOf(false) }
     val active = save.practiceSession
@@ -499,19 +611,62 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 TextButton(onBack, modifier = Modifier.heightIn(min = 48.dp)) { Text("Back to library") }
                 CourtEyebrow("${drill.category.uppercase()} · ${drill.level.uppercase()} · ${drill.minutes} MIN")
-                Text(drill.title, style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
-                CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(14.dp), highlighted = true) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        CourtEyebrow("YOUR TARGET")
-                        Text(drill.target, color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleMedium)
-                        DrillCoachingLibrary.forDrill(drill)?.let {
-                            Text(it.checkpoint, color = CourtQuestDesign.textSecondary,
-                                style = MaterialTheme.typography.bodyMedium)
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(drill.title, Modifier.weight(1f),
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = CourtQuestDesign.textPrimary)
+                    IconButton(onClick = onFavorite,
+                        modifier = Modifier.testTag("drill-detail-favorite")) {
+                        val favorite = drill.id in save.favoriteDrillIds.orEmpty()
+                        Icon(if (favorite) Icons.Default.Star else Icons.Default.StarBorder,
+                            if (favorite) "Remove ${drill.title} from favorites"
+                            else "Save ${drill.title} to favorites",
+                            tint = CourtQuestDesign.accentVivid)
+                    }
+                }
+                CourtQuestPremiumSurface(
+                    Modifier.fillMaxWidth().testTag("drill-detail-hero"),
+                    PaddingValues(14.dp),
+                    highlighted = true
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            CourtEyebrow("DRILL PLAYBOOK")
+                            Text("${drill.minutes} MIN", color = CourtQuestDesign.accentVivid,
+                                style = MaterialTheme.typography.labelLarge)
+                        }
+                        DrillArtworkReference(drill)
+                        HorizontalDivider(color = CourtQuestDesign.surface)
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            CourtEyebrow("YOUR TARGET")
+                            Text(drill.target, color = CourtQuestDesign.textPrimary,
+                                style = MaterialTheme.typography.titleLarge)
+                            DrillCoachingLibrary.forDrill(drill)?.let {
+                                CourtEyebrow("FORM CHECKPOINT")
+                                Text(it.checkpoint, color = CourtQuestDesign.textSecondary,
+                                    style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                        CourtQuestPrimaryButton(
+                            onPractice,
+                            Modifier.fillMaxWidth().heightIn(min = 52.dp)
+                                .testTag("drill-start-practice"),
+                            canPractice
+                        ) {
+                            Icon(Icons.Default.PlayArrow, null, Modifier.size(20.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(if (samePractice) "Resume practice" else "Start extra practice",
+                                Modifier.weight(1f))
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, Modifier.size(18.dp))
                         }
                     }
                 }
-                CourtQuestPrimaryButton(onPractice, Modifier.fillMaxWidth().testTag("drill-start-practice"), canPractice) { Text(if (samePractice) "Resume practice" else "Start extra practice") }
-                Text("Extra practice records results in Progress. Daily workout rewards are earned in your daily workout.",
+                Text("Extra practice saves results to Progress. Daily workout rewards are earned in your daily workout.",
                     style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)
                 if (!canPractice) {
                     Text("You have another practice in progress. Resume it before starting a different drill.", color = CourtQuestDesign.textSecondary,
@@ -521,7 +676,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                 val hasFormGuide = DrillCoachingLibrary.forDrill(drill) != null
                 val allGuidanceOpen = showCourtDiagram && showTechnique && showCoaching &&
                     (!hasFormGuide || showFormReference)
-                DrillArtworkReference(drill)
+                CourtEyebrow("VISUAL COACHING REFERENCES")
                 OutlinedButton(
                     onClick = {
                         val expand = !allGuidanceOpen
@@ -538,7 +693,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                     Text(if (allGuidanceOpen) "Collapse coaching guides" else "Show all coaching guides")
                 }
                 OutlinedButton(onClick = { showCourtDiagram = !showCourtDiagram }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-court")) {
-                    Text("Court positioning · placement and movement", modifier = Modifier.weight(1f))
+                    Text("Court positioning", modifier = Modifier.weight(1f))
                     Icon(if (showCourtDiagram) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
                 }
                 if (showCourtDiagram) {
@@ -546,7 +701,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                 }
                 if (DrillCoachingLibrary.forDrill(drill) != null) {
                     OutlinedButton(onClick = { showFormReference = !showFormReference }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-form")) {
-                        Text("Movement and form · technique checkpoints", modifier = Modifier.weight(1f))
+                        Text("Movement and form", modifier = Modifier.weight(1f))
                         Icon(if (showFormReference) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
                     }
                     if (showFormReference) {
@@ -554,10 +709,10 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                     }
                 }
                 CourtEyebrow("TECHNIQUE & COACHING")
-                Text("Open the guidance you need before your next attempt.",
+                Text("Start with the steps below. Open court positioning, movement reference, or coaching corrections whenever you need them.",
                     color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
                 OutlinedButton(onClick = { showTechnique = !showTechnique }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-technique")) {
-                    Text("Step-by-step technique · drill instructions", modifier = Modifier.weight(1f))
+                    Text("Step-by-step technique", modifier = Modifier.weight(1f))
                     Icon(if (showTechnique) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
                 }
                 if (showTechnique) {
@@ -589,7 +744,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                 }
                 }
                 OutlinedButton(onClick = { showCoaching = !showCoaching }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-coaching")) {
-                    Text("Coaching tips · mistakes and corrections", modifier = Modifier.weight(1f))
+                    Text("Coaching tips and corrections", modifier = Modifier.weight(1f))
                     Icon(if (showCoaching) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
                 }
                 if (showCoaching) {
@@ -626,10 +781,6 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                 OutlinedButton(onUse, enabled = canUse, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Use in daily workout") }
                 if (!canUse) Text("A swap needs an untouched ${drill.category.lowercase()} slot and a drill at or below your selected level.",
                     color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
-                TextButton(onFavorite, modifier = Modifier.heightIn(min = 48.dp)) {
-                    Icon(if (drill.id in save.favoriteDrillIds.orEmpty()) Icons.Default.Star else Icons.Default.StarBorder, null)
-                    Spacer(Modifier.width(8.dp)); Text(if (drill.id in save.favoriteDrillIds.orEmpty()) "Remove favorite" else "Save to favorites")
-                }
                 if (save.customDrills.orEmpty().any { it.drill.id == drill.id && !it.archived }) {
                     CourtRule()
                     OutlinedButton(onEdit, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("Edit custom drill") }

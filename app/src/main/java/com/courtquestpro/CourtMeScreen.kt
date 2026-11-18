@@ -1,7 +1,6 @@
 package com.courtquestpro
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,12 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
@@ -31,7 +24,7 @@ import java.time.LocalDate
 
 @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
-internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Unit, onWalkthrough: () -> Unit = {}) {
+internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Unit, onWalkthrough: () -> Unit, onJersey: () -> Unit) {
     var section by rememberSaveable { mutableStateOf("Profile") }
     var settingsMenu by remember { mutableStateOf(false) }
     val days = save.trainingDays.orEmpty().filter { it in 1..7 }.distinct().sorted()
@@ -61,6 +54,8 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                         DropdownMenuItem(text = { Text("Edit player profile") },
                             onClick = { settingsMenu = false; onEdit() },
                             leadingIcon = { Icon(Icons.Default.Edit, null) })
+                        DropdownMenuItem(text = { Text("Jersey Studio") },
+                            onClick = { settingsMenu = false; onJersey() })
                         DropdownMenuItem(modifier = Modifier.testTag("me-start-walkthrough"), text = { Text("Start app walkthrough") },
                             onClick = { settingsMenu = false; onWalkthrough() },
                             leadingIcon = { Icon(Icons.Default.HelpOutline, null) })
@@ -92,41 +87,30 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                                 .border(1.dp, CourtQuestDesign.accent.copy(alpha = .45f), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            ProfileJerseyHero(save.jerseyNumber, Modifier.fillMaxSize().padding(12.dp))
+                            CourtJerseyArtwork(save.playerJersey, Modifier.fillMaxSize().padding(12.dp))
                         }
                         Text(save.playerName.ifBlank { "Your player profile" },
                             color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.displaySmall,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                        Text(if (save.jerseyNumber == null) "JERSEY NUMBER NOT SET"
-                            else "JERSEY #${displayedJerseyNumber(save.jerseyNumber)}",
+                        Text(save.playerJersey.number?.let { "JERSEY #$it" } ?: "JERSEY NUMBER NOT SET",
                             color = CourtQuestDesign.accent, style = MaterialTheme.typography.titleMedium)
                         Text("${rankFor(save.totalXp)}  ·  ${save.totalXp} XP",
                             color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineSmall)
                         CourtRankMeter(save.totalXp)
                         Text("${save.difficulty} · ${save.weeklyPlan} focus",
                             color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
-                        CourtRule()
-                        if (LocalDensity.current.fontScale > 1.3f) {
-                            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                ProfileStat("TOTAL XP", save.totalXp.toString(), Modifier.fillMaxWidth(), true)
-                                ProfileStat("RECORDED DRILLS", validResults.size.toString(), Modifier.fillMaxWidth())
-                                ProfileStat("TRAINING DAYS", trainingDays.toString(), Modifier.fillMaxWidth())
-                                ProfileStat("ACHIEVEMENTS", earnedAchievements.size.toString(), Modifier.fillMaxWidth())
-                            }
-                        } else {
-                            Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                                ProfileStat("TOTAL XP", save.totalXp.toString(), Modifier.weight(1f), true)
-                                Box(Modifier.width(1.dp).height(34.dp).background(CourtQuestDesign.border))
-                                ProfileStat("RECORDED DRILLS", validResults.size.toString(), Modifier.weight(1f))
-                                Box(Modifier.width(1.dp).height(34.dp).background(CourtQuestDesign.border))
-                                ProfileStat("TRAINING DAYS", trainingDays.toString(), Modifier.weight(1f))
-                                Box(Modifier.width(1.dp).height(34.dp).background(CourtQuestDesign.border))
-                                ProfileStat("ACHIEVEMENTS", earnedAchievements.size.toString(), Modifier.weight(1f))
-                            }
+                        CourtQuestPrimaryButton(onJersey, Modifier.fillMaxWidth().testTag("me-jersey-studio")) {
+                            Text("Customize jersey")
                         }
-                        CourtQuestPrimaryButton(onEdit, Modifier.fillMaxWidth()) {
+                        TextButton(onEdit, Modifier.heightIn(min = 48.dp)) {
                             Icon(Icons.Default.Edit, null); Spacer(Modifier.width(8.dp)); Text("Edit profile")
                         }
+                        CourtRule()
+                        CourtMetricStrip(listOf(
+                            "Recorded drills" to validResults.size.toString(),
+                            "Training days" to trainingDays.toString(),
+                            "Milestones" to earnedAchievements.size.toString()
+                        ))
                     }
                 }
                 if (section == "Settings") {
@@ -177,56 +161,5 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun ProfileStat(label: String, value: String, modifier: Modifier = Modifier, highlighted: Boolean = false) {
-    Column(modifier.padding(horizontal = 10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(value, color = if (highlighted) CourtQuestDesign.accent else CourtQuestDesign.textPrimary,
-            style = MaterialTheme.typography.headlineSmall, maxLines = 1)
-        Text(label, color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.labelSmall)
-    }
-}
-
-
-/** Profile jersey uses the approved high-resolution atlas rather than a simplified vector. */
-@Composable
-private fun ProfileJerseyHero(jerseyNumber: Int?, modifier: Modifier = Modifier) {
-    val atlas = rememberNavigationAtlas()
-    Box(modifier, contentAlignment = Alignment.Center) {
-        if (atlas != null) {
-            Canvas(Modifier.fillMaxSize()) {
-                val cellLeft = atlas.width * PlayerTab.ME.ordinal / 5
-                val cellRight = atlas.width * (PlayerTab.ME.ordinal + 1) / 5
-                val cellSize = minOf(cellRight - cellLeft, 434)
-                val cellTop = ((atlas.height - cellSize) / 2).coerceAtLeast(0)
-                // Focus the upper jersey portion, excluding the basketball at the foot of the tile.
-                val cropHeight = (cellSize * .73f).toInt()
-                val cropWidth = (cellSize * .78f).toInt()
-                drawImage(
-                    image = atlas,
-                    srcOffset = androidx.compose.ui.unit.IntOffset(
-                        cellLeft + (cellRight - cellLeft - cropWidth) / 2, cellTop
-                    ),
-                    srcSize = androidx.compose.ui.unit.IntSize(cropWidth, cropHeight),
-                    dstOffset = androidx.compose.ui.unit.IntOffset.Zero,
-                    dstSize = androidx.compose.ui.unit.IntSize(
-                        size.width.toInt().coerceAtLeast(1), size.height.toInt().coerceAtLeast(1)
-                    )
-                )
-            }
-        }
-        Text(
-            displayedJerseyNumber(jerseyNumber).toString(),
-            modifier = Modifier.offset(y = (-7).dp),
-            color = Color(0xFFFF9A51),
-            fontFamily = CourtDisplay,
-            fontWeight = FontWeight.Black,
-            fontSize = 49.sp,
-            lineHeight = 51.sp,
-            textAlign = TextAlign.Center,
-            maxLines = 1
-        )
     }
 }

@@ -91,8 +91,7 @@ internal fun ProgressDashboardScreen(
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 when (section) {
                     "Overview" -> {
-                        LifetimeProgressCard(save.totalXp)
-                        ActivityTrendCard(save.drillResults.orEmpty(), today, range)
+                        ActivityTrendCard(allResults, today, range)
                         Text(
                             if (range == ProgressRange.ALL_TIME) "ALL-TIME TRAINING SUMMARY"
                             else "${range.label} TRAINING SUMMARY",
@@ -137,6 +136,7 @@ internal fun ProgressDashboardScreen(
                                 }
                             }
                         }
+                        LifetimeProgressCard(save.totalXp)
                         CourtHeading("Personal bests", "Only repeated, comparable drill results")
                         if (bests.isEmpty()) {
                             CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(14.dp)) {

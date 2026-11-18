@@ -16,6 +16,10 @@ internal fun MissionReceiptScreen(save: SaveState, receipt: MissionReceipt, onHo
     val version = save.missionVersions.orEmpty().firstOrNull { it.id == receipt.missionVersionId }
     val valid = MissionTraining.receiptValid(save, receipt)
     val results = receipt.resultIds.mapNotNull { id -> save.drillResults.orEmpty().singleOrNull { it.slotId == id } }
+    val totalAttempts = results.sumOf { it.attempted }
+    val totalSuccessful = results.sumOf { it.completed }
+    val successRate = if (totalAttempts > 0) "${totalSuccessful * 100 / totalAttempts}%" else "—"
+
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         item { AppHeader(if (valid) "Mission complete." else "Receipt needs attention.", version?.title ?: "Saved Mission") }
         item {
@@ -25,7 +29,8 @@ internal fun MissionReceiptScreen(save: SaveState, receipt: MissionReceipt, onHo
                     CourtEyebrow(if (valid) "SAVED ON THIS DEVICE" else "EVIDENCE COULD NOT BE CONFIRMED", Modifier.semantics { liveRegion = LiveRegionMode.Polite })
                     Text(version?.title ?: "Mission", style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
                     Text("Version ${version?.version ?: "?"} · Self-recorded", style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textSecondary)
-                    CourtMetricStrip(listOf("Drills recorded" to results.size.toString(), "Attempts" to results.sumOf { it.attempted }.toString()))
+                    CourtMetricStrip(listOf("Drills" to results.size.toString(), "Successful" to totalSuccessful.toString(), "Attempts" to totalAttempts.toString()))
+                    Text("Recorded success rate · $successRate", style = MaterialTheme.typography.titleMedium, color = CourtQuestDesign.accentVivid)
                     Text("Saved ${receipt.savedAt}", style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)
                     Text("Personal Mission · Extra practice", style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)
                 }
@@ -34,7 +39,8 @@ internal fun MissionReceiptScreen(save: SaveState, receipt: MissionReceipt, onHo
         items(results, key = { it.slotId }) { result ->
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(result.drillSnapshot?.title ?: "Saved drill", style = MaterialTheme.typography.titleLarge, color = CourtQuestDesign.textPrimary)
-                Text("${result.completed} successful / ${result.attempted} attempts", style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.accent)
+                CourtMetricStrip(listOf("Successful" to result.completed.toString(), "Attempts" to result.attempted.toString(),
+                    "Success rate" to if (result.attempted > 0) "${result.completed * 100 / result.attempted}%" else "—"))
                 Text(result.drillSnapshot?.target.orEmpty(), style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)
                 Text("Self-recorded · ${result.date}", style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)
                 CourtRule()
@@ -64,7 +70,12 @@ internal fun MissionStepReceiptScreen(save: SaveState, result: DrillResult, onNe
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     CourtSavedStamp(Modifier.size(36.dp)); CourtEyebrow("SAVED TO PROGRESS", Modifier.semantics { liveRegion = LiveRegionMode.Polite })
                     Text(result.drillSnapshot?.title.orEmpty(), style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
-                    CourtMetricStrip(listOf("Successful" to result.completed.toString(), "Attempts" to result.attempted.toString()))
+                    CourtMetricStrip(listOf("Successful" to result.completed.toString(), "Attempts" to result.attempted.toString(),
+                        "Success rate" to if (result.attempted > 0) "${result.completed * 100 / result.attempted}%" else "—"))
+                    result.drillSnapshot?.target?.takeIf { it.isNotBlank() }?.let { target ->
+                        CourtEyebrow("DRILL TARGET")
+                        Text(target, color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
+                    }
                     Text("Self-recorded · Saved on this device", color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
                 }
             }

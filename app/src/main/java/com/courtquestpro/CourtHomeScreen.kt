@@ -98,20 +98,22 @@ internal fun HomeScreen(
                             )
                         }
                     }
-                    Text(
-                        save.playerName.ifBlank { "Your next session" },
-                        color = CourtQuestDesign.textPrimary,
-                        style = MaterialTheme.typography.headlineLarge,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.semantics { heading() }
-                    )
-                    Text(
-                        "${save.difficulty} · ${save.weeklyPlan} focus",
-                        color = CourtQuestDesign.textSecondary,
-                        style = MaterialTheme.typography.bodyMedium,
-                        maxLines = 2
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        CourtJerseyArtwork(save.playerJersey, Modifier.size(66.dp).testTag("court-player-jersey"),
+                            describe = true)
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Text(
+                                save.playerName.ifBlank { "Your next session" },
+                                color = CourtQuestDesign.textPrimary,
+                                style = MaterialTheme.typography.headlineLarge,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.semantics { heading() }
+                            )
+                            Text("${save.difficulty} · ${save.weeklyPlan} focus",
+                                color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
                 }
             }
         }
@@ -219,9 +221,12 @@ internal fun HomeScreen(
                             Text(title, color = CourtQuestDesign.textPrimary,
                                 style = MaterialTheme.typography.titleMedium, maxLines = 1,
                                 overflow = TextOverflow.Ellipsis)
-                            Text("${latest.completed} / ${latest.attempted} successful · Self-recorded",
+                            Text("${latest.completed} / ${latest.attempted} successful · ${latest.completed * 100 / latest.attempted}% success",
                                 color = CourtQuestDesign.textSecondary,
                                 style = MaterialTheme.typography.bodySmall)
+                            Text("Self-recorded · Tap to view Progress",
+                                color = CourtQuestDesign.textSecondary,
+                                style = MaterialTheme.typography.labelSmall)
                         }
                         Icon(Icons.Default.ChevronRight, null, tint = CourtQuestDesign.textSecondary)
                     }

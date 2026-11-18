@@ -566,3 +566,23 @@ and preserved the synthetic player preferences byte-for-byte during installation
 
 Physical phone, TalkBack speech, and landscape review remain separate checks.
 The v47 release is the rollback reference until a phone-test release is approved.
+
+## Jersey Studio
+
+The Studio uses the shipped black/orange palette, Barlow family and smoked
+surfaces. Identity, Style and Colors share one front/back preview and a fixed
+Save jersey action. Color roles are named, swatches have readable accessibility
+labels, and the editor reports low lettering contrast in text. Saved uniforms
+and draft form state have separate lifecycles. The personal practice uniform
+uses the existing profile save, with additive design and double-zero fields.
+Older saves retain their numbers and default to the Classic fabric treatment.
+Team home and away presets are represented separately by the local domain model.
+
+UI/UX Pro Max matched Barlow/Barlow Condensed and high contrast in its sports
+search. Its web layout and spacing do not apply to this native form. Its UX
+results support named color controls, contrast warnings and save feedback.
+The compatible Compose primitives are Canvas paths, selectable semantics and
+`rememberSaveable` with a `listSaver`, using the checked-in BOM. Android's
+graphics and accessibility guidance and the existing LL-PES native surface
+recipe support reusing the app's own premium surface and touch target patterns.
+The Figma walkthrough reference confirms the dock's established dimensions.

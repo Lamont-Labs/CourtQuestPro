@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.sp
 
 /** Same five destinations, with Court at the center. Hit areas never overlap the medallion. */
 @Composable
-internal fun CourtQuestBottomDock(selected: PlayerTab, jerseyNumber: Int?, onSelect: (PlayerTab) -> Unit, spotlightTab: PlayerTab? = null) {
+internal fun CourtQuestBottomDock(selected: PlayerTab, jersey: PlayerJersey, customizedJersey: Boolean, onSelect: (PlayerTab) -> Unit, spotlightTab: PlayerTab? = null) {
     val atlas = rememberNavigationAtlas()
     val showLabels = LocalDensity.current.fontScale <= 1.3f
     val order = listOf(PlayerTab.TRAIN, PlayerTab.PROGRESS, PlayerTab.COURT, PlayerTab.QUESTS, PlayerTab.ME)
@@ -69,7 +69,9 @@ internal fun CourtQuestBottomDock(selected: PlayerTab, jerseyNumber: Int?, onSel
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center) {
                     Box(contentAlignment = Alignment.Center) {
-                    if (atlas != null) {
+                    if (tab == PlayerTab.ME && customizedJersey) {
+                        CourtJerseyArtwork(jersey, Modifier.size(34.dp))
+                    } else if (atlas != null) {
                         // Retain the original artwork, sized for a low-profile labeled dock.
                         NavigationSpriteArtwork(
                             atlas, tab.ordinal,
@@ -88,9 +90,9 @@ internal fun CourtQuestBottomDock(selected: PlayerTab, jerseyNumber: Int?, onSel
                         Icon(fallback, contentDescription = null, modifier = Modifier.size(30.dp),
                             tint = if (active) CourtQuestDesign.accent else CourtQuestDesign.textSecondary)
                     }
-                    if (tab == PlayerTab.ME) {
+                    if (tab == PlayerTab.ME && !customizedJersey && jersey.number != null) {
                         Text(
-                            displayedJerseyNumber(jerseyNumber).toString(),
+                            jersey.number,
                             modifier = Modifier.align(Alignment.Center).offset(y = (-3).dp),
                             color = CourtQuestDesign.accent,
                             fontFamily = CourtDisplay,
