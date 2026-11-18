@@ -91,7 +91,11 @@ internal object TrainingLibrary {
     }
     /** Existing Train UI entry point, now backed by the versioned offline engine. */
     fun suggestions(save: SaveState, date: LocalDate = LocalDate.now()): List<DrillSuggestion> {
-        val receipt = TrainingRecommendationEngine.evaluate(save, date)
+        // Replay the frozen daily decision rather than silently reranking after
+        // a new result, a preference edit, or a process restart.
+        val receipt = save.recommendationReceipts.orEmpty().firstOrNull {
+            it.date == date.toString() && it.version == TrainingRecommendationEngine.VERSION
+        } ?: TrainingRecommendationEngine.evaluate(save, date)
         val catalogById = available(save).associateBy { it.id }
         return receipt.selectedIds.mapNotNull { id ->
             catalogById[id]?.let { drill ->
