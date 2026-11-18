@@ -117,10 +117,9 @@ internal object CourtQuestEngine {
             .map { it.slotId to it.drillId }
             .toSet()
         val current = slots.count { (it.id to it.drillId) in recorded }
-        val earned = slots.sumOf { slot ->
-            if ("drill_${today}_${slot.id}" in save.awardedKeys) 50 else 0
-        } + if ("six_$today" in save.awardedKeys) 100 else 0
-        val possible = slots.size * 50 + if (slots.size == 6) 100 else 0
+        val earnedDrillXp = slots.count { "drill_${today}_${it.id}" in save.awardedKeys } * 50
+        val earned = earnedDrillXp + (if ("six_$today" in save.awardedKeys) 100 else 0)
+        val possible = slots.size * 50 + (if (slots.size == 6) 100 else 0)
         return DailyPlanProgress(current, slots.size, earned, possible)
     }
 

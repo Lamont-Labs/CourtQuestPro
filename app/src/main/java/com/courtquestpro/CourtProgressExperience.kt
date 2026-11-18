@@ -28,7 +28,6 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalLayoutApi::class)
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun ProgressDashboardScreen(
     save: SaveState,
@@ -167,7 +166,7 @@ internal fun ProgressDashboardScreen(
                         }
                     }
                     "Skills" -> {
-                        CourtHeading("Skill evidence", "Recorded makes and attempts · $rangeLabel(range)")
+                        CourtHeading("Skill evidence", "Recorded makes and attempts · ${rangeLabel(range)}")
                         courtSkillCategories.forEach { category ->
                             val skillResults = shownResults.filter { drillCategory(it, catalog) == category }
                             SkillProgressCard(category, skillResults)
