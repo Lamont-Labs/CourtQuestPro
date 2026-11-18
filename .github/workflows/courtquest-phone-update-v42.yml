@@ -95,7 +95,7 @@ jobs:
           identity=json.loads((root/'upgrade-identity.json').read_text())
           upgrade=json.loads((root/'install-upgrade.json').read_text())
           digest=hashlib.sha256(apk.read_bytes()).hexdigest()
-          assert manifest['package_id']=='com.courtquestpro' and manifest['version_code']==41
+          assert manifest['package_id']=='com.courtquestpro' and manifest['version_code']==42
           assert manifest['apk_sha256']==digest
           assert identity['candidate']['apk_sha256']==digest
           assert identity['previous']['certificate_sha256']==identity['candidate']['certificate_sha256']
