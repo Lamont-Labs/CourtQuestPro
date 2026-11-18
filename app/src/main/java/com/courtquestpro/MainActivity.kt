@@ -422,23 +422,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             modifier = Modifier.semantics { testTagsAsResourceId = true },
             snackbarHost = { SnackbarHost(snackbar) },
             bottomBar = {
-                if (showPlayerNavigation) Column {
-                if (tourStep >= 0) CourtNavigationTour(
-                    step = tourStep,
-                    onNext = {
-                        if (tourStep >= SoloNavigationTour.tabs.lastIndex) closeTour() else {
-                            tourStep++
-                            selectPlayerTab(SoloNavigationTour.tabs[tourStep])
-                        }
-                    },
-                    onSkip = { closeTour() },
-                    onBack = {
-                        if (tourStep > 0) {
-                            tourStep--
-                            selectPlayerTab(SoloNavigationTour.tabs[tourStep])
-                        }
-                    }
-                )
+                if (showPlayerNavigation) {
                 if (showPlayerNavigation) CourtQuestBottomDock(
                     selected = PlayerNavigation.tab(routeHistory),
                     jerseyNumber = save.jerseyNumber,
@@ -705,6 +689,28 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     destinationState.SaveableStateProvider(target) { DestinationContent() }
                 } else DestinationContent()
             }
+            }
+            // Render guidance over the content rather than reserving a second
+            // full-width bottom bar. The real navigation dock remains visible.
+            if (showPlayerNavigation && tourStep >= 0) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+                    CourtNavigationTour(
+                        step = tourStep,
+                        onNext = {
+                            if (tourStep >= SoloNavigationTour.tabs.lastIndex) closeTour() else {
+                                tourStep++
+                                selectPlayerTab(SoloNavigationTour.tabs[tourStep])
+                            }
+                        },
+                        onSkip = { closeTour() },
+                        onBack = {
+                            if (tourStep > 0) {
+                                tourStep--
+                                selectPlayerTab(SoloNavigationTour.tabs[tourStep])
+                            }
+                        }
+                    )
+                }
             }
             }
         }
