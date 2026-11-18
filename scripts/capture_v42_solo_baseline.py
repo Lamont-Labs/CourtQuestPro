@@ -93,6 +93,10 @@ def visible_progress_metric_nodes(tag):
     scroll_to_tag(tag)
     return ui.nodes()
 
+def open_progress_from_receipt():
+    ui.tap(ui.scroll_to('View Progress', 18))
+    ui.wait_tagged('player-bottom-dock', attempts=20)
+
 def assert_dock():
     items = ui.nodes()
     dock = ui.wait_tagged('player-bottom-dock')
@@ -340,6 +344,7 @@ def verify_drill_batch(config):
     assert final['awardedKeys'].count(daily_key) == 1, 'Daily quest reward must be granted exactly once'
     assert final.get('questSystemActivatedAt'), 'Quest activation must persist in the saved state'
     assert final['slots'][0]['complete'] and not final['drillDrafts']
+    open_progress_from_receipt()
     ui.navigate('Quests')
     ui.wait_tagged('quests-daily-checkin-earned')
     capture('quests-daily-earned')

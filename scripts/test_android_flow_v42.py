@@ -5,6 +5,16 @@ import capture_v42_solo_baseline as batch
 
 
 class SoloBatchCaptureTest(unittest.TestCase):
+    def test_receipt_progress_action_returns_to_primary_navigation(self):
+        button = Element('node', {'text':'View Progress','bounds':'[48,1368][672,1464]'})
+        with patch.object(batch.ui,'scroll_to',return_value=button) as scroll, \
+                patch.object(batch.ui,'tap') as tap, \
+                patch.object(batch.ui,'wait_tagged') as wait:
+            batch.open_progress_from_receipt()
+        scroll.assert_called_once_with('View Progress',18)
+        tap.assert_called_once_with(button)
+        wait.assert_called_once_with('player-bottom-dock',attempts=20)
+
     def test_legacy_result_default_is_compared_semantically(self):
         before = {
             'drillResults': [
