@@ -5,6 +5,28 @@ import capture_v42_solo_baseline as batch
 
 
 class SoloBatchCaptureTest(unittest.TestCase):
+    def test_legacy_result_default_is_compared_semantically(self):
+        before = {
+            'drillResults': [
+                {'date':'2026-11-17','slotId':'slot-1','drillId':'s1',
+                 'completed':15,'attempted':20}
+            ]
+        }
+        after = {
+            'drillResults': [
+                {'date':'2026-11-17','slotId':'slot-1','drillId':'s1',
+                 'completed':15,'attempted':20,'practice':False}
+            ]
+        }
+        self.assertEqual(batch.without_progression_migration(before),
+                         batch.without_progression_migration(after))
+
+    def test_result_data_changes_are_still_rejected_by_migration_comparison(self):
+        before = {'drillResults': [{'slotId':'slot-1','completed':15}]}
+        after = {'drillResults': [{'slotId':'slot-1','completed':14}]}
+        self.assertNotEqual(batch.without_progression_migration(before),
+                            batch.without_progression_migration(after))
+
     def dock(self, narrow=False):
         dock = Element('node', {'bounds': '[16,1400][704,1516]'})
         items = []

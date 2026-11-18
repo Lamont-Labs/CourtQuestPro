@@ -48,6 +48,13 @@ def wait_until(read, predicate, label, timeout=8.0):
 def without_progression_migration(raw_state):
     state = json.loads(raw_state) if isinstance(raw_state, str) else dict(raw_state)
     state.pop('questSystemActivatedAt', None)
+    # v41's DrillResult schema predates this field. Its effective Kotlin
+    # default is false, so a v42 Gson rewrite may add the explicit default
+    # without changing the saved result's meaning. Keep every other result
+    # field and the list order in the preservation comparison.
+    for result in state.get('drillResults') or []:
+        if isinstance(result, dict):
+            result.setdefault('practice', False)
     return state
 
 def scroll_to_tag(tag):
