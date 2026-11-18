@@ -43,7 +43,7 @@ internal fun DrillLibraryScreen(
     var levelFilter by rememberSaveable { mutableStateOf("All levels") }
     var durationFilter by rememberSaveable { mutableStateOf("Any length") }
     var expandedCategory by rememberSaveable { mutableStateOf<String?>(null) }
-    var showAllCategories by rememberSaveable { mutableStateOf(true) }
+    var showAllCategories by rememberSaveable { mutableStateOf(false) }
     val largeText = LocalDensity.current.fontScale > 1.3f
     val catalog = TrainingLibrary.catalog(save)
     val browseState = rememberLazyListState()
@@ -390,7 +390,7 @@ internal fun DrillLibraryScreen(
                 Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Browse by skill", color = CourtQuestDesign.textSecondary,
+                    Text("Choose a skill to reveal its drills", color = CourtQuestDesign.textSecondary,
                         style = MaterialTheme.typography.labelMedium)
                     TextButton(
                         onClick = {
