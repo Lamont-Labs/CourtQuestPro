@@ -65,7 +65,38 @@ internal fun CourtJerseyArtwork(
                 drawPath(outline.panels, Color(design.side))
                 drawPath(outline.collar, Color(design.collar), style = Stroke(9f))
                 drawPath(outline.armholes, Color(design.armhole), style = Stroke(9f))
-                drawLine(sheen, Offset(28f, 213f), Offset(192f, 213f), strokeWidth = 1.5f)
+                // Material shading is independent of the seven editable ink zones.
+                // Narrow translucent highlights simulate drape without washing out selected colors.
+                drawRect(
+                    brush = Brush.horizontalGradient(
+                        0f to Color.Black.copy(alpha = .22f),
+                        .12f to Color.White.copy(alpha = .11f),
+                        .27f to Color.Transparent,
+                        .43f to Color.Black.copy(alpha = .09f),
+                        .58f to Color.White.copy(alpha = .065f),
+                        .76f to Color.Transparent,
+                        .91f to Color.White.copy(alpha = .13f),
+                        1f to Color.Black.copy(alpha = .28f),
+                        endX = 220f
+                    ),
+                    size = Size(220f, 240f)
+                )
+                // Micro-mesh: a sparse, scale-aware perforation pattern clipped to the garment.
+                // Keep contrast low enough for both light and dark fabric choices.
+                val meshInk = if (jerseyContrast(design.fabric, 0xFF000000.toInt()) > 7.0)
+                    Color.Black.copy(alpha = .075f) else Color.White.copy(alpha = .085f)
+                for (y in 28..222 step 5) {
+                    for (x in 30..190 step 5) {
+                        val stagger = if ((y / 5) % 2 == 0) 0f else 2.5f
+                        drawCircle(meshInk, radius = .46f, center = Offset(x + stagger, y.toFloat()))
+                    }
+                }
+                // Fine seam detail follows garment edges, retaining visible fabric depth.
+                drawPath(outline.collar, Color.Black.copy(alpha = .30f), style = Stroke(1.3f))
+                drawPath(outline.armholes, Color.Black.copy(alpha = .28f), style = Stroke(1.3f))
+                drawLine(Color.White.copy(alpha = .20f), Offset(37f, 206f), Offset(183f, 206f), strokeWidth = .8f)
+                drawLine(Color.Black.copy(alpha = .30f), Offset(28f, 213f), Offset(192f, 213f), strokeWidth = 2.3f)
+                drawLine(sheen.copy(alpha = .55f), Offset(28f, 214.5f), Offset(192f, 214.5f), strokeWidth = .75f)
             }
             drawPath(outline.body, Color.White.copy(alpha = .28f), style = Stroke(1.35f))
             val numberY = when (design.template) {
