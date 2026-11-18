@@ -42,6 +42,10 @@ internal fun CareerScreen(
     var showAllGames by rememberSaveable { mutableStateOf(false) }
     val recorded = save.drillResults.orEmpty()
     val valid = recorded.filter { it.attempted > 0 && it.completed in 0..it.attempted }
+    val totalAttempts = valid.sumOf { it.attempted }
+    val totalSuccessful = valid.sumOf { it.completed }
+    val trainingRate = if (totalAttempts > 0) "${totalSuccessful * 100 / totalAttempts}%" else "—"
+    val practicedDrills = valid.map { it.drillId }.distinct().size
     val recordCount = if (showGames) save.matches.size else recorded.size
     val recordedDays = if (showGames) save.matches.map { it.date }.distinct().size
         else valid.map { it.date }.distinct().size
@@ -120,6 +124,38 @@ internal fun CareerScreen(
                         CourtRule()
                         Text("XP tracks participation. Results are self-recorded.",
                             color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                if (section == "Overview") {
+                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            CourtEyebrow("TRAINING PERFORMANCE")
+                            Text("Your recorded baseline", style = MaterialTheme.typography.titleLarge,
+                                color = CourtQuestDesign.textPrimary)
+                            CourtMetricStrip(listOf(
+                                "Successful" to totalSuccessful.toString(),
+                                "Attempts" to totalAttempts.toString(),
+                                "Success rate" to trainingRate
+                            ))
+                            if (totalAttempts > 0) {
+                                LinearProgressIndicator(
+                                    progress = { totalSuccessful.toFloat() / totalAttempts },
+                                    modifier = Modifier.fillMaxWidth().height(7.dp),
+                                    color = CourtQuestDesign.accentVivid,
+                                    trackColor = CourtQuestDesign.surface
+                                )
+                                Text("$practicedDrills distinct drills practiced across ${valid.size} valid saved results.",
+                                    color = CourtQuestDesign.textSecondary,
+                                    style = MaterialTheme.typography.bodySmall)
+                            } else {
+                                Text("Record your first drill to establish a training baseline.",
+                                    color = CourtQuestDesign.textSecondary,
+                                    style = MaterialTheme.typography.bodyMedium)
+                            }
+                            Text("Success rate combines self-recorded attempts across drills with different targets; use same-drill history for fairer comparisons.",
+                                color = CourtQuestDesign.textSecondary,
+                                style = MaterialTheme.typography.bodySmall)
+                        }
                     }
                 }
                 if (section == "History" && save.missionReceipts.orEmpty().isNotEmpty() && !showGames) {
