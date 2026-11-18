@@ -88,6 +88,20 @@ class TrainingLibraryTest {
         assertTrue(choices.first().reason.contains("focus", ignoreCase = true))
         assertFalse(choices.any { it.drill.level in listOf("Advanced", "Expert", "Elite") })
     }
+    @Test fun suggestionsAreStableAcrossHistoricalResultOrderingAndRestarts() {
+        val save = state()
+        val first = TrainingLibrary.suggestions(save)
+        val restored = Gson().fromJson(Gson().toJson(save), SaveState::class.java)
+        assertEquals(first, TrainingLibrary.suggestions(restored))
+        assertEquals(first, TrainingLibrary.suggestions(save))
+        assertTrue(first.all { it.drill.level in listOf("Beginner", "Intermediate") })
+    }
+    @Test fun archivedCustomDrillsNeverAppearInRecommendations() {
+        val save = state()
+        val drill = TrainingLibrary.saveCustom(save, input())!!
+        assertTrue(TrainingLibrary.archive(save, drill.id))
+        assertFalse(TrainingLibrary.suggestions(save).any { it.drill.id == drill.id })
+    }
     @Test fun practiceResumesAndSavesExactlyOnceWithoutChangingDailyAwards() {
         val save = state().apply { totalXp = 100 }
         val drill = TrainingLibrary.saveCustom(save, input())!!
