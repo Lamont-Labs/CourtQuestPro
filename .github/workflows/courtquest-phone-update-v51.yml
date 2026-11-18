@@ -55,10 +55,10 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p previous dist
-          gh release download courtquest-phone-update-v51 --pattern 'CourtQuestPro-Update-v51.apk' --pattern 'CourtQuestPro-Update-v51.apk.sha256' --dir previous
-          (cd previous && sha256sum --check CourtQuestPro-Update-v51.apk.sha256)
+          gh release download courtquest-phone-update-v50 --pattern 'CourtQuestPro-Update-v50.apk' --pattern 'CourtQuestPro-Update-v50.apk.sha256' --dir previous
+          (cd previous && sha256sum --check CourtQuestPro-Update-v50.apk.sha256)
           python3 scripts/verify_apk.py --apk app/build/outputs/apk/debug/app-debug.apk --build-tools "${ANDROID_HOME}/build-tools/35.0.1" --output dist
-          python3 scripts/verify_phone_update.py identity --previous previous/CourtQuestPro-Update-v51.apk --candidate app/build/outputs/apk/debug/app-debug.apk --previous-version 50 --candidate-version 51 --tools "${ANDROID_HOME}/build-tools/35.0.1" --output dist
+          python3 scripts/verify_phone_update.py identity --previous previous/CourtQuestPro-Update-v50.apk --candidate app/build/outputs/apk/debug/app-debug.apk --previous-version 50 --candidate-version 51 --tools "${ANDROID_HOME}/build-tools/35.0.1" --output dist
       - name: Prepare one disposable upgrade emulator
         run: |
           set -euo pipefail
@@ -81,9 +81,9 @@ jobs:
           ui.shell('input','keyevent','KEYCODE_WAKEUP')
           ui.shell('wm','dismiss-keyguard')
           PY
-      - name: Verify v51-to-v51 upgrade preserves saved player data
+      - name: Verify v50-to-v51 upgrade preserves saved player data
         run: |
-          python3 scripts/verify_phone_update.py upgrade --previous previous/CourtQuestPro-Update-v51.apk --candidate app/build/outputs/apk/debug/app-debug.apk --previous-version 50 --candidate-version 51 --output dist
+          python3 scripts/verify_phone_update.py upgrade --previous previous/CourtQuestPro-Update-v50.apk --candidate app/build/outputs/apk/debug/app-debug.apk --previous-version 50 --candidate-version 51 --output dist
       - name: Exercise Studio, walkthrough and training on the exact candidate
         run: |
           set -euo pipefail
@@ -143,7 +143,7 @@ jobs:
           manifest.update(source_commit=os.environ['GITHUB_SHA'],release_tag='courtquest-phone-update-v51',upgrade_identity=identity,install_upgrade=upgrade)
           manifest['checks']['emulator_test'] = 'PASS_V51_UPGRADE_STUDIO_WALKTHROUGH_TRAINING'
           (root/'apk-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
-          (root/'RELEASE_NOTES.md').write_text('# CourtQuest Pro v51 phone-test APK\n\nIncludes the Jersey Studio, Court, Drill Library, training, profile, and game updates from v51. On Android, the Studio Back arrow is now bright and the front/back controls remain compact at large text sizes. Shorter contrast warnings leave more room for editing. The phone-test APK upgraded the published v51 build and preserved player data on an Android emulator. Install over the current app to retain saved data. Physical phone review is pending.\n')
+          (root/'RELEASE_NOTES.md').write_text('# CourtQuest Pro v51 phone-test APK\\n\\nAdds solo-player training progress, skill practice focus, improved drill recommendations, accessible drill navigation and readable recommendation cards. Upgrade verification checks that installing v51 over published v50 preserves existing player data. Physical phone testing remains pending.\\n')
           PY
           if gh api "repos/${GH_REPO}/releases/tags/courtquest-phone-update-v51" >/dev/null 2>&1; then echo 'v51 already published; refusing overwrite'; exit 1; fi
           gh release create courtquest-phone-update-v51 dist/CourtQuestPro-Update-v51.apk dist/CourtQuestPro-Update-v51.apk.sha256 dist/apk-manifest.json dist/upgrade-identity.json dist/install-upgrade.json dist/RELEASE_NOTES.md --target "$GITHUB_SHA" --prerelease --latest=false --title 'CourtQuest Pro v51 — Solo training phone test' --notes-file dist/RELEASE_NOTES.md
