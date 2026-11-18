@@ -77,6 +77,17 @@ internal fun DrillLibraryScreen(
             (filter != "Favorites" || drill.id in favorites) &&
         DrillDiscovery.matches(drill, query)
     }
+    val validResults = save.drillResults.orEmpty().filter {
+        it.attempted > 0 && it.completed in 0..it.attempted
+    }
+    val practicePriority = TrainingLibrary.categories.mapNotNull { skill ->
+        val skillResults = validResults.filter { result ->
+            result.drillSnapshot?.category == skill ||
+                catalog.any { it.id == result.drillId && it.category == skill }
+        }
+        val attempts = skillResults.sumOf { it.attempted }
+        if (attempts >= 20) Triple(skill, skillResults.sumOf { it.completed }, attempts) else null
+    }.minByOrNull { it.second.toFloat() / it.third }
     val suggestions = TrainingLibrary.suggestions(save)
     LazyColumn(Modifier.fillMaxSize(), state = browseState, contentPadding = PaddingValues(bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -208,6 +219,35 @@ internal fun DrillLibraryScreen(
                 .then(if (section == "Library") Modifier.testTag("train-library-content") else Modifier),
                 verticalArrangement = Arrangement.spacedBy(11.dp)) {
                 if (section != "Today") {
+                if (section == "Library" && swapSlotId == null && practicePriority != null) {
+                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(14.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            CourtEyebrow("YOUR PRACTICE FOCUS")
+                            Text(practicePriority.first, color = CourtQuestDesign.textPrimary,
+                                style = MaterialTheme.typography.titleLarge)
+                            Text("${practicePriority.second * 100 / practicePriority.third}% success across ${practicePriority.third} recorded attempts",
+                                color = CourtQuestDesign.textSecondary,
+                                style = MaterialTheme.typography.bodySmall)
+                            OutlinedButton(
+                                onClick = {
+                                    category = practicePriority.first
+                                    query = ""
+                                    levelFilter = "All levels"
+                                    durationFilter = "Any length"
+                                    filter = "All"
+                                    expandedCategory = practicePriority.first
+                                    showAllCategories = true
+                                },
+                                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                                    .testTag("library-practice-focus")
+                            ) {
+                                Icon(Icons.Default.Tune, null, Modifier.size(18.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text("Explore ${practicePriority.first} drills")
+                            }
+                        }
+                    }
+                }
                 OutlinedTextField(query, { query = it }, label = { Text("Search drills") }, singleLine = true,
                     leadingIcon = { Icon(Icons.Default.Search, null) },
                     trailingIcon = { if (query.isNotBlank()) IconButton(onClick = { query = "" }) { Icon(Icons.Default.Close, "Clear search") } },
