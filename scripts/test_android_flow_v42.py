@@ -127,6 +127,18 @@ class SoloBatchCaptureTest(unittest.TestCase):
             with self.assertRaisesRegex(AssertionError,'outside the safe screen'):
                 batch.scroll_to_tag('live-save-results')
 
+    def test_topward_scroll_returns_to_an_above_the_fold_tab(self):
+        hidden = Element('node', {'resource-id':'quests-tab-achievements',
+                                 'bounds':'[40,-50][432,46]'})
+        visible = Element('node', {'resource-id':'quests-tab-achievements',
+                                  'bounds':'[40,574][432,670]'})
+        region = Element('node', {'scrollable':'true','bounds':'[0,48][640,1300]'})
+        with patch.object(batch.ui,'nodes',side_effect=[[hidden,region],[visible,region]]), \
+                patch.object(batch.ui,'shell') as shell, \
+                patch.object(batch.time,'sleep'):
+            self.assertIs(visible,batch.scroll_to_tag_top('quests-tab-achievements'))
+        shell.assert_called_once()
+
     def test_save_transition_sends_one_tap_then_waits_for_receipt(self):
         button = Element('node', {'bounds':'[20,100][620,200]'})
         receipt = Element('node', {'resource-id':'drill-saved-receipt',

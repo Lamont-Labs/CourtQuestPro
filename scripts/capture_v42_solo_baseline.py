@@ -102,6 +102,32 @@ def scroll_to_tag(tag):
     raise AssertionError(f'Control {tag} did not fit inside its scroll viewport: '
                          f'{bounds(last) if last is not None else "not exported"}')
 
+def scroll_to_tag_top(tag):
+    """Return an above-the-fold control to view after scrolling deeper into a list."""
+    for _ in range(18):
+        items = ui.nodes()
+        target = ui.tagged(items, tag)
+        regions = [node for node in items if node.get('scrollable') == 'true']
+        if target is not None and regions:
+            box = bounds(target)
+            if any((rb := bounds(region))[0] <= box[0] and rb[1] <= box[1] and
+                   box[2] <= rb[2] and box[3] <= rb[3] for region in regions):
+                return target
+        if not regions:
+            raise AssertionError(f'No visible scroll viewport can reach {tag}')
+        region = max(regions, key=lambda node: (bounds(node)[2]-bounds(node)[0]) *
+                     (bounds(node)[3]-bounds(node)[1]))
+        left, top, right, bottom = bounds(region)
+        x = (left + right) // 2
+        height = bottom - top
+        # Moving the finger downward returns the list toward its beginning.
+        ui.shell('input', 'swipe', str(x), str(top + height // 4),
+                 str(x), str(top + height * 3 // 4), '350')
+        time.sleep(.5)
+    last = ui.tagged(ui.nodes(), tag)
+    raise AssertionError(f'Control {tag} did not return to its scroll viewport: '
+                         f'{bounds(last) if last is not None else "not exported"}')
+
 def visible_progress_metric_nodes(tag):
     scroll_to_tag(tag)
     return ui.nodes()
@@ -361,7 +387,7 @@ def verify_drill_batch(config):
     ui.navigate('Quests')
     assert scroll_to_tag('quests-daily-checkin-earned') is not None
     capture('quests-daily-earned')
-    ui.tap(scroll_to_tag('quests-tab-achievements'))
+    ui.tap(scroll_to_tag_top('quests-tab-achievements'))
     scroll_to_tag('quests-achievement-first-saved-drill')
     capture('achievement-first-saved-drill')
     ui.navigate('Me')
