@@ -63,6 +63,45 @@ class TrainingRecommendationEngineTest {
         assertEquals(original.selectedIds, TrainingLibrary.suggestions(save, day).map { it.drill.id })
     }
 
+    @Test fun qualifiedEvidenceAppearsInPlayerFacingExplanation() {
+        val save = state()
+        val drill = drills.first { it.id == "s1" }
+        val schema = MissionMeasurement("shots-made-v1", 3, "Shots made",
+            "Shots attempted", "+ MAKE", "Count made baskets.")
+        save.drillResults = mutableListOf(
+            DrillResult("2026-11-15", "one", "s1", 5, 10,
+                drillSnapshot = drill, measurementSnapshot = schema),
+            DrillResult("2026-11-16", "two", "s1", 6, 10,
+                drillSnapshot = drill, measurementSnapshot = schema),
+            DrillResult("2026-11-17", "three", "s1", 7, 10,
+                drillSnapshot = drill, measurementSnapshot = schema)
+        )
+        val receipt = TrainingRecommendationEngine.evaluate(save, day)
+        assertTrue("s1" in receipt.selectedIds)
+        assertTrue(receipt.explanations["s1"].orEmpty().contains("18/30"))
+        assertTrue(receipt.explanations["s1"].orEmpty().contains("self-recorded"))
+        assertEquals(receipt.explanations["s1"],
+            TrainingLibrary.suggestions(save, day).first { it.drill.id == "s1" }.reason)
+    }
+
+    @Test fun incompatibleSchemasDoNotProduceEvidenceClaims() {
+        val save = state()
+        val drill = drills.first { it.id == "s1" }
+        save.drillResults = mutableListOf(
+            DrillResult("2026-11-15", "one", "s1", 5, 10,
+                drillSnapshot = drill, measurementSnapshot = MissionMeasurement(
+                    "schema-a", 3, "Made", "Attempted", "+ MAKE", "A")),
+            DrillResult("2026-11-16", "two", "s1", 6, 10,
+                drillSnapshot = drill, measurementSnapshot = MissionMeasurement(
+                    "schema-b", 3, "Made", "Attempted", "+ MAKE", "B")),
+            DrillResult("2026-11-17", "three", "s1", 7, 10,
+                drillSnapshot = drill, measurementSnapshot = MissionMeasurement(
+                    "schema-c", 3, "Made", "Attempted", "+ MAKE", "C"))
+        )
+        assertFalse(TrainingRecommendationEngine.evaluate(save, day)
+            .explanations["s1"].orEmpty().contains("self-recorded"))
+    }
+
     @Test fun zeroLimitIsValidAndNegativeLimitRejected() {
         assertTrue(TrainingRecommendationEngine.evaluate(state(), day, 0).selectedIds.isEmpty())
         assertThrows(IllegalArgumentException::class.java) {
