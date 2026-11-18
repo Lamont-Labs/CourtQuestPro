@@ -518,7 +518,20 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 TextButton(onBack, modifier = Modifier.heightIn(min = 48.dp)) { Text("Back to library") }
                 CourtEyebrow("${drill.category.uppercase()} · ${drill.level.uppercase()} · ${drill.minutes} MIN")
-                Text(drill.title, style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(drill.title, Modifier.weight(1f),
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = CourtQuestDesign.textPrimary)
+                    IconButton(onClick = onFavorite,
+                        modifier = Modifier.testTag("drill-detail-favorite")) {
+                        val favorite = drill.id in save.favoriteDrillIds.orEmpty()
+                        Icon(if (favorite) Icons.Default.Star else Icons.Default.StarBorder,
+                            if (favorite) "Remove ${drill.title} from favorites"
+                            else "Save ${drill.title} to favorites",
+                            tint = CourtQuestDesign.accentVivid)
+                    }
+                }
                 CourtQuestPremiumSurface(
                     Modifier.fillMaxWidth().testTag("drill-detail-hero"),
                     PaddingValues(14.dp),
@@ -675,10 +688,6 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                 OutlinedButton(onUse, enabled = canUse, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Use in daily workout") }
                 if (!canUse) Text("A swap needs an untouched ${drill.category.lowercase()} slot and a drill at or below your selected level.",
                     color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
-                TextButton(onFavorite, modifier = Modifier.heightIn(min = 48.dp)) {
-                    Icon(if (drill.id in save.favoriteDrillIds.orEmpty()) Icons.Default.Star else Icons.Default.StarBorder, null)
-                    Spacer(Modifier.width(8.dp)); Text(if (drill.id in save.favoriteDrillIds.orEmpty()) "Remove favorite" else "Save to favorites")
-                }
                 if (save.customDrills.orEmpty().any { it.drill.id == drill.id && !it.archived }) {
                     CourtRule()
                     OutlinedButton(onEdit, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("Edit custom drill") }
