@@ -166,13 +166,11 @@ def set_tour_complete(value):
 
 def verify_candidate(config):
     assert_dock()
-    # The optional introduction reserves space; it cannot overlap the scroll viewport.
     hint = ui.wait_tagged('navigation-tour')
-    items = ui.nodes()
-    regions = [bounds(n) for n in items if n.get('scrollable') == 'true']
-    assert regions and max(box[3] for box in regions) <= bounds(hint)[1], 'Hint overlays content'
+    dock = ui.wait_tagged('player-bottom-dock')
+    assert bounds(hint)[3] < bounds(dock)[1], 'Walkthrough obscured by dock'
     if config == 'normal':
-        assert bounds(hint)[3] - bounds(hint)[1] <= 160, 'Hint exceeds 80dp'
+        assert bounds(hint)[3] - bounds(hint)[1] <= 300, 'Floating guide exceeds 150dp'
     for tag in ['tour-next', 'tour-skip']:
         box = bounds(ui.wait_tagged(tag))
         assert box[2]-box[0] >= 96 and box[3]-box[1] >= 96, tag

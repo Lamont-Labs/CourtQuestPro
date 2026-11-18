@@ -231,18 +231,21 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     var showWelcome by rememberSaveable { mutableStateOf(true) }
     var routeHistory by rememberSaveable { mutableStateOf(listOf("home")) }
     var navigationExpanded by rememberSaveable { mutableStateOf(false) }
-    var tourStep by rememberSaveable { mutableIntStateOf(-1) }
+    var tourActive by rememberSaveable { mutableStateOf(false) }
     val tourCompleted = prefs.getBoolean("navigation_tour_complete", false)
     fun closeTour() {
         prefs.edit().putBoolean("navigation_tour_complete", true).apply()
-        tourStep = -1
+        tourActive = false
     }
     val screen = PlayerNavigation.restore(routeHistory).last()
+    val tourIndex = if (tourActive && onboardingComplete && !showWelcome) {
+        SoloNavigationTour.tabs.indexOfFirst { it.route == screen }.takeIf { it >= 0 }
+    } else null
     val destinationState = rememberSaveableStateHolder()
     fun navigate(route: String) { routeHistory = PlayerNavigation.open(routeHistory, route) }
     LaunchedEffect(onboardingComplete, showWelcome) {
-        if (onboardingComplete && !showWelcome && !tourCompleted && tourStep < 0) {
-            tourStep = 0
+        if (onboardingComplete && !showWelcome && !tourCompleted && !tourActive) {
+            tourActive = true
             navigate(PlayerTab.COURT.route)
         }
     }
@@ -306,10 +309,9 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         }
     }
     BackHandler(enabled = onboardingComplete && navigationExpanded) { navigationExpanded = false }
-    BackHandler(enabled = onboardingComplete && !navigationExpanded && tourStep < 0 && screen != "home") {
+    BackHandler(enabled = onboardingComplete && !navigationExpanded && tourIndex == null && screen != "home") {
         if (screen == "mission") leaveMission() else goBack()
     }
-    BackHandler(enabled = onboardingComplete && !showWelcome && tourStep >= 0) { closeTour() }
     LaunchedEffect(today) {
         val now = Instant.now()
         val activated = CourtQuestEngine.activate(save, now)
@@ -412,36 +414,32 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             librarySlotId = null
             librarySelectedId = null
             navigationExpanded = false
-            tourStep = 0
+            tourActive = true
             navigate(PlayerTab.COURT.route)
         }
         val showPlayerNavigation = onboardingComplete && !showWelcome &&
             screen in listOf("home", "library", "quests", "career", "gameHistory", "trainingHistory", "me", "settings")
+        BackHandler(enabled = tourIndex != null) {
+            val index = tourIndex ?: return@BackHandler
+            if (index == 0) closeTour() else selectPlayerTab(SoloNavigationTour.tabs[index - 1])
+        }
         CourtQuestScene {
         Scaffold(
             modifier = Modifier.semantics { testTagsAsResourceId = true },
             snackbarHost = { SnackbarHost(snackbar) },
             bottomBar = {
                 if (showPlayerNavigation) {
-                if (showPlayerNavigation) CourtQuestBottomDock(
-                    selected = PlayerNavigation.tab(routeHistory),
-                    jerseyNumber = save.jerseyNumber,
-                    onSelect = { tab ->
-                        selectPlayerTab(tab)
-                        if (tourStep >= 0) {
-                            val tabs = SoloNavigationTour.tabs
-                            val tappedStep = tabs.indexOf(tab)
-                            if (tappedStep >= 0) tourStep = tappedStep
-                        }
-                    },
-                    spotlightTab = if (tourStep >= 0) SoloNavigationTour.tabs[tourStep.coerceIn(0, 4)] else null
-                )
+                    CourtQuestBottomDock(
+                        selected = PlayerNavigation.tab(routeHistory),
+                        jerseyNumber = save.jerseyNumber,
+                        onSelect = ::selectPlayerTab,
+                        spotlightTab = tourIndex?.let { SoloNavigationTour.tabs[it] }
+                    )
                 }
             },
             containerColor = Color.Transparent,
         ) { padding ->
             Box(Modifier.fillMaxSize()) {
-                Box(Modifier.fillMaxSize()) {
             if (showWelcome) {
                 CourtWelcomeScreen(
                     modifier = Modifier.padding(padding).consumeWindowInsets(padding),
@@ -689,26 +687,21 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     destinationState.SaveableStateProvider(target) { DestinationContent() }
                 } else DestinationContent()
             }
-            }
-            // Render guidance over the content rather than reserving a second
-            // full-width bottom bar. The real navigation dock remains visible.
-            if (showPlayerNavigation && tourStep >= 0) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+            if (tourIndex != null) {
+                // Scaffold places the dock in a higher layer. Use the same safe
+                // content bounds as the screen so that it cannot cover tour actions.
+                Box(
+                    Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding),
+                    contentAlignment = Alignment.BottomCenter
+                ) {
                     CourtNavigationTour(
-                        step = tourStep,
+                        index = tourIndex,
                         onNext = {
-                            if (tourStep >= SoloNavigationTour.tabs.lastIndex) closeTour() else {
-                                tourStep++
-                                selectPlayerTab(SoloNavigationTour.tabs[tourStep])
-                            }
+                            if (tourIndex == SoloNavigationTour.tabs.lastIndex) closeTour()
+                            else selectPlayerTab(SoloNavigationTour.tabs[tourIndex + 1])
                         },
-                        onSkip = { closeTour() },
-                        onBack = {
-                            if (tourStep > 0) {
-                                tourStep--
-                                selectPlayerTab(SoloNavigationTour.tabs[tourStep])
-                            }
-                        }
+                        onSkip = ::closeTour,
+                        onBack = { selectPlayerTab(SoloNavigationTour.tabs[tourIndex - 1]) }
                     )
                 }
             }

@@ -1,122 +1,152 @@
 package com.courtquestpro
 
-import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
-/**
- * Guided Spotlight: restrained floating glass card in Scaffold's reserved area.
- * Navigation spotlight remains in CourtQuestBottomDock. No modal scrim or data mutation.
- */
+/** Floating guide. The parent supplies the usable viewport above the dock. */
 @Composable
-internal fun CourtNavigationTour(step: Int, onNext: () -> Unit, onSkip: () -> Unit, onBack: () -> Unit) {
-    val index = step.coerceIn(SoloNavigationTour.tabs.indices)
-    val shape = RoundedCornerShape(22.dp)
-    Column(
-        Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 7.dp)
-            .testTag("navigation-tour")
-            .shadow(14.dp, shape, ambientColor = Color.Black, spotColor = CourtQuestDesign.accentVivid.copy(alpha = .18f))
-            .background(
-                Brush.verticalGradient(listOf(Color(0xDA262426), Color(0xBF0C0C0F))),
-                shape
-            )
-            .border(1.dp, Brush.linearGradient(listOf(
-                CourtQuestDesign.accentVivid.copy(alpha = .65f),
-                Color.White.copy(alpha = .16f),
-                CourtQuestDesign.accentVivid.copy(alpha = .25f)
-            )), shape)
-            .padding(horizontal = 17.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+internal fun CourtNavigationTour(index: Int, onNext: () -> Unit, onSkip: () -> Unit, onBack: () -> Unit) {
+    val shape = RoundedCornerShape(18.dp)
+    val tab = SoloNavigationTour.tabs[index]
+    val last = index == SoloNavigationTour.tabs.lastIndex
+
+    BoxWithConstraints(
+        Modifier.widthIn(max = 392.dp).fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(7.dp).background(CourtQuestDesign.accentVivid, CircleShape))
-            Spacer(Modifier.width(8.dp))
-            Text("COURTQUEST  /  GUIDE", color = CourtQuestDesign.accent,
-                style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold,
-                maxLines = 1, modifier = Modifier.weight(1f))
-            Text("${index + 1} OF ${SoloNavigationTour.tabs.size}",
-                color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.labelSmall)
-            IconButton(onClick = onSkip, modifier = Modifier.size(40.dp).testTag("tour-skip")) {
-                Icon(Icons.Default.Close, contentDescription = "Skip walkthrough",
-                    tint = CourtQuestDesign.textSecondary, modifier = Modifier.size(19.dp))
-            }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-            SoloNavigationTour.tabs.indices.forEach { position ->
-                Box(Modifier.weight(1f).height(3.dp)
-                    .background(if (position == index) CourtQuestDesign.accentVivid
-                        else if (position < index) CourtQuestDesign.accent.copy(alpha = .45f)
-                        else Color.White.copy(alpha = .12f), CircleShape))
-            }
-        }
-        AnimatedContent(targetState = index, transitionSpec = {
-            fadeIn(animationSpec = tween(180)) togetherWith fadeOut(animationSpec = tween(110))
-        }, label = "guided-spotlight-step") { current ->
-            val tab = SoloNavigationTour.tabs[current]
-            val cue = SoloNavigationTour.cues[current]
-            Column(Modifier.fillMaxWidth().testTag("tour-current-step")
-                .semantics {
-                    liveRegion = LiveRegionMode.Polite
-                    contentDescription = "Step ${current + 1} of ${SoloNavigationTour.tabs.size}: ${tab.label}. $cue"
-                }, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(tab.label, color = CourtQuestDesign.textPrimary,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Black, maxLines = 1)
-                Text(cue, color = CourtQuestDesign.textSecondary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 3, overflow = TextOverflow.Ellipsis)
-            }
-        }
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (index > 0) {
-                OutlinedButton(onClick = onBack,
-                    modifier = Modifier.heightIn(min = 44.dp).testTag("tour-back"),
-                    contentPadding = PaddingValues(horizontal = 12.dp)) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Previous step",
-                        modifier = Modifier.size(18.dp))
-                }
-            } else {
-                TextButton(onClick = onSkip, modifier = Modifier.heightIn(min = 44.dp)) {
-                    Text("Skip", maxLines = 1, softWrap = false)
+        val compactControls = maxWidth < 292.dp || LocalDensity.current.fontScale > 1.5f
+        Column(
+            Modifier.fillMaxWidth().testTag("navigation-tour").clip(shape)
+                .background(Brush.verticalGradient(listOf(Color(0xEC211C1A), Color(0xE80E0E10))))
+                .border(
+                    1.dp,
+                    Brush.horizontalGradient(listOf(
+                        CourtQuestDesign.accentVivid.copy(alpha = .68f),
+                        CourtQuestDesign.accent.copy(alpha = .26f),
+                        Color.White.copy(alpha = .18f)
+                    )),
+                    shape
+                )
+                .padding(start = 14.dp, end = 14.dp, top = 10.dp, bottom = 4.dp)
+        ) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                SoloNavigationTour.tabs.indices.forEach { position ->
+                    val color by animateColorAsState(
+                        targetValue = when {
+                            position == index -> CourtQuestDesign.accentVivid
+                            position < index -> CourtQuestDesign.accent.copy(alpha = .54f)
+                            else -> Color.White.copy(alpha = .16f)
+                        },
+                        animationSpec = tween(150),
+                        label = "tour-progress"
+                    )
+                    Box(Modifier.weight(1f).height(2.dp).background(color, CircleShape))
                 }
             }
-            Spacer(Modifier.weight(1f))
-            Button(onClick = onNext,
-                modifier = Modifier.heightIn(min = 44.dp).testTag("tour-next"),
-                colors = ButtonDefaults.buttonColors(containerColor = CourtQuestDesign.accentVivid),
-                contentPadding = PaddingValues(horizontal = 19.dp)) {
-                Text(if (index == SoloNavigationTour.tabs.lastIndex) "Finish" else "Next",
-                    fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
-                Spacer(Modifier.width(7.dp))
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null,
-                    modifier = Modifier.size(18.dp))
+            key(index) {
+                // Only the copy scrolls when text or the viewport grows tight.
+                Column(
+                    Modifier.fillMaxWidth().weight(1f, fill = false)
+                        .verticalScroll(rememberScrollState()).padding(top = 7.dp, bottom = 2.dp)
+                        .testTag("tour-current-step").semantics { liveRegion = LiveRegionMode.Polite },
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            tab.label,
+                            Modifier.weight(1f).semantics { heading() },
+                            color = CourtQuestDesign.textPrimary,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Black
+                        )
+                        Text(
+                            "${index + 1} / ${SoloNavigationTour.tabs.size}",
+                            Modifier.semantics {
+                                contentDescription = "Step ${index + 1} of ${SoloNavigationTour.tabs.size}"
+                            },
+                            color = CourtQuestDesign.accent,
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                    Text(
+                        SoloNavigationTour.cues[index],
+                        color = CourtQuestDesign.textPrimary,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                TextButton(
+                    onClick = onSkip,
+                    modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp).testTag("tour-skip"),
+                    colors = ButtonDefaults.textButtonColors(contentColor = CourtQuestDesign.textSecondary),
+                    contentPadding = PaddingValues(horizontal = 8.dp)
+                ) { Text("Skip", softWrap = false) }
+                Spacer(Modifier.weight(1f))
+                if (index > 0) {
+                    TextButton(
+                        onClick = onBack,
+                        modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp).testTag("tour-back"),
+                        colors = ButtonDefaults.textButtonColors(contentColor = CourtQuestDesign.textPrimary),
+                        contentPadding = PaddingValues(horizontal = 8.dp)
+                    ) {
+                        if (compactControls) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                modifier = Modifier.size(20.dp)
+                            )
+                        } else {
+                            Text("Back", softWrap = false)
+                        }
+                    }
+                }
+                Button(
+                    onClick = onNext,
+                    modifier = Modifier.sizeIn(minWidth = 78.dp, minHeight = 48.dp).testTag("tour-next"),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = CourtQuestDesign.accentVivid,
+                        contentColor = CourtQuestDesign.iconForeground
+                    ),
+                    contentPadding = PaddingValues(horizontal = 15.dp)
+                ) {
+                    Text(if (last) "Finish" else "Next", softWrap = false, fontWeight = FontWeight.Bold)
+                }
             }
         }
     }

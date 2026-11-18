@@ -509,3 +509,46 @@ Progress, Quests, and Me are implemented as native Compose screens, using the ex
 Daily and weekly quest rewards are versioned and idempotent. A one-time saved activation timestamp marks when new quest rules begin, so prior training remains visible without earning retroactive quest XP. Drafts and abandoned sessions do not count. Achievements are derived from saved records and valid Mission receipts; unverifiable receipts are retained and shown without claiming completion. No team/school/coach route is exposed, and no dormant team data, app identity, signing material, artwork, or saved progress is changed. The views use no new network services or animation, so reduced-motion settings need no special handling.
 
 This pass follows the existing native design and the local Impeccable shape/clarify/critique guidance; a UI/UX Pro Max package was not available in the workspace at implementation time. The existing guarded Android workflow captures empty and returning-player states at normal, compact, and 200% text sizes, and its combined scope exercises saved daily rewards, restart persistence, achievements, and extra-practice regression. No v42 APK is published by this work.
+
+## v48 walkthrough candidate
+
+The v47 release places the guide in a full-window Scaffold content layer while
+the higher Scaffold bottom-bar layer owns the dock. The guide therefore needs
+the measured content padding even though it floats over each destination.
+The new guide and the underlying screen share the same safe content bounds.
+The guide is capped at 392 dp wide, separated from the dock, and uses a smoked
+surface, five progress segments and one primary action. The footer stays pinned
+while the coaching copy scrolls in a short viewport. Actions retain at least
+48 dp targets. Enlarged text switches Back to a labeled arrow so Skip and
+Next or Finish remain legible. The selected dock artwork keeps the orange
+outline. No modal scrim, additional animation library or new artwork is needed.
+
+The visible step follows the active top-level destination. Entering a secondary
+screen pauses the guide until the player returns to a destination. Android
+Back returns to the prior guided destination or closes the first step. Skip
+and Finish share the existing walkthrough-only preference. The other saved
+state is owned by the existing application paths.
+
+UI/UX Pro Max mobile onboarding guidance supported a visible Skip action and a
+predictable Back action. Its focus-obscured rule is web-labeled, so apply the
+same observable geometry to the Android controls without importing web CSS
+or a new Compose API. Context7 and the Android Material 3 Scaffold inset
+documentation supported constraining both siblings with measured padding.
+The local Impeccable onboarding and clarity review supported one instruction
+per step, short copy and a single primary action. The Figma draft models all
+five destinations and a compact large-text state using editable guide components.
+It is a layout reference. The Android screenshots are the visual evidence.
+[Walkthrough layout draft](https://www.figma.com/design/JKwMaV5jiJp7qSEmbvZSKa)
+
+The installed Compose Intro Showcase was reviewed for target-centric coach marks.
+Native Scaffold padding already supplies the precise dock boundary and the
+existing route and tab semantics. No extra runtime dependency is needed.
+[Compose Intro Showcase](https://github.com/canopas/compose-intro-showcase)
+[Android Scaffold insets](https://developer.android.com/develop/ui/compose/system/material-insets)
+
+The release review uses the exact v47 APK, a guarded Android 35 AVD, and the
+same synthetic player fixture. The required evidence includes the v47 overlap,
+all five native candidate captures, Back, Next, Skip, Finish, replay, direct
+tab selection, 320 dp at 130% and 200% text, Compose semantics and bounds,
+original signing identity, and install-over preservation. Unit tests, lint and
+the signed build are independent checks.
