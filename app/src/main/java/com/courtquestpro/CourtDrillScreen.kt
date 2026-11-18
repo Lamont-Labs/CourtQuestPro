@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -53,7 +54,7 @@ internal fun DrillScreen(
         confirmButton = { TextButton({ confirmDiscard = false; onDiscard?.invoke() }) { Text(if (sessionLabel != null) "Discard Mission session" else "Discard practice") } },
         dismissButton = { TextButton({ confirmDiscard = false }) { Text("Keep practicing") } })
     val best = previousResults.filter {
-        it.attempted > 0 && it.completed in 0..it.attempted &&
+        it.attempted > 0 && it.attempted == attemptedCount && it.completed in 0..it.attempted &&
             (specific == null || it.measurementSnapshot?.vocabulary() == measurement)
     }.maxByOrNull { it.completed }
 
@@ -65,10 +66,15 @@ internal fun DrillScreen(
     Column(Modifier.fillMaxSize()) {
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 20.dp)) {
             item {
-                Column(Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    CourtEyebrow(sessionLabel ?: if (practice) "EXTRA PRACTICE" else "DAILY DRILL ${slotNumber.coerceIn(1, 6)} OF 6")
-                    Text(drill.title, style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
+                Row(Modifier.fillMaxWidth().padding(start = 8.dp, end = 20.dp, top = 10.dp, bottom = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    IconButton(onBack, Modifier.size(48.dp).testTag("live-leave-session")) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Leave session")
+                    }
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        CourtEyebrow(sessionLabel ?: if (practice) "EXTRA PRACTICE" else "DAILY DRILL ${slotNumber.coerceIn(1, 6)} OF 6")
+                        Text(drill.title, style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
+                    }
                 }
             }
             item {
@@ -117,7 +123,8 @@ internal fun DrillScreen(
                      CourtEyebrow("NEXT STEP")
                      Text(
                          if (meetsCount) "Confirm safe completion to save your result."
-                         else "Record ${(requiredCount ?: 0).minus(completedCount).coerceAtLeast(0)} more ${measurement.successLabel.lowercase()} toward your target.",
+                         else if (requiredCount != null) "Record ${(requiredCount - completedCount).coerceAtLeast(0)} more ${measurement.successLabel.lowercase()} toward your target."
+                         else "Follow the drill target below.",
                          color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.bodyMedium
                      )
                      if (requiredCount != null && requiredCount > 0) {
@@ -159,8 +166,6 @@ internal fun DrillScreen(
                                  Text("Full target completed safely.", color = CourtQuestDesign.textPrimary,
                                      style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
                              }
-                             if (!complete && !meetsCount) Text("Record ${(requiredCount ?: 0).minus(completedCount).coerceAtLeast(0)} more to target.",
-                                 color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
                              CourtQuestPrimaryButton(onClick = { onComplete(completedCount, attemptedCount) },
                                  enabled = !complete && meetsCount && targetConfirmed,
                                  modifier = Modifier.fillMaxWidth().testTag("live-save-results")) {
@@ -173,7 +178,7 @@ internal fun DrillScreen(
                         DrillSessionTimer(drill.minutes, timerSeconds, draft.slotId) { timerSeconds = it; saveDraft() }
                     }
                     if (best != null) {
-                        Text("Personal best · ${best.completed} successful from ${best.attempted} attempts",
+                        Text("Previous high at ${best.attempted} attempts · ${best.completed} successful",
                             color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
                     }
                     OutlinedButton(
@@ -213,9 +218,12 @@ internal fun DrillScreen(
                     Text("Use a dry, clear court. Warm up first, keep movements controlled, and stop if the surface is slippery or something hurts.",
                         color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
                     }
-                    TextButton(onClick = onBack, modifier = Modifier.heightIn(min = 48.dp)) { Text("Back to Court") }
-                    if (practice && onDiscard != null) TextButton({ confirmDiscard = true }, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (sessionLabel != null) "Discard Mission session" else "Discard practice") }
-                }
+                    }
+                    if (practice && onDiscard != null) {
+                        TextButton({ confirmDiscard = true }, modifier = Modifier.heightIn(min = 48.dp)) {
+                            Text(if (sessionLabel != null) "Discard Mission session" else "Discard practice")
+                        }
+                    }
             }
         }
     }

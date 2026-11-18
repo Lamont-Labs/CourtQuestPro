@@ -1,5 +1,6 @@
 package com.courtquestpro
 
+import android.graphics.Bitmap
 import android.os.Build
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertIsDisplayed
@@ -10,6 +11,9 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
+import androidx.test.platform.app.InstrumentationRegistry
+import com.google.gson.Gson
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -32,17 +36,45 @@ class JerseyStudioTest {
         click("segment-jersey-editor-colors", scroll = true)
         click("jersey-swatch-royal-blue", scroll = true)
         node("jersey-save").assertIsEnabled().performClick()
+        assertSavedJersey()
 
         compose.activityRule.scenario.recreate()
         node("jersey-preview").performScrollTo()
             .assertContentDescriptionEquals("Back of Fastbreak jersey, number 00, Jersey QA")
+        capture("jersey-studio-back")
         click("jersey-close", scroll = true)
         click("dock-home")
         node("court-player-jersey").assertIsDisplayed()
             .assertContentDescriptionEquals("Front of Fastbreak jersey, number 00")
+        capture("jersey-court")
         click("dock-me")
         node("me-jersey-studio").performScrollTo().performClick()
         node("jersey-preview").assertContentDescriptionEquals("Front of Fastbreak jersey, number 00")
+        assertSavedJersey()
+        capture("jersey-studio-front")
+    }
+
+    private fun assertSavedJersey() {
+        val prefs = compose.activity.getSharedPreferences("court_quest_pro", 0)
+        compose.runOnIdle {
+            val save = Gson().fromJson(prefs.getString("state", null), SaveState::class.java)
+            assertEquals("Jersey QA", save.playerName)
+            assertEquals("00", save.playerJersey.number)
+            assertEquals(JerseyTemplate.FASTBREAK, save.playerJersey.design.template)
+            assertEquals("#2259D1", jerseyHex(save.playerJersey.design.fabric))
+        }
+    }
+
+    private fun capture(name: String) {
+        compose.waitForIdle()
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val image = instrumentation.uiAutomation.takeScreenshot()
+        checkNotNull(image).usePng(name + ".png")
+    }
+
+    private fun Bitmap.usePng(name: String) {
+        compose.activity.openFileOutput(name, 0).use { output -> compress(Bitmap.CompressFormat.PNG, 100, output) }
+        recycle()
     }
 
     private fun has(tag: String): Boolean =

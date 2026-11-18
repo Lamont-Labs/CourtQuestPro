@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -45,6 +46,8 @@ internal fun DrillLibraryScreen(
     var showAllCategories by rememberSaveable { mutableStateOf(true) }
     val largeText = LocalDensity.current.fontScale > 1.3f
     val catalog = TrainingLibrary.catalog(save)
+    val browseState = rememberLazyListState()
+    var lastRandomId by rememberSaveable { mutableStateOf<String?>(null) }
     val selected = catalog.firstOrNull { it.id == selectedId }
     val favorites = save.favoriteDrillIds.orEmpty()
     val resumablePlan = save.slots.any { slot ->
@@ -75,7 +78,7 @@ internal fun DrillLibraryScreen(
         DrillDiscovery.matches(drill, query)
     }
     val suggestions = TrainingLibrary.suggestions(save)
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp),
+    LazyColumn(Modifier.fillMaxSize(), state = browseState, contentPadding = PaddingValues(bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
             Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
@@ -266,6 +269,22 @@ internal fun DrillLibraryScreen(
                         Text(if (showFilters) "Less filters" else "Filters",
                             style = MaterialTheme.typography.labelMedium)
                     }
+                    if (swapSlotId == null && shown.isNotEmpty()) {
+                        OutlinedButton(
+                            onClick = {
+                                val candidates = if (shown.size > 1) shown.filterNot { it.id == lastRandomId } else shown
+                                val pick = candidates.random()
+                                lastRandomId = pick.id
+                                onSelect(pick.id)
+                            },
+                            modifier = Modifier.heightIn(min = 48.dp).testTag("library-random-drill"),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                        ) {
+                            Icon(Icons.Default.Shuffle, null, Modifier.size(18.dp))
+                            Spacer(Modifier.width(5.dp))
+                            Text("Random drill", style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
                     if (showFilters) {
                     listOf("Level" to levelFilter, "Duration" to durationFilter).forEach { (kind, current) ->
                         var open by remember { mutableStateOf(false) }
@@ -445,7 +464,7 @@ internal fun DrillLibraryScreen(
                     )
                 }
             }
-            HorizontalDivider(Modifier.padding(start = 84.dp, end = 20.dp),
+            HorizontalDivider(Modifier.padding(start = if (largeText) 20.dp else 84.dp, end = 20.dp),
                 color = CourtQuestDesign.surface)
         }
                 }

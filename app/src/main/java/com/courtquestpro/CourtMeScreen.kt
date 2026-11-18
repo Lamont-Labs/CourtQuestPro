@@ -99,31 +99,18 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                         CourtRankMeter(save.totalXp)
                         Text("${save.difficulty} · ${save.weeklyPlan} focus",
                             color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
-                        CourtRule()
-                        if (LocalDensity.current.fontScale > 1.3f) {
-                            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                ProfileStat("TOTAL XP", save.totalXp.toString(), Modifier.fillMaxWidth(), true)
-                                ProfileStat("RECORDED DRILLS", validResults.size.toString(), Modifier.fillMaxWidth())
-                                ProfileStat("TRAINING DAYS", trainingDays.toString(), Modifier.fillMaxWidth())
-                                ProfileStat("ACHIEVEMENTS", earnedAchievements.size.toString(), Modifier.fillMaxWidth())
-                            }
-                        } else {
-                            Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                                ProfileStat("TOTAL XP", save.totalXp.toString(), Modifier.weight(1f), true)
-                                Box(Modifier.width(1.dp).height(34.dp).background(CourtQuestDesign.border))
-                                ProfileStat("RECORDED DRILLS", validResults.size.toString(), Modifier.weight(1f))
-                                Box(Modifier.width(1.dp).height(34.dp).background(CourtQuestDesign.border))
-                                ProfileStat("TRAINING DAYS", trainingDays.toString(), Modifier.weight(1f))
-                                Box(Modifier.width(1.dp).height(34.dp).background(CourtQuestDesign.border))
-                                ProfileStat("ACHIEVEMENTS", earnedAchievements.size.toString(), Modifier.weight(1f))
-                            }
-                        }
                         CourtQuestPrimaryButton(onJersey, Modifier.fillMaxWidth().testTag("me-jersey-studio")) {
                             Text("Customize jersey")
                         }
                         TextButton(onEdit, Modifier.heightIn(min = 48.dp)) {
                             Icon(Icons.Default.Edit, null); Spacer(Modifier.width(8.dp)); Text("Edit profile")
                         }
+                        CourtRule()
+                        CourtMetricStrip(listOf(
+                            "Recorded drills" to validResults.size.toString(),
+                            "Training days" to trainingDays.toString(),
+                            "Milestones" to earnedAchievements.size.toString()
+                        ))
                     }
                 }
                 if (section == "Settings") {
@@ -174,14 +161,5 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun ProfileStat(label: String, value: String, modifier: Modifier = Modifier, highlighted: Boolean = false) {
-    Column(modifier.padding(horizontal = 10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(value, color = if (highlighted) CourtQuestDesign.accent else CourtQuestDesign.textPrimary,
-            style = MaterialTheme.typography.headlineSmall, maxLines = 1)
-        Text(label, color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.labelSmall)
     }
 }
