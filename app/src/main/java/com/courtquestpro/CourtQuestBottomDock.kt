@@ -104,7 +104,6 @@ internal fun CourtQuestBottomDock(selected: PlayerTab, jersey: PlayerJersey, cus
                         }
                     }
                     }
-                    }
                     if (showLabels) Text(tab.label,
                         color = if (active) CourtQuestDesign.textPrimary else CourtQuestDesign.textSecondary,
                         fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
