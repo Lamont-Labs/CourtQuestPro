@@ -45,6 +45,24 @@ class TrainingRecommendationEngineTest {
         assertEquals(before, Gson().toJson(save))
     }
 
+    @Test fun visibleSuggestionsMatchReceiptAndExplanations() {
+        val save = state()
+        val receipt = TrainingRecommendationEngine.evaluate(save, day)
+        val visible = TrainingLibrary.suggestions(save, day)
+        assertEquals(receipt.selectedIds, visible.map { it.drill.id })
+        assertEquals(receipt.selectedIds.map { receipt.explanations[it] }, visible.map { it.reason })
+    }
+
+    @Test fun oldAndFutureResultsDoNotAlterEarlierDateReceipt() {
+        val save = state()
+        val original = TrainingRecommendationEngine.evaluate(save, day)
+        save.drillResults = mutableListOf(
+            DrillResult("2026-12-01", "future", "s1", 5, 6)
+        )
+        assertEquals(original, TrainingRecommendationEngine.evaluate(save, day))
+        assertEquals(original.selectedIds, TrainingLibrary.suggestions(save, day).map { it.drill.id })
+    }
+
     @Test fun zeroLimitIsValidAndNegativeLimitRejected() {
         assertTrue(TrainingRecommendationEngine.evaluate(state(), day, 0).selectedIds.isEmpty())
         assertThrows(IllegalArgumentException::class.java) {
