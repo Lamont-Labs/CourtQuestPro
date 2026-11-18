@@ -58,7 +58,15 @@ class PlayerProgressionTest {
         val now = at(wednesday, 18)
         val save = activatedSave(at(wednesday, 8)).also {
             it.drillDrafts = mutableListOf(
-                DrillDraft(wednesday.toString(), "draft", "s1", 2, 3, true, 60)
+                DrillDraft(
+                    date = wednesday.toString(),
+                    slotId = "draft",
+                    drillId = "s1",
+                    successful = 2,
+                    attempted = 3,
+                    remainingSeconds = 60,
+                    targetConfirmed = true
+                )
             )
             it.drillResults = mutableListOf(
                 result(wednesday, "invalid", completed = 6, attempted = 5, recordedAt = at(wednesday, 10)),
