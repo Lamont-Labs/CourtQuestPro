@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -366,7 +367,10 @@ internal fun DrillLibraryScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 CourtQuestPremiumSurface(
                     Modifier.padding(horizontal = 20.dp).fillMaxWidth()
-                        .clickable { onSelect(featured.drill.id) }
+                        .clickable(
+                            role = Role.Button,
+                            onClickLabel = "View recommended drill: ${featured.drill.title}"
+                        ) { onSelect(featured.drill.id) }
                         .testTag("library-featured-drill"),
                     PaddingValues(16.dp), highlighted = true
                 ) {
@@ -400,7 +404,10 @@ internal fun DrillLibraryScreen(
                             suggestions.drop(1).take(3).forEach { suggestion ->
                                 CourtQuestPremiumSurface(
                                     Modifier.fillMaxWidth()
-                                        .clickable { onSelect(suggestion.drill.id) }
+                                        .clickable(
+                                            role = Role.Button,
+                                            onClickLabel = "View ${suggestion.drill.title} drill details"
+                                        ) { onSelect(suggestion.drill.id) }
                                         .testTag("library-alternative-${suggestion.drill.id}"),
                                     PaddingValues(horizontal = 12.dp, vertical = 10.dp)
                                 ) {
