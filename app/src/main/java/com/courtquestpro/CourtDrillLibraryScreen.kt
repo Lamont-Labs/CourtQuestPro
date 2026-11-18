@@ -413,20 +413,24 @@ internal fun DrillLibraryScreen(
                                 ) {
                                     Row(verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                        DrillArtworkThumbnail(suggestion.drill, Modifier.size(52.dp))
+                                        if (!largeText) {
+                                            DrillArtworkThumbnail(suggestion.drill, Modifier.size(52.dp))
+                                        }
                                         Column(Modifier.weight(1f),
                                             verticalArrangement = Arrangement.spacedBy(3.dp)) {
                                             Text(suggestion.drill.title,
                                                 color = CourtQuestDesign.textPrimary,
                                                 style = MaterialTheme.typography.titleMedium,
-                                                maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                                maxLines = if (largeText) 3 else 2,
+                                                overflow = TextOverflow.Ellipsis)
                                             Text("${suggestion.drill.category} · ${suggestion.drill.minutes} min",
                                                 color = CourtQuestDesign.accent,
                                                 style = MaterialTheme.typography.labelSmall)
                                             Text(suggestion.reason,
                                                 color = CourtQuestDesign.textSecondary,
                                                 style = MaterialTheme.typography.bodySmall,
-                                                maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                                maxLines = if (largeText) 4 else 2,
+                                                overflow = TextOverflow.Ellipsis)
                                         }
                                         Icon(Icons.AutoMirrored.Filled.ArrowForward,
                                             "View ${suggestion.drill.title}",
