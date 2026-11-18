@@ -9,7 +9,9 @@ import androidx.annotation.RawRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -86,8 +88,9 @@ internal fun CourtArenaJerseyArtwork(jersey: PlayerJersey, modifier: Modifier, s
     val context = LocalContext.current
     val design = jersey.design
     val colors = listOf(design.fabric, design.secondary, design.side, design.collar, design.armhole)
-    val image by produceState<ImageBitmap?>(null, context, side, colors) {
-        value = withContext(Dispatchers.Default) {
+    var image by remember(context, side) { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(context, side, colors) {
+        image = withContext(Dispatchers.Default) {
             ArenaJerseyMaterial.load(context.resources, side).render(colors)
         }
     }
