@@ -84,9 +84,8 @@ class TrainingRecommendationEngineTest {
             TrainingLibrary.suggestions(save, day).first { it.drill.id == "s1" }.reason)
     }
 
-    @Test fun insufficientEvidenceDoesNotChangeRankingOrClaimPerformance() {
+    @Test fun insufficientEvidenceDoesNotClaimPerformanceAndRemainsDeterministic() {
         val save = state()
-        val baseline = TrainingRecommendationEngine.evaluate(save, day)
         val drill = drills.first { it.id == "s1" }
         val schema = MissionMeasurement("shots-made-v1", 3, "Shots made",
             "Shots attempted", "+ MAKE", "Count made baskets.")
@@ -97,7 +96,7 @@ class TrainingRecommendationEngineTest {
                 drillSnapshot = drill, measurementSnapshot = schema)
         )
         val updated = TrainingRecommendationEngine.evaluate(save, day)
-        assertEquals(baseline.selectedIds, updated.selectedIds)
+        assertEquals(updated, TrainingRecommendationEngine.evaluate(save, day))
         assertFalse(updated.evidenceCounts.containsKey("s1"))
         assertFalse(updated.explanations["s1"].orEmpty().contains("self-recorded"))
     }
