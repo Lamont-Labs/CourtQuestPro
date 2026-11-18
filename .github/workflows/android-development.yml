@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'dev/**'
+      - 'integration/gpt-work-v48-review'
       - 'repair/premium-flow-stabilization'
   pull_request:
     branches: [main]
