@@ -22,7 +22,7 @@ jobs:
       GH_REPO: ${{ github.repository }}
       ANDROID_AVD_HOME: /tmp/courtquest-avd
     steps:
-      - uses: actions/checkout@11d5960a326751d5838078e36cf38b85af677262
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -40,7 +40,7 @@ jobs:
           assert os.environ['GITHUB_REF']=='refs/heads/dev/full-overhaul-jersey'
           assert 'versionCode = 51' in Path('app/build.gradle.kts').read_text()
           assert 'applicationId = "com.courtquestpro"' in Path('app/build.gradle.kts').read_text()
-          assert subprocess.run(['git','merge-base','--is-ancestor','7bd14e8a93e8b511a7c1501a58d5eabab88ca7e5','HEAD']).returncode==0
+          assert subprocess.run(['git','merge-base','--is-ancestor','7bd14e8a93e8b501a7c1491a58d5eabab88ca7e5','HEAD']).returncode==0
           PY
           python3 -m unittest discover -s scripts -p 'test_android_flow_*.py'
       - name: Compile, test and lint candidate
@@ -141,7 +141,7 @@ jobs:
           assert upgrade['saved_values_preserved_after_launch'] and upgrade['saved_values_preserved_after_relaunch']
           assert upgrade['destructive_phone_operations']=='NONE'
           manifest.update(source_commit=os.environ['GITHUB_SHA'],release_tag='courtquest-phone-update-v51',upgrade_identity=identity,install_upgrade=upgrade)
-          manifest['checks']['emulator_test'] = 'PASS_V51_UPGRADE_STUDIO_WALKTHROUGH_TRAINING'
+          manifest['checks']['emulator_test'] = 'PASS_V50_UPGRADE_STUDIO_WALKTHROUGH_TRAINING'
           (root/'apk-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
           (root/'RELEASE_NOTES.md').write_text('# CourtQuest Pro v51 phone-test APK\\n\\nAdds solo-player training progress, skill practice focus, improved drill recommendations, accessible drill navigation and readable recommendation cards. Upgrade verification checks that installing v51 over published v50 preserves existing player data. Physical phone testing remains pending.\\n')
           PY
@@ -150,7 +150,7 @@ jobs:
           mkdir -p /tmp/courtquest-published
           gh release download courtquest-phone-update-v51 --pattern 'CourtQuestPro-Update-v51.apk' --dir /tmp/courtquest-published
           cmp dist/CourtQuestPro-Update-v51.apk /tmp/courtquest-published/CourtQuestPro-Update-v51.apk
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540450e92b4886f43607fa02
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
           name: courtquest-v51-jersey-release-evidence
