@@ -70,7 +70,7 @@ internal fun CourtQuestBottomDock(selected: PlayerTab, jersey: PlayerJersey, cus
                         verticalArrangement = Arrangement.Center) {
                     Box(contentAlignment = Alignment.Center) {
                     if (tab == PlayerTab.ME && customizedJersey) {
-                        CourtJerseyArtwork(jersey, Modifier.size(34.dp))
+                        CourtJerseyArtwork(jersey.copy(number = null), Modifier.size(38.dp))
                     } else if (atlas != null) {
                         // Retain the original artwork, sized for a low-profile labeled dock.
                         NavigationSpriteArtwork(
@@ -90,18 +90,29 @@ internal fun CourtQuestBottomDock(selected: PlayerTab, jersey: PlayerJersey, cus
                         Icon(fallback, contentDescription = null, modifier = Modifier.size(30.dp),
                             tint = if (active) CourtQuestDesign.accent else CourtQuestDesign.textSecondary)
                     }
-                    if (tab == PlayerTab.ME && !customizedJersey && jersey.number != null) {
-                        Text(
-                            jersey.number,
-                            modifier = Modifier.align(Alignment.Center).offset(y = (-3).dp),
-                            color = CourtQuestDesign.accent,
-                            fontFamily = CourtDisplay,
-                            fontWeight = FontWeight.Black,
-                            fontSize = 9.sp,
-                            lineHeight = 10.sp,
-                            textAlign = TextAlign.Center,
-                            maxLines = 1
-                        )
+                    if (tab == PlayerTab.ME && jersey.number != null) {
+                        // A jersey's tiny printed number is illegible at dock scale.
+                        // Render the identity separately over an opaque contrast badge.
+                        Box(
+                            Modifier.align(Alignment.BottomCenter)
+                                .offset(y = 3.dp)
+                                .background(Color(0xFF08090B), RoundedCornerShape(5.dp))
+                                .border(1.dp, CourtQuestDesign.accentVivid, RoundedCornerShape(5.dp))
+                                .padding(horizontal = 4.dp, vertical = 1.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                jersey.number,
+                                color = Color.White,
+                                fontFamily = CourtDisplay,
+                                fontWeight = FontWeight.Black,
+                                fontSize = 11.sp,
+                                lineHeight = 12.sp,
+                                textAlign = TextAlign.Center,
+                                maxLines = 1
+                            )
+                        }
+                    }
                     }
                     }
                     if (showLabels) Text(tab.label,
