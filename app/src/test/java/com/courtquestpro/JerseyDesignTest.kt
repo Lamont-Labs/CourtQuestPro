@@ -21,7 +21,7 @@ class JerseyDesignTest {
             SaveState::class.java
         )
         assertEquals("9", loaded.playerJersey.number)
-        assertEquals(JerseyDesign(), loaded.playerJersey.design)
+        assertEquals(JerseyDesign.arena(), loaded.playerJersey.design)
         assertEquals("Rey", loaded.playerJersey.name)
         assertFalse(loaded.updatePlayerJersey("", "00", JerseyDesign()))
         assertFalse(loaded.updatePlayerJersey("Rey", "100", JerseyDesign()))
@@ -65,6 +65,14 @@ class JerseyDesignTest {
         assertEquals(listOf(JerseyPart.NUMBER), start.withColor(JerseyPart.NUMBER, start.fabric).lowContrastParts())
         assertEquals(listOf(JerseyPart.NAME), start.withColor(JerseyPart.NAME, start.fabric).lowContrastParts())
         assertEquals(JerseyTemplate.CLASSIC, start.copy(templateId = "INCOMPATIBLE_STYLE").template)
+    }
+
+    @Test fun photographedMaterialKeepsTheInkHueAndLightingRange() {
+        val ink = 0xFF2259D1.toInt()
+        assertEquals(ink and 0xFFFFFF, arenaRelight(ink, 34, 34))
+        assertEquals(0, arenaRelight(ink, 34, 0))
+        assertEquals(0xFFFFFF, arenaRelight(ink, 34, 255))
+        assertTrue(arenaRelight(ink, 34, 24) < arenaRelight(ink, 34, 52))
     }
 
     @Test fun personalColorsCannotMutateATeamUniform() {

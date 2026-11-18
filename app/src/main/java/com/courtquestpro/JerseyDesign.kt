@@ -6,7 +6,8 @@ import kotlin.math.pow
 enum class JerseyTemplate(val label: String, val detail: String) {
     CLASSIC("Classic", "Scoop collar and straight side piping"),
     FASTBREAK("Fastbreak", "V-neck and angled racing stripes"),
-    RETRO("Retro", "Square collar and stepped side panels")
+    RETRO("Retro", "Square collar and stepped side panels"),
+    ARENA("Arena", "Photographic mesh with contrast piping")
 }
 
 enum class JerseyPart(val label: String) {
@@ -24,6 +25,19 @@ data class JerseyDesign(
     val numberInk: Int = 0xFFFF9D55.toInt(),
     val nameInk: Int = 0xFFFFF4E8.toInt()
 ) {
+    companion object {
+        fun arena() = JerseyDesign(
+            templateId = JerseyTemplate.ARENA.name,
+            fabric = 0xFF17181B.toInt(),
+            secondary = 0xFFF0ECE4.toInt(),
+            side = 0xFFFF650E.toInt(),
+            collar = 0xFFE95B17.toInt(),
+            armhole = 0xFFEF6A21.toInt(),
+            numberInk = 0xFFFFF1DB.toInt(),
+            nameInk = 0xFFF5EEE4.toInt()
+        )
+    }
+
     val template: JerseyTemplate
         get() = JerseyTemplate.entries.firstOrNull { it.name == templateId } ?: JerseyTemplate.CLASSIC
 
@@ -61,7 +75,7 @@ internal data class PlayerJersey(val design: JerseyDesign, val number: String?, 
 
 internal val SaveState.playerJersey: PlayerJersey
     get() = PlayerJersey(
-        jerseyDesign ?: JerseyDesign(),
+        jerseyDesign ?: JerseyDesign.arena(),
         jerseyNumber?.takeIf { it in 0..99 }?.let { if (it == 0 && jerseyDoubleZero) "00" else it.toString() },
         playerName
     )

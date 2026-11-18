@@ -31,6 +31,16 @@ internal fun CourtJerseyArtwork(
     describe: Boolean = false
 ) {
     val design = jersey.design
+
+    val description = listOfNotNull(
+        "${view.label} of ${design.template.label} jersey", jersey.number?.let { "number $it" },
+        jersey.name.takeIf { view == JerseyView.BACK && it.isNotBlank() }
+    ).joinToString(", ")
+    val artwork = if (describe) modifier.semantics { contentDescription = description } else modifier
+    if (design.template == JerseyTemplate.ARENA) {
+        CourtArenaJerseyArtwork(jersey, artwork, view)
+        return
+    }
     val outline = remember(design.template, view) { jerseyOutline(design.template, view) }
     val context = LocalContext.current
     val letters = remember(context) {
@@ -39,11 +49,7 @@ internal fun CourtJerseyArtwork(
             textAlign = Paint.Align.CENTER
         }
     }
-    val description = listOfNotNull(
-        "${view.label} of ${design.template.label} jersey", jersey.number?.let { "number $it" },
-        jersey.name.takeIf { view == JerseyView.BACK && it.isNotBlank() }
-    ).joinToString(", ")
-    Canvas(if (describe) modifier.semantics { contentDescription = description } else modifier) {
+    Canvas(artwork) {
         val jerseyScale = minOf(size.width / 220f, size.height / 240f)
         if (jerseyScale <= 0f) return@Canvas
         val fabric = Color(design.fabric)
@@ -103,6 +109,7 @@ internal fun CourtJerseyArtwork(
                 JerseyTemplate.CLASSIC -> 135f
                 JerseyTemplate.FASTBREAK -> 145f
                 JerseyTemplate.RETRO -> 128f
+                JerseyTemplate.ARENA -> error("Arena uses its textile artwork")
             } + if (view == JerseyView.BACK) 15f else 0f
             drawIntoCanvas { canvas ->
                 fun mark(text: String, y: Float, height: Float, maxWidth: Float, ink: Int) {
@@ -180,6 +187,7 @@ private fun jerseyOutline(template: JerseyTemplate, view: JerseyView): JerseyOut
                 polygon(17f, 38f, 61f, 89f, 55f, 217f, 11f, 227f)
                 polygon(203f, 38f, 159f, 89f, 165f, 217f, 209f, 227f)
             }
+            JerseyTemplate.ARENA -> error("Arena uses its textile artwork")
             JerseyTemplate.RETRO -> {
                 polygon(15f, 175f, 53f, 195f, 167f, 195f, 205f, 175f, 205f, 232f, 15f, 232f)
             }
@@ -195,6 +203,7 @@ private fun jerseyOutline(template: JerseyTemplate, view: JerseyView): JerseyOut
                 polygon(15f, 51f, 53f, 97f, 43f, 218f, 31f, 221f, 43f, 102f, 12f, 73f)
                 polygon(205f, 51f, 167f, 97f, 177f, 218f, 189f, 221f, 177f, 102f, 208f, 73f)
             }
+            JerseyTemplate.ARENA -> error("Arena uses its textile artwork")
             JerseyTemplate.RETRO -> {
                 polygon(12f, 102f, 47f, 102f, 47f, 145f, 57f, 145f, 57f, 190f, 44f, 190f, 44f, 224f, 12f, 224f)
                 polygon(208f, 102f, 173f, 102f, 173f, 145f, 163f, 145f, 163f, 190f, 176f, 190f, 176f, 224f, 208f, 224f)

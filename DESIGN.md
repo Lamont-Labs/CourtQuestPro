@@ -586,3 +586,25 @@ The compatible Compose primitives are Canvas paths, selectable semantics and
 graphics and accessibility guidance and the existing LL-PES native surface
 recipe support reusing the app's own premium surface and touch target patterns.
 The Figma walkthrough reference confirms the dock's established dimensions.
+
+### Arena Studio reference candidate
+
+The solo-player Studio [design](https://www.figma.com/design/tgMiLviIw1x8c7Votx1VT8)
+uses one large jersey in portrait and matching front and back views on wide
+landscape screens. Portrait color editing opens a bottom sheet. The landscape
+editor lists all seven color zones, and the style picker has named thumbnails.
+Existing saved designs retain their styles and colors. Profiles without a saved
+jersey design start with Arena. The existing profile name, number, and save
+format still supply the live lettering.
+
+The Arena garment and court plate were authored for CourtQuest Pro. The garment
+assets pair photographed luminance with an alpha matte and five cloth-region IDs
+for each side. Android applies selected cloth colors to those regions off the
+main thread. The two lettering colors remain separate. The older styles continue
+to draw with their existing renderer. This adds no runtime dependencies.
+
+UI/UX Pro Max supported a dominant equipment preview, labeled swatches, mobile
+touch spacing, and a single scroll container per surface. The provided reference
+and existing Barlow black/orange theme determine the colors and typography.
+The Android candidate stays on the repository's pinned Compose versions and
+uses platform sheet and selectable semantics.

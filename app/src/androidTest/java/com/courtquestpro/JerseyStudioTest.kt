@@ -32,24 +32,25 @@ class JerseyStudioTest {
         node("jersey-number").performScrollTo().performTextReplacement("00")
         node("jersey-name").performScrollTo().performTextReplacement("Jersey QA")
         click("segment-jersey-editor-style", scroll = true)
-        click("segment-fastbreak", scroll = true)
+        click("segment-arena", scroll = true)
         click("segment-jersey-editor-colors", scroll = true)
         click("jersey-swatch-royal-blue", scroll = true)
+        click("jersey-colors-done", scroll = true)
         node("jersey-save").assertIsEnabled().performClick()
         assertSavedJersey()
 
         compose.activityRule.scenario.recreate()
         node("jersey-preview").performScrollTo()
-            .assertContentDescriptionEquals("Back of Fastbreak jersey, number 00, Jersey QA")
+            .assertContentDescriptionEquals("Back of Arena jersey, number 00, Jersey QA")
         capture("jersey-studio-back")
         click("jersey-close", scroll = true)
         click("dock-home")
         node("court-player-jersey").assertIsDisplayed()
-            .assertContentDescriptionEquals("Front of Fastbreak jersey, number 00")
+            .assertContentDescriptionEquals("Front of Arena jersey, number 00")
         capture("jersey-court")
         click("dock-me")
         node("me-jersey-studio").performScrollTo().performClick()
-        node("jersey-preview").assertContentDescriptionEquals("Front of Fastbreak jersey, number 00")
+        node("jersey-preview").assertContentDescriptionEquals("Front of Arena jersey, number 00")
         assertSavedJersey()
         capture("jersey-studio-front")
     }
@@ -59,7 +60,7 @@ class JerseyStudioTest {
         if (has("welcome-get-started")) click("welcome-get-started")
         compose.waitUntil(timeoutMillis = 15_000) { has("dock-me") }
         assertSavedJersey()
-        node("court-player-jersey").assertContentDescriptionEquals("Front of Fastbreak jersey, number 00")
+        node("court-player-jersey").assertContentDescriptionEquals("Front of Arena jersey, number 00")
     }
 
     private fun assertSavedJersey() {
@@ -68,7 +69,7 @@ class JerseyStudioTest {
             val save = Gson().fromJson(prefs.getString("state", null), SaveState::class.java)
             assertEquals("Jersey QA", save.playerName)
             assertEquals("00", save.playerJersey.number)
-            assertEquals(JerseyTemplate.FASTBREAK, save.playerJersey.design.template)
+            assertEquals(JerseyTemplate.ARENA, save.playerJersey.design.template)
             assertEquals("#2259D1", jerseyHex(save.playerJersey.design.fabric))
         }
     }
@@ -76,6 +77,7 @@ class JerseyStudioTest {
     private fun capture(name: String) {
         compose.waitForIdle()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
+        instrumentation.waitForIdleSync()
         val image = instrumentation.uiAutomation.takeScreenshot()
         checkNotNull(image).usePng(name + ".png")
     }
