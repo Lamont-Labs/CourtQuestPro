@@ -1,6 +1,7 @@
 package com.courtquestpro
 
 import android.os.Build
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
@@ -8,10 +9,9 @@ import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.unit.dp
 import org.junit.Assert.assertTrue
-import org.junit.Assume.assumeTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -19,32 +19,40 @@ class NavigationTourTest {
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
 
     @Test fun everyGuideActionFitsAboveTheDockAndContinuesToTheCorrectTab() {
-        assumeTrue("Run against a disposable Android emulator", Build.HARDWARE.contains("ranchu"))
-        compose.onNodeWithTag("welcome-get-started").performClick()
+        assertTrue("Run against a disposable Android emulator", Build.HARDWARE.contains("ranchu"))
+        click("welcome-get-started")
         compose.waitUntil(timeoutMillis = 15_000) {
-            compose.onAllNodesWithTag("player-bottom-dock").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithTag("dock-home", useUnmergedTree = true)
+                .fetchSemanticsNodes().isNotEmpty()
         }
 
-        if (compose.onAllNodesWithTag("tour-next").fetchSemanticsNodes().isEmpty()) {
-            compose.onNodeWithTag("dock-me").performClick()
-            compose.onNodeWithTag("me-settings-menu").performClick()
-            compose.onNodeWithTag("me-start-walkthrough").performClick()
+        if (compose.onAllNodesWithTag("tour-next", useUnmergedTree = true)
+                .fetchSemanticsNodes().isEmpty()) {
+            click("dock-me")
+            click("me-settings-menu")
+            click("me-start-walkthrough")
         }
 
         SoloNavigationTour.tabs.forEachIndexed { index, tab ->
-            compose.onNodeWithTag("dock-${tab.route}").assertIsSelected()
+            node("dock-${tab.route}").assertIsSelected()
             assertActionAboveDock("tour-next")
             assertActionAboveDock("tour-skip")
             if (index > 0) assertActionAboveDock("tour-back")
-            compose.onNodeWithTag("tour-next").performClick()
+            click("tour-next")
         }
-        compose.onNodeWithTag("navigation-tour").assertDoesNotExist()
+        node("navigation-tour").assertDoesNotExist()
+    }
+
+    private fun node(tag: String) = compose.onNodeWithTag(tag, useUnmergedTree = true)
+
+    private fun click(tag: String) {
+        node(tag).assertHasClickAction().performSemanticsAction(SemanticsActions.OnClick) { it() }
     }
 
     private fun assertActionAboveDock(tag: String) {
-        val action = compose.onNodeWithTag(tag).assertIsDisplayed().assertHasClickAction()
+        val action = node(tag).assertIsDisplayed().assertHasClickAction()
         val actionBounds = action.getUnclippedBoundsInRoot()
-        val dockBounds = compose.onNodeWithTag("player-bottom-dock").getUnclippedBoundsInRoot()
+        val dockBounds = node("player-bottom-dock").getUnclippedBoundsInRoot()
         assertTrue("$tag is shorter than 48dp", actionBounds.bottom - actionBounds.top >= 48.dp)
         assertTrue("$tag is narrower than 48dp", actionBounds.right - actionBounds.left >= 48.dp)
         assertTrue("$tag overlaps the dock", actionBounds.bottom < dockBounds.top)
