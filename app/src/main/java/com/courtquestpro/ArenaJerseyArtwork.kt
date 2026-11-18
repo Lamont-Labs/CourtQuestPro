@@ -88,7 +88,9 @@ internal fun CourtArenaJerseyArtwork(jersey: PlayerJersey, modifier: Modifier, s
     val context = LocalContext.current
     val design = jersey.design
     val colors = listOf(design.fabric, design.secondary, design.side, design.collar, design.armhole)
-    var image by remember(context, side) { mutableStateOf<ImageBitmap?>(null) }
+    // Never display a bitmap from a previous side or palette while the new render is pending.
+    // Keying the state to the exact inks also avoids stale previews after rapid edits.
+    var image by remember(context.resources, side, colors) { mutableStateOf<ImageBitmap?>(null) }
     LaunchedEffect(context, side, colors) {
         image = withContext(Dispatchers.Default) {
             ArenaJerseyMaterial.load(context.resources, side).render(colors)
