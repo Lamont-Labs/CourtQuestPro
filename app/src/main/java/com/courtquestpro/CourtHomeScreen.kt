@@ -221,9 +221,12 @@ internal fun HomeScreen(
                             Text(title, color = CourtQuestDesign.textPrimary,
                                 style = MaterialTheme.typography.titleMedium, maxLines = 1,
                                 overflow = TextOverflow.Ellipsis)
-                            Text("${latest.completed} / ${latest.attempted} successful · Self-recorded",
+                            Text("${latest.completed} / ${latest.attempted} successful · ${latest.completed * 100 / latest.attempted}% success",
                                 color = CourtQuestDesign.textSecondary,
                                 style = MaterialTheme.typography.bodySmall)
+                            Text("Self-recorded · Tap to view Progress",
+                                color = CourtQuestDesign.textSecondary,
+                                style = MaterialTheme.typography.labelSmall)
                         }
                         Icon(Icons.Default.ChevronRight, null, tint = CourtQuestDesign.textSecondary)
                     }
