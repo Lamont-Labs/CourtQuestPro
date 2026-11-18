@@ -155,7 +155,17 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             referentialEqualityPolicy()
         )
     }
-    fun persist() { prefs.edit().putString("state", gson.toJson(save)).apply() }
+    fun persist() {
+        // Freeze at most one recommendation per training day. Never recompute an
+        // existing day's decision merely because a later result or preference changed.
+        val date = runCatching { LocalDate.parse(save.activeDate) }.getOrNull()
+        if (date != null && save.playerName.isNotBlank() &&
+            save.recommendationReceipts.orEmpty().none { it.date == date.toString() }) {
+            TrainingRecommendationEngine.record(
+                save, TrainingRecommendationEngine.evaluate(save, date))
+        }
+        prefs.edit().putString("state", gson.toJson(save)).apply()
+    }
     fun refresh() {
         val now = Instant.now()
         CourtQuestEngine.activate(save, now)
