@@ -1,5 +1,18 @@
 # Master specification implementation tracker
 
+## CQ-SOLO-005 — owner scope lock (2026-11-18)
+
+**Decision: SOLO PLAYER ONLY until the owner explicitly reauthorizes team/school development.** This decision supersedes earlier dual-audience roadmap language for active implementation, without deleting historical plans or data. The next work is the premium native overhaul of the remaining solo-player surfaces on top of verified v50, not team functionality.
+
+**In scope:** Court, Train, Drill Library and detail, custom drills, Mission Builder, active recording and receipts, Progress, Quests, Me, Jersey Studio, solo 1-on-1, navigation, onboarding, accessibility, and device reliability. Preserve the approved Welcome/walkthrough, Signature art, black/orange design, existing saved state, package ID and signing identity. All displayed player metrics must be derived from persisted evidence.
+
+**Out of scope:** team/coach onboarding, rosters, school membership, invitations, assignments, school dashboards, server-authorized team features, and invented team fixtures. Existing historical models and saved data must not be destructively removed. No team navigation entry point should be introduced to the solo journey.
+
+**Implementation order:** (1) inspect v50 screen source and capture real Android baseline; (2) overhaul Train/Library and drill detail with compact discovery, existing drill illustrations, and clear technique guidance; (3) active training/receipt; (4) Progress and Quests; (5) Me/Jersey and 1-on-1; (6) full navigation/accessibility/performance review. Work in coherent verified batches, not documentation-only microtasks.
+
+**Acceptance:** Android compile, unit tests, lint, navigation and save/resume regressions, 320/360dp and enlarged text screenshots, signed upgrade compatibility, and actual visual review. A draft PR or green compilation alone is not a finished phone release. No APK publication or merge without verification and owner authorization.
+
+
 ## CQ-PLAYER-003 — complete and delivered as build 9
 
 Court, Train, Quests, Progress and Me are implemented and native-verified. Train preserves the library/builder, Quests shows actual daily evidence and Mission receipts, Me owns local profile/settings. Back returns to the opener and replaces completed recorders. Tab filters, name drafts and process restoration are preserved; transient editors clear; saved revisions select correctly; the local date refreshes on resume/midnight.
