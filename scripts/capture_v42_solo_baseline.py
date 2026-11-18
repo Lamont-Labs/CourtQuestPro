@@ -408,8 +408,19 @@ def main():
         ui.open_app()
         enter_court()
         restored = ui.prefs()['state'].text
-        assert without_progression_migration(restored) == without_progression_migration(saved), \
-            'Progression migration changed existing player data'
+        before_data = without_progression_migration(saved)
+        after_data = without_progression_migration(restored)
+        if before_data != after_data:
+            changed_fields = {
+                key: {'before': before_data.get(key, '<missing>'),
+                      'after': after_data.get(key, '<missing>')}
+                for key in sorted(set(before_data) | set(after_data))
+                if before_data.get(key, '<missing>') != after_data.get(key, '<missing>')
+            }
+            raise AssertionError(
+                'Progression migration changed existing player data: ' +
+                json.dumps(changed_fields, sort_keys=True)
+            )
         assert json.loads(restored).get('questSystemActivatedAt'), \
             'Additive quest activation timestamp was not saved after launch'
         ui.OUT = args.output/'upgrade'
