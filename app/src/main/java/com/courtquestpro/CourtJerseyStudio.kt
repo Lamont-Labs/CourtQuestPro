@@ -366,7 +366,12 @@ private fun JerseyStyleTiles(selected: JerseyTemplate, onSelect: (JerseyTemplate
                 .padding(4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 val sample = if (template == JerseyTemplate.ARENA) JerseyDesign.arena() else JerseyDesign(templateId = template.name)
                 CourtJerseyArtwork(PlayerJersey(sample, null, ""), Modifier.size(44.dp))
-                Text(template.label, style = MaterialTheme.typography.labelMedium)
+                Text(
+                    template.label,
+                    color = if (active) CourtQuestDesign.textPrimary else CourtQuestDesign.textSecondary,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = if (active) FontWeight.Bold else FontWeight.Medium
+                )
             }
         }
     }
