@@ -41,18 +41,12 @@ internal fun HomeScreen(
     val resumeMatch = save.hasResumableMatch(today.toString())
     val done = save.slots.count { it.complete }
     val allDailyDrillsDone = save.slots.isNotEmpty() && done == save.slots.size
-    val inProgressSlot = save.slots.firstOrNull { slot ->
-        !slot.complete && save.drillDrafts.orEmpty().any {
-            it.date == save.activeDate && it.slotId == slot.id && it.drillId == slot.drillId
-        }
-    }
-    val nextSlot = inProgressSlot ?: save.slots.firstOrNull { !TrainingLibrary.locked(save, it) }
+    val nextSlot = nextDailySlot(save)?.let(save.slots::get)
     val nextDrill = nextSlot?.let { slot -> drills.firstOrNull { it.id == slot.drillId } }
-    val resumable = save.slots.any { slot ->
-        !slot.complete && save.drillDrafts.orEmpty().any {
-            it.date == save.activeDate && it.slotId == slot.id && it.drillId == slot.drillId
-        }
-    }
+    val resumable = nextSlot != null && nextDrill != null &&
+        recoverDailyDraft(save, nextSlot, nextDrill) != null
+    val missionVersion = activeMission?.let { MissionTraining.version(save, it) }
+    val missionIndex = activeMission?.let { MissionTraining.currentIndex(save, it) }
     val weekStart = today.with(java.time.DayOfWeek.MONDAY)
     val weekEnd = weekStart.plusDays(6)
     val trainedThisWeek = save.drillResults.orEmpty().filter {
@@ -140,7 +134,7 @@ internal fun HomeScreen(
                             )
                             Text(
                                 when {
-                                    activeMission != null -> MissionTraining.version(save, activeMission)?.title ?: "Your Mission"
+                                    activeMission != null -> missionVersion?.title ?: "Your Mission"
                                     allDailyDrillsDone -> "Take your work to the court."
                                     resumable -> nextDrill?.title ?: "Pick up where you left off."
                                     else -> nextDrill?.title ?: "Your next drill is ready."
@@ -150,18 +144,16 @@ internal fun HomeScreen(
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis
                             )
-                            Text(
-                                when {
-                                    allDailyDrillsDone -> "$done of ${save.slots.size} drills recorded"
-                                    nextDrill != null -> "${nextDrill.category} · ${nextDrill.minutes} min  /  $done of ${save.slots.size} recorded"
-                                    else -> "$done of ${save.slots.size} drills recorded"
-                                },
-                                color = CourtQuestDesign.textSecondary,
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.semantics {
-                                    contentDescription = "$done of ${save.slots.size} daily drills completed"
-                                }
-                            )
+                            val detail = when {
+                                missionVersion != null && missionIndex != null ->
+                                    "Drill ${missionIndex + 1} of ${missionVersion.steps.size}"
+                                activeMission != null -> "Continue your saved Mission"
+                                allDailyDrillsDone -> "$done of ${save.slots.size} drills recorded"
+                                nextDrill != null -> "${nextDrill.category} · ${nextDrill.minutes} min · $done of ${save.slots.size} recorded"
+                                else -> "$done of ${save.slots.size} drills recorded"
+                            }
+                            Text(detail, color = CourtQuestDesign.textSecondary,
+                                style = MaterialTheme.typography.bodySmall)
                         }
                         Icon(
                             if (allDailyDrillsDone) Icons.Default.CheckCircle else Icons.Default.Bolt,
@@ -201,7 +193,8 @@ internal fun HomeScreen(
                     listOf(
                         "Participation XP" to save.totalXp.toString(),
                         "Day streak" to save.currentStreak.toString(),
-                        "Days this week" to "$trainedThisWeek / 3"
+                        "Days this week" to if (plannedDays.isEmpty()) trainedThisWeek.toString()
+                        else "$trainedThisWeek / ${plannedDays.size}"
                     )
                 )
             }
@@ -236,10 +229,11 @@ internal fun HomeScreen(
             }
         }
         item {
-            Row(
+            FlowRow(
                 Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                maxItemsInEachRow = if (LocalDensity.current.fontScale > 1.3f) 1 else 2,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 OutlinedButton(
                     onClick = onDrills,
@@ -250,7 +244,6 @@ internal fun HomeScreen(
                     Spacer(Modifier.width(6.dp))
                     Text(
                         "Find a drill",
-                        maxLines = 1,
                         modifier = Modifier.semantics { contentDescription = "Drills" }
                     )
                 }
@@ -261,7 +254,7 @@ internal fun HomeScreen(
                 ) {
                     Icon(Icons.Default.SportsBasketball, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text(if (resumeMatch) "Resume 1-on-1" else "Play 1-on-1", maxLines = 1)
+                    Text(if (resumeMatch) "Resume 1-on-1" else "Play 1-on-1")
                 }
             }
         }

@@ -2,7 +2,7 @@ name: Verify Android walkthrough
 
 on:
   push:
-    branches: [dev/v42-solo-first-batch]
+    branches: [dev/v42-solo-first-batch, integration/gpt-work-v48-review]
     paths:
       - '.github/workflows/verify-navigation-walkthrough.yml'
       - 'app/build.gradle.kts'

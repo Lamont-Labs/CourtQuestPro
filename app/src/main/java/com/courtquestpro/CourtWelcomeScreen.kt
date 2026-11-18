@@ -2,6 +2,8 @@ package com.courtquestpro
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -13,7 +15,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -35,77 +36,85 @@ internal fun CourtWelcomeScreen(
         Column(
             Modifier.fillMaxSize()
                 .windowInsetsPadding(WindowInsets.safeDrawing)
-                .padding(horizontal = 28.dp, vertical = 24.dp),
+                .padding(horizontal = 24.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.weight(0.85f))
-            Text(
-                "WELCOME TO",
-                color = CourtQuestDesign.textSecondary,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 3.sp
-            )
-            Spacer(Modifier.height(26.dp))
-            Image(
-                painter = painterResource(R.drawable.courtquest_signature_wordmark),
-                contentDescription = "CourtQuest Pro",
-                modifier = Modifier.fillMaxWidth(0.94f).height(136.dp)
-                    .testTag("welcome-signature-wordmark"),
-                contentScale = ContentScale.Fit
-            )
-            Spacer(Modifier.height(24.dp))
             Box(
-                Modifier.width(58.dp).height(3.dp)
-                    .background(CourtQuestDesign.accentVivid, RoundedCornerShape(3.dp))
-            )
-            Spacer(Modifier.height(24.dp))
-            Text(
-                "YOUR GAME. YOUR NEXT LEVEL.",
-                color = CourtQuestDesign.textPrimary,
-                fontFamily = CourtDisplay,
-                fontWeight = FontWeight.Black,
-                fontSize = 19.sp,
-                textAlign = TextAlign.Center,
-                letterSpacing = 0.6.sp
-            )
-            Spacer(Modifier.height(12.dp))
-            Text(
-                "Train with purpose. Build your skills.\nSee how far you can go.",
-                color = CourtQuestDesign.textSecondary,
-                fontSize = 15.sp,
-                lineHeight = 23.sp,
-                textAlign = TextAlign.Center
-            )
-            Spacer(Modifier.weight(1.15f))
-            Button(
-                onClick = onGetStarted,
-                modifier = Modifier.fillMaxWidth().height(58.dp).testTag("welcome-get-started"),
-                shape = RoundedCornerShape(18.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = CourtQuestDesign.accentVivid,
-                    contentColor = Color(0xFF160A04)
-                )
+                Modifier.weight(1f).fillMaxWidth(),
+                contentAlignment = Alignment.Center
             ) {
-                Text(if (returningPlayer) "ENTER COURT" else "GET STARTED", fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                Column(
+                    Modifier.widthIn(max = 420.dp).fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .padding(vertical = 12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.courtquest_signature_wordmark),
+                        contentDescription = "CourtQuest Pro",
+                        modifier = Modifier.fillMaxWidth(0.9f).height(122.dp)
+                            .testTag("welcome-signature-wordmark"),
+                        contentScale = ContentScale.Fit
+                    )
+                    Box(
+                        Modifier.width(58.dp).height(3.dp)
+                            .background(CourtQuestDesign.accentVivid, RoundedCornerShape(3.dp))
+                    )
+                    Text(
+                        "YOUR GAME. YOUR NEXT LEVEL.",
+                        color = CourtQuestDesign.textPrimary,
+                        fontFamily = CourtDisplay,
+                        fontWeight = FontWeight.Black,
+                        fontSize = 19.sp,
+                        textAlign = TextAlign.Center,
+                        letterSpacing = 0.6.sp
+                    )
+                    Text(
+                        "Build a practice routine, record your drills, and track your progress.",
+                        color = CourtQuestDesign.textSecondary,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        "Offline training · Progress saved on this device",
+                        color = CourtQuestDesign.textSecondary,
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
-            Spacer(Modifier.height(12.dp))
-            if (!returningPlayer) OutlinedButton(
-                onClick = onGuest,
-                modifier = Modifier.fillMaxWidth().height(56.dp).testTag("welcome-continue-guest"),
-                shape = RoundedCornerShape(18.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, CourtQuestDesign.chipBorder)
+
+            Column(
+                Modifier.widthIn(max = 420.dp).fillMaxWidth().padding(top = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("CONTINUE AS GUEST", color = CourtQuestDesign.textPrimary, fontWeight = FontWeight.Bold)
+                Button(
+                    onClick = onGetStarted,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 58.dp)
+                        .testTag("welcome-get-started"),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = CourtQuestDesign.accentVivid,
+                        contentColor = CourtQuestDesign.iconForeground
+                    )
+                ) {
+                    Text(if (returningPlayer) "ENTER COURT" else "GET STARTED",
+                        fontWeight = FontWeight.Black, textAlign = TextAlign.Center)
+                }
+                if (!returningPlayer) {
+                    OutlinedButton(
+                        onClick = onGuest,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)
+                            .testTag("welcome-continue-guest"),
+                        shape = RoundedCornerShape(18.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, CourtQuestDesign.chipBorder)
+                    ) {
+                        Text("CONTINUE AS GUEST", color = CourtQuestDesign.textPrimary,
+                            fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                    }
+                }
             }
-            Spacer(Modifier.height(12.dp))
-            Text(
-                "Offline training · Progress saved on this device",
-                color = CourtQuestDesign.textSecondary,
-                fontSize = 12.sp,
-                lineHeight = 17.sp,
-                textAlign = TextAlign.Center
-            )
         }
     }
 }
