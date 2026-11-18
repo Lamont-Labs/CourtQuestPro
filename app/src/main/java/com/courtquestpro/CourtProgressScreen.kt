@@ -74,7 +74,7 @@ internal fun CareerScreen(
                     modifier = Modifier.padding(horizontal = 20.dp).heightIn(min = 48.dp)) { Text("Back to Progress") }
             }
             items(recorded.asReversed()) { result ->
-                TrainingSessionCard(result, drills, Modifier.padding(horizontal = 20.dp))
+                TrainingSessionCard(result, drills, recorded, Modifier.padding(horizontal = 20.dp))
             }
         }
         return
@@ -174,7 +174,7 @@ internal fun CareerScreen(
                 } else {
                     CourtHeading("Recorded sessions")
                     val sessionHistory = recorded.asReversed()
-                    sessionHistory.take(3).forEach { result -> TrainingSessionCard(result, drills) }
+                    sessionHistory.take(3).forEach { result -> TrainingSessionCard(result, drills, recorded) }
                     if (sessionHistory.size > 3) {
                         TextButton(onClick = { showAllSessions = true }, modifier = Modifier.heightIn(min = 48.dp)) {
                             Text("View all ${sessionHistory.size} sessions")
@@ -307,7 +307,7 @@ private fun CourtActivityChart(results: List<DrillResult>) {
 }
 
 @Composable
-private fun TrainingSessionCard(result: DrillResult, catalog: List<Drill>, modifier: Modifier = Modifier) {
+private fun TrainingSessionCard(result: DrillResult, catalog: List<Drill>, history: List<DrillResult>, modifier: Modifier = Modifier) {
     val kind = when {
         result.missionSessionId?.startsWith("mission-session_") == true -> "Mission"
         result.practice -> "Extra practice"
@@ -316,6 +316,13 @@ private fun TrainingSessionCard(result: DrillResult, catalog: List<Drill>, modif
     val comparable = catalog.firstOrNull { it.id == result.drillId }
     val rate = if (result.attempted > 0 && result.completed in 0..result.attempted)
         result.completed.toFloat() / result.attempted else null
+    // Only compare earlier results for the same drill and attempt count.
+    // This avoids presenting changes in drill difficulty or volume as improvement.
+    val position = history.indexOfLast { it.slotId == result.slotId }
+    val previous = if (position > 0) history.subList(0, position).lastOrNull {
+        it.drillId == result.drillId && it.attempted == result.attempted &&
+            it.attempted > 0 && it.completed in 0..it.attempted
+    } else null
     CourtQuestPremiumSurface(modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             CourtEyebrow("${result.date} · $kind")
@@ -333,6 +340,17 @@ private fun TrainingSessionCard(result: DrillResult, catalog: List<Drill>, modif
                     color = CourtQuestDesign.accentVivid,
                     trackColor = CourtQuestDesign.surface
                 )
+            }
+            if (previous != null && rate != null) {
+                val difference = result.completed - previous.completed
+                val label = when {
+                    difference > 0 -> "+$difference successful vs previous same-volume session"
+                    difference < 0 -> "$difference successful vs previous same-volume session"
+                    else -> "Matched previous same-volume session"
+                }
+                Text(label, color = if (difference > 0) CourtQuestDesign.accentVivid
+                    else CourtQuestDesign.textSecondary,
+                    style = MaterialTheme.typography.bodySmall)
             }
             val target = result.drillSnapshot?.target ?: comparable?.target
             if (!target.isNullOrBlank()) {
