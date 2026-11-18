@@ -20,7 +20,7 @@ internal data class TrainingRecommendationReceipt(
  * The caller owns the plan; this engine never replaces active slots or drafts.
  */
 internal object TrainingRecommendationEngine {
-    const val VERSION = "offline-preference-v1"
+    const val VERSION = "offline-evidence-v2"
 
     fun evaluate(save: SaveState, date: LocalDate, limit: Int = 4): TrainingRecommendationReceipt {
         require(limit >= 0)
@@ -46,13 +46,20 @@ internal object TrainingRecommendationEngine {
                 .thenBy { it.id }
         ).take(limit)
         val explanations = selected.associate { drill ->
-            drill.id to when {
+            val preference = when {
                 drill.category == save.weeklyPlan ->
                     "Matches your selected ${save.weeklyPlan.lowercase()} focus."
                 drill.id in favorites -> "You marked this drill as a favorite."
                 drill.id !in recent -> "Adds variety to your recent saved training."
                 else -> "Fits your selected training difficulty."
             }
+            val evidence = TrainingEvidence.comparable(save, drill.id, date)
+            val explanation = if (evidence == null) preference else {
+                val percent = (evidence.aggregateRate * 100).toInt()
+                "$preference You recorded ${evidence.successes}/${evidence.attempts} successful attempts " +
+                    "across ${evidence.sessions} comparable sessions ($percent%); self-recorded."
+            }
+            drill.id to explanation
         }
         return TrainingRecommendationReceipt(
             VERSION, date.toString(), save.weeklyPlan, save.difficulty,
