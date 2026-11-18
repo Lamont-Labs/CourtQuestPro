@@ -502,7 +502,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
     onArchive: () -> Unit, onResume: () -> Unit) {
     var showCourtDiagram by rememberSaveable(drill.id) { mutableStateOf(false) }
     var showFormReference by rememberSaveable(drill.id) { mutableStateOf(false) }
-    var showTechnique by rememberSaveable(drill.id) { mutableStateOf(false) }
+    var showTechnique by rememberSaveable(drill.id) { mutableStateOf(true) }
     var showCoaching by rememberSaveable(drill.id) { mutableStateOf(false) }
     var confirmArchive by remember { mutableStateOf(false) }
     val active = save.practiceSession
@@ -557,7 +557,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                     Text(if (allGuidanceOpen) "Collapse coaching guides" else "Show all coaching guides")
                 }
                 OutlinedButton(onClick = { showCourtDiagram = !showCourtDiagram }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-court")) {
-                    Text("Court positioning · placement and movement", modifier = Modifier.weight(1f))
+                    Text("Court positioning", modifier = Modifier.weight(1f))
                     Icon(if (showCourtDiagram) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
                 }
                 if (showCourtDiagram) {
@@ -565,7 +565,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                 }
                 if (DrillCoachingLibrary.forDrill(drill) != null) {
                     OutlinedButton(onClick = { showFormReference = !showFormReference }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-form")) {
-                        Text("Movement and form · technique checkpoints", modifier = Modifier.weight(1f))
+                        Text("Movement and form", modifier = Modifier.weight(1f))
                         Icon(if (showFormReference) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
                     }
                     if (showFormReference) {
@@ -573,10 +573,10 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                     }
                 }
                 CourtEyebrow("TECHNIQUE & COACHING")
-                Text("Open the guidance you need before your next attempt.",
+                Text("Start with the steps below. Open court positioning, movement reference, or coaching corrections whenever you need them.",
                     color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
                 OutlinedButton(onClick = { showTechnique = !showTechnique }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-technique")) {
-                    Text("Step-by-step technique · drill instructions", modifier = Modifier.weight(1f))
+                    Text("Step-by-step technique", modifier = Modifier.weight(1f))
                     Icon(if (showTechnique) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
                 }
                 if (showTechnique) {
@@ -608,7 +608,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                 }
                 }
                 OutlinedButton(onClick = { showCoaching = !showCoaching }, modifier = Modifier.fillMaxWidth().testTag("drill-toggle-coaching")) {
-                    Text("Coaching tips · mistakes and corrections", modifier = Modifier.weight(1f))
+                    Text("Coaching tips and corrections", modifier = Modifier.weight(1f))
                     Icon(if (showCoaching) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
                 }
                 if (showCoaching) {
