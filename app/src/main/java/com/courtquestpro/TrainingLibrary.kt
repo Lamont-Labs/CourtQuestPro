@@ -89,31 +89,14 @@ internal object TrainingLibrary {
         }.toMutableList()
         return changed
     }
-    /**
-     * Stable, offline recommendation ranking (v1). This deliberately does not infer skill
-     * from participation XP or compare incompatible self-recorded measurements.
-     * Suggestions never mutate an active plan, Mission, or recoverable drill draft.
-     */
-    fun suggestions(save: SaveState): List<DrillSuggestion> {
-        val recent = save.drillResults.orEmpty()
-            .sortedWith(compareByDescending<DrillResult> { it.recordedAt.orEmpty() }
-                .thenByDescending { it.date }.thenBy { it.drillId })
-            .take(6).map { it.drillId }.toSet()
-        val favorites = save.favoriteDrillIds.orEmpty().toSet()
-        val eligible = available(save).filter { levelAllowed(save, it) }
-        return eligible.sortedWith(
-            compareByDescending<Drill> { it.category == save.weeklyPlan }
-                .thenBy { it.id in recent }
-                .thenByDescending { it.id in favorites }
-                .thenBy { it.id }
-        ).take(4).map { drill ->
-            val reason = when {
-                drill.category == save.weeklyPlan -> "Matches your selected ${save.weeklyPlan.lowercase()} focus."
-                drill.id in favorites -> "A favorite at your selected training level."
-                drill.id !in recent -> "Adds variety to your recent recorded training."
-                else -> "Fits your selected training level."
+    /** Existing Train UI entry point, now backed by the versioned offline engine. */
+    fun suggestions(save: SaveState, date: LocalDate = LocalDate.now()): List<DrillSuggestion> {
+        val receipt = TrainingRecommendationEngine.evaluate(save, date)
+        val catalogById = available(save).associateBy { it.id }
+        return receipt.selectedIds.mapNotNull { id ->
+            catalogById[id]?.let { drill ->
+                DrillSuggestion(drill, receipt.explanations[id] ?: "Fits your selected training level.")
             }
-            DrillSuggestion(drill, reason)
         }
     }
     fun startPractice(save: SaveState, drillId: String, date: String): Boolean {
