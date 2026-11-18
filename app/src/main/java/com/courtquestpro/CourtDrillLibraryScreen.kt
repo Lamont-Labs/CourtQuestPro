@@ -393,6 +393,42 @@ internal fun DrillLibraryScreen(
                             tint = CourtQuestDesign.accent)
                     }
                 }
+                    if (suggestions.size > 1) {
+                        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            CourtEyebrow("MORE PICKS FOR YOU")
+                            suggestions.drop(1).take(3).forEach { suggestion ->
+                                CourtQuestPremiumSurface(
+                                    Modifier.fillMaxWidth()
+                                        .clickable { onSelect(suggestion.drill.id) }
+                                        .testTag("library-alternative-${suggestion.drill.id}"),
+                                    PaddingValues(horizontal = 12.dp, vertical = 10.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                        DrillArtworkThumbnail(suggestion.drill, Modifier.size(52.dp))
+                                        Column(Modifier.weight(1f),
+                                            verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                            Text(suggestion.drill.title,
+                                                color = CourtQuestDesign.textPrimary,
+                                                style = MaterialTheme.typography.titleMedium,
+                                                maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                            Text("${suggestion.drill.category} · ${suggestion.drill.minutes} min",
+                                                color = CourtQuestDesign.accent,
+                                                style = MaterialTheme.typography.labelSmall)
+                                            Text(suggestion.reason,
+                                                color = CourtQuestDesign.textSecondary,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                        }
+                                        Icon(Icons.AutoMirrored.Filled.ArrowForward,
+                                            "View ${suggestion.drill.title}",
+                                            tint = CourtQuestDesign.accent)
+                                    }
+                                }
+                            }
+                        }
+                    }
                     Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp),
                         verticalAlignment = Alignment.CenterVertically) {
                         Text("Browse drills", Modifier.weight(1f),
