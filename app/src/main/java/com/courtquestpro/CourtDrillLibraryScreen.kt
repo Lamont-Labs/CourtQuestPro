@@ -382,6 +382,12 @@ internal fun DrillLibraryScreen(
                                 color = CourtQuestDesign.textPrimary)
                             Text("${featured.drill.level} · ${featured.drill.minutes} min",
                                 style = MaterialTheme.typography.labelMedium, color = CourtQuestDesign.accent)
+                            Text(featured.reason,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = CourtQuestDesign.textSecondary,
+                                maxLines = 4,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.testTag("library-recommendation-reason"))
                         }
                         Icon(Icons.AutoMirrored.Filled.ArrowForward, "View recommended drill",
                             tint = CourtQuestDesign.accent)
