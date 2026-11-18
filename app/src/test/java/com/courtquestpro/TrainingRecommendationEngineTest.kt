@@ -128,6 +128,32 @@ class TrainingRecommendationEngineTest {
         assertEquals(day.plusDays(10).toString(), save.recommendationReceipts!!.first().date)
     }
 
+    @Test fun savedDailyReceiptReplaysAcrossRestartAndPreferenceChanges() {
+        val save = state()
+        val original = TrainingRecommendationEngine.evaluate(save, day)
+        TrainingRecommendationEngine.record(save, original)
+        val restored = Gson().fromJson(Gson().toJson(save), SaveState::class.java)
+        restored.weeklyPlan = "Defense"
+        restored.favoriteDrillIds = mutableListOf("d1")
+        val shown = TrainingLibrary.suggestions(restored, day)
+        assertEquals(original.selectedIds, shown.map { it.drill.id })
+        assertEquals(original.selectedIds.map { original.explanations[it] },
+            shown.map { it.reason })
+        assertEquals(original, restored.recommendationReceipts!!.single())
+    }
+
+    @Test fun archivedDrillIsNotDisplayedEvenWhenPresentInFrozenReceipt() {
+        val save = state()
+        val custom = TrainingLibrary.saveCustom(save, DrillInput(
+            "Frozen shot", "Shooting", "Beginner", 4, 5,
+            "Practice controlled shots from the same spot."))!!
+        val receipt = TrainingRecommendationEngine.evaluate(save, day, 100)
+        assertTrue(custom.id in receipt.selectedIds)
+        TrainingRecommendationEngine.record(save, receipt)
+        TrainingLibrary.archive(save, custom.id)
+        assertFalse(TrainingLibrary.suggestions(save, day).any { it.drill.id == custom.id })
+    }
+
     @Test fun zeroLimitIsValidAndNegativeLimitRejected() {
         assertTrue(TrainingRecommendationEngine.evaluate(state(), day, 0).selectedIds.isEmpty())
         assertThrows(IllegalArgumentException::class.java) {
