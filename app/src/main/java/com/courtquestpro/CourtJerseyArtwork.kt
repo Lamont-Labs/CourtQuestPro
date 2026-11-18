@@ -110,8 +110,23 @@ internal fun CourtJerseyArtwork(
                     letters.textSize = height
                     val measured = letters.measureText(text)
                     if (measured > maxWidth) letters.textSize *= maxWidth / measured
-                    letters.color = ink
                     val baseline = y - (letters.ascent() + letters.descent()) / 2
+                    // Render the outline, inset shadow and face separately to avoid flat decals.
+                    // Reuse the seven existing user-controlled colors; no persisted schema change.
+                    val outlineColor = if (jerseyContrast(ink, design.fabric) < 4.5)
+                        design.collar else design.side
+                    letters.style = Paint.Style.STROKE
+                    letters.strokeJoin = Paint.Join.ROUND
+                    letters.strokeWidth = if (height > 60f) 5.5f else 2.4f
+                    letters.color = outlineColor
+                    canvas.nativeCanvas.drawText(text, 110f, baseline, letters)
+                    letters.strokeWidth = if (height > 60f) 2.3f else 1.1f
+                    letters.color = android.graphics.Color.BLACK
+                    letters.alpha = 110
+                    canvas.nativeCanvas.drawText(text, 110f, baseline + 1.2f, letters)
+                    letters.alpha = 255
+                    letters.style = Paint.Style.FILL
+                    letters.color = ink
                     canvas.nativeCanvas.drawText(text, 110f, baseline, letters)
                 }
                 if (view == JerseyView.BACK) mark(jersey.name, 76f, 27f, 114f, design.nameInk)
