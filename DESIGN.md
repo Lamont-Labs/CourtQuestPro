@@ -552,3 +552,17 @@ all five native candidate captures, Back, Next, Skip, Finish, replay, direct
 tab selection, 320 dp at 130% and 200% text, Compose semantics and bounds,
 original signing identity, and install-over preservation. Unit tests, lint and
 the signed build are independent checks.
+
+The [native v48 run](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/44372265881)
+passed all five stops at 360 dp/100%, 320 dp/130% and 320 dp/200% text.
+Across the 15 reviewed captures the guide cleared the dock by 12 dp, and
+the actions retained at least 48 dp targets. Back, Next, Skip, Finish, replay,
+direct dock taps and Android Back passed. The first native run exposed a test
+synchronization failure after the physical taps and upgrade had passed. The
+rerun uses the exact same APK bytes, checks unmerged Compose semantics, and
+passes both suites. The frozen v48 APK upgraded the real published v47 APK
+and preserved the synthetic player preferences byte-for-byte during installation.
+[Verification record](docs/tooling/evidence/walkthrough-v48.json)
+
+Physical phone, TalkBack speech, and landscape review remain separate checks.
+The v47 release is the rollback reference until a phone-test release is approved.
