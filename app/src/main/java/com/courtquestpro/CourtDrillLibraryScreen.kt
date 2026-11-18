@@ -519,21 +519,48 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                 TextButton(onBack, modifier = Modifier.heightIn(min = 48.dp)) { Text("Back to library") }
                 CourtEyebrow("${drill.category.uppercase()} · ${drill.level.uppercase()} · ${drill.minutes} MIN")
                 Text(drill.title, style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
-                // Show the actual drill illustration before the player commits to practice.
-                // Keep this reference outside collapsible guides so it is always discoverable.
-                DrillArtworkReference(drill)
-                CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(14.dp), highlighted = true) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        CourtEyebrow("YOUR TARGET")
-                        Text(drill.target, color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleMedium)
-                        DrillCoachingLibrary.forDrill(drill)?.let {
-                            Text(it.checkpoint, color = CourtQuestDesign.textSecondary,
-                                style = MaterialTheme.typography.bodyMedium)
+                CourtQuestPremiumSurface(
+                    Modifier.fillMaxWidth().testTag("drill-detail-hero"),
+                    PaddingValues(14.dp),
+                    highlighted = true
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            CourtEyebrow("DRILL PLAYBOOK")
+                            Text("${drill.minutes} MIN", color = CourtQuestDesign.accentVivid,
+                                style = MaterialTheme.typography.labelLarge)
+                        }
+                        DrillArtworkReference(drill)
+                        HorizontalDivider(color = CourtQuestDesign.surface)
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            CourtEyebrow("YOUR TARGET")
+                            Text(drill.target, color = CourtQuestDesign.textPrimary,
+                                style = MaterialTheme.typography.titleLarge)
+                            DrillCoachingLibrary.forDrill(drill)?.let {
+                                CourtEyebrow("FORM CHECKPOINT")
+                                Text(it.checkpoint, color = CourtQuestDesign.textSecondary,
+                                    style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                        CourtQuestPrimaryButton(
+                            onPractice,
+                            Modifier.fillMaxWidth().heightIn(min = 52.dp)
+                                .testTag("drill-start-practice"),
+                            canPractice
+                        ) {
+                            Icon(Icons.Default.PlayArrow, null, Modifier.size(20.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(if (samePractice) "Resume practice" else "Start extra practice",
+                                Modifier.weight(1f))
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, Modifier.size(18.dp))
                         }
                     }
                 }
-                CourtQuestPrimaryButton(onPractice, Modifier.fillMaxWidth().testTag("drill-start-practice"), canPractice) { Text(if (samePractice) "Resume practice" else "Start extra practice") }
-                Text("Extra practice records results in Progress. Daily workout rewards are earned in your daily workout.",
+                Text("Extra practice saves results to Progress. Daily workout rewards are earned in your daily workout.",
                     style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)
                 if (!canPractice) {
                     Text("You have another practice in progress. Resume it before starting a different drill.", color = CourtQuestDesign.textSecondary,
