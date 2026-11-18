@@ -18,12 +18,12 @@ data class TrainingRecommendationReceipt(
 )
 
 /**
- * Offline recommendation v1: preferences, recency and favorites only.
- * No skill progression is inferred until compatible measurement evidence is validated.
+ * Offline recommendations prioritize the selected focus, then qualified comparable
+ * same-drill evidence, recency and favorites. Evidence is descriptive, not a skill grade.
  * The caller owns the plan; this engine never replaces active slots or drafts.
  */
 internal object TrainingRecommendationEngine {
-    const val VERSION = "offline-evidence-v3"
+    const val VERSION = "offline-evidence-v4"
     const val MAX_SAVED_RECEIPTS = 30
 
     fun record(save: SaveState, receipt: TrainingRecommendationReceipt) {
@@ -51,8 +51,16 @@ internal object TrainingRecommendationEngine {
                 .thenBy { it.drillId })
             .take(6).map { it.drillId }.toSet()
         val favorites = save.favoriteDrillIds.orEmpty().toSet()
+        // Only validated, definition-compatible histories qualify. Calculate once
+        // so the ranking and explanations use the same frozen evidence.
+        val comparable = eligible.mapNotNull { drill ->
+            TrainingEvidence.comparable(save, drill.id, date)?.let { drill.id to it }
+        }.toMap()
+
         val selected = eligible.sortedWith(
             compareByDescending<Drill> { it.category == save.weeklyPlan }
+                .thenByDescending { it.id in comparable }
+                .thenBy { comparable[it.id]?.aggregateRate ?: 1.0 }
                 .thenBy { it.id in recent }
                 .thenByDescending { it.id in favorites }
                 .thenBy { it.id }
@@ -65,7 +73,7 @@ internal object TrainingRecommendationEngine {
                 drill.id !in recent -> "Adds variety to your recent saved training."
                 else -> "Fits your selected training difficulty."
             }
-            val evidence = TrainingEvidence.comparable(save, drill.id, date)
+            val evidence = comparable[drill.id]
             val explanation = if (evidence == null) preference else {
                 val percent = (evidence.aggregateRate * 100).toInt()
                 "$preference You recorded ${evidence.successes}/${evidence.attempts} successful attempts " +
@@ -74,7 +82,7 @@ internal object TrainingRecommendationEngine {
             drill.id to explanation
         }
         val evidenceCounts = selected.mapNotNull { drill ->
-            TrainingEvidence.comparable(save, drill.id, date)?.let { evidence ->
+            comparable[drill.id]?.let { evidence ->
                 drill.id to "${evidence.successes}/${evidence.attempts} in ${evidence.sessions} sessions; schema=${evidence.schemaId}"
             }
         }.toMap()
