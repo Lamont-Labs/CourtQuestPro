@@ -11,7 +11,10 @@ internal data class TrainingRecommendationReceipt(
     val eligibleIds: List<String>,
     val selectedIds: List<String>,
     val explanations: Map<String, String>,
-    val excludedIds: List<String>
+    val excludedIds: List<String>,
+    val favoriteIds: List<String> = emptyList(),
+    val recentDrillIds: List<String> = emptyList(),
+    val evidenceCounts: Map<String, String> = emptyMap()
 )
 
 /**
@@ -20,7 +23,16 @@ internal data class TrainingRecommendationReceipt(
  * The caller owns the plan; this engine never replaces active slots or drafts.
  */
 internal object TrainingRecommendationEngine {
-    const val VERSION = "offline-evidence-v2"
+    const val VERSION = "offline-evidence-v3"
+    const val MAX_SAVED_RECEIPTS = 30
+
+    fun record(save: SaveState, receipt: TrainingRecommendationReceipt) {
+        val previous = save.recommendationReceipts.orEmpty().filterNot {
+            it.version == receipt.version && it.date == receipt.date &&
+                it.focus == receipt.focus && it.difficulty == receipt.difficulty
+        }
+        save.recommendationReceipts = (previous + receipt).takeLast(MAX_SAVED_RECEIPTS).toMutableList()
+    }
 
     fun evaluate(save: SaveState, date: LocalDate, limit: Int = 4): TrainingRecommendationReceipt {
         require(limit >= 0)
@@ -61,10 +73,16 @@ internal object TrainingRecommendationEngine {
             }
             drill.id to explanation
         }
+        val evidenceCounts = selected.mapNotNull { drill ->
+            TrainingEvidence.comparable(save, drill.id, date)?.let { evidence ->
+                drill.id to "${evidence.successes}/${evidence.attempts} in ${evidence.sessions} sessions; schema=${evidence.schemaId}"
+            }
+        }.toMap()
         return TrainingRecommendationReceipt(
             VERSION, date.toString(), save.weeklyPlan, save.difficulty,
             eligibleIds, selected.map { it.id }, explanations,
-            catalog.map { it.id }.filterNot { it in eligibleIds }
+            catalog.map { it.id }.filterNot { it in eligibleIds },
+            favorites.sorted(), recent.sorted(), evidenceCounts
         )
     }
 }
