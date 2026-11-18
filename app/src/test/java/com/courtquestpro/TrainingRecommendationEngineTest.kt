@@ -102,6 +102,32 @@ class TrainingRecommendationEngineTest {
             .explanations["s1"].orEmpty().contains("self-recorded"))
     }
 
+    @Test fun recordedReceiptSurvivesJsonRoundTripWithoutChangingTraining() {
+        val save = state()
+        save.slots = mutableListOf(Slot("daily", "s1"))
+        val originalSlots = Gson().toJson(save.slots)
+        val receipt = TrainingRecommendationEngine.evaluate(save, day)
+        TrainingRecommendationEngine.record(save, receipt)
+        TrainingRecommendationEngine.record(save, receipt)
+        val restored = Gson().fromJson(Gson().toJson(save), SaveState::class.java)
+        assertEquals(listOf(receipt), restored.recommendationReceipts)
+        assertEquals(originalSlots, Gson().toJson(restored.slots))
+        assertEquals(receipt.favoriteIds, restored.recommendationReceipts!!.single().favoriteIds)
+    }
+
+    @Test fun boundedHistoryAndLegacySaveCompatibility() {
+        val save = Gson().fromJson("""{"playerName":"Avery"}""", SaveState::class.java)
+        assertNull(save.recommendationReceipts)
+        repeat(40) { dayOffset ->
+            val date = day.plusDays(dayOffset.toLong())
+            TrainingRecommendationEngine.record(save,
+                TrainingRecommendationEngine.evaluate(save, date))
+        }
+        assertEquals(TrainingRecommendationEngine.MAX_SAVED_RECEIPTS,
+            save.recommendationReceipts!!.size)
+        assertEquals(day.plusDays(10).toString(), save.recommendationReceipts!!.first().date)
+    }
+
     @Test fun zeroLimitIsValidAndNegativeLimitRejected() {
         assertTrue(TrainingRecommendationEngine.evaluate(state(), day, 0).selectedIds.isEmpty())
         assertThrows(IllegalArgumentException::class.java) {
