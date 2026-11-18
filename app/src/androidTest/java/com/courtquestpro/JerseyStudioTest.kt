@@ -54,6 +54,14 @@ class JerseyStudioTest {
         capture("jersey-studio-front")
     }
 
+    @Test fun coldStartRestoresPreviouslySavedJersey() {
+        assertTrue("Use a disposable Android emulator", Build.HARDWARE.contains("ranchu"))
+        if (has("welcome-get-started")) click("welcome-get-started")
+        compose.waitUntil(timeoutMillis = 15_000) { has("dock-me") }
+        assertSavedJersey()
+        node("court-player-jersey").assertContentDescriptionEquals("Front of Fastbreak jersey, number 00")
+    }
+
     private fun assertSavedJersey() {
         val prefs = compose.activity.getSharedPreferences("court_quest_pro", 0)
         compose.runOnIdle {
