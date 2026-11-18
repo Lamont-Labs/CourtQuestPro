@@ -224,7 +224,7 @@ def verify_progression_screens(config):
     ui.navigate('Progress')
     ui.assert_empty_progress(ui.nodes(), visible_progress_metric_nodes)
     scroll_to_tag('progress-empty')
-    assert ui.tagged(ui.nodes(), 'progress-record-sessions') is not None
+    assert ui.tagged(ui.nodes(), 'progress-empty') is not None
     capture('progress-empty')
     ui.navigate('Quests')
     assert ui.wait_tagged('quests-daily-checkin')
