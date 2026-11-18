@@ -519,6 +519,9 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                 TextButton(onBack, modifier = Modifier.heightIn(min = 48.dp)) { Text("Back to library") }
                 CourtEyebrow("${drill.category.uppercase()} · ${drill.level.uppercase()} · ${drill.minutes} MIN")
                 Text(drill.title, style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
+                // Show the actual drill illustration before the player commits to practice.
+                // Keep this reference outside collapsible guides so it is always discoverable.
+                DrillArtworkReference(drill)
                 CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(14.dp), highlighted = true) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         CourtEyebrow("YOUR TARGET")
@@ -540,7 +543,7 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
                 val hasFormGuide = DrillCoachingLibrary.forDrill(drill) != null
                 val allGuidanceOpen = showCourtDiagram && showTechnique && showCoaching &&
                     (!hasFormGuide || showFormReference)
-                DrillArtworkReference(drill)
+                CourtEyebrow("VISUAL COACHING REFERENCES")
                 OutlinedButton(
                     onClick = {
                         val expand = !allGuidanceOpen
