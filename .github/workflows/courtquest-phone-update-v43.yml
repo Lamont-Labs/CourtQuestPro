@@ -1,7 +1,7 @@
 name: CourtQuest Pro fast phone-test APK v43
 on:
   push:
-    branches: [dev/v43-solo-first-batch]
+    branches: [dev/v42-solo-first-batch]
     paths:
       - '.github/workflows/courtquest-phone-update-v43.yml'
       - 'scripts/verify_phone_update.py'
@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   release:
-    if: github.repository == 'Lamont-Labs/CourtQuestPro' && github.ref == 'refs/heads/dev/v43-solo-first-batch'
+    if: github.repository == 'Lamont-Labs/CourtQuestPro' && github.ref == 'refs/heads/dev/v42-solo-first-batch'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
@@ -38,7 +38,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import os,subprocess
-          assert os.environ['GITHUB_REF']=='refs/heads/dev/v43-solo-first-batch'
+          assert os.environ['GITHUB_REF']=='refs/heads/dev/v42-solo-first-batch'
           assert 'versionCode = 43' in Path('app/build.gradle.kts').read_text()
           assert 'applicationId = "com.courtquestpro"' in Path('app/build.gradle.kts').read_text()
           assert subprocess.run(['git','merge-base','--is-ancestor','d37da5cbc564255ac4e1508bcf7bcefc6ebc5a8d','HEAD']).returncode==0
