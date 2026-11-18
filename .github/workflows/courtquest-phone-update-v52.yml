@@ -1,4 +1,4 @@
-name: CourtQuest Pro Solo-player training phone-test APK v52
+name: CourtQuest Pro photographic jersey phone-test APK v52
 on:
   push:
     branches: [dev/jersey-reference-studio]
@@ -143,10 +143,10 @@ jobs:
           manifest.update(source_commit=os.environ['GITHUB_SHA'],release_tag='courtquest-phone-update-v52',upgrade_identity=identity,install_upgrade=upgrade)
           manifest['checks']['emulator_test'] = 'PASS_V51_UPGRADE_STUDIO_WALKTHROUGH_TRAINING'
           (root/'apk-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
-          (root/'RELEASE_NOTES.md').write_text('# CourtQuest Pro v52 phone-test APK\\n\\nAdds solo-player training progress, skill practice focus, improved drill recommendations, accessible drill navigation and readable recommendation cards. Upgrade verification checks that installing v52 over published v50 preserves existing player data. Physical phone testing remains pending.\\n')
+          (root/'RELEASE_NOTES.md').write_text('# CourtQuest Pro v52 phone-test APK\\n\\nAdds the photographic Arena Jersey Studio, front/back uniform previews, and independently recolorable fabric and trim zones. Upgrade verification checks that installing v52 over published v51 preserves existing player data. Physical phone testing remains pending.\\n')
           PY
           if gh api "repos/${GH_REPO}/releases/tags/courtquest-phone-update-v52" >/dev/null 2>&1; then echo 'v52 already published; refusing overwrite'; exit 1; fi
-          gh release create courtquest-phone-update-v52 dist/CourtQuestPro-Update-v52.apk dist/CourtQuestPro-Update-v52.apk.sha256 dist/apk-manifest.json dist/upgrade-identity.json dist/install-upgrade.json dist/RELEASE_NOTES.md --target "$GITHUB_SHA" --prerelease --latest=false --title 'CourtQuest Pro v52 — Solo training phone test' --notes-file dist/RELEASE_NOTES.md
+          gh release create courtquest-phone-update-v52 dist/CourtQuestPro-Update-v52.apk dist/CourtQuestPro-Update-v52.apk.sha256 dist/apk-manifest.json dist/upgrade-identity.json dist/install-upgrade.json dist/RELEASE_NOTES.md --target "$GITHUB_SHA" --prerelease --latest=false --title 'CourtQuest Pro v52 — Photographic jersey phone test' --notes-file dist/RELEASE_NOTES.md
           mkdir -p /tmp/courtquest-published
           gh release download courtquest-phone-update-v52 --pattern 'CourtQuestPro-Update-v52.apk' --dir /tmp/courtquest-published
           cmp dist/CourtQuestPro-Update-v52.apk /tmp/courtquest-published/CourtQuestPro-Update-v52.apk
