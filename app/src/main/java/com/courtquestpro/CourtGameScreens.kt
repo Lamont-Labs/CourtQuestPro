@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -51,7 +52,7 @@ private fun GameHeader(title: String, detail: String, onBack: () -> Unit) {
 
 @Composable
 internal fun ChampionshipSetup(
-    playerName: String, opponentName: String, error: String,
+    playerName: String, opponentName: String, error: String, jersey: PlayerJersey,
     onPlayerName: (String) -> Unit, onOpponentName: (String) -> Unit,
     onStart: () -> Unit, onBack: () -> Unit
 ) {
@@ -63,8 +64,7 @@ internal fun ChampionshipSetup(
                 Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(20.dp)) {
                     CourtEyebrow("THE PLAYERS")
-                    Text("Your game. Your scoreboard.", color = CourtQuestDesign.textPrimary,
-                        style = MaterialTheme.typography.titleLarge)
+                    CourtJerseyArtwork(jersey, Modifier.size(64.dp).testTag("game-setup-jersey"), describe = true)
                     OutlinedTextField(playerName, onPlayerName, modifier = Modifier.fillMaxWidth(),
                         label = { Text("Your name") }, singleLine = true,
                         isError = error.isNotBlank() && playerName.isBlank(),
@@ -115,7 +115,7 @@ private fun GameRule(number: String, title: String, detail: String) {
 
 @Composable
 internal fun ScoreScreen(
-    player: String, opponent: String, playerScore: Int, opponentScore: Int,
+    player: String, opponent: String, playerScore: Int, opponentScore: Int, jersey: PlayerJersey,
     onPoint: (Boolean) -> Unit, onUndo: () -> Unit, onBack: () -> Unit,
     canUndo: Boolean = playerScore + opponentScore > 0, lastScorer: String? = null
 ) {
@@ -126,7 +126,7 @@ internal fun ScoreScreen(
             GameHeader("1-on-1.", "First to 11 · One point at a time", onBack)
             Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                 GameScoreboard(player, opponent, playerScore, opponentScore,
-                    if (suddenDeath) "Sudden death" else "Live game")
+                    if (suddenDeath) "Sudden death" else "Live game", jersey)
                 Text(if (suddenDeath) "Next point wins." else "Tap the player who scored.",
                     color = if (suddenDeath) CourtQuestDesign.accent else CourtQuestDesign.textSecondary,
                     style = MaterialTheme.typography.bodyMedium)
@@ -188,7 +188,7 @@ private fun PointButton(name: String, primary: Boolean, onClick: () -> Unit, mod
 }
 
 @Composable
-private fun GameScoreboard(player: String, opponent: String, playerScore: Int, opponentScore: Int, status: String) {
+private fun GameScoreboard(player: String, opponent: String, playerScore: Int, opponentScore: Int, status: String, jersey: PlayerJersey) {
     val fontScale = LocalDensity.current.fontScale
     Surface(shape = RoundedCornerShape(24.dp), color = CourtQuestDesign.surface) {
         Column(Modifier.fillMaxWidth().background(Brush.linearGradient(listOf(
@@ -196,7 +196,8 @@ private fun GameScoreboard(player: String, opponent: String, playerScore: Int, o
             verticalArrangement = Arrangement.spacedBy(20.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                CourtEyebrow("THE SCORE", Modifier.weight(1f))
+                CourtJerseyArtwork(jersey, Modifier.size(36.dp).testTag("game-player-jersey"), describe = true)
+                Spacer(Modifier.weight(1f))
                 CourtStatus(status)
             }
             BoxWithConstraints(Modifier.fillMaxWidth().semantics {
@@ -242,7 +243,7 @@ private fun ScoreLane(name: String, score: Int, role: String, primary: Boolean, 
 }
 
 @Composable
-internal fun MatchRecapScreen(record: MatchRecord, totalXp: Int, onHome: () -> Unit, onCareer: () -> Unit) {
+internal fun MatchRecapScreen(record: MatchRecord, totalXp: Int, jersey: PlayerJersey, onHome: () -> Unit, onCareer: () -> Unit) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         Column(Modifier.widthIn(max = 640.dp).fillMaxSize().verticalScroll(rememberScrollState())) {
             GameHeader("Final buzzer.", gameDate(record.date), onHome)
@@ -253,7 +254,7 @@ internal fun MatchRecapScreen(record: MatchRecord, totalXp: Int, onHome: () -> U
                 }
                 Text("${record.winner} won.", color = CourtQuestDesign.textPrimary,
                     style = MaterialTheme.typography.displaySmall)
-                GameScoreboard(record.player, record.opponent, record.playerScore, record.opponentScore, "Final")
+                GameScoreboard(record.player, record.opponent, record.playerScore, record.opponentScore, "Final", jersey.copy(name = record.player))
                 Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                     CourtMetric("Game XP", "+${record.xp}", Modifier.weight(1f), accent = true)
                     CourtMetric("Total XP", totalXp.toString(), Modifier.weight(1f))

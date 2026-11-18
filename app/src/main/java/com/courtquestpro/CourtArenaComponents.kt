@@ -74,7 +74,7 @@ internal fun CourtArenaHero(
     }
 }
 
-/** The original jersey atlas shows the established display fallback without mutating a blank profile. */
+/** Shared local player identity for Court surfaces. */
 @Composable
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 internal fun CourtAthleteIdentity(save: SaveState, modifier: Modifier = Modifier) {
@@ -101,7 +101,7 @@ private fun CourtAthleteJersey(save: SaveState, size: androidx.compose.ui.unit.D
             .border(1.dp, CourtQuestDesign.accent.copy(alpha = .45f), CircleShape),
         contentAlignment = Alignment.Center
     ) {
-        CourtQuestJerseyArtwork(save.jerseyNumber ?: 7, Modifier.fillMaxSize().padding(5.dp))
+        CourtJerseyArtwork(save.playerJersey, Modifier.fillMaxSize().padding(5.dp))
     }
 }
 
@@ -114,8 +114,7 @@ private fun CourtAthleteDetails(save: SaveState, modifier: Modifier = Modifier) 
                 style = MaterialTheme.typography.headlineMedium
             )
             Text(
-                if (save.jerseyNumber == null) "JERSEY PREVIEW"
-                else "JERSEY #${displayedJerseyNumber(save.jerseyNumber)}",
+                save.playerJersey.number?.let { "JERSEY #$it" } ?: "JERSEY PREVIEW",
                 color = CourtQuestDesign.accent,
                 style = MaterialTheme.typography.labelLarge
             )

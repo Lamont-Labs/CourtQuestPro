@@ -107,7 +107,9 @@ data class SaveState(
     // Additive migration: null for saves created before evidence-backed quests existed.
     var questSystemActivatedAt: String? = null,
     // Additive, optional local audit history; old v41 saves deserialize with null.
-    var recommendationReceipts: MutableList<TrainingRecommendationReceipt>? = null
+    var recommendationReceipts: MutableList<TrainingRecommendationReceipt>? = null,
+    var jerseyDesign: JerseyDesign? = null,
+    var jerseyDoubleZero: Boolean = false
 )
 
 internal val drills = listOf(
@@ -431,7 +433,8 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 if (showPlayerNavigation) {
                     CourtQuestBottomDock(
                         selected = PlayerNavigation.tab(routeHistory),
-                        jerseyNumber = save.jerseyNumber,
+                        jersey = save.playerJersey,
+                        customizedJersey = save.jerseyDesign != null,
                         onSelect = ::selectPlayerTab,
                         spotlightTab = tourIndex?.let { SoloNavigationTour.tabs[it] }
                     )
@@ -597,6 +600,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     }
                     "champSetup" -> ChampionshipSetup(
                         playerName = playerNameInput, opponentName = opponentInput, error = error,
+                        jersey = save.playerJersey,
                         onPlayerName = { playerNameInput = it.take(40); error = "" },
                         onOpponentName = { opponentInput = it.take(40); error = "" },
                         onStart = {
@@ -619,6 +623,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     "score" -> ScoreScreen(
                         player = save.matchPlayer, opponent = save.matchOpponent,
                         playerScore = save.playerScore, opponentScore = save.opponentScore,
+                        jersey = save.playerJersey,
                         onPoint = { playerPoint ->
                             if (save.hasResumableMatch(today)) {
                                 val updated = Scorekeeper.point(
@@ -663,7 +668,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         canUndo = !save.pointHistory.isNullOrEmpty(),
                         lastScorer = save.pointHistory?.lastOrNull()?.let { if (it) save.matchPlayer else save.matchOpponent }
                     )
-                    "recap" -> (recap ?: save.matches.firstOrNull())?.let { MatchRecapScreen(it, save.totalXp, onHome = { navigate("home") }, onCareer = { navigate("gameHistory") }) } ?: HomeContent()
+                    "recap" -> (recap ?: save.matches.firstOrNull())?.let { MatchRecapScreen(it, save.totalXp, save.playerJersey, onHome = { navigate("home") }, onCareer = { navigate("gameHistory") }) } ?: HomeContent()
                     "gameHistory" -> CareerScreen(save, onHome = { navigate("career") }, initiallyShowGames = true)
                     "trainingHistory" -> CareerScreen(save, onHome = { navigate("career") }, initiallyShowTrainingHistory = true)
                     "career" -> ProgressDashboardScreen(
@@ -676,8 +681,18 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     "quests" -> QuestsScreen(save, today, onTraining = { openTraining() }, onBuild = { openMissionBuilder() },
                         onResumeMission = { openMission() }, onProgress = { navigate("career") })
                     "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") },
-                        onWalkthrough = { startNavigationTour() })
-                    "settings" -> SettingsScreen(save.playerName, save.difficulty, save.jerseyNumber, onBack = { goBack() }, onDifficulty = { save.difficulty = it; refresh() }, onSaveJersey = { save.jerseyNumber = it; refresh() }, onSaveName = {
+                        onWalkthrough = { startNavigationTour() }, onJersey = { navigate("jerseyStudio") })
+                    "jerseyStudio" -> CourtJerseyStudio(save.playerJersey, onBack = { goBack() }, onSave = { name, number, design ->
+                        val updated = save.updatePlayerJersey(name, number, design)
+                        if (updated) {
+                            playerNameInput = save.playerName
+                            refresh()
+                        }
+                        updated
+                    })
+                    "settings" -> SettingsScreen(save.playerName, save.difficulty, onBack = { goBack() },
+                        onDifficulty = { save.difficulty = it; refresh() },
+                        onJersey = { navigate("jerseyStudio") }, onSaveName = {
                         save.playerName = it.trim(); playerNameInput = save.playerName; refresh()
                     }, onReplayTour = { startNavigationTour() })
                     else -> HomeContent()
