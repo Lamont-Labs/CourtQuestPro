@@ -69,7 +69,7 @@ internal fun DrillScreen(
                 Row(Modifier.fillMaxWidth().padding(start = 8.dp, end = 20.dp, top = 10.dp, bottom = 12.dp),
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     IconButton(onBack, Modifier.size(48.dp).testTag("live-leave-session")) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Leave session")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Leave session", tint = CourtQuestDesign.textPrimary)
                     }
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         CourtEyebrow(sessionLabel ?: if (practice) "EXTRA PRACTICE" else "DAILY DRILL ${slotNumber.coerceIn(1, 6)} OF 6")

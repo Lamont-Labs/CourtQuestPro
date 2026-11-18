@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -69,6 +70,7 @@ internal fun CourtJerseyStudio(saved: PlayerJersey, onSave: (String, String, Jer
     var hex by rememberSaveable { mutableStateOf(jerseyHex(saved.design.fabric)) }
     var showHex by rememberSaveable { mutableStateOf(false) }
     var savedNotice by rememberSaveable { mutableStateOf(false) }
+    val previewSize = if (LocalDensity.current.fontScale > 1.3f) 164.dp else 198.dp
     val focus = LocalFocusManager.current
     val scroll = rememberScrollState()
     val scope = rememberCoroutineScope()
@@ -97,18 +99,18 @@ internal fun CourtJerseyStudio(saved: PlayerJersey, onSave: (String, String, Jer
                 Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     IconButton(::close, Modifier.size(48.dp).testTag("jersey-close")) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = CourtQuestDesign.textPrimary)
                     }
                     Text("Jersey Studio", Modifier.weight(1f).semantics { heading() },
                         color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineMedium)
                 }
                 CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(12.dp), highlighted = true) {
                     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(Modifier.fillMaxWidth().height(202.dp).background(
+                        Box(Modifier.fillMaxWidth().height(previewSize + 4.dp).background(
                             Brush.radialGradient(listOf(CourtQuestDesign.warmSurface, Color.Transparent))
                         ), contentAlignment = Alignment.Center) {
                             // The visible preview has one accessible description during animation.
-                            Crossfade(view, modifier = Modifier.size(198.dp).testTag("jersey-preview").clearAndSetSemantics {
+                            Crossfade(view, modifier = Modifier.size(previewSize).testTag("jersey-preview").clearAndSetSemantics {
                                 contentDescription = listOfNotNull(
                                     "${view.label} of ${design.template.label} jersey",
                                     preview.number?.let { "number $it" },
@@ -120,7 +122,7 @@ internal fun CourtJerseyStudio(saved: PlayerJersey, onSave: (String, String, Jer
                         }
                         CourtQuestSegmentRail(JerseyView.entries.map { it.label }, view.label, { label ->
                             view = JerseyView.entries.first { it.label == label }
-                        })
+                        }, reflowAtLargeText = false)
                     }
                 }
                 CourtQuestSegmentRail(StudioSection.entries.map { it.label }, section.label, { label ->
@@ -217,8 +219,12 @@ internal fun CourtJerseyStudio(saved: PlayerJersey, onSave: (String, String, Jer
             Column(Modifier.fillMaxWidth().background(CourtQuestDesign.background).padding(horizontal = 16.dp, vertical = 8.dp)) {
                 val lowContrast = design.lowContrastParts()
                 if (lowContrast.isNotEmpty()) {
-                    val labels = lowContrast.joinToString(" and ") { it.label.lowercase() }
-                    Text("Low contrast for $labels. Try lighter or darker lettering.",
+                    val warning = when {
+                        lowContrast.size == 2 -> "Low contrast for name and number."
+                        lowContrast.single() == JerseyPart.NAME -> "Name color has low contrast."
+                        else -> "Number color has low contrast."
+                    }
+                    Text(warning,
                         color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }.testTag("jersey-contrast"))
                 }

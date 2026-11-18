@@ -34,7 +34,8 @@ internal fun CourtQuestSegmentRail(
     selected: String,
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier,
-    tagKeys: List<String> = labels.map { it.lowercase().replace(' ', '-') }
+    tagKeys: List<String> = labels.map { it.lowercase().replace(' ', '-') },
+    reflowAtLargeText: Boolean = true
 ) {
     require(tagKeys.size == labels.size) { "Each segment needs one stable semantic key" }
     val railShape = RoundedCornerShape(13.dp)
@@ -77,7 +78,7 @@ internal fun CourtQuestSegmentRail(
                 }
             }
         }
-        if (LocalDensity.current.fontScale > 1.3f) {
+        if (reflowAtLargeText && LocalDensity.current.fontScale > 1.3f) {
             Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 labels.indices.forEach { Segment(it, Modifier.fillMaxWidth()) }
             }

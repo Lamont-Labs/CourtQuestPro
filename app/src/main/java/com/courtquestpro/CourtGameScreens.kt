@@ -40,7 +40,7 @@ private fun GameHeader(title: String, detail: String, onBack: () -> Unit) {
     Row(Modifier.fillMaxWidth().padding(start = 8.dp, end = 20.dp, top = 12.dp, bottom = 20.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         IconButton(onClick = onBack, modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back to Court")
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back to Court", tint = CourtQuestDesign.textPrimary)
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(title, color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineLarge,
