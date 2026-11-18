@@ -190,49 +190,41 @@ private fun ProfileStat(label: String, value: String, modifier: Modifier = Modif
 }
 
 
-/** Profile-only jersey hero. The bottom navigation retains its approved atlas artwork. */
+/** Profile jersey uses the approved high-resolution atlas rather than a simplified vector. */
 @Composable
 private fun ProfileJerseyHero(jerseyNumber: Int?, modifier: Modifier = Modifier) {
+    val atlas = rememberNavigationAtlas()
     Box(modifier, contentAlignment = Alignment.Center) {
-        Canvas(Modifier.fillMaxSize()) {
-            val sx = size.width / 120f
-            val sy = size.height / 140f
-            fun point(x: Float, y: Float) = Offset(x * sx, y * sy)
-            val jersey = Path().apply {
-                moveTo(30f * sx, 13f * sy)
-                lineTo(44f * sx, 6f * sy)
-                quadraticTo(60f * sx, 18f * sy, 76f * sx, 6f * sy)
-                lineTo(90f * sx, 13f * sy)
-                lineTo(114f * sx, 43f * sy)
-                lineTo(97f * sx, 57f * sy)
-                lineTo(85f * sx, 43f * sy)
-                lineTo(88f * sx, 132f * sy)
-                lineTo(32f * sx, 132f * sy)
-                lineTo(35f * sx, 43f * sy)
-                lineTo(23f * sx, 57f * sy)
-                lineTo(6f * sx, 43f * sy)
-                close()
+        if (atlas != null) {
+            Canvas(Modifier.fillMaxSize()) {
+                val cellLeft = atlas.width * PlayerTab.ME.ordinal / 5
+                val cellRight = atlas.width * (PlayerTab.ME.ordinal + 1) / 5
+                val cellSize = minOf(cellRight - cellLeft, 434)
+                val cellTop = ((atlas.height - cellSize) / 2).coerceAtLeast(0)
+                // Focus the upper jersey portion, excluding the basketball at the foot of the tile.
+                val cropHeight = (cellSize * .73f).toInt()
+                val cropWidth = (cellSize * .78f).toInt()
+                drawImage(
+                    image = atlas,
+                    srcOffset = androidx.compose.ui.unit.IntOffset(
+                        cellLeft + (cellRight - cellLeft - cropWidth) / 2, cellTop
+                    ),
+                    srcSize = androidx.compose.ui.unit.IntSize(cropWidth, cropHeight),
+                    dstOffset = androidx.compose.ui.unit.IntOffset.Zero,
+                    dstSize = androidx.compose.ui.unit.IntSize(
+                        size.width.toInt().coerceAtLeast(1), size.height.toInt().coerceAtLeast(1)
+                    )
+                )
             }
-            drawPath(jersey, Brush.verticalGradient(listOf(Color(0xFF39393B), Color(0xFF101012), Color(0xFF050505))))
-            drawPath(jersey, Color(0xFFFF650D), style = Stroke(width = 2.5f * sx))
-            drawLine(Color(0xFFFFA15B), point(32f, 16f), point(13f, 43f), 3f * sx)
-            drawLine(Color(0xFFFFA15B), point(88f, 16f), point(107f, 43f), 3f * sx)
-            val collar = Path().apply {
-                moveTo(44f * sx, 7f * sy)
-                quadraticTo(60f * sx, 30f * sy, 76f * sx, 7f * sy)
-            }
-            drawPath(collar, Color(0xFFFF8A36), style = Stroke(width = 4f * sx))
-            drawLine(Color(0xFF6D3218), point(35f, 43f), point(32f, 130f), 1.5f * sx)
-            drawLine(Color(0xFF6D3218), point(85f, 43f), point(88f, 130f), 1.5f * sx)
         }
         Text(
             displayedJerseyNumber(jerseyNumber).toString(),
-            modifier = Modifier.offset(y = 4.dp),
+            modifier = Modifier.offset(y = (-7).dp),
             color = Color(0xFFFF9A51),
             fontFamily = CourtDisplay,
             fontWeight = FontWeight.Black,
-            fontSize = 42.sp,
-            lineHeight = 44.sp,
+            fontSize = 40.sp,
+            lineHeight = 42.sp,
             textAlign = TextAlign.Center,
             maxLines = 1
         )
