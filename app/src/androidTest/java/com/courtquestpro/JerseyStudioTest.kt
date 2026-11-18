@@ -44,6 +44,10 @@ class JerseyStudioTest {
             .assertContentDescriptionEquals("Back of Arena jersey, number 00, Jersey QA")
         capture("jersey-studio-back")
         click("jersey-close", scroll = true)
+        // Capture the real 58dp dock, not just the large Studio preview.
+        // Regression evidence for number placement and icon scale on device.
+        node("dock-me").assertIsDisplayed()
+        capture("jersey-dock-compact")
         click("dock-home")
         node("court-player-jersey").assertIsDisplayed()
             .assertContentDescriptionEquals("Front of Arena jersey, number 00")
