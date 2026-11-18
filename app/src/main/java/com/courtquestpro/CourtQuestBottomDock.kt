@@ -73,10 +73,10 @@ internal fun CourtQuestBottomDock(selected: PlayerTab, jerseyNumber: Int?, onSel
                         // Retain the original artwork, sized for a low-profile labeled dock.
                         NavigationSpriteArtwork(
                             atlas, tab.ordinal,
-                            Modifier.size(if (tab == PlayerTab.COURT) 36.dp else 28.dp)
+                            Modifier.size(if (tab == PlayerTab.COURT) 42.dp else 34.dp)
                         )
                     } else if (tab == PlayerTab.COURT) {
-                        CourtBasketballMedallion(Modifier.size(34.dp), active)
+                        CourtBasketballMedallion(Modifier.size(40.dp), active)
                     } else {
                         val fallback = when (tab) {
                             PlayerTab.TRAIN -> Icons.Outlined.FitnessCenter
@@ -85,7 +85,7 @@ internal fun CourtQuestBottomDock(selected: PlayerTab, jerseyNumber: Int?, onSel
                             PlayerTab.ME -> Icons.Outlined.Person
                             PlayerTab.COURT -> Icons.Outlined.SportsBasketball
                         }
-                        Icon(fallback, contentDescription = null, modifier = Modifier.size(25.dp),
+                        Icon(fallback, contentDescription = null, modifier = Modifier.size(30.dp),
                             tint = if (active) CourtQuestDesign.accent else CourtQuestDesign.textSecondary)
                     }
                     if (tab == PlayerTab.ME) {
