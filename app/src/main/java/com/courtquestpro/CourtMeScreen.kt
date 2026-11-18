@@ -130,32 +130,7 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                     }
                 }
                 if (section == "Settings") {
-                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(18.dp), highlighted = true) {
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                                Icon(Icons.Default.DateRange, null, tint = CourtQuestDesign.accent)
-                                Spacer(Modifier.width(10.dp))
-                                CourtEyebrow("YOUR ROUTINE")
-                            }
-                            Text(if (days.isEmpty()) "Routine not set." else "${days.size} training ${if (days.size == 1) "day" else "days"}.",
-                                color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineMedium)
-                            Text(if (days.isEmpty()) "No training days selected. Set your routine on Court."
-                                else days.joinToString("  ·  ") { dayLabels[it - 1] },
-                                color = CourtQuestDesign.accent, style = MaterialTheme.typography.titleMedium)
-                            CourtRule()
-                            Text("${save.weeklyPlan} focus · ${save.difficulty} level",
-                                color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
-                            Text("Your focus and weekly schedule can be adjusted on Court. Your level applies to new daily workouts.",
-                                color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
-                            OutlinedButton(onEdit, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Edit player settings") }
-                            OutlinedButton(onWalkthrough, Modifier.fillMaxWidth().heightIn(min = 52.dp)
-                                .testTag("me-settings-start-walkthrough")) {
-                                Icon(Icons.Default.HelpOutline, null)
-                                Spacer(Modifier.width(8.dp))
-                                Text("Start app walkthrough")
-                            }
-                        }
-                    }
+                    CourtMeSettingsHub(save, days.map { dayLabels[it - 1] }, onEdit, onWalkthrough)
                 }
                 if (section == "Profile") {
                     CourtHeading("Milestones", "${earnedAchievements.size} earned")
