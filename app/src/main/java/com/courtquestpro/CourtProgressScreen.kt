@@ -227,6 +227,38 @@ internal fun CareerScreen(
                     }
                     if (section == "Skills") {
                     CourtRule()
+                    val skillCategories = listOf("Shooting", "Ball Handling", "Finishing", "Defense", "Rebounding", "Passing")
+                    val skillRates = skillCategories.mapNotNull { category ->
+                        val categoryResults = valid.filter { result ->
+                            result.drillSnapshot?.category == category ||
+                                drills.any { it.id == result.drillId && it.category == category }
+                        }
+                        val attempts = categoryResults.sumOf { it.attempted }
+                        if (attempts >= 20) Triple(category, categoryResults.sumOf { it.completed }, attempts)
+                        else null
+                    }.sortedBy { it.second.toFloat() / it.third }
+                    CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(16.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            CourtEyebrow("PRACTICE PRIORITY")
+                            if (skillRates.isNotEmpty()) {
+                                val focus = skillRates.first()
+                                Text(focus.first, color = CourtQuestDesign.textPrimary,
+                                    style = MaterialTheme.typography.titleLarge)
+                                Text("${focus.second * 100 / focus.third}% recorded success across ${focus.third} attempts",
+                                    color = CourtQuestDesign.accentVivid,
+                                    style = MaterialTheme.typography.bodyMedium)
+                                Text("Lowest recorded success rate among skills with at least 20 attempts. This is a practice suggestion, not a measure of ability across different drills.",
+                                    color = CourtQuestDesign.textSecondary,
+                                    style = MaterialTheme.typography.bodySmall)
+                            } else {
+                                Text("Keep building your baseline", color = CourtQuestDesign.textPrimary,
+                                    style = MaterialTheme.typography.titleMedium)
+                                Text("Record at least 20 attempts in a skill to unlock a data-based practice priority.",
+                                    color = CourtQuestDesign.textSecondary,
+                                    style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    }
                     CourtHeading("By skill")
                     listOf("Shooting", "Ball Handling", "Finishing", "Defense", "Rebounding", "Passing").forEach { category ->
                         val results = valid.filter { result -> result.drillSnapshot?.category == category || drills.any { it.id == result.drillId && it.category == category } }
