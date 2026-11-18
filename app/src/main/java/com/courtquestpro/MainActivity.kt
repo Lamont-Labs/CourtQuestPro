@@ -105,7 +105,9 @@ data class SaveState(
     var missionSessions: MutableList<MissionSession>? = null,
     var missionReceipts: MutableList<MissionReceipt>? = null,
     // Additive migration: null for saves created before evidence-backed quests existed.
-    var questSystemActivatedAt: String? = null
+    var questSystemActivatedAt: String? = null,
+    // Additive, optional local audit history; old v41 saves deserialize with null.
+    var recommendationReceipts: MutableList<TrainingRecommendationReceipt>? = null
 )
 
 internal val drills = listOf(
