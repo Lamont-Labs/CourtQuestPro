@@ -18,7 +18,8 @@ internal enum class MeSettingsPage(val title: String, val subtitle: String) {
     HELP("Help", "Answers and troubleshooting"),
     HOW_TO("How to Use", "Practical instructions"),
     ABOUT("About CourtQuest Pro", "App information"),
-    NOTICES("Disclaimers & Disclosures", "Safety and data information")
+    NOTICES("Disclaimers & Disclosures", "Training safety"),
+    PRIVACY("Privacy policy", "What CourtQuest Pro stores and how to remove it")
 }
 
 @Composable
@@ -52,7 +53,8 @@ internal fun CourtMeSettingsHub(
                     SettingsHubRow("How to Use", "Learn the training flow", "how-to") { pageName = MeSettingsPage.HOW_TO.name }
                     SettingsHubRow("Walkthrough Wizard", "Replay the guided five-destination tour", "walkthrough") { onWalkthrough() }
                     SettingsHubRow("About CourtQuest Pro", "What the app does", "about") { pageName = MeSettingsPage.ABOUT.name }
-                    SettingsHubRow("Disclaimers & Disclosures", "Training safety and data handling", "notices") { pageName = MeSettingsPage.NOTICES.name }
+                    SettingsHubRow("Disclaimers & Disclosures", "Training safety", "notices") { pageName = MeSettingsPage.NOTICES.name }
+                    SettingsHubRow("Privacy policy", "On-device records and demonstration links", "privacy") { pageName = MeSettingsPage.PRIVACY.name }
                 }
                 MeSettingsPage.PLAYER -> {
                     SettingsCopy("Training routine", if (routineDays.isEmpty()) "No days selected." else routineDays.joinToString(" · "))
@@ -94,8 +96,13 @@ internal fun CourtMeSettingsHub(
                     SettingsCopy("Training safety", "Warm up, practice in a safe space, use suitable equipment and stop if you feel pain, dizziness or unusual symptoms. Adapt drills to your abilities and seek qualified guidance when needed.")
                     SettingsCopy("Not medical advice", "Training suggestions are practice aids, not medical advice or a guarantee of athletic performance.")
                     SettingsCopy("Recorded results", "The app uses saved training results to display progress and may use eligible records to explain drill recommendations. Missing or insufficient evidence is not proof of ability.")
-                    SettingsCopy("Local saves", "Player profile and training information are saved in app storage on your device. Uninstalling the app or clearing its storage may erase that information.")
-                    SettingsCopy("Data sharing", "This page does not assert that all data stays on-device or that no third-party services receive information. Network, analytics and service behavior must be reviewed before making a complete privacy disclosure.")
+                }
+                MeSettingsPage.PRIVACY -> {
+                    SettingsCopy("Your local records", "CourtQuest Pro stores your optional player name, jersey, preferences, custom drills, workouts, scores and progress in its private storage on this device.")
+                    SettingsCopy("Accounts and tracking", "You can use the app without an account. CourtQuest Pro sends no player records to Lamont Labs and uses no advertising, analytics or publisher crash reporting.")
+                    SettingsCopy("Optional video searches", "A video search opens in YouTube or your browser. The link includes a drill search phrase. The receiving service applies its own privacy policy.")
+                    SettingsCopy("Retention and removal", "Your records remain on this device. To erase them, open Android Settings, select CourtQuest Pro, and clear its app storage. Uninstalling also erases app data. Android app backup is disabled.")
+                    SettingsCopy("Contact", "For privacy questions, use the support contact on the official CourtQuest Pro Google Play listing.")
                 }
             }
         }

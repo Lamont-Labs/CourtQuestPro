@@ -91,7 +91,6 @@ internal fun CourtQuestBottomDock(selected: PlayerTab, jersey: PlayerJersey, cus
                             color = if (active) CourtQuestDesign.textPrimary else CourtQuestDesign.textSecondary,
                             fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
                             fontSize = 10.sp, lineHeight = 12.sp, maxLines = 1)
-                        }
                     }
                     if (active) {
                         Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 2.dp)

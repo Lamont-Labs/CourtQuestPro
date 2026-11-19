@@ -1,6 +1,5 @@
 package com.courtquestpro
 
-import android.graphics.Bitmap
 import android.os.Build
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertContentDescriptionEquals
@@ -12,7 +11,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
-import androidx.test.platform.app.InstrumentationRegistry
 import com.google.gson.Gson
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -101,16 +99,16 @@ class JerseyStudioTest {
         compose.waitUntil(timeoutMillis = 15_000) { has("dock-home") }
         click("dock-home")
         node("court-player-jersey").assertContentDescriptionEquals("Front of Classic jersey, number 28")
-        awaitGarment()
+        awaitGarment(minimumHeight = 100)
         capture("store-court")
     }
 
-    private fun awaitGarment() {
+    private fun awaitGarment(minimumHeight: Int = 160) {
         compose.waitUntil(timeoutMillis = 15_000) {
             val ready = compose.onAllNodes(
                 SemanticsMatcher.expectValue(JerseyArtworkReady, true), useUnmergedTree = true
             ).fetchSemanticsNodes()
-            ready.any { it.size.height > 160 }
+            ready.any { it.size.height > minimumHeight }
         }
     }
 
@@ -127,16 +125,7 @@ class JerseyStudioTest {
 
     private fun capture(name: String) {
         compose.waitForIdle()
-        val instrumentation = InstrumentationRegistry.getInstrumentation()
-        instrumentation.waitForIdleSync()
-        instrumentation.uiAutomation.waitForIdle(100, 2500)
-        val image = instrumentation.uiAutomation.takeScreenshot()
-        checkNotNull(image).usePng(name + ".png")
-    }
-
-    private fun Bitmap.usePng(name: String) {
-        compose.activity.openFileOutput(name, 0).use { output -> compress(Bitmap.CompressFormat.PNG, 100, output) }
-        recycle()
+        captureDeviceFrame(compose.activity, name)
     }
 
     private fun has(tag: String): Boolean =
