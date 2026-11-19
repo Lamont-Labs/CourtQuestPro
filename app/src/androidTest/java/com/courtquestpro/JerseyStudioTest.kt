@@ -60,6 +60,16 @@ class JerseyStudioTest {
         node("jersey-preview").assertContentDescriptionEquals("Front of Arena jersey, number 00")
         assertSavedJersey()
         capture("jersey-studio-front")
+        // Visual regression evidence for every garment, not only the Arena renderer.
+        // A green Arena screenshot cannot validate the separate Canvas styles.
+        click("segment-jersey-editor-style", scroll = true)
+        for (template in listOf(JerseyTemplate.CLASSIC, JerseyTemplate.FASTBREAK, JerseyTemplate.RETRO)) {
+            click("segment-${template.name.lowercase()}", scroll = true)
+            node("jersey-preview").assertContentDescriptionEquals(
+                "Front of ${template.label} jersey, number 00"
+            )
+            capture("jersey-style-${template.name.lowercase()}-front")
+        }
     }
 
     @Test fun coldStartRestoresPreviouslySavedJersey() {
