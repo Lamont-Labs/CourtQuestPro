@@ -42,7 +42,7 @@ jobs:
           from pathlib import Path
           import os,subprocess
           assert os.environ['GITHUB_REF']=='refs/heads/dev/jersey-reference-studio'
-          assert 'versionCode = 53' in Path('app/build.gradle.kts').read_text()
+          assert 'versionCode = 54' in Path('app/build.gradle.kts').read_text()
           assert 'applicationId = "com.courtquestpro"' in Path('app/build.gradle.kts').read_text()
           assert subprocess.run(['git','merge-base','--is-ancestor','c6fb254f727c794ad32b64bb45acb75b4c619402','HEAD']).returncode==0
           PY
