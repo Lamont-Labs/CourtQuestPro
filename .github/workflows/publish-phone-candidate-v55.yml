@@ -36,6 +36,7 @@ jobs:
           [[ "$run" =~ ^[0-9]+$ && "$source" =~ ^[a-f0-9]{40}$ ]]
           test "$(git rev-parse HEAD:app)" = "$(git rev-parse "$source:app")"
           test "$(git rev-parse HEAD:gradle)" = "$(git rev-parse "$source:gradle")"
+          git diff --exit-code "$source" HEAD -- app gradle build.gradle.kts settings.gradle.kts gradle.properties
           gh api "repos/$GH_REPO/actions/runs/$run" > checked-run.json
           jq -e --arg source "$source" '
             .conclusion == "success" and .status == "completed" and .head_sha == $source and
@@ -126,9 +127,10 @@ jobs:
           Android API 36 QA verified install-over from v54 with existing saves. This APK uses the established development signer for in-place GitHub phone testing.
 
           Exact binary Android evidence: https://github.com/$GH_REPO/actions/runs/$run
+          Android build source: $source
           NOTES
           gh release create "$tag" "$dist/CourtQuestPro-Update-v55.apk" "$dist/CourtQuestPro-Update-v55.apk.sha256" \
-            "$dist/apk-manifest.json" "$dist/install-upgrade.json" "$dist/CourtQuestPro-Play-Listing-v55.zip" --target "$source" \
+            "$dist/apk-manifest.json" "$dist/install-upgrade.json" "$dist/CourtQuestPro-Play-Listing-v55.zip" --target "$GITHUB_SHA" \
             --prerelease --latest=false --title 'CourtQuest Pro v55 — Photographic jersey phone candidate' \
             --notes-file PHONE_NOTES.md
           mkdir verified
@@ -137,3 +139,16 @@ jobs:
             --output verified/CourtQuestPro-Update-v55.apk
           cmp "$dist/CourtQuestPro-Update-v55.apk" verified/CourtQuestPro-Update-v55.apk
           sha256sum verified/CourtQuestPro-Update-v55.apk
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: courtquest-v55-owner-delivery
+          path: |
+            native-evidence/dist/CourtQuestPro-Update-v55.apk
+            native-evidence/dist/CourtQuestPro-Update-v55.apk.sha256
+            native-evidence/dist/CourtQuestPro-Play-Listing-v55.zip
+            native-evidence/dist/apk-manifest.json
+            native-evidence/dist/install-upgrade.json
+          retention-days: 30
+          if-no-files-found: warn
