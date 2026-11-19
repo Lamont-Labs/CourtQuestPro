@@ -6,6 +6,8 @@ on:
       - '.github/workflows/verify-jersey-dock-visual.yml'
       - 'app/src/androidTest/java/com/courtquestpro/JerseyStudioTest.kt'
       - 'app/src/main/java/com/courtquestpro/CourtQuestBottomDock.kt'
+      - 'app/src/main/java/com/courtquestpro/ArenaJerseyArtwork.kt'
+      - 'app/src/main/java/com/courtquestpro/CourtJerseyArtwork.kt'
   workflow_dispatch:
 
 permissions:
