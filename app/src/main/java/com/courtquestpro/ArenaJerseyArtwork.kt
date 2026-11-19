@@ -146,7 +146,7 @@ internal fun CourtArenaJerseyArtwork(jersey: PlayerJersey, modifier: Modifier, s
             if (front && width >= 76f) {
                 // Keep the app identity off the garment: COURTQUEST is the team wordmark.
                 // No PRO subtitle; reserve the central chest for a larger player number.
-                mark("COURTQUEST", .305f, .087f, .73f, design.nameInk, true, design.side)
+                mark("COURTQUEST", .304f, .067f, .64f, design.nameInk, true, design.side)
             } else if (!front) {
                 mark(jersey.name.uppercase(Locale.ROOT), .239f, .108f, .65f, design.nameInk, true, null)
             }
