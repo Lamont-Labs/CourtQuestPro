@@ -87,6 +87,28 @@ internal fun CourtJerseyArtwork(
                     ),
                     size = Size(220f, 240f)
                 )
+                // Curved textile folds follow the drape of a hanging garment rather than
+                // reading as straight, flat vector panels. Keep these translucent so
+                // every user-selected fabric color remains recognizable.
+                val foldPositions = listOf(48f, 69f, 91f, 127f, 151f, 173f)
+                foldPositions.forEachIndexed { index, x ->
+                    val drift = if (index % 2 == 0) 7f else -8f
+                    val fold = Path().apply {
+                        moveTo(x, 55f)
+                        cubicTo(x + drift, 96f, x - drift * .6f, 150f, x + drift * .5f, 216f)
+                    }
+                    drawPath(fold, Color.Black.copy(alpha = .14f), style = Stroke(5.5f))
+                    val reflected = Path().apply {
+                        moveTo(x + 3.2f, 55f)
+                        cubicTo(x + drift + 3.2f, 96f, x - drift * .6f + 3.2f, 150f, x + drift * .5f + 3.2f, 216f)
+                    }
+                    drawPath(reflected, Color.White.copy(alpha = .105f), style = Stroke(2.5f))
+                }
+                // Hem stitching is part of the fabric construction, not a colored block.
+                for (x in 30..189 step 3) {
+                    drawLine(Color.White.copy(alpha = .19f), Offset(x.toFloat(), 210.5f),
+                        Offset(x + 1.2f, 210.5f), strokeWidth = .55f)
+                }
                 // Micro-mesh: a sparse, scale-aware perforation pattern clipped to the garment.
                 // Keep contrast low enough for both light and dark fabric choices.
                 val meshInk = if (jerseyContrast(design.fabric, 0xFF000000.toInt()) > 7.0)
