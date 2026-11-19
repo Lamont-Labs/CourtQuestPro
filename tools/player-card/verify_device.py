@@ -87,10 +87,15 @@ def main():
     assert saved==ui.adb("exec-out","run-as",ui.PACKAGE,"cat","shared_prefs/court_quest_pro.xml")
     for label,size,font in [("normal","720x1600","1.0"),("compact","640x1280","1.3"),("large-text","640x1280","2.0")]:
         folder=args.out/label;folder.mkdir(exist_ok=True)
+        ui.shell("am","force-stop",ui.PACKAGE)
+        ui.shell("run-as",ui.PACKAGE,"rm","-rf","files/player-card-proof")
         ui.shell("wm","size",size); ui.shell("settings","put","system","font_scale",font)
         run("PlayerCardStudioTest","allEditionsPosesAndFacesAreRealAndSaveAsProfile",folder)
         ui.shell("am","force-stop",ui.PACKAGE)
         run("PlayerCardStudioTest","coldStartUsesSavedCardAndJerseyEditsSynchronizeWithoutCardResave",folder)
+        run("PlayerCardStudioTest","avatarOptionsRenderOnEveryPoseAndPersistWithoutTouchingTraining",folder)
+        ui.shell("am","force-stop",ui.PACKAGE)
+        run("PlayerCardStudioTest","customizedAvatarSurvivesColdStartAndUnsavedAvatarDraftCanBeDiscarded",folder)
         collect(folder)
         assert len(list(folder.glob("*-*-*.png")))>=27
         (folder/"configuration.json").write_text(json.dumps(dict(size=size,font_scale=font)))
@@ -102,7 +107,8 @@ def main():
     report=dict(candidate_sha256=hashlib.sha256(args.candidate.read_bytes()).hexdigest(),
         baseline_sha256=hashlib.sha256(args.baseline.read_bytes()).hexdigest(),
         combinations_per_configuration=27,configurations=3,real_android_captures=True,
-        original_jersey_journey=True,restart_and_live_uniform_sync=True,upgrade_preserved_preferences=True)
+        original_jersey_journey=True,restart_and_live_uniform_sync=True,upgrade_preserved_preferences=True,
+        avatar_dimensions=6,avatar_options=30,avatar_all_poses=True,avatar_restart_and_discard=True)
     (args.out/"player-card-verification.json").write_text(json.dumps(report,indent=2)+"\n")
 
 

@@ -36,6 +36,7 @@ jobs:
           if [[ "$GITHUB_REF_NAME" == "dev/player-card-profile-v2" ]]; then
             python3 -m pip install 'Pillow==11.3.0'
             python3 tools/player-card/build_assets.py --check
+            python3 -m unittest scripts.test_player_card_artwork -v
           fi
           ./gradlew --no-daemon --console=plain :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest
       - name: Compare the published v56 APK and the signed candidate

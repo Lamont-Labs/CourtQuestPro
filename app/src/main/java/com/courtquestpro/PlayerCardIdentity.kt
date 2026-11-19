@@ -23,13 +23,14 @@ internal enum class PlayerCardFace(val label: String) {
 internal data class PlayerCardIdentity(
     val style: PlayerCardStyle = PlayerCardStyle.HOLOGRAPHIC,
     val pose: PlayerCardPose = PlayerCardPose.STANDING,
-    val face: PlayerCardFace = PlayerCardFace.SHADOW
+    val face: PlayerCardFace = PlayerCardFace.SHADOW,
+    val avatar: AvatarAppearance = AvatarAppearance()
 ) {
     companion object {
-        fun restore(style: String?, pose: String?, face: String?) = PlayerCardIdentity(
+        fun restore(style: String?, pose: String?, face: String?, avatar: AvatarAppearance = AvatarAppearance()) = PlayerCardIdentity(
             PlayerCardStyle.entries.firstOrNull { it.name == style } ?: PlayerCardStyle.HOLOGRAPHIC,
             PlayerCardPose.entries.firstOrNull { it.name == pose } ?: PlayerCardPose.STANDING,
-            PlayerCardFace.entries.firstOrNull { it.name == face } ?: PlayerCardFace.SHADOW
+            PlayerCardFace.entries.firstOrNull { it.name == face } ?: PlayerCardFace.SHADOW, avatar
         )
     }
 }
@@ -46,7 +47,8 @@ internal object PlayerCardSelection {
         @Suppress("UNUSED_VARIABLE") val observed = revision
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         return PlayerCardIdentity.restore(prefs.getString(STYLE, null),
-            prefs.getString(POSE, null), prefs.getString(FACE, null))
+            prefs.getString(POSE, null), prefs.getString(FACE, null),
+            AvatarAppearance.restore(AvatarAppearance.keys.map { prefs.getString("avatar_${it}_v3",null) }))
     }
 
     fun read(context: Context): PlayerCardStyle = identity(context).style
@@ -56,9 +58,11 @@ internal object PlayerCardSelection {
 
     /** One atomic synchronous transaction; callers exit only after disk confirms the save. */
     fun write(context: Context, identity: PlayerCardIdentity): Boolean {
-        val persisted = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+        val edit = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
             .putString(STYLE, identity.style.name).putString(POSE, identity.pose.name)
-            .putString(FACE, identity.face.name).commit()
+            .putString(FACE, identity.face.name)
+        AvatarAppearance.keys.zip(identity.avatar.values).forEach { (key,value) -> edit.putString("avatar_${key}_v3",value) }
+        val persisted = edit.commit()
         if (persisted) revision++
         return persisted
     }

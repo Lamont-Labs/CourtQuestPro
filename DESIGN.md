@@ -30,6 +30,30 @@ omitted:
 
 ## Player Card V2
 
+### Owner-requested avatar and collector-material revision
+
+The owner reported that the athlete integration was improving but the cards
+were “extremely mediocre.” The next pass prioritizes hair/headwear, build/skin
+tone, and shoes/accessories. Original generated metal/foil/heritage sports
+material plates replace the simple procedural frames. Athletes, player names,
+numbers and the saved uniform remain live native layers, not baked screenshots.
+
+The avatar editor uses Hair, Body and Gear tools inside the existing studio,
+with fixed save/discard behavior and atomic cosmetic preferences separate from
+training state. Skin and shoe dyes are clipped to pose-specific alpha mattes;
+skin excludes the uniform. Proportions are modest localized 2D illustration
+deformations, not real measurements or simulated 3D anatomy. Hair, headbands,
+sleeves and wrist tape use pose-specific anchors. Anonymous faces remain the
+default and no actual person's likeness is introduced. The existing Barlow,
+Compose APIs, 48dp controls and artwork cache patterns remain authoritative;
+no new runtime service or dependency is introduced.
+
+UI/UX Pro Max remains unavailable in this workspace; no use is claimed. The
+bundled Impeccable review is adapted to the native collector's identity hierarchy,
+material distinction, live customization, legibility and actual Android captures.
+Technical success is not owner aesthetic approval. Font-scale, persistence and
+rendered evidence must be reported separately from source and asset integrity.
+
 The selected collectible is now the main Me identity, replacing the duplicate
 jersey/profile hero. XP/rank, actual saved training summary, milestones, profile
 settings, history and Jersey Studio remain beneath it. No player metrics are

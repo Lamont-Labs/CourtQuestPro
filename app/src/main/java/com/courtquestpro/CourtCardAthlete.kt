@@ -58,12 +58,15 @@ internal fun CourtCardAthlete(
                 val diffuse = textileDyes(design.fabric, design.secondary, design.side)
                 val binding = textileDyes(design.collar, design.armhole)
                 val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+                val avatar=identity.avatar
+                val mesh=AvatarGeometry.mesh(pose,avatar.build)
                 val dest = RectF(0f, 0f, 1024f, 1024f)
                 val printQuad = when (pose) {
                     PlayerCardPose.STANDING -> floatArrayOf(447f,224f,577f,228f,575f,358f,443f,354f)
                     PlayerCardPose.DRIBBLING -> floatArrayOf(440f,233f,580f,262f,540f,390f,402f,359f)
                     PlayerCardPose.ACTION -> floatArrayOf(423f,301f,525f,273f,536f,346f,422f,373f)
                 }
+                for(i in printQuad.indices step 2) printQuad[i]=AvatarGeometry.x(pose,avatar.build,printQuad[i],printQuad[i+1])
                 val warp = Matrix().apply { setPolyToPoly(floatArrayOf(0f,0f,200f,0f,200f,200f,0f,200f),0,printQuad,0,4) }
                 val text = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = font; textAlign = Paint.Align.CENTER }
                 onDrawBehind {
@@ -72,9 +75,12 @@ internal fun CourtCardAthlete(
                         canvas.save(); canvas.translate(left, top); canvas.scale(factor, factor)
                         fun image(index: Int, filter: android.graphics.ColorFilter? = null) {
                             paint.colorFilter = filter
-                            canvas.drawBitmap(loaded.images[index], null, dest, paint)
+                            if(avatar.build==AvatarBuild.ORIGINAL) canvas.drawBitmap(loaded.images[index], null, dest, paint)
+                            else canvas.drawBitmapMesh(loaded.images[index],32,48,mesh,0,null,0,paint)
                         }
                         image(0)
+                        avatar.skin.color?.let {image(11,AvatarDetailPainter.dye(it))}
+                        avatar.shoes.color?.let {image(12,AvatarDetailPainter.dye(it))}
                         image(2 + template * 2, diffuse)
                         image(3 + template * 2, binding)
                         canvas.save(); canvas.concat(warp)
@@ -100,7 +106,10 @@ internal fun CourtCardAthlete(
                             PlayerCardFace.BLANK -> floatArrayOf(.70f,0f,0f,0f,58f, 0f,.70f,0f,0f,45f, 0f,0f,.70f,0f,34f, 0f,0f,0f,1f,0f)
                             PlayerCardFace.QUESTION -> floatArrayOf(.09f,0f,0f,0f,1f, 0f,.09f,0f,0f,2f, 0f,0f,.12f,0f,4f, 0f,0f,0f,1f,0f)
                         }
-                        image(1, ColorMatrixColorFilter(matrix))
+                        val complexion=avatar.skin.color
+                        image(1,if(face==PlayerCardFace.BLANK && complexion!=null)
+                            AvatarDetailPainter.dye(complexion) else ColorMatrixColorFilter(matrix))
+                        AvatarDetailPainter.draw(canvas,pose,avatar,avatar.skin.color?:0xFF925735.toInt(),loaded.images[11],mesh)
                         if (face == PlayerCardFace.QUESTION) {
                             val center = when (pose) {
                                 PlayerCardPose.STANDING -> 507f to 104f

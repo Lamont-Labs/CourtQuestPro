@@ -1,3 +1,31 @@
+# Avatar and collector-material revision
+
+The avatar inspector adds six hair choices, four headwear choices, three
+illustrated builds, seven skin choices, six shoe colorways and four accessory
+combinations. Original choices retain the shipped art. These are cosmetic
+illustration settings, not body measurements or performance claims.
+
+`build_avatar_assets.py` derives transparent skin and shoe plates from the
+committed original athlete plates. Garment alpha is explicitly subtracted from
+skin. Skin/shoe color matrices retain source light and shade; modest localized
+bitmap meshes share their deformation with uniform lettering and accessory
+anchors. Heads and distal hands remain outside the body deformation.
+Hair/headband details are native pose-anchored drawings; sleeves and wrist tape
+are composited through the skin matte. This is a 2D customization system, not a
+3D character generator or realistic physical tailoring simulation.
+
+`build_card_surfaces.py` optimizes original generated material artwork into
+`surface-holographic.webp`, `surface-classic.webp` and `surface-battle.webp`.
+They contain no athlete, branding, player name, serial number, stats or uniform.
+Native foreground layers retain dynamic identity and the approved Signature logo.
+`surface-manifest.json` records source names, dimensions and hashes; the avatar
+manifest records pose mattes and hashes. All production plates work offline.
+
+Run `python3 -m unittest scripts.test_player_card_artwork -v` in addition to
+the original plate check. Native tests exercise every cosmetic option on every
+pose at normal size, plus reachable selections at compact/200% text, save,
+restart, draft recreation, discard, and unchanged training state.
+
 # CourtQuest Player Card V2 assets
 
 Three original generated, fictional adult athletes are bundled offline. They are

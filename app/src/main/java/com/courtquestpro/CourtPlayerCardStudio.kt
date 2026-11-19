@@ -37,11 +37,12 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
     var style by rememberSaveable { mutableStateOf(initial.style) }
     var pose by rememberSaveable { mutableStateOf(initial.pose) }
     var face by rememberSaveable { mutableStateOf(initial.face) }
+    var avatar by rememberSaveable(stateSaver=AvatarAppearance.Saver) {mutableStateOf(initial.avatar)}
     var tool by rememberSaveable { mutableStateOf("Edition") }
     var discard by rememberSaveable { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var saving by remember { mutableStateOf(false) }
-    val identity = PlayerCardIdentity(style, pose, face)
+    val identity = PlayerCardIdentity(style, pose, face, avatar)
     val dirty = identity != initial
     val scope = rememberCoroutineScope()
     val close = { if (dirty) discard = true else onBack() }
@@ -74,7 +75,8 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
     BoxWithConstraints(Modifier.fillMaxSize().background(CourtQuestDesign.background).testTag("player-card-studio-screen")) {
         val largeText = LocalDensity.current.fontScale > 1.4f
         val wide = maxWidth > maxHeight && maxWidth >= 600.dp
-        val stageHeight = (maxHeight * if (largeText) .40f else .49f).coerceIn(120.dp, 410.dp)
+        val stageFraction=if(tool=="Avatar") {if(largeText) .28f else .41f} else {if(largeText) .40f else .49f}
+        val stageHeight = (maxHeight * stageFraction).coerceIn(120.dp, 410.dp)
         Column(Modifier.fillMaxSize().padding(horizontal = 12.dp)) {
             Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
                 IconButton({ if (!saving) close() }, Modifier.testTag("player-card-close")) {
@@ -82,6 +84,8 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
                 }
                 Text("Card Studio", style = MaterialTheme.typography.headlineMedium,
                     color = CourtQuestDesign.textPrimary, modifier = Modifier.weight(1f).semantics { heading() })
+                TextButton({tool=if(tool=="Avatar")"Edition" else "Avatar"},Modifier.heightIn(min=48.dp)
+                    .testTag("player-card-avatar")) {Text(if(tool=="Avatar")"Cards" else "Avatar")}
             }
             val preview: @Composable (Modifier) -> Unit = { mod ->
                 Box(mod, contentAlignment = Alignment.Center) {
@@ -89,20 +93,21 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
                         modifier = Modifier.fillMaxSize()) { choice ->
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             CourtPlayerCard(jersey,playerName,choice.style,Modifier.fillMaxHeight().padding(4.dp),
-                                choice.pose,choice.face)
+                                choice.pose,choice.face,appearance=choice.avatar)
                         }
                     }
                 }
             }
             val inspector: @Composable (Modifier) -> Unit = { mod ->
                 Column(mod) {
-                    CourtQuestSegmentRail(listOf("Edition","Pose","Face"),tool,{ tool=it },
+                    CourtQuestSegmentRail(listOf("Edition","Pose","Face"),if(tool=="Avatar")"Face"else tool,{ tool=it },
                         tagKeys=listOf("card-edition","card-pose","card-face"), reflowAtLargeText=false)
                     key(tool) {
                         Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState())
                             .testTag("player-card-inspector").padding(vertical=8.dp),
                             verticalArrangement=Arrangement.spacedBy(8.dp)) {
                             when(tool) {
+                                "Avatar" -> AvatarControls(avatar){avatar=it}
                                 "Edition" -> {
                                     if (largeText) {
                                         PlayerCardStyle.entries.forEach { choice ->
@@ -113,7 +118,7 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
                                                 .testTag("player-card-style-${choice.name.lowercase()}").padding(8.dp),
                                                 verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
                                                 CourtPlayerCard(jersey,playerName,choice,Modifier.width(62.dp),
-                                                    pose,face,thumbnail=true)
+                                                    pose,face,thumbnail=true,appearance=avatar)
                                                 Text(choice.label,Modifier.weight(1f),color=CourtQuestDesign.textPrimary,style=MaterialTheme.typography.titleSmall)
                                                 if(style==choice) Icon(Icons.Default.CheckCircle,"Selected",tint=CourtQuestDesign.accent)
                                             }
@@ -131,7 +136,7 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
                                                         PlayerCardStyle.HOLOGRAPHIC -> PlayerCardPose.STANDING
                                                         PlayerCardStyle.CLASSIC -> PlayerCardPose.DRIBBLING
                                                         PlayerCardStyle.BATTLE -> PlayerCardPose.ACTION
-                                                    },face,thumbnail=true)
+                                                    },face,thumbnail=true,appearance=avatar)
                                                 Spacer(Modifier.height(5.dp))
                                                 Text(choice.label,color=CourtQuestDesign.textPrimary,style=MaterialTheme.typography.labelMedium)
                                             }

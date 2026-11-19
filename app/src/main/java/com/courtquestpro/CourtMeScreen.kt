@@ -79,7 +79,8 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             CourtPlayerCard(save.playerJersey, save.playerName, identity.style,
-                                Modifier.widthIn(max = 292.dp).fillMaxWidth(), identity.pose, identity.face)
+                                Modifier.widthIn(max = 292.dp).fillMaxWidth(), identity.pose, identity.face,
+                                appearance = identity.avatar)
                             CourtQuestPrimaryButton(onPlayerCard, Modifier.fillMaxWidth().testTag("me-player-card-studio")) {
                                 Text("Customize player card")
                             }

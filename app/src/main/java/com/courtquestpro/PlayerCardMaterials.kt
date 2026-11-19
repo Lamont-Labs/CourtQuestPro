@@ -46,7 +46,16 @@ internal object PlayerCardMaterials {
                 requireNotNull(BitmapFactory.decodeByteArray(bytes, 0, length, options)).apply { prepareToDraw() }
             }
             require(input.read() == -1)
-            PlayerCardPlate(images)
+            val avatar=DataInputStream(assets.open("player_cards/${key.pose.name.lowercase(Locale.ROOT)}-avatar.pcmat").buffered()).use { extra ->
+                require(extra.readInt()==0x43515032)
+                require(extra.readUnsignedShort()==1024 && extra.readUnsignedShort()==1024 && extra.readUnsignedByte()==2)
+                List(2) {
+                    val size=extra.readInt();require(size in 1..5_000_000)
+                    val data=ByteArray(size).also(extra::readFully)
+                    requireNotNull(BitmapFactory.decodeByteArray(data,0,size,options)).apply {prepareToDraw()}
+                }.also { require(extra.read()==-1) }
+            }
+            PlayerCardPlate(images+avatar)
         }
     }
 }
