@@ -38,6 +38,8 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
     var pose by rememberSaveable { mutableStateOf(initial.pose) }
     var face by rememberSaveable { mutableStateOf(initial.face) }
     var avatar by rememberSaveable(stateSaver=AvatarAppearance.Saver) {mutableStateOf(initial.avatar)}
+    var avatarPart by rememberSaveable {mutableStateOf("Hair")}
+    var inspection by rememberSaveable {mutableStateOf(AvatarInspection.HEAD)}
     var tool by rememberSaveable { mutableStateOf("Edition") }
     var discard by rememberSaveable { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -82,14 +84,29 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
                 IconButton({ if (!saving) close() }, Modifier.testTag("player-card-close")) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, "Close Player Card Studio", tint = CourtQuestDesign.textPrimary)
                 }
-                Text("Card Studio", style = MaterialTheme.typography.headlineMedium,
+                Text(if(largeText)"Studio"else"Card Studio", style = MaterialTheme.typography.headlineMedium,
                     color = CourtQuestDesign.textPrimary, modifier = Modifier.weight(1f).semantics { heading() })
                 TextButton({tool=if(tool=="Avatar")"Edition" else "Avatar"},Modifier.heightIn(min=48.dp)
                     .testTag("player-card-avatar")) {Text(if(tool=="Avatar")"Cards" else "Avatar")}
             }
             val preview: @Composable (Modifier) -> Unit = { mod ->
                 Box(mod, contentAlignment = Alignment.Center) {
-                    Crossfade(identity, animationSpec = tween(160), label = "Card identity",
+                    if(tool=="Avatar" && inspection!=AvatarInspection.NONE) {
+                        Row(Modifier.fillMaxSize(),horizontalArrangement=Arrangement.spacedBy(8.dp),
+                            verticalAlignment=Alignment.CenterVertically) {
+                            BoxWithConstraints(Modifier.weight(.43f).fillMaxHeight(),contentAlignment=Alignment.Center) {
+                                val cardWidth=minOf(maxWidth,maxHeight*.69f)
+                                CourtPlayerCard(jersey,playerName,style,Modifier.width(cardWidth),pose,face,appearance=avatar)
+                            }
+                            Column(Modifier.weight(.57f).fillMaxHeight()) {
+                                Text(if(inspection==AvatarInspection.HEAD)"Hair detail"else"Shoe detail",
+                                    style=MaterialTheme.typography.labelLarge,color=CourtQuestDesign.textSecondary)
+                                CourtCardAthlete(jersey,identity,Modifier.fillMaxWidth().weight(1f)
+                                    .clip(RoundedCornerShape(16.dp)).background(CourtQuestDesign.surface)
+                                    .testTag("avatar-inspection"),inspection)
+                            }
+                        }
+                    } else Crossfade(identity, animationSpec = tween(160), label = "Card identity",
                         modifier = Modifier.fillMaxSize()) { choice ->
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             CourtPlayerCard(jersey,playerName,choice.style,Modifier.fillMaxHeight().padding(4.dp),
@@ -100,14 +117,17 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
             }
             val inspector: @Composable (Modifier) -> Unit = { mod ->
                 Column(mod) {
-                    CourtQuestSegmentRail(listOf("Edition","Pose","Face"),if(tool=="Avatar")"Face"else tool,{ tool=it },
-                        tagKeys=listOf("card-edition","card-pose","card-face"), reflowAtLargeText=false)
-                    key(tool) {
+                    if(tool=="Avatar") CourtQuestSegmentRail(listOf("Hair","Body","Gear"),avatarPart,{
+                        avatarPart=it;inspection=when(it){"Hair"->AvatarInspection.HEAD;"Gear"->AvatarInspection.SHOES;else->AvatarInspection.NONE}
+                    },tagKeys=listOf("avatar-hair","avatar-body","avatar-gear"),reflowAtLargeText=false)
+                    else CourtQuestSegmentRail(listOf("Edition","Pose","Face"),tool,{ tool=it },
+                        tagKeys=listOf("card-edition","card-pose","card-face"),reflowAtLargeText=false)
+                    key(tool,avatarPart) {
                         Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState())
                             .testTag("player-card-inspector").padding(vertical=8.dp),
                             verticalArrangement=Arrangement.spacedBy(8.dp)) {
                             when(tool) {
-                                "Avatar" -> AvatarControls(avatar){avatar=it}
+                                "Avatar" -> AvatarControls(avatar,avatarPart,{inspection=it}){avatar=it}
                                 "Edition" -> {
                                     if (largeText) {
                                         PlayerCardStyle.entries.forEach { choice ->

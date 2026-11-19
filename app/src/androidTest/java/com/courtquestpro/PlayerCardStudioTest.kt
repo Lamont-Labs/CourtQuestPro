@@ -53,6 +53,7 @@ class PlayerCardStudioTest {
         }
         compose.waitForIdle()
         node("card-artwork-error").assertDoesNotExist()
+        if(has("avatar-inspection"))wait("avatar-inspection-ready")
     }
     @Test fun allEditionsPosesAndFacesAreRealAndSaveAsProfile() {
         val preservedAvatar=PlayerCardSelection.identity(compose.activity).avatar
@@ -137,6 +138,7 @@ class PlayerCardStudioTest {
         }
         for(pose in PlayerCardPose.entries) {
             currentPose=pose
+            if(has("segment-avatar-hair"))tap("player-card-avatar")
             tap("segment-card-pose");choose("player-card-pose-${pose.name.lowercase()}");ready(pose)
             tap("player-card-avatar")
             choose("segment-avatar-hair")

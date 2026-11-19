@@ -26,7 +26,8 @@ import java.util.Locale
 internal fun CourtCardAthlete(
     jersey: PlayerJersey,
     identity: PlayerCardIdentity,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    inspection: AvatarInspection = AvatarInspection.NONE
 ) {
     val context = LocalContext.current
     val font = remember(context) { ResourcesCompat.getFont(context, R.font.barlow_condensed_extra_bold) }
@@ -43,13 +44,27 @@ internal fun CourtCardAthlete(
         val loaded = plate
         if (loaded != null) {
             Box(Modifier.fillMaxSize().testTag("card-athlete-${pose.name.lowercase()}-ready").drawWithCache {
-                val factor = minOf(size.width / when (pose) {
+                val viewport=when(inspection) {
+                    AvatarInspection.HEAD -> when(pose) {
+                        PlayerCardPose.STANDING -> RectF(380f,-20f,635f,285f)
+                        PlayerCardPose.DRIBBLING -> RectF(405f,-20f,660f,285f)
+                        PlayerCardPose.ACTION -> RectF(330f,-30f,585f,275f)
+                    }
+                    AvatarInspection.SHOES -> when(pose) {
+                        PlayerCardPose.STANDING -> RectF(330f,780f,700f,1015f)
+                        PlayerCardPose.DRIBBLING -> RectF(200f,765f,720f,1010f)
+                        PlayerCardPose.ACTION -> RectF(290f,530f,690f,1030f)
+                    }
+                    AvatarInspection.NONE -> null
+                }
+                val factor = if(viewport!=null) minOf(size.width/viewport.width(),size.height/viewport.height())
+                    else minOf(size.width / when (pose) {
                     PlayerCardPose.STANDING -> 560f
                     PlayerCardPose.DRIBBLING -> 780f
                     PlayerCardPose.ACTION -> 580f
                 }, size.height / 1024f)
-                val left = size.width * .5f - 512f * factor
-                val top = (size.height - 1024f * factor) * .5f
+                val left = size.width*.5f-(viewport?.centerX()?:512f)*factor
+                val top = if(viewport!=null) size.height*.5f-viewport.centerY()*factor else (size.height-1024f*factor)*.5f
                 val design = jersey.design
                 val template = when (design.template) {
                     JerseyTemplate.ARENA -> 0; JerseyTemplate.CLASSIC -> 1
@@ -124,6 +139,7 @@ internal fun CourtCardAthlete(
                     }
                 }
             })
+            if(inspection!=AvatarInspection.NONE) Box(Modifier.testTag("avatar-inspection-ready"))
         } else if (failure) {
             Text("Player artwork unavailable", color = CourtQuestDesign.textPrimary,
                 style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("card-artwork-error"))

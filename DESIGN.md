@@ -54,6 +54,13 @@ material distinction, live customization, legibility and actual Android captures
 Technical success is not owner aesthetic approval. Font-scale, persistence and
 rendered evidence must be reported separately from source and asset integrity.
 
+The first actual Android captures of the expanded editor exposed undersized
+hair previews and category tabs that disappeared while scrolling the choices.
+Hair/shoe tools now pair the complete collectible with a pose-aware detail
+viewport, while Hair/Body/Gear tabs stay pinned above the scrollable inspector.
+The 200% header uses the shorter “Studio” label without reducing font scaling.
+Card lettering is fitted inside the authored nameplate, not its upper metal edge.
+
 The selected collectible is now the main Me identity, replacing the duplicate
 jersey/profile hero. XP/rank, actual saved training summary, milestones, profile
 settings, history and Jersey Studio remain beneath it. No player metrics are

@@ -69,10 +69,10 @@ internal fun CourtPlayerCard(
                     drawText(value,w*.5f,h*y,p)
                 }
                 title(style.label.uppercase(Locale.ROOT),.194f,.035f,accent,body,.66f)
-                title(name,.889f,.093f,if(classic)Color(0xFF281C13)else Color.White,
+                title(name,.903f,.093f,if(classic)Color(0xFF281C13)else Color.White,
                     if(classic)Typeface.create(Typeface.SERIF,Typeface.BOLD)else display,.65f)
                 title(jersey.number?.let{"Nº $it  /  PLAYER EDITION"}?:"PLAYER EDITION",
-                    .927f,.024f,if(classic)Color(0xFF493723)else accent,body,.61f)
+                    .939f,.024f,if(classic)Color(0xFF493723)else accent,body,.61f)
             }
         }
         Image(painterResource(R.drawable.courtquest_signature_wordmark),null,

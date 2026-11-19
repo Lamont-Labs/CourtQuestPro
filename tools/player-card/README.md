@@ -4,6 +4,9 @@ The avatar inspector adds six hair choices, four headwear choices, three
 illustrated builds, seven skin choices, six shoe colorways and four accessory
 combinations. Original choices retain the shipped art. These are cosmetic
 illustration settings, not body measurements or performance claims.
+Pinned Hair/Body/Gear tools keep categories reachable while scrolling. Hair and
+shoe colorways have pose-aware detail views beside the full live collectible;
+body and accessory choices retain the full-body view.
 
 `build_avatar_assets.py` derives transparent skin and shoe plates from the
 committed original athlete plates. Garment alpha is explicitly subtracted from

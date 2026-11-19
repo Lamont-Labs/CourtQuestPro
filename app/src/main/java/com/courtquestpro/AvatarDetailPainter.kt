@@ -84,10 +84,15 @@ internal object AvatarDetailPainter {
             fun px(i:Int)=AvatarGeometry.x(pose,avatar.build,points[i],points[i+1])
             if(avatar.gear==AvatarGear.SLEEVE || avatar.gear==AvatarGear.BOTH) {
                 val x0=px(0);val y0=points[1];val x1=px(2);val y1=points[3]
-                p.strokeCap=Paint.Cap.BUTT;p.style=Paint.Style.STROKE;p.strokeWidth=if(pose==PlayerCardPose.ACTION)29f else 32f
+                p.strokeCap=Paint.Cap.BUTT;p.style=Paint.Style.STROKE;p.strokeWidth=72f
                 p.shader=LinearGradient(x0-10,y0,x0+15,y0,intArrayOf(0xFF101316.toInt(),0xFF3A3F43.toInt(),0xFF111315.toInt()),null,Shader.TileMode.CLAMP)
-                canvas.drawLine(x0,y0,x1,y1,p);p.shader=null
-                p.strokeWidth=2f;p.color=0xFF676D71.toInt();canvas.drawLine(x0-8,y0,x1-8,y1,p)
+                val wristX=x1+(px(4)-x1)*.86f
+                val wristY=y1+(points[5]-y1)*.86f
+                val sleeve=Path().apply {moveTo(x0,y0);lineTo(x1,y1);lineTo(wristX,wristY)}
+                p.strokeJoin=Paint.Join.ROUND
+                canvas.drawPath(sleeve,p);p.shader=null
+                p.strokeWidth=2f;p.color=0xFF676D71.toInt()
+                canvas.drawPath(Path().apply{moveTo(x0-10,y0);lineTo(x1-10,y1);lineTo(wristX-8,wristY)},p)
             }
             if(avatar.gear==AvatarGear.WRISTS || avatar.gear==AvatarGear.BOTH) {
                 val x=px(4);val y=points[5]

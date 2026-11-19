@@ -10,7 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,29 +20,25 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun AvatarControls(value:AvatarAppearance,change:(AvatarAppearance)->Unit) {
-    var part by rememberSaveable {mutableStateOf("Hair")}
-    Text("Your athlete",style=MaterialTheme.typography.titleMedium,color=CourtQuestDesign.textPrimary,
-        modifier=Modifier.semantics{heading()})
-    CourtQuestSegmentRail(listOf("Hair","Body","Gear"),part,{part=it},
-        tagKeys=listOf("avatar-hair","avatar-body","avatar-gear"),reflowAtLargeText=false)
+internal fun AvatarControls(value:AvatarAppearance,part:String,inspect:(AvatarInspection)->Unit,
+    change:(AvatarAppearance)->Unit) {
     when(part) {
         "Hair" -> {
-            Choices("Hair",AvatarHair.entries,value.hair,{it.label},{"avatar-hair-${it.name.lowercase()}"}){change(value.copy(hair=it))}
+            Choices("Hair",AvatarHair.entries,value.hair,{it.label},{"avatar-hair-${it.name.lowercase()}"}){inspect(AvatarInspection.HEAD);change(value.copy(hair=it))}
             Choices("Headwear",AvatarHeadwear.entries,value.headwear,{it.label},{"avatar-headwear-${it.name.lowercase()}"},{it.ink}){
-                change(value.copy(headwear=it))}
+                inspect(AvatarInspection.HEAD);change(value.copy(headwear=it))}
         }
         "Body" -> {
-            Choices("Build",AvatarBuild.entries,value.build,{it.label},{"avatar-build-${it.name.lowercase()}"}){change(value.copy(build=it))}
+            Choices("Build",AvatarBuild.entries,value.build,{it.label},{"avatar-build-${it.name.lowercase()}"}){inspect(AvatarInspection.NONE);change(value.copy(build=it))}
             Text("Illustrated proportions only. This does not change your player data or training.",
                 style=MaterialTheme.typography.bodySmall,color=CourtQuestDesign.textSecondary)
             Choices("Skin tone",AvatarSkin.entries,value.skin,{it.label},{"avatar-skin-${it.name.lowercase()}"},{it.color}){
-                change(value.copy(skin=it))}
+                inspect(AvatarInspection.NONE);change(value.copy(skin=it))}
         }
         else -> {
             Choices("Shoes",AvatarShoes.entries,value.shoes,{it.label},{"avatar-shoes-${it.name.lowercase()}"},{it.color}){
-                change(value.copy(shoes=it))}
-            Choices("Accessories",AvatarGear.entries,value.gear,{it.label},{"avatar-gear-${it.name.lowercase()}"}){change(value.copy(gear=it))}
+                inspect(AvatarInspection.SHOES);change(value.copy(shoes=it))}
+            Choices("Accessories",AvatarGear.entries,value.gear,{it.label},{"avatar-gear-${it.name.lowercase()}"}){inspect(AvatarInspection.NONE);change(value.copy(gear=it))}
         }
     }
 }

@@ -29,6 +29,7 @@ internal enum class AvatarGear(val label: String) {
     NONE("No accessories"), SLEEVE("Compression sleeve"),
     WRISTS("Wrist tape"), BOTH("Sleeve and wrist tape")
 }
+internal enum class AvatarInspection { NONE, HEAD, SHOES }
 
 internal data class AvatarAppearance(
     val hair: AvatarHair = AvatarHair.ORIGINAL,
