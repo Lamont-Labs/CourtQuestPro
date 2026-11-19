@@ -6,7 +6,6 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.view.FrameMetrics
 import android.view.Window
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -73,8 +72,20 @@ class JerseyStudioTest {
     private fun capture(name: String, garment: Boolean = true) {
         frame()
         val shot = checkNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
-        try { saveImage(shot, name) } finally { shot.recycle() }
-        if (garment) saveImage(node("jersey-preview").captureToImage().asAndroidBitmap(), "$name-garment")
+        try {
+            saveImage(shot, name)
+        if (garment) {
+            // PixelCopy from Compose captureToImage fails intermittently on hardware-
+            // accelerated emulator surfaces. Crop the already captured real window frame.
+            val bounds = node("jersey-preview").fetchSemanticsNode().boundsInWindow
+            val left = bounds.left.toInt().coerceIn(0, shot.width - 1)
+            val top = bounds.top.toInt().coerceIn(0, shot.height - 1)
+            val right = kotlin.math.ceil(bounds.right.toDouble()).toInt().coerceIn(left + 1, shot.width)
+            val bottom = kotlin.math.ceil(bounds.bottom.toDouble()).toInt().coerceIn(top + 1, shot.height)
+            val crop = Bitmap.createBitmap(shot, left, top, right - left, bottom - top)
+            try { saveImage(crop, "$name-garment") } finally { crop.recycle() }
+        }
+        } finally { shot.recycle() }
     }
     private fun matrix(group: String, sides: List<JerseyView> = JerseyView.entries) {
         tool("style")
