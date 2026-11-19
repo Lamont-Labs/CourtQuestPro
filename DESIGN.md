@@ -608,3 +608,9 @@ touch spacing, and a single scroll container per surface. The provided reference
 and existing Barlow black/orange theme determine the colors and typography.
 The Android candidate stays on the repository's pinned Compose versions and
 uses platform sheet and selectable semantics.
+
+## Jersey Studio material editor
+
+The Studio keeps the photographed garment above the active tool on a phone. Landscape places the tools beside it. Style thumbnails use the live dye palette. Front/back and detail inspection stay on the garment stage. The header owns Save, and the inspector scrolls independently at enlarged text sizes or with the keyboard open. Selected swatches carry a check and an accessible name. The native choices follow the existing Barlow, charcoal and orange system. The Studio uses the Compose selectable and saveable-state APIs available in this repository's pinned BOM.
+
+Each cut has a separate front and back material plate. Arena retains its approved source lighting. Classic uses a scoop neck with straight taped sides, Fastbreak has a split V with curved performance panels, and Retro uses a squared collar with heritage side tape. The five textile zones are lossless material masks. Lettering uses the fabric shadow and is fitted uniformly to measured glyph bounds. A compact print treatment carries the player's actual number and inks into the dock.

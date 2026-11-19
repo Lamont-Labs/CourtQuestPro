@@ -109,7 +109,8 @@ data class SaveState(
     // Additive, optional local audit history; old v41 saves deserialize with null.
     var recommendationReceipts: MutableList<TrainingRecommendationReceipt>? = null,
     var jerseyDesign: JerseyDesign? = null,
-    var jerseyDoubleZero: Boolean = false
+    var jerseyDoubleZero: Boolean = false,
+    var jerseyNumberText: String? = null
 )
 
 internal val drills = listOf(

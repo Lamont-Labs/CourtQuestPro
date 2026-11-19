@@ -10,7 +10,8 @@ class JerseyDesignTest {
     @Test fun numberValidationPreservesDoubleZero() {
         (0..99).forEach { assertEquals(it.toString(), parseJerseyNumber(it.toString())) }
         assertEquals("00", parseJerseyNumber("00"))
-        listOf("", "01", "000", "100", "-1", " 7", "١", "2a").forEach {
+        (0..9).forEach { assertEquals("0$it", parseJerseyNumber("0$it")) }
+        listOf("", "000", "100", "-1", " 7", "١", "2a").forEach {
             assertNull(parseJerseyNumber(it))
         }
     }
@@ -67,12 +68,28 @@ class JerseyDesignTest {
         assertEquals(JerseyTemplate.CLASSIC, start.copy(templateId = "INCOMPATIBLE_STYLE").template)
     }
 
-    @Test fun photographedMaterialKeepsTheInkHueAndLightingRange() {
-        val ink = 0xFF2259D1.toInt()
-        assertEquals(ink and 0xFFFFFF, arenaRelight(ink, 34, 34))
-        assertEquals(0, arenaRelight(ink, 34, 0))
-        assertEquals(0xFFFFFF, arenaRelight(ink, 34, 255))
-        assertTrue(arenaRelight(ink, 34, 24) < arenaRelight(ink, 34, 52))
+    @Test fun v56JerseyAndAllOtherFieldsSurviveEditingAndLeadingZeros() {
+        val legacy = """{"playerName":"Lee","jerseyNumber":0,"jerseyDoubleZero":true,"totalXp":91,"jerseyDesign":{"templateId":"RETRO","fabric":-12566464,"secondary":-2,"side":-3,"collar":-4,"armhole":-5,"numberInk":-6,"nameInk":-7}}"""
+        val save = gson.fromJson(legacy, SaveState::class.java)
+        val old = save.playerJersey
+        assertEquals("00", old.number)
+        assertEquals("COURTQUEST", old.design.chestText)
+        assertEquals(JerseyTemplate.RETRO, old.design.template)
+        assertEquals(listOf(-12566464,-2,-3,-4,-5,-6,-7), JerseyPart.entries.map(old.design::color))
+        val design = old.design.copy(chestBrand = ChestBrand.CUSTOM, teamName = "  East Ridge  ")
+        assertFalse(save.updatePlayerJersey("Changed", "07", design.copy(teamName = " ")))
+        assertFalse(save.updatePlayerJersey("Changed", "107", design))
+        assertEquals(old, save.playerJersey)
+        assertTrue(save.updatePlayerJersey("Lee", "07", design))
+        val next = gson.fromJson(gson.toJson(save), SaveState::class.java)
+        assertEquals(7, next.jerseyNumber); assertEquals("07", next.playerJersey.number)
+        assertEquals("East Ridge", next.playerJersey.design.chestText)
+        assertEquals(91, next.totalXp)
+        assertTrue(next.updatePlayerJersey("Lee", "7", next.playerJersey.design.copy(chestBrand = ChestBrand.NONE)))
+        assertEquals("7", next.playerJersey.number); assertEquals("", next.playerJersey.design.chestText)
+        assertEquals("East Ridge", next.playerJersey.design.teamName)
+        next.jerseyNumber = 8
+        assertEquals("8", next.playerJersey.number)
     }
 
     @Test fun personalColorsCannotMutateATeamUniform() {

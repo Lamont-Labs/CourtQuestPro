@@ -4,10 +4,14 @@ import java.util.Locale
 import kotlin.math.pow
 
 enum class JerseyTemplate(val label: String, val detail: String) {
-    CLASSIC("Classic", "Scoop collar and straight side piping"),
-    FASTBREAK("Fastbreak", "V-neck and angled racing stripes"),
-    RETRO("Retro", "Square collar and stepped side panels"),
-    ARENA("Arena", "Photographic mesh with contrast piping")
+    CLASSIC("Classic", "Scoop neck · fine varsity mesh"),
+    FASTBREAK("Fastbreak", "Split V-neck · ventilated speed panels"),
+    RETRO("Retro", "Square neck · heritage side tape"),
+    ARENA("Arena", "Deep V-neck · sculpted pro mesh")
+}
+
+enum class ChestBrand(val label: String) {
+    COURTQUEST("COURTQUEST"), CUSTOM("Custom team name"), NONE("No text")
 }
 
 enum class JerseyPart(val label: String) {
@@ -23,7 +27,9 @@ data class JerseyDesign(
     val collar: Int = 0xFFFF6F27.toInt(),
     val armhole: Int = 0xFFFF6F27.toInt(),
     val numberInk: Int = 0xFFFF9D55.toInt(),
-    val nameInk: Int = 0xFFFFF4E8.toInt()
+    val nameInk: Int = 0xFFFFF4E8.toInt(),
+    val chestBrand: ChestBrand? = ChestBrand.COURTQUEST,
+    val teamName: String? = null
 ) {
     companion object {
         fun arena() = JerseyDesign(
@@ -40,6 +46,13 @@ data class JerseyDesign(
 
     val template: JerseyTemplate
         get() = JerseyTemplate.entries.firstOrNull { it.name == templateId } ?: JerseyTemplate.CLASSIC
+
+    val branding: ChestBrand get() = chestBrand ?: ChestBrand.COURTQUEST
+    val chestText: String get() = when (branding) {
+        ChestBrand.COURTQUEST -> "COURTQUEST"
+        ChestBrand.CUSTOM -> teamName.orEmpty().trim()
+        ChestBrand.NONE -> ""
+    }
 
     fun color(part: JerseyPart): Int = when (part) {
         JerseyPart.FABRIC -> fabric
@@ -76,25 +89,31 @@ internal data class PlayerJersey(val design: JerseyDesign, val number: String?, 
 internal val SaveState.playerJersey: PlayerJersey
     get() = PlayerJersey(
         jerseyDesign ?: JerseyDesign.arena(),
-        jerseyNumber?.takeIf { it in 0..99 }?.let { if (it == 0 && jerseyDoubleZero) "00" else it.toString() },
+        jerseyNumber?.takeIf { it in 0..99 }?.let { numeric ->
+            jerseyNumberText?.takeIf { parseJerseyNumber(it)?.toInt() == numeric }
+                ?: if (numeric == 0 && jerseyDoubleZero) "00" else numeric.toString()
+        },
         playerName
     )
 
 internal fun SaveState.updatePlayerJersey(name: String, number: String, design: JerseyDesign): Boolean {
     val parsedNumber = if (number.isEmpty()) null else parseJerseyNumber(number) ?: return false
     val normalizedName = name.trim()
-    if (normalizedName.length > 40 || (normalizedName.isBlank() && playerName.isNotBlank())) return false
+    if ((normalizedName != playerName.trim() && normalizedName.length > 40) ||
+        (normalizedName.isBlank() && playerName.isNotBlank())) return false
+    val team = design.teamName.orEmpty().trim()
+    if (team.length > 32 || (design.branding == ChestBrand.CUSTOM && team.isEmpty())) return false
     playerName = normalizedName
     jerseyNumber = parsedNumber?.toInt()
     jerseyDoubleZero = parsedNumber == "00"
-    jerseyDesign = design
+    jerseyNumberText = parsedNumber
+    jerseyDesign = design.copy(teamName = team.ifEmpty { null })
     return true
 }
 
 internal fun parseJerseyNumber(value: String): String? =
     value.takeIf {
-        it == "00" || (it.length in 1..2 && it.all { character -> character in '0'..'9' } &&
-            (it.length == 1 || it.first() != '0'))
+        it.length in 1..2 && it.all { character -> character in '0'..'9' }
     }
 
 internal fun parseJerseyColor(value: String): Int? {

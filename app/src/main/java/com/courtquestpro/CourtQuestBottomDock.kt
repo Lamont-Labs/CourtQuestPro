@@ -70,7 +70,7 @@ internal fun CourtQuestBottomDock(selected: PlayerTab, jersey: PlayerJersey, cus
                         verticalArrangement = Arrangement.Center) {
                     Box(contentAlignment = Alignment.Center) {
                     if (tab == PlayerTab.ME && customizedJersey) {
-                        CourtJerseyArtwork(jersey.copy(number = null), Modifier.size(40.dp))
+                        CourtJerseyArtwork(jersey, Modifier.size(40.dp), compactMark = true)
                     } else if (atlas != null) {
                         // Retain the original artwork, sized for a low-profile labeled dock.
                         NavigationSpriteArtwork(
@@ -89,21 +89,6 @@ internal fun CourtQuestBottomDock(selected: PlayerTab, jersey: PlayerJersey, cus
                         }
                         Icon(fallback, contentDescription = null, modifier = Modifier.size(30.dp),
                             tint = if (active) CourtQuestDesign.accent else CourtQuestDesign.textSecondary)
-                    }
-                    if (tab == PlayerTab.ME && customizedJersey && !jersey.number.isNullOrBlank()) {
-                        // Printed chest mark: small, quiet and fully inside the jersey silhouette.
-                        // Scale against density, not system font size, to preserve dock proportions.
-                        val density = LocalDensity.current
-                        val chestInk = with(density) { 8.dp.toSp() }
-                        Box(Modifier.align(Alignment.Center).offset(y = 1.dp),
-                            contentAlignment = Alignment.Center) {
-                            Text(jersey.number, color = Color.Black.copy(alpha = .78f),
-                                fontFamily = CourtDisplay, fontWeight = FontWeight.Black,
-                                fontSize = chestInk, lineHeight = chestInk, maxLines = 1)
-                            Text(jersey.number, color = Color.White,
-                                fontFamily = CourtDisplay, fontWeight = FontWeight.Black,
-                                fontSize = chestInk, lineHeight = chestInk, maxLines = 1)
-                        }
                     }
                     }
                     if (showLabels) Text(tab.label,
