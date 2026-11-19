@@ -1,0 +1,133 @@
+{
+  "poses": {
+    "standing": {
+      "file": "standing-footwear.pcmat",
+      "sha256": "1c11c876bbd645c5c9a71f407e24086122e656adf3f6585cf76ad936f2a45e47",
+      "layers": 4,
+      "feet": [
+        [
+          350,
+          890,
+          453,
+          989
+        ],
+        [
+          569,
+          890,
+          681,
+          989
+        ]
+      ]
+    },
+    "dribbling": {
+      "file": "dribbling-footwear.pcmat",
+      "sha256": "822f47e3917876954791d6e42c5db8cabb11a37bbbfbcaae79dc403e27792632",
+      "layers": 4,
+      "feet": [
+        [
+          208,
+          849,
+          338,
+          992
+        ],
+        [
+          549,
+          821,
+          704,
+          963
+        ]
+      ]
+    },
+    "action": {
+      "file": "action-footwear.pcmat",
+      "sha256": "502dcc6bef8c088942c829125352b3ea8c5d4bd43a73c3ab873798591e7eb4c0",
+      "layers": 4,
+      "feet": [
+        [
+          299,
+          894,
+          406,
+          1024
+        ],
+        [
+          516,
+          565,
+          690,
+          688
+        ]
+      ]
+    },
+    "ready": {
+      "file": "ready-footwear.pcmat",
+      "sha256": "daa73ef3d3923917f9c3fe8b53751128d92bcd1b5890d1ed9785e3f718e62f68",
+      "layers": 4,
+      "feet": [
+        [
+          331,
+          846,
+          435,
+          961
+        ],
+        [
+          580,
+          847,
+          679,
+          961
+        ]
+      ]
+    },
+    "followthrough": {
+      "file": "followthrough-footwear.pcmat",
+      "sha256": "3d54997ca3d813f0cf999c4d5a761058650b986283fb8436b2f93083b15d40b1",
+      "layers": 4,
+      "feet": [
+        [
+          367,
+          868,
+          451,
+          974
+        ],
+        [
+          551,
+          867,
+          646,
+          974
+        ]
+      ]
+    }
+  },
+  "parts": {
+    "hair-curls": {
+      "file": "hair-curls.webp",
+      "sha256": "f1d3bccd88b796fa08f8520ba2e689b5f6f5afd98ec8ba27e017322dbd4a75d9"
+    },
+    "hair-afro": {
+      "file": "hair-afro.webp",
+      "sha256": "93b6eb3d3d5d031cc147c409c5a76e506837064e67901a4a7f3051b986353394"
+    },
+    "hair-locs": {
+      "file": "hair-locs.webp",
+      "sha256": "757852c07411824b1f717ca228c4332f0231078c7bd9c6560d6dd269775709d6"
+    },
+    "hair-braids": {
+      "file": "hair-braids.webp",
+      "sha256": "a5158a5846edbe92a00670e0eec9acf4f84680ea0553329810526462d7ded1b3"
+    },
+    "footwear-original": {
+      "file": "footwear-original.webp",
+      "sha256": "4cd826fcf231e51f0c8f1db3758b93fcb4bfa79578e3330ea19507ad301460fd"
+    },
+    "footwear-low": {
+      "file": "footwear-low.webp",
+      "sha256": "1155ec1f421e57ee8ae74bb59f76df8f26dda3fa7b427dbfdd4058eae4b8e953"
+    },
+    "footwear-high": {
+      "file": "footwear-high.webp",
+      "sha256": "d52902b7c36f34800415ba5ed49941c6e18475fdbe9b433ddde8cf36a5908525"
+    },
+    "footwear-strap": {
+      "file": "footwear-strap.webp",
+      "sha256": "a64893ea1f125e77f580a95c1221db109b24745bbce66f0054b5ceebbdef65ce"
+    }
+  }
+}

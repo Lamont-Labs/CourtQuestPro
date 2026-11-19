@@ -18,6 +18,25 @@ OUT = ROOT / "app/src/main/assets/player_cards"
 SOURCES = ROOT / "attached_assets/generated_images"
 
 POSES = {
+    "ready": {
+        "source":"player_card_ready.png",
+        "shirt":[(442,174),(478,158),(514,194),(552,160),(591,177),(591,237),(604,288),(594,356),(594,393),(565,409),(441,408),(421,393),(433,311),(433,241)],
+        "shorts":[(428,416),(592,416),(608,468),(633,628),(590,644),(525,645),(509,552),(493,644),(431,644),(392,630),(410,470)],
+        "collar":[(477,158),(514,193),(552,160),(557,170),(514,207),(472,169)],
+        "arms":[[(442,175),(450,175),(443,238),(438,275),(430,273),(435,236)],[(583,175),(592,177),(592,239),(605,279),(598,284),(584,243)]],
+        "face":[(478,57),(513,43),(547,59),(548,109),(536,141),(514,156),(490,140),(477,108)],
+        "occlusions":[[(377,396),(404,393),(456,417),(455,439),(435,456),(412,444),(391,429)],[(571,406),(625,394),(643,414),(608,448),(585,459),(565,443)]],
+        "print":[449,224,576,226,581,360,443,360],"face_center":[514,101],"face_size":[66,99]
+    },
+    "followthrough": {
+        "source":"player_card_followthrough.png",
+        "shirt":[(480,247),(500,265),(538,283),(566,256),(586,249),(592,300),(594,426),(578,451),(513,455),(459,443),(441,431),(447,364),(447,323),(464,293)],
+        "shorts":[(450,454),(579,462),(593,495),(615,642),(578,657),(524,658),(506,553),(499,657),(450,655),(411,644),(425,533)],
+        "collar":[(497,262),(537,282),(566,254),(573,260),(540,297),(495,275)],
+        "arms":[[(479,247),(487,251),(470,295),(454,335),(447,345),(441,338),(457,293)],[(578,251),(586,249),(593,295),(599,321),(590,325),(583,294)]],
+        "face":[(496,155),(530,143),(560,161),(562,202),(548,239),(532,253),(507,231),(494,198)],
+        "print":[475,311,572,319,576,420,463,412],"face_center":[529,201],"face_size":[63,98]
+    },
     "standing": {
         "source": "player_card_standing.png",
         "shirt": [(429,181),(467,164),(505,195),(547,163),(590,181),(590,244),(598,393),(589,404),(433,406),(421,394),(431,259)],
@@ -72,6 +91,7 @@ def encode(im):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--poses",nargs="+",choices=list(POSES))
     args = parser.parse_args()
     if args.check:
         data = json.loads((OUT / "manifest.json").read_text())
@@ -81,11 +101,12 @@ def main():
                 assert path.is_file(), path
                 assert hashlib.sha256(path.read_bytes()).hexdigest() == entry["sha256"], path
             validate_plate(OUT / f"{pose}.pcmat")
-        print("Verified 3 original athletes, 12 pose/template garment maps, face masks, hashes and image integrity.")
+        print(f"Verified {len(POSES)} athletes, {len(POSES)*4} pose/template garment maps, face masks, hashes and image integrity.")
         return
     OUT.mkdir(parents=True, exist_ok=True)
-    manifest = {"format": 1, "canvas": [1024, 1024], "poses": {}}
+    manifest = json.loads((OUT/"manifest.json").read_text()) if (OUT/"manifest.json").exists() else {"format":1,"canvas":[1024,1024],"poses":{}}
     for pose, info in POSES.items():
+        if args.poses and pose not in args.poses: continue
         source = Image.open(SOURCES / info["source"]).convert("RGBA")
         assert source.size == (1024, 1024)
         assert source.getchannel("A").getextrema() == (0,255), "Source must have genuine transparency"

@@ -39,5 +39,22 @@
       1024
     ],
     "contains_player_or_text": false
+  },
+  "obsidian": {
+    "file": "surface-obsidian.webp",
+    "size": [
+      828,
+      1200
+    ],
+    "bytes": 75068,
+    "sha256": "217f9fc81e3ce3a34555f4603032185be52a966a3a3112aafd535eb70496ae01",
+    "original_generated_source": "card_material_obsidian.png",
+    "crop": [
+      174,
+      8,
+      850,
+      1016
+    ],
+    "contains_player_or_text": false
   }
 }
