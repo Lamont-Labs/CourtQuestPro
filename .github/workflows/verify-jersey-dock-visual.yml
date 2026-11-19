@@ -97,7 +97,7 @@ jobs:
             if [ "$label" != normal ]; then "${adb[@]}" shell pm clear "$pkg"; fi
             "${adb[@]}" shell am instrument -w -e class "$pkg.JerseyStudioTest#customizationRestoresAcrossRecreationAndReturnsToCourt" "$runner" | tee "dist/$label/studio.txt"
             grep -F 'OK (1 test)' "dist/$label/studio.txt"
-            for capture in jersey-studio-front jersey-studio-back jersey-court jersey-dock-compact jersey-style-classic-front jersey-style-fastbreak-front jersey-style-retro-front; do
+            for capture in jersey-style-arena-front jersey-studio-front jersey-studio-back jersey-court jersey-dock-compact jersey-style-classic-front jersey-style-fastbreak-front jersey-style-retro-front; do
               "${adb[@]}" exec-out run-as "$pkg" cat "files/$capture.png" > "dist/$label/$capture.png"
               test -s "dist/$label/$capture.png"
             done
