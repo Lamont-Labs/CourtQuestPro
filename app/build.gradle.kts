@@ -4,16 +4,25 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+val uploadSigning = listOf(
+    "COURTQUEST_UPLOAD_KEYSTORE", "COURTQUEST_UPLOAD_STORE_PASSWORD",
+    "COURTQUEST_UPLOAD_KEY_ALIAS", "COURTQUEST_UPLOAD_KEY_PASSWORD"
+).associateWith { providers.environmentVariable(it).orNull?.takeIf(String::isNotBlank) }
+val hasUploadSigner = uploadSigning.values.all { it != null }
+require(hasUploadSigner || uploadSigning.values.all { it == null }) {
+    "Configure all four COURTQUEST_UPLOAD_* signing inputs together."
+}
+
 android {
     namespace = "com.courtquestpro"
-    compileSdk = 35
+    compileSdk = 36
     buildToolsVersion = "35.0.1"
 
     defaultConfig {
         applicationId = "com.courtquestpro"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 54
+        targetSdk = 36
+        versionCode = 55
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -26,6 +35,18 @@ android {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
         }
+    }
+    if (hasUploadSigner) {
+        val releaseSigner = signingConfigs.create("playUpload") {
+            storeFile = file(uploadSigning.getValue("COURTQUEST_UPLOAD_KEYSTORE")!!)
+            require(storeFile?.isFile == true && storeFile?.canonicalFile != rootProject.file("signing/debug.keystore").canonicalFile) {
+                "Supply the authorized Play upload keystore outside the repository's development signer."
+            }
+            storePassword = uploadSigning.getValue("COURTQUEST_UPLOAD_STORE_PASSWORD")
+            keyAlias = uploadSigning.getValue("COURTQUEST_UPLOAD_KEY_ALIAS")
+            keyPassword = uploadSigning.getValue("COURTQUEST_UPLOAD_KEY_PASSWORD")
+        }
+        buildTypes.getByName("release").signingConfig = releaseSigner
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -42,13 +63,11 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-    implementation("androidx.webkit:webkit:1.12.1")
     implementation("com.google.code.gson:gson:2.11.0")
 
     // Owner-approved premium flow toolkit. Keep these compatible with Kotlin 2.0.21
     // and Compose BOM 2024.12.01; see docs/tooling/PREMIUM_FLOW_TOOLKIT.md.
     implementation("com.airbnb.android:lottie-compose:6.7.1")
-    implementation("com.canopas.intro-showcase-view:introshowcaseview:2.0.2")
     implementation("dev.chrisbanes.haze:haze:1.1.1")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation(platform("androidx.compose:compose-bom:2024.12.01"))
