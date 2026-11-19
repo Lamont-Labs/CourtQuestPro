@@ -156,12 +156,31 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val gson = remember { Gson() }
     val prefs = remember { context.getSharedPreferences("court_quest_pro", 0) }
+    val savedProfile = remember(prefs, gson) {
+        runCatching { readLocalPlayerState(gson, prefs.getString("state", null)) }
+    }
+    if (savedProfile.isFailure) {
+        CourtQuestTheme {
+            CourtQuestScene {
+                Column(
+                    Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)
+                        .verticalScroll(rememberScrollState()).padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    CourtHeading("Saved data couldn’t open")
+                    Text(
+                        "CourtQuest Pro kept your saved data. Keep the app installed and contact CourtQuest Pro support for help.",
+                        color = CourtQuestDesign.textSecondary,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+        }
+        return
+    }
     var save by remember {
         mutableStateOf(
-            runCatching {
-                val raw = prefs.getString("state", null)
-                if (raw == null) SaveState() else gson.fromJson(raw, SaveState::class.java) ?: SaveState()
-            }.getOrDefault(SaveState()),
+            savedProfile.getOrThrow(),
             // refresh publishes a deep copy of an already-mutated save.
             // Referential equality keeps preferences and scores observable.
             referentialEqualityPolicy()
@@ -455,7 +474,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     CourtQuestBottomDock(
                         selected = PlayerNavigation.tab(routeHistory),
                         jersey = save.playerJersey,
-                        customizedJersey = save.jerseyDesign != null,
+                        customizedJersey = save.jerseyDesign != null || save.playerJersey.number != null,
                         onSelect = ::selectPlayerTab,
                         spotlightTab = tourIndex?.let { SoloNavigationTour.tabs[it] }
                     )
@@ -544,7 +563,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                                 DrillScreen(step.drill, index + 1, false,
                                     save.drillResults.orEmpty().filter { it.drillSnapshot == step.drill && it.measurementSnapshot == step.measurement }, draft,
                                     onDraft = { if (MissionTraining.update(save, session.id, it)) persist() },
-                                    onVideo = { openUrl("https://www.youtube.com/results?search_query=" + Uri.encode(step.drill.videoQuery)) },
+                                    onVideo = { openUrl("https://www.youtube.com/results?search_query=" + Uri.encode(demonstrationSearchQuery(step.drill))) },
                                     onComplete = { _, _ ->
                                         val completedAt = Instant.now()
                                         val completedDate = completedAt.atZone(ZoneId.systemDefault()).toLocalDate().toString()
@@ -579,7 +598,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         if (session != null && drill != null) {
                             DrillScreen(drill, 0, false, save.drillResults.orEmpty().filter { it.drillId == drill.id }, session.draft,
                                 onDraft = { if (TrainingLibrary.updatePracticeDraft(save, it)) persist() },
-                                onVideo = { openUrl("https://www.youtube.com/results?search_query=" + Uri.encode(drill.videoQuery)) },
+                                onVideo = { openUrl("https://www.youtube.com/results?search_query=" + Uri.encode(demonstrationSearchQuery(drill))) },
                                 onComplete = { _, _ ->
                                     val result = TrainingLibrary.finishPractice(save, session.id, today)
                                     if (result != null) {
@@ -613,7 +632,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                                 persist()
                                 }
                             },
-                            onVideo = { openUrl("https://www.youtube.com/results?search_query=" + Uri.encode(drill.videoQuery)) },
+                            onVideo = { openUrl("https://www.youtube.com/results?search_query=" + Uri.encode(demonstrationSearchQuery(drill))) },
                             onComplete = { completed, attempted ->
                                 val current = save.slots.getOrNull(selectedSlot)
                                 val confirmed = save.drillDrafts.orEmpty().any {

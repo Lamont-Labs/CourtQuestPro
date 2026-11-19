@@ -1,6 +1,7 @@
 package com.courtquestpro
 
 import java.time.LocalDate
+import java.util.Locale
 import java.util.UUID
 import kotlin.random.Random
 
@@ -9,6 +10,14 @@ data class DrillInput(val title: String, val category: String, val level: String
 data class UserDrill(val drill: Drill, val familyId: String, val archived: Boolean = false)
 data class PracticeSession(val id: String, val drillId: String, val date: String, val draft: DrillDraft)
 data class DrillSuggestion(val drill: Drill, val reason: String)
+
+/** Never put a player's custom drill title or instructions into an external request. */
+internal fun demonstrationSearchQuery(drill: Drill): String =
+    drills.firstOrNull { it.id == drill.id }?.videoQuery ?: run {
+        val category = TrainingLibrary.categories.firstOrNull { it == drill.category }
+            ?.lowercase(Locale.ROOT) ?: "skills"
+        "basketball $category drill"
+    }
 
 internal object TrainingLibrary {
     val categories = listOf("Shooting", "Ball Handling", "Finishing", "Defense", "Rebounding", "Passing")

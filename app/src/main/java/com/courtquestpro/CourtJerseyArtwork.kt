@@ -122,8 +122,9 @@ internal fun CourtJerseyArtwork(
                     template == JerseyTemplate.FASTBREAK -> .565f
                     else -> .548f
                 }
-                val scale = if (front) .215f else .267f
-                mark(it, baseline, scale, if (front) .46f else .56f, design.numberInk, false,
+                val scale = if (compact) .26f else if (front) .215f else .267f
+                val limit = if (compact) .6f else if (front) .46f else .56f
+                mark(it, baseline, scale, limit, design.numberInk, false,
                     if (compact) null else design.side)
             }
         }
