@@ -45,6 +45,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist
+          echo "${ANDROID_HOME}/platform-tools" >> "$GITHUB_PATH"
           "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;35.0.1'
           curl --fail --silent --show-error --location --retry 3 \
             https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar \
@@ -169,8 +170,18 @@ jobs:
           adb shell cmd connectivity airplane-mode disable
           for trial in 1 2 3; do adb shell am start -W -S -n "$pkg/.MainActivity"; done > dist/startup-samples.txt
           adb shell dumpsys meminfo "$pkg" > dist/process-memory.txt
-          cp app/build/outputs/apk/debug/app-debug.apk dist/CourtQuestPro-Update-v55.apk
+          mv dist/CourtQuestPro-1.0.apk dist/CourtQuestPro-Update-v55.apk
           (cd dist && sha256sum CourtQuestPro-Update-v55.apk > CourtQuestPro-Update-v55.apk.sha256)
+          cp dist/CourtQuestPro-Update-v55.apk.sha256 dist/SHA256SUMS.txt
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          manifest = Path('dist/apk-manifest.json')
+          report = json.loads(manifest.read_text())
+          report['apk_filename'] = 'CourtQuestPro-Update-v55.apk'
+          report['checks']['emulator_test'] = 'PASS_ANDROID_16_UPGRADE_AND_CORE_JOURNEYS'
+          manifest.write_text(json.dumps(report, indent=2) + '\n')
+          PY
       - name: Sign and verify owner-authorized Play upload bundle
         if: github.event_name == 'workflow_dispatch' && inputs.sign_play_upload
         env:
