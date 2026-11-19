@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'dev/**'
+      - '!dev/play-production-candidate'
       - 'integration/gpt-work-v48-review'
       - 'repair/premium-flow-stabilization'
   pull_request:

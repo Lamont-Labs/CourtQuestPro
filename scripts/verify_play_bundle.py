@@ -50,8 +50,12 @@ def main():
     permissions = sorted(tag.get(f"{ANDROID}name", "") for tag in manifest.findall("uses-permission"))
     check(set(permissions) <= {f"{PACKAGE}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"},
           f"Unexpected permissions: {permissions}")
-    exported = [node.get(f"{ANDROID}name") for node in application if node.get(f"{ANDROID}exported") == "true"]
-    check(exported == ["com.courtquestpro.MainActivity"], f"Unexpected exported components: {exported}")
+    exported = {node.get(f"{ANDROID}name"): node.get(f"{ANDROID}permission")
+                for node in application if node.get(f"{ANDROID}exported") == "true"}
+    allowed = {"com.courtquestpro.MainActivity": None,
+               "androidx.profileinstaller.ProfileInstallReceiver": "android.permission.DUMP"}
+    check("com.courtquestpro.MainActivity" in exported and exported.items() <= allowed.items(),
+          f"Unexpected exported components or permissions: {exported}")
     with zipfile.ZipFile(args.bundle) as archive, tempfile.TemporaryDirectory() as directory:
         check(archive.testzip() is None, "Bundle ZIP integrity failure")
         libraries = sorted(name for name in archive.namelist() if re.fullmatch(r"base/lib/[^/]+/[^/]+\.so", name))

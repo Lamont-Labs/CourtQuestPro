@@ -1,6 +1,7 @@
 package com.courtquestpro
 
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.foundation.layout.*
@@ -22,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.delay
 import androidx.compose.ui.graphics.Color
@@ -253,7 +253,7 @@ private fun DrillSessionTimer(minutes: Int, initialRemaining: Int, sessionId: St
     val initialSeconds = minutes.coerceAtLeast(1) * 60
     var remaining by remember(sessionId) { mutableIntStateOf(initialRemaining.coerceIn(0, initialSeconds)) }
     var running by remember(sessionId) { mutableStateOf(false) }
-    val lifecycle = (LocalContext.current as? ComponentActivity)?.lifecycle
+    val lifecycle = (LocalActivity.current as? ComponentActivity)?.lifecycle
     DisposableEffect(lifecycle, sessionId) {
         val pauseOnBackground = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_STOP) running = false

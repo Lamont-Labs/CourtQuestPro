@@ -59,8 +59,8 @@ class TrainingEntryTest {
         }
         click("dock-career")
         node("progress-screen-title").assertIsDisplayed()
-        node("progress-record-sessions").assert(hasAnyDescendant(hasText("1")))
         captureDeviceFrame(compose.activity, "store-progress")
+        node("progress-record-sessions").performScrollTo().assert(hasAnyDescendant(hasText("1")))
         click("dock-quests")
         node("quests-screen-title").assertIsDisplayed()
         captureDeviceFrame(compose.activity, "store-quests")

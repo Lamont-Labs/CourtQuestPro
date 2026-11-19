@@ -6,6 +6,7 @@ on:
       - 'app/**'
       - 'gradle/**'
       - 'build.gradle.kts'
+      - 'settings.gradle.kts'
       - 'scripts/**'
       - '.github/workflows/android-play-candidate.yml'
   workflow_dispatch:
@@ -27,6 +28,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 55
     env:
+      COURTQUEST_CI_MAVEN_MIRROR: "true"
       ANDROID_AVD_HOME: /tmp/courtquest-avd
       ANDROID_SERIAL: emulator-5562
       GH_TOKEN: ${{ github.token }}
@@ -124,8 +126,8 @@ jobs:
           adb shell settings put global animator_duration_scale 0
           adb shell settings put global window_animation_scale 0
           adb shell settings put global transition_animation_scale 0
-          adb shell wm density 320
-          adb shell wm size 720x1600
+          adb shell wm density 480
+          adb shell wm size 1080x1920
           adb shell cmd connectivity airplane-mode enable
           smoke() {
             adb shell am instrument -w -e class "$pkg.$1" "$runner" | tee "$2"
@@ -149,6 +151,7 @@ jobs:
             done
           done
           capture dist/store store-court
+          adb shell wm density 320
           for config in 'normal 720x1600 1.0' 'compact 640x1440 1.3' 'large 640x1440 2.0'; do
             read -r label size scale <<< "$config"
             mkdir -p "dist/$label"

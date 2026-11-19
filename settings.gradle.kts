@@ -1,9 +1,22 @@
 pluginManagement {
-    repositories { google(); mavenCentral(); gradlePluginPortal() }
+    repositories {
+        google()
+        if (System.getenv("COURTQUEST_CI_MAVEN_MIRROR") == "true") {
+            maven { url = uri("https://maven-central.storage-download.googleapis.com/maven2/") }
+        }
+        mavenCentral()
+        gradlePluginPortal()
+    }
 }
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories { google(); mavenCentral() }
+    repositories {
+        google()
+        if (System.getenv("COURTQUEST_CI_MAVEN_MIRROR") == "true") {
+            maven { url = uri("https://maven-central.storage-download.googleapis.com/maven2/") }
+        }
+        mavenCentral()
+    }
 }
 rootProject.name = "CourtQuestPro"
 include(":app")

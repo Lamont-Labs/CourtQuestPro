@@ -2,11 +2,11 @@
 
 Native Android basketball training and one-on-one scorekeeping, built with Kotlin and Jetpack Compose.
 
-## Install the current development build
+## Android phone testing and Play preparation
 
-[Download CourtQuestPro-Android-debug.apk — Signature build 7](https://github.com/Lamont-Labs/CourtQuestPro/releases/download/courtquest-dev-2026-11-05/CourtQuestPro-Android-debug.apk?build=7)
+The latest published phone-test baseline is [CourtQuest Pro v54](https://github.com/Lamont-Labs/CourtQuestPro/releases/tag/courtquest-phone-update-v54). It installs on Android 8.0 or newer as `com.courtquestpro` using the established development certificate. The published release contains a checksum and the v53-to-v54 emulator upgrade receipt.
 
-Open the APK on Android 8.0 or newer and choose Install/Update over the existing app. Version **1.0 (7)**; 20,988,666 bytes. The original package `com.courtquestpro` and development signer are preserved. The in-place Android update test retained its profile and saved history.
+The API 36 candidate uses version code 55. Its Android verification and upload-key workflow is in [Android Play candidate](.github/workflows/android-play-candidate.yml). Read the [engineering audit](docs/release/ENGINEERING_AUDIT.md), [store listing package](docs/release/play-store/LISTING.md) and [Play Console worksheet](docs/release/play-store/PLAY_CONSOLE.md). CourtQuest Pro stores player records locally and currently ships the solo-player experience.
 
 ## Signature training journey
 
@@ -16,7 +16,7 @@ Receipts show actual successful/attempted counts, awarded XP, the named next dri
 
 The **Drills** destination retains custom drills, search/skill filters, favorites, explained suggestions, protected swaps/shuffling and independent extra practice. Custom targets accept 1–500 successful actions; planned minutes accept 1–60 and remain the training clock. Editing creates a new definition; queued work and history preserve the original target/instructions. Archival removes future selection while retaining saved work. An unfinished practice must be resumed, finished or explicitly discarded before replacement.
 
-## Verification
+## Historical verification — Signature build 7
 
 | Check | Published build 7 |
 | --- | --- |
@@ -45,7 +45,7 @@ CQ-PREMIUM-001, the first native journey, is delivered. Next is the versioned Mi
 
 ## Build and preservation
 
-JDK 17, SDK 35/build-tools 35.0.1, Gradle 8.9, AGP 8.7.3, Kotlin 2.0.21, Compose BOM 2024.12.01, minimum SDK 26. Haze 1.1.1, Lottie Compose 6.7.1 and Intro Showcase 2.0.2 remain pinned.
+JDK 17, SDK 36/build-tools 35.0.1, Gradle 8.11.1, AGP 8.10.1, Kotlin 2.0.21, Compose BOM 2024.12.01, minimum SDK 26. Haze 1.1.1 and Lottie Compose 6.7.1 remain pinned.
 
 ```bash
 ./gradlew --no-daemon --console=plain :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
@@ -55,7 +55,7 @@ python3 scripts/verify_apk.py \
   --output artifacts/apk-verification
 ```
 
-Active implementation: `dev/premium-flow-toolkit`. Authorized delivery: `dev/scorekeeper-undo-history`. Main remains separate. The publisher checks successful native provenance and matching app source, then uploads the exact tested artifact without rebuilding it.
+Active release engineering continues on `dev/play-production-candidate` from the v54 release branch. The phone-test APK and the Play App Bundle use separate signing configurations.
 
 Profiles, plans, XP, custom definitions/favorites, practice, drafts/results, matches and corrections are stored locally. No connected sync or independently verified skill is implied. Drill demonstrations open external YouTube searches. Barlow fonts retain their SIL Open Font License in `app/src/main/res/raw/barlow_ofl.txt`. Clean Signature contours/renders and their source hashes are in `tools/branding/`.
 
