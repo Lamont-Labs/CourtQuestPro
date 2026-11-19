@@ -90,17 +90,19 @@ internal fun CourtQuestBottomDock(selected: PlayerTab, jersey: PlayerJersey, cus
                         Icon(fallback, contentDescription = null, modifier = Modifier.size(30.dp),
                             tint = if (active) CourtQuestDesign.accent else CourtQuestDesign.textSecondary)
                     }
-                    if (tab == PlayerTab.ME && customizedJersey && jersey.number != null) {
-                        // Number belongs on the jersey chest, not in a detached badge.
-                        // Dual-layer ink gives contrast at dock scale without extra chrome.
-                        Box(Modifier.align(Alignment.Center).offset(y = 2.dp),
+                    if (tab == PlayerTab.ME && customizedJersey && !jersey.number.isNullOrBlank()) {
+                        // Printed chest mark: small, quiet and fully inside the jersey silhouette.
+                        // Scale against density, not system font size, to preserve dock proportions.
+                        val density = LocalDensity.current
+                        val chestInk = with(density) { 8.dp.toSp() }
+                        Box(Modifier.align(Alignment.Center).offset(y = 1.dp),
                             contentAlignment = Alignment.Center) {
-                            Text(jersey.number, color = Color.Black,
+                            Text(jersey.number, color = Color.Black.copy(alpha = .78f),
                                 fontFamily = CourtDisplay, fontWeight = FontWeight.Black,
-                                fontSize = 13.sp, lineHeight = 13.sp, maxLines = 1)
+                                fontSize = chestInk, lineHeight = chestInk, maxLines = 1)
                             Text(jersey.number, color = Color.White,
                                 fontFamily = CourtDisplay, fontWeight = FontWeight.Black,
-                                fontSize = 10.sp, lineHeight = 11.sp, maxLines = 1)
+                                fontSize = chestInk, lineHeight = chestInk, maxLines = 1)
                         }
                     }
                     }
