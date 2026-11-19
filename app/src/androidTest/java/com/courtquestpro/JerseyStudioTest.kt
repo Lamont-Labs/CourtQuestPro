@@ -167,13 +167,20 @@ class JerseyStudioTest {
             // Repeat the identical warm-cache workload to expose emulator
             // timing variance instead of treating one noisy pass as a trend.
             repeat(3) { pass ->
+                val frameStart = synchronized(timings) { timings.size }
+                val drawStart = synchronized(drawTimes) { drawTimes.size }
+                val gpuStart = synchronized(gpuTimes) { gpuTimes.size }
                 repeat(36) { i -> choose("jersey-swatch-${palette[i % palette.size]}"); frame() }
                 compose.waitForIdle()
+                // Capture only this pass, not the cumulative measurements.
+                val passFrames = synchronized(timings) { timings.drop(frameStart) }
+                val passDraw = synchronized(drawTimes) { drawTimes.drop(drawStart) }
+                val passGpu = synchronized(gpuTimes) { gpuTimes.drop(gpuStart) }
                 File(out, "performance-pass-${pass + 1}.json").writeText(
-                    Gson().toJson(mapOf("pass" to pass + 1, "frames_so_far" to timings.size,
-                        "total_p95_ms" to percentile95(timings),
-                        "draw_p95_ms" to percentile95(drawTimes),
-                        "gpu_p95_ms" to percentile95(gpuTimes)))
+                    Gson().toJson(mapOf("pass" to pass + 1, "frames" to passFrames.size,
+                        "total_p95_ms" to percentile95(passFrames),
+                        "draw_p95_ms" to percentile95(passDraw),
+                        "gpu_p95_ms" to percentile95(passGpu)))
                 )
             }
             val taps = palette.map { node("jersey-swatch-$it").fetchSemanticsNode().config[SemanticsActions.OnClick].action!! }
