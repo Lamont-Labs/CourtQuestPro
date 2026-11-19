@@ -162,7 +162,10 @@ class JerseyStudioTest {
         if (has("tour-skip")) tap("tour-skip")
         choose("me-player-card-studio")
         wait("player-card-preview")
-        choose("player-card-style-classic")
+        // Surface merges child semantics; target the visible label rather than a tag
+        // that can be lost when clickable Surface builds its semantics node.
+        compose.onNodeWithText("Court Classic", useUnmergedTree = true)
+            .performScrollTo().performClick()
         node("player-card-save").assertIsEnabled().performClick()
         node("player-card-save").assertIsNotEnabled()
         compose.activityRule.scenario.recreate()
