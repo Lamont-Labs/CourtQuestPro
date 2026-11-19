@@ -2,6 +2,7 @@ package com.courtquestpro
 
 import android.graphics.Bitmap
 import android.os.Build
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
@@ -72,6 +73,47 @@ class JerseyStudioTest {
         node("court-player-jersey").assertContentDescriptionEquals("Front of Arena jersey, number 00")
     }
 
+    @Test fun allStylesRenderBothSidesAndKeepThePrintedNumberInTheDock() {
+        assertTrue("Use a disposable Android emulator", Build.HARDWARE.contains("ranchu"))
+        if (has("welcome-continue-guest")) click("welcome-continue-guest")
+        else if (has("welcome-get-started")) click("welcome-get-started")
+        compose.waitUntil(timeoutMillis = 15_000) { has("dock-me") }
+        if (has("tour-skip")) click("tour-skip")
+        click("dock-me")
+        node("me-jersey-studio").performScrollTo().performClick()
+        node("jersey-number").performScrollTo().performTextReplacement("28")
+        node("jersey-name").performScrollTo().performTextReplacement("Jordan Reed")
+        JerseyTemplate.entries.forEach { template ->
+            click("segment-jersey-editor-style", scroll = true)
+            click("segment-${template.name.lowercase()}", scroll = true)
+            for (side in JerseyView.entries) {
+                click("segment-${side.label.lowercase()}", scroll = true)
+                val description = "${side.label} of ${template.label} jersey, number 28" +
+                    if (side == JerseyView.BACK) ", Jordan Reed" else ""
+                node("jersey-preview").performScrollTo().assertContentDescriptionEquals(description)
+                awaitGarment()
+                capture("store-${template.name.lowercase()}-${side.label.lowercase()}")
+            }
+        }
+        click("segment-classic", scroll = true)
+        node("jersey-save").assertIsEnabled().performClick()
+        click("jersey-close", scroll = true)
+        compose.waitUntil(timeoutMillis = 15_000) { has("dock-home") }
+        click("dock-home")
+        node("court-player-jersey").assertContentDescriptionEquals("Front of Classic jersey, number 28")
+        awaitGarment()
+        capture("store-court")
+    }
+
+    private fun awaitGarment() {
+        compose.waitUntil(timeoutMillis = 15_000) {
+            val ready = compose.onAllNodes(
+                SemanticsMatcher.expectValue(JerseyArtworkReady, true), useUnmergedTree = true
+            ).fetchSemanticsNodes()
+            ready.any { it.size.height > 160 }
+        }
+    }
+
     private fun assertSavedJersey() {
         val prefs = compose.activity.getSharedPreferences("court_quest_pro", 0)
         compose.runOnIdle {
@@ -87,6 +129,7 @@ class JerseyStudioTest {
         compose.waitForIdle()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         instrumentation.waitForIdleSync()
+        instrumentation.uiAutomation.waitForIdle(100, 2500)
         val image = instrumentation.uiAutomation.takeScreenshot()
         checkNotNull(image).usePng(name + ".png")
     }
