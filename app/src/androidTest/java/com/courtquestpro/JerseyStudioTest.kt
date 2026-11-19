@@ -164,7 +164,18 @@ class JerseyStudioTest {
         assertNotNull(plate)
         compose.runOnUiThread { window.addOnFrameMetricsAvailableListener(listener, Handler(thread.looper)) }
         try {
-            repeat(36) { i -> choose("jersey-swatch-${palette[i % palette.size]}"); frame() }
+            // Repeat the identical warm-cache workload to expose emulator
+            // timing variance instead of treating one noisy pass as a trend.
+            repeat(3) { pass ->
+                repeat(36) { i -> choose("jersey-swatch-${palette[i % palette.size]}"); frame() }
+                compose.waitForIdle()
+                File(out, "performance-pass-${pass + 1}.json").writeText(
+                    Gson().toJson(mapOf("pass" to pass + 1, "frames_so_far" to timings.size,
+                        "total_p95_ms" to percentile95(timings),
+                        "draw_p95_ms" to percentile95(drawTimes),
+                        "gpu_p95_ms" to percentile95(gpuTimes)))
+                )
+            }
             val taps = palette.map { node("jersey-swatch-$it").fetchSemanticsNode().config[SemanticsActions.OnClick].action!! }
             compose.runOnIdle { repeat(102) { taps[it % taps.size].invoke() } }
             node("jersey-save").assertIsEnabled().performClick(); assertEquals("#B51733", jerseyHex(stored().playerJersey.design.fabric))
