@@ -682,7 +682,9 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     "quests" -> QuestsScreen(save, today, onTraining = { openTraining() }, onBuild = { openMissionBuilder() },
                         onResumeMission = { openMission() }, onProgress = { navigate("career") })
                     "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") },
-                        onWalkthrough = { startNavigationTour() }, onJersey = { navigate("jerseyStudio") })
+                        onWalkthrough = { startNavigationTour() }, onJersey = { navigate("jerseyStudio") },
+                         onPlayerCard = { navigate("playerCardStudio") })
+                    "playerCardStudio" -> PlayerCardStudio(save.playerJersey, save.playerName, onBack = { goBack() })
                     "jerseyStudio" -> CourtJerseyStudio(save.playerJersey, onBack = { goBack() }, onSave = { name, number, design ->
                         val updated = save.updatePlayerJersey(name, number, design)
                         if (updated) {
