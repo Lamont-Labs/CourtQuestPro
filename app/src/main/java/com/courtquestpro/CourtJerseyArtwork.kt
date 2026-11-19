@@ -147,7 +147,9 @@ private fun kitLettering(jersey: PlayerJersey, view: JerseyView, plate: JerseyPl
         val text = (if (front) design.chestText else jersey.name).uppercase(Locale.ROOT)
         val center = if (front) baseline else .204f
         val cap = if (front) .046f else .049f
-        val widthLimit = if (front) .63f else .69f
+        // The actual printable chest/back panel is narrower than the full
+        // bitmap: reserve clear space between the letters and armhole seams.
+        val widthLimit = if (front) .55f else .49f
         val measure = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = font; textSize = 100f }
         val capHeight = android.graphics.Rect().also { measure.getTextBounds("H", 0, 1, it) }.height().coerceAtLeast(1)
         val naturalWidth = measure.measureText(text) * h * cap / capHeight
