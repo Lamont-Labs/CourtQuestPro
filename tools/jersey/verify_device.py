@@ -98,7 +98,9 @@ def main():
         assert ui.shell('pm','clear',ui.PACKAGE) == 'Success'
         run_test('customizationRestoresAcrossRecreationAndReturnsToCourt', folder)
         ui.shell('am','force-stop',ui.PACKAGE); run_test('coldStartRestoresPreviouslySavedJersey', folder)
-        if label == 'normal': run_test('paletteFrameTimingAndRapidInput', folder)
+        if label == 'normal':
+            run_test('paletteFrameTimingAndRapidInput', folder)
+            run_test('playerCardSelectionPersistsAndUsesSavedJersey', folder)
         collect(folder)
         for group, sides in [('default',['front','back']),('custom',['front','back']),('plain',['front'])]:
             for style in ('arena','classic','fastbreak','retro'):
