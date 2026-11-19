@@ -31,15 +31,19 @@ internal enum class PlayerCardStyle(val label: String, val edition: String) {
 internal object PlayerCardSelection {
     private const val PREFS = "courtquest_player_card"
     private const val KEY = "selected_style_v1"
-    fun read(context: Context): PlayerCardStyle =
+    private var current by mutableStateOf<PlayerCardStyle?>(null)
+    fun read(context: Context): PlayerCardStyle = current ?:
         runCatching {
             PlayerCardStyle.valueOf(context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .getString(KEY, PlayerCardStyle.HOLOGRAPHIC.name)!!)
         }.getOrDefault(PlayerCardStyle.HOLOGRAPHIC)
 
-    fun write(context: Context, style: PlayerCardStyle): Boolean =
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+    fun write(context: Context, style: PlayerCardStyle): Boolean {
+        val persisted = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
             .putString(KEY, style.name).commit()
+        if (persisted) current = style
+        return persisted
+    }
 }
 
 @Composable
