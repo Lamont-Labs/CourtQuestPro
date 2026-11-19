@@ -1,0 +1,222 @@
+name: CourtQuest Android Play candidate
+on:
+  push:
+    branches: [dev/play-production-candidate]
+    paths:
+      - 'app/**'
+      - 'gradle/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'scripts/**'
+      - '.github/workflows/android-play-candidate.yml'
+  workflow_dispatch:
+    inputs:
+      sign_play_upload:
+        description: Use the configured, authorized Play upload signer
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+concurrency:
+  group: courtquest-play-candidate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  candidate:
+    if: github.repository == 'Lamont-Labs/CourtQuestPro' && github.ref == 'refs/heads/dev/play-production-candidate'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    env:
+      COURTQUEST_CI_MAVEN_MIRROR: "true"
+      ANDROID_AVD_HOME: /tmp/courtquest-avd
+      ANDROID_SERIAL: emulator-5562
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Prepare verified tooling and source assets
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          echo "${ANDROID_HOME}/platform-tools" >> "$GITHUB_PATH"
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;35.0.1'
+          curl --fail --silent --show-error --location --retry 3 \
+            https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar \
+            --output "$RUNNER_TEMP/bundletool.jar"
+          echo "a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29  $RUNNER_TEMP/bundletool.jar" | sha256sum -c
+          python3 -m pip install 'Pillow==11.3.0'
+          python3 scripts/verify_jersey_materials.py | tee dist/jersey-materials.txt
+          python3 scripts/verify_drill_artwork.py --check
+          python3 -m unittest discover -s scripts -p 'test_android_flow_*.py'
+          python3 -m unittest scripts.test_drill_artwork
+      - name: Compile and test debug and release binaries
+        run: |
+          ./gradlew --no-daemon --console=plain :app:testDebugUnitTest :app:lintRelease \
+            :app:assembleDebug :app:assembleDebugAndroidTest :app:bundleRelease
+          ./gradlew --no-daemon --console=plain :app:dependencies \
+            --configuration releaseRuntimeClasspath > dist/release-runtime-dependencies.txt
+      - name: Audit resolved Maven runtime dependencies
+        run: |
+          python3 scripts/audit_maven_runtime.py dist/release-runtime-dependencies.txt dist/osv-runtime-audit.json
+      - name: Verify unsigned release AAB
+        run: |
+          cp app/build/outputs/bundle/release/app-release.aab dist/CourtQuestPro-v55-UNSIGNED.aab
+          python3 scripts/verify_play_bundle.py --bundle dist/CourtQuestPro-v55-UNSIGNED.aab \
+            --bundletool "$RUNNER_TEMP/bundletool.jar" --version-code 55 \
+            --unsigned --report dist/release-bundle.json
+      - name: Prepare one Android 16 QA emulator
+        run: |
+          set -euo pipefail
+          test -e /dev/kvm
+          sudo chmod 666 /dev/kvm
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" 'system-images;android-36;default;x86_64' emulator
+          mkdir -p "$ANDROID_AVD_HOME"
+          printf 'no\n' | "${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager" create avd \
+            --name CourtQuest_PremiumQA --package 'system-images;android-36;default;x86_64' \
+            --device pixel_2 --path "$ANDROID_AVD_HOME/CourtQuest_PremiumQA.avd"
+          "${ANDROID_HOME}/emulator/emulator" -avd CourtQuest_PremiumQA -port 5562 -no-window -no-audio \
+            -no-snapshot -no-boot-anim -gpu swiftshader_indirect -accel on -cores 2 -memory 3072 > dist/emulator.log 2>&1 &
+          python3 - <<'PY'
+          import subprocess, sys, time
+          sys.path.insert(0, 'scripts')
+          import verify_android_daily_flow as ui
+          for _ in range(120):
+              try:
+                  if ui.shell('getprop', 'sys.boot_completed', timeout=8) == '1':
+                      break
+              except (RuntimeError, subprocess.TimeoutExpired):
+                  pass
+              time.sleep(3)
+          else:
+              raise RuntimeError('Disposable Android 16 QA emulator did not boot')
+          ui.shell('input', 'keyevent', 'KEYCODE_WAKEUP')
+          ui.shell('wm', 'dismiss-keyguard')
+          assert ui.shell('getprop', 'ro.kernel.qemu') == '1'
+          assert ui.shell('getprop', 'ro.build.version.sdk') == '36'
+          PY
+      - name: Validate exact v54 to v55 phone install-over
+        env:
+          COURTQUEST_UI_EVIDENCE: ${{ github.workspace }}/dist/upgrade
+        run: |
+          set -euo pipefail
+          mkdir -p previous dist/upgrade
+          gh release download courtquest-phone-update-v54 --pattern 'CourtQuestPro-Update-v54.apk' \
+            --pattern 'CourtQuestPro-Update-v54.apk.sha256' --dir previous
+          (cd previous && sha256sum --check CourtQuestPro-Update-v54.apk.sha256)
+          candidate=app/build/outputs/apk/debug/app-debug.apk
+          python3 scripts/verify_apk.py --apk "$candidate" --build-tools "${ANDROID_HOME}/build-tools/35.0.1" --output dist
+          python3 scripts/verify_phone_update.py identity --previous previous/CourtQuestPro-Update-v54.apk \
+            --candidate "$candidate" --previous-version 54 --candidate-version 55 \
+            --tools "${ANDROID_HOME}/build-tools/35.0.1" --output dist
+          python3 scripts/verify_phone_update.py upgrade --previous previous/CourtQuestPro-Update-v54.apk \
+            --candidate "$candidate" --previous-version 54 --candidate-version 55 --output dist
+      - name: Test first-run setup, jerseys, dock, walkthrough, and training
+        run: |
+          set -euo pipefail
+          pkg=com.courtquestpro
+          runner="$pkg.test/androidx.test.runner.AndroidJUnitRunner"
+          adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+          test "$(adb emu avd name | head -n1 | tr -d '\r')" = CourtQuest_PremiumQA
+          adb shell settings put global animator_duration_scale 0
+          adb shell settings put global window_animation_scale 0
+          adb shell settings put global transition_animation_scale 0
+          adb shell wm density 480
+          adb shell wm size 1080x1920
+          adb shell cmd connectivity airplane-mode enable
+          smoke() {
+            adb shell am instrument -w -e class "$pkg.$1" "$runner" | tee "$2"
+            grep -F 'OK (1 test)' "$2"
+          }
+          capture() {
+            adb exec-out run-as "$pkg" cat "files/$2.png" > "$1/$2.png"
+            test -s "$1/$2.png"
+          }
+          adb shell pm clear "$pkg"
+          smoke PlayerSetupTest dist/player-setup.txt
+          adb shell pm clear "$pkg"
+          mkdir -p dist/store
+          smoke TrainingEntryTest dist/training.txt
+          for screen in library receipt progress quests; do capture dist/store "store-$screen"; done
+          adb shell pm clear "$pkg"
+          smoke 'JerseyStudioTest#allStylesRenderBothSidesAndKeepThePrintedNumberInTheDock' dist/store/jerseys.txt
+          for style in arena classic fastbreak retro; do
+            for side in front back; do
+              capture dist/store "store-$style-$side"
+            done
+          done
+          capture dist/store store-court
+          adb shell wm density 320
+          for config in 'normal 720x1600 1.0' 'compact 640x1440 1.3' 'large 640x1440 2.0'; do
+            read -r label size scale <<< "$config"
+            mkdir -p "dist/$label"
+            adb shell wm size "$size"
+            adb shell settings put system font_scale "$scale"
+            adb shell pm clear "$pkg"
+            smoke 'JerseyStudioTest#customizationRestoresAcrossRecreationAndReturnsToCourt' "dist/$label/studio.txt"
+            for capture_name in jersey-studio-front jersey-studio-back jersey-court jersey-dock-compact; do
+              capture "dist/$label" "$capture_name"
+            done
+            adb shell am force-stop "$pkg"
+            smoke 'JerseyStudioTest#coldStartRestoresPreviouslySavedJersey' "dist/$label/cold-start.txt"
+            smoke NavigationTourTest "dist/$label/tour.txt"
+          done
+          adb shell cmd connectivity airplane-mode disable
+          for trial in 1 2 3; do adb shell am start -W -S -n "$pkg/.MainActivity"; done > dist/startup-samples.txt
+          adb shell dumpsys meminfo "$pkg" > dist/process-memory.txt
+          mv dist/CourtQuestPro-1.0.apk dist/CourtQuestPro-Update-v55.apk
+          (cd dist && sha256sum CourtQuestPro-Update-v55.apk > CourtQuestPro-Update-v55.apk.sha256)
+          cp dist/CourtQuestPro-Update-v55.apk.sha256 dist/SHA256SUMS.txt
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          manifest = Path('dist/apk-manifest.json')
+          report = json.loads(manifest.read_text())
+          report['apk_filename'] = 'CourtQuestPro-Update-v55.apk'
+          report['checks']['emulator_test'] = 'PASS_ANDROID_16_UPGRADE_AND_CORE_JOURNEYS'
+          manifest.write_text(json.dumps(report, indent=2) + '\n')
+          PY
+      - name: Sign and verify owner-authorized Play upload bundle
+        if: github.event_name == 'workflow_dispatch' && inputs.sign_play_upload
+        env:
+          KEYSTORE_BASE64: ${{ secrets.COURTQUEST_PLAY_KEYSTORE_BASE64 }}
+          COURTQUEST_UPLOAD_STORE_PASSWORD: ${{ secrets.COURTQUEST_PLAY_STORE_PASSWORD }}
+          COURTQUEST_UPLOAD_KEY_ALIAS: ${{ secrets.COURTQUEST_PLAY_KEY_ALIAS }}
+          COURTQUEST_UPLOAD_KEY_PASSWORD: ${{ secrets.COURTQUEST_PLAY_KEY_PASSWORD }}
+          EXPECTED_UPLOAD_CERT: ${{ vars.COURTQUEST_PLAY_UPLOAD_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          umask 077
+          : "${KEYSTORE_BASE64:?Configure the authorized Play upload keystore}"
+          : "${EXPECTED_UPLOAD_CERT:?Configure the expected public upload certificate fingerprint}"
+          export COURTQUEST_UPLOAD_KEYSTORE
+          COURTQUEST_UPLOAD_KEYSTORE="$(mktemp "$RUNNER_TEMP/courtquest-upload.XXXXXXXX")"
+          trap 'rm -f "$COURTQUEST_UPLOAD_KEYSTORE"' EXIT
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$COURTQUEST_UPLOAD_KEYSTORE"
+          unset KEYSTORE_BASE64
+          ./gradlew --no-daemon --console=plain :app:bundleRelease
+          python3 scripts/verify_play_bundle.py --bundle app/build/outputs/bundle/release/app-release.aab \
+            --bundletool "$RUNNER_TEMP/bundletool.jar" --version-code 55 \
+            --expected-upload-sha256 "$EXPECTED_UPLOAD_CERT" --report dist/signed-play-bundle.json
+          cp app/build/outputs/bundle/release/app-release.aab dist/CourtQuestPro-v55-Play.aab
+      - name: Capture Android diagnostics
+        if: always()
+        run: |
+          mkdir -p dist
+          adb logcat -d -b crash > dist/android-crashes.txt 2>&1 || true
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: courtquest-v55-candidate-${{ github.sha }}
+          path: |
+            dist/
+            app/build/test-results/testDebugUnitTest/
+            app/build/reports/lint-results-release.*
+          if-no-files-found: error
+          retention-days: 30

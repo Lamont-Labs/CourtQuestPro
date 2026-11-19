@@ -608,3 +608,20 @@ touch spacing, and a single scroll container per surface. The provided reference
 and existing Barlow black/orange theme determine the colors and typography.
 The Android candidate stays on the repository's pinned Compose versions and
 uses platform sheet and selectable semantics.
+
+### Photographic garment and compact dock candidate
+
+Arena retains its signed-v54 photographic front and back texture data. Classic
+uses a scoop collar and straight piping, Fastbreak a tapered V-neck with angled
+side panels, and Retro a square neckline with stepped heritage trim. All four
+share a single matte, material-region, and lighting renderer. Names and numbers
+remain live against saved type and color selections. Low-contrast lettering
+receives an outline without discarding the selected ink.
+
+The 58dp dock uses the same jersey raster and chest print with a compact render
+size, preserves five equal destinations, and keeps the accessible Me tab name.
+UI/UX Pro Max accessibility and Compose searches supported labeled selectable
+controls, retained state, and contrast. Recommendations matched to newer Compose
+were applied only where the checked-in version already supports the behavior.
+The Figma Starter rate limit prevented a fresh fetch of the linked reference.
+The approved v54 emulator Arena and dock captures formed the Android comparison.

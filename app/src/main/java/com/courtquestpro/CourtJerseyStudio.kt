@@ -366,7 +366,7 @@ private fun JerseyStyleTiles(selected: JerseyTemplate, onSelect: (JerseyTemplate
                 .testTag("segment-${template.name.lowercase()}")
                 .padding(4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 val sample = if (template == JerseyTemplate.ARENA) JerseyDesign.arena() else JerseyDesign(templateId = template.name)
-                CourtJerseyArtwork(PlayerJersey(sample, null, ""), Modifier.size(44.dp))
+                CourtJerseyArtwork(PlayerJersey(sample, null, ""), Modifier.size(44.dp), compact = true)
                 Text(
                     template.label,
                     color = if (active) CourtQuestDesign.textPrimary else CourtQuestDesign.textSecondary,

@@ -1,8 +1,10 @@
 package com.courtquestpro
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.activity.ComponentActivity
@@ -136,7 +138,15 @@ internal val drills = listOf(
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { CourtQuestApp { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) } }
+        setContent {
+            CourtQuestApp { url ->
+                try {
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                } catch (_: ActivityNotFoundException) {
+                    Toast.makeText(this, "Install a browser or YouTube to open the video search.", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
     }
 }
 
@@ -146,12 +156,31 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val gson = remember { Gson() }
     val prefs = remember { context.getSharedPreferences("court_quest_pro", 0) }
+    val savedProfile = remember(prefs, gson) {
+        runCatching { readLocalPlayerState(gson, prefs.getString("state", null)) }
+    }
+    if (savedProfile.isFailure) {
+        CourtQuestTheme {
+            CourtQuestScene {
+                Column(
+                    Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)
+                        .verticalScroll(rememberScrollState()).padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    CourtHeading("Saved data couldn’t open")
+                    Text(
+                        "CourtQuest Pro kept your saved data. Keep the app installed and contact CourtQuest Pro support for help.",
+                        color = CourtQuestDesign.textSecondary,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+        }
+        return
+    }
     var save by remember {
         mutableStateOf(
-            runCatching {
-                val raw = prefs.getString("state", null)
-                if (raw == null) SaveState() else gson.fromJson(raw, SaveState::class.java) ?: SaveState()
-            }.getOrDefault(SaveState()),
+            savedProfile.getOrThrow(),
             // refresh publishes a deep copy of an already-mutated save.
             // Referential equality keeps preferences and scores observable.
             referentialEqualityPolicy()
@@ -231,6 +260,17 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     }
     // A fresh Activity launch opens the welcome; returning from background does not.
     var showWelcome by rememberSaveable { mutableStateOf(true) }
+    var showSetup by rememberSaveable { mutableStateOf(false) }
+    fun backFromSetup() {
+        if (onboardingStep > 1) {
+            onboardingStep--
+            persistOnboardingDraft()
+        } else {
+            showSetup = false
+            showWelcome = true
+        }
+    }
+    BackHandler(enabled = showSetup, onBack = ::backFromSetup)
     var routeHistory by rememberSaveable { mutableStateOf(listOf("home")) }
     var navigationExpanded by rememberSaveable { mutableStateOf(false) }
     var tourActive by rememberSaveable { mutableStateOf(false) }
@@ -434,7 +474,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     CourtQuestBottomDock(
                         selected = PlayerNavigation.tab(routeHistory),
                         jersey = save.playerJersey,
-                        customizedJersey = save.jerseyDesign != null,
+                        customizedJersey = save.jerseyDesign != null || save.playerJersey.number != null,
                         onSelect = ::selectPlayerTab,
                         spotlightTab = tourIndex?.let { SoloNavigationTour.tabs[it] }
                     )
@@ -447,8 +487,40 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                 CourtWelcomeScreen(
                     modifier = Modifier.padding(padding).consumeWindowInsets(padding),
                     returningPlayer = onboardingComplete,
-                    onGetStarted = { if (!onboardingComplete) finishOnboarding(); showWelcome = false },
+                    onGetStarted = {
+                        if (!onboardingComplete) {
+                            onboardingStep = onboardingStep.coerceIn(1, 4)
+                            showSetup = true
+                        }
+                        showWelcome = false
+                    },
                     onGuest = { if (!onboardingComplete) finishOnboarding(); showWelcome = false }
+                )
+            } else if (showSetup) {
+                CourtOnboarding(
+                    modifier = Modifier.padding(padding).consumeWindowInsets(padding),
+                    step = onboardingStep,
+                    name = onboardingName,
+                    level = onboardingLevel,
+                    focus = onboardingFocus,
+                    days = onboardingDays,
+                    onName = { onboardingName = it.take(40); persistOnboardingDraft() },
+                    onLevel = { onboardingLevel = it; persistOnboardingDraft() },
+                    onFocus = { onboardingFocus = it; persistOnboardingDraft() },
+                    onDay = {
+                        onboardingDays = if (it in onboardingDays) onboardingDays - it else (onboardingDays + it).sorted()
+                        persistOnboardingDraft()
+                    },
+                    onBack = ::backFromSetup,
+                    onNext = {
+                        if (onboardingStep == 4) {
+                            finishOnboarding()
+                            showSetup = false
+                        } else {
+                            onboardingStep++
+                            persistOnboardingDraft()
+                        }
+                    },
                 )
             } else AnimatedContent(targetState = screen, label = "screen-transition", modifier = Modifier.padding(padding).consumeWindowInsets(padding)) { target ->
                 @Composable fun DestinationContent() {
@@ -491,7 +563,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                                 DrillScreen(step.drill, index + 1, false,
                                     save.drillResults.orEmpty().filter { it.drillSnapshot == step.drill && it.measurementSnapshot == step.measurement }, draft,
                                     onDraft = { if (MissionTraining.update(save, session.id, it)) persist() },
-                                    onVideo = { openUrl("https://www.youtube.com/results?search_query=" + Uri.encode(step.drill.videoQuery)) },
+                                    onVideo = { openUrl("https://www.youtube.com/results?search_query=" + Uri.encode(demonstrationSearchQuery(step.drill))) },
                                     onComplete = { _, _ ->
                                         val completedAt = Instant.now()
                                         val completedDate = completedAt.atZone(ZoneId.systemDefault()).toLocalDate().toString()
@@ -526,7 +598,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         if (session != null && drill != null) {
                             DrillScreen(drill, 0, false, save.drillResults.orEmpty().filter { it.drillId == drill.id }, session.draft,
                                 onDraft = { if (TrainingLibrary.updatePracticeDraft(save, it)) persist() },
-                                onVideo = { openUrl("https://www.youtube.com/results?search_query=" + Uri.encode(drill.videoQuery)) },
+                                onVideo = { openUrl("https://www.youtube.com/results?search_query=" + Uri.encode(demonstrationSearchQuery(drill))) },
                                 onComplete = { _, _ ->
                                     val result = TrainingLibrary.finishPractice(save, session.id, today)
                                     if (result != null) {
@@ -560,7 +632,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                                 persist()
                                 }
                             },
-                            onVideo = { openUrl("https://www.youtube.com/results?search_query=" + Uri.encode(drill.videoQuery)) },
+                            onVideo = { openUrl("https://www.youtube.com/results?search_query=" + Uri.encode(demonstrationSearchQuery(drill))) },
                             onComplete = { completed, attempted ->
                                 val current = save.slots.getOrNull(selectedSlot)
                                 val confirmed = save.drillDrafts.orEmpty().any {
@@ -813,12 +885,10 @@ private fun CourtOnboarding(
     modifier: Modifier = Modifier,
     step: Int, name: String, level: String, focus: String, days: List<Int>,
     onName: (String) -> Unit, onLevel: (String) -> Unit, onFocus: (String) -> Unit,
-    onDay: (Int) -> Unit, onGuest: () -> Unit, onBack: () -> Unit, onNext: () -> Unit
+    onDay: (Int) -> Unit, onBack: () -> Unit, onNext: () -> Unit
 ) {
     val scrollState = rememberScrollState()
     LaunchedEffect(step) { scrollState.scrollTo(0) }
-    BackHandler(enabled = step > 0, onBack = onBack)
-
     Column(
         modifier.fillMaxSize()
             .imePadding()
@@ -838,7 +908,7 @@ private fun CourtOnboarding(
                     lineHeight = 14.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp
                 )
                 Text(
-                    "STEP ${step + 1} OF 5",
+                    "STEP $step OF 4",
                     color = CourtQuestDesign.textSecondary, fontSize = 11.sp,
                     lineHeight = 14.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.7.sp
                 )
@@ -847,12 +917,12 @@ private fun CourtOnboarding(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(5.dp)
             ) {
-                repeat(5) { index ->
+                repeat(4) { index ->
                     Box(
                         Modifier.weight(1f).height(4.dp)
                             .clip(RoundedCornerShape(2.dp))
                             .background(
-                                if (index <= step) CourtQuestDesign.accentVivid
+                                if (index < step) CourtQuestDesign.accentVivid
                                 else CourtQuestDesign.elevatedSurface
                             )
                     )
@@ -865,25 +935,22 @@ private fun CourtOnboarding(
                 .verticalScroll(scrollState)
                 .padding(top = 20.dp, bottom = CourtQuestDesign.spacingLg)
         ) {
-            if (step > 0) {
-                Text(
-                    listOf("Make it yours.", "Find your level.", "Choose your focus.", "Build your routine.")[step - 1],
-                    modifier = Modifier.semantics { heading() },
-                    color = Ink, fontSize = 32.sp, lineHeight = 37.sp, fontWeight = FontWeight.Black
-                )
-                Spacer(Modifier.height(CourtQuestDesign.spacingMd))
-                Text(
-                    listOf(
-                        "What should we call you? You can change this anytime.",
-                        "Choose the level that best matches your current experience.",
-                        "Your focus shapes the drills selected for your daily sessions.",
-                        "Pick your usual training days. You can adjust them later."
-                    )[step - 1], color = Muted, fontSize = 15.sp, lineHeight = 22.sp
-                )
-                Spacer(Modifier.height(CourtQuestDesign.spacingXl))
-            }
+            Text(
+                listOf("Make it yours.", "Find your level.", "Choose your focus.", "Build your routine.")[step - 1],
+                modifier = Modifier.semantics { heading() },
+                color = Ink, fontSize = 32.sp, lineHeight = 37.sp, fontWeight = FontWeight.Black
+            )
+            Spacer(Modifier.height(CourtQuestDesign.spacingMd))
+            Text(
+                listOf(
+                    "What should we call you? You can change this anytime.",
+                    "Choose the level that best matches your current experience.",
+                    "Your focus shapes the drills selected for your daily sessions.",
+                    "Pick your usual training days. You can adjust them later."
+                )[step - 1], color = Muted, fontSize = 15.sp, lineHeight = 22.sp
+            )
+            Spacer(Modifier.height(CourtQuestDesign.spacingXl))
             when (step) {
-                0 -> CourtOnboardingWelcome()
                 1 -> {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -904,7 +971,7 @@ private fun CourtOnboarding(
                                     Text("Optional. You can change this later.", color = CourtQuestDesign.textSecondary)
                                 },
                                 singleLine = true,
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth().testTag("onboarding-player-name"),
                                 shape = RoundedCornerShape(16.dp),
                                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                                     capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.Words,
@@ -1037,40 +1104,22 @@ private fun CourtOnboarding(
             Modifier.fillMaxWidth().padding(bottom = CourtQuestDesign.spacingXl),
             verticalArrangement = Arrangement.spacedBy(CourtQuestDesign.spacingSm)
         ) {
-            if (step == 0) {
+            CourtQuestPrimaryButton(onClick = onNext, modifier = Modifier.fillMaxWidth().testTag("onboarding-next")) {
                 Text(
-                    "Works offline. Your plan is saved on this device.",
-                    color = CourtQuestDesign.textSecondary, fontSize = 12.sp, lineHeight = 17.sp,
-                    modifier = Modifier.padding(bottom = 6.dp)
-                )
-            }
-            CourtQuestPrimaryButton(onClick = onNext, modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    when (step) { 0 -> "Get Started"; 4 -> "ENTER MY COURT"; else -> "CONTINUE" },
+                    if (step == 4) "ENTER MY COURT" else "CONTINUE",
                     fontSize = 13.sp, fontWeight = FontWeight.Black, letterSpacing = 0.8.sp
                 )
             }
-            if (step == 0) {
-                TextButton(onClick = onGuest,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("onboarding-continue-guest")) {
-                    Text("CONTINUE AS GUEST", color = CourtQuestDesign.textPrimary)
-                }
-                Text("Login and account creation are coming later.",
-                    color = CourtQuestDesign.textSecondary,
-                    style = MaterialTheme.typography.bodySmall)
-            }
-            if (step > 0) {
-                TextButton(
-                    onClick = onBack,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                ) {
-                    Icon(
-                        Icons.Default.ArrowBack, contentDescription = null,
-                        tint = Muted, modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(Modifier.width(CourtQuestDesign.spacingSm))
-                    Text("PREVIOUS STEP", color = Muted)
-                }
+            TextButton(
+                onClick = onBack,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("onboarding-back")
+            ) {
+                Icon(
+                    Icons.Default.ArrowBack, contentDescription = null,
+                    tint = Muted, modifier = Modifier.size(16.dp)
+                )
+                Spacer(Modifier.width(CourtQuestDesign.spacingSm))
+                Text("PREVIOUS STEP", color = Muted)
             }
         }
     }

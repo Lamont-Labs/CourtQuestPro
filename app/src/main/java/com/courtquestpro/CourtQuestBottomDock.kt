@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -30,7 +29,6 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -68,48 +66,31 @@ internal fun CourtQuestBottomDock(selected: PlayerTab, jersey: PlayerJersey, cus
                     Column(Modifier.clearAndSetSemantics { },
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center) {
-                    Box(contentAlignment = Alignment.Center) {
-                    if (tab == PlayerTab.ME && customizedJersey) {
-                        CourtJerseyArtwork(jersey.copy(number = null), Modifier.size(40.dp))
-                    } else if (atlas != null) {
-                        // Retain the original artwork, sized for a low-profile labeled dock.
-                        NavigationSpriteArtwork(
-                            atlas, tab.ordinal,
-                            Modifier.size(if (tab == PlayerTab.COURT) 42.dp else 34.dp)
-                        )
-                    } else if (tab == PlayerTab.COURT) {
-                        CourtBasketballMedallion(Modifier.size(40.dp), active)
-                    } else {
-                        val fallback = when (tab) {
-                            PlayerTab.TRAIN -> Icons.Outlined.FitnessCenter
-                            PlayerTab.PROGRESS -> Icons.Outlined.Insights
-                            PlayerTab.QUESTS -> Icons.Outlined.Shield
-                            PlayerTab.ME -> Icons.Outlined.Person
-                            PlayerTab.COURT -> Icons.Outlined.SportsBasketball
+                        if (tab == PlayerTab.ME && customizedJersey) {
+                            CourtJerseyArtwork(jersey, Modifier.size(42.dp, 38.dp), compact = true)
+                        } else if (atlas != null) {
+                            // Retain the original artwork, sized for a low-profile labeled dock.
+                            NavigationSpriteArtwork(
+                                atlas, tab.ordinal,
+                                Modifier.size(if (tab == PlayerTab.COURT) 42.dp else 34.dp)
+                            )
+                        } else if (tab == PlayerTab.COURT) {
+                            CourtBasketballMedallion(Modifier.size(40.dp), active)
+                        } else {
+                            val fallback = when (tab) {
+                                PlayerTab.TRAIN -> Icons.Outlined.FitnessCenter
+                                PlayerTab.PROGRESS -> Icons.Outlined.Insights
+                                PlayerTab.QUESTS -> Icons.Outlined.Shield
+                                PlayerTab.ME -> Icons.Outlined.Person
+                                PlayerTab.COURT -> Icons.Outlined.SportsBasketball
+                            }
+                            Icon(fallback, contentDescription = null, modifier = Modifier.size(30.dp),
+                                tint = if (active) CourtQuestDesign.accent else CourtQuestDesign.textSecondary)
                         }
-                        Icon(fallback, contentDescription = null, modifier = Modifier.size(30.dp),
-                            tint = if (active) CourtQuestDesign.accent else CourtQuestDesign.textSecondary)
-                    }
-                    if (tab == PlayerTab.ME && customizedJersey && !jersey.number.isNullOrBlank()) {
-                        // Printed chest mark: small, quiet and fully inside the jersey silhouette.
-                        // Scale against density, not system font size, to preserve dock proportions.
-                        val density = LocalDensity.current
-                        val chestInk = with(density) { 8.dp.toSp() }
-                        Box(Modifier.align(Alignment.Center).offset(y = 1.dp),
-                            contentAlignment = Alignment.Center) {
-                            Text(jersey.number, color = Color.Black.copy(alpha = .78f),
-                                fontFamily = CourtDisplay, fontWeight = FontWeight.Black,
-                                fontSize = chestInk, lineHeight = chestInk, maxLines = 1)
-                            Text(jersey.number, color = Color.White,
-                                fontFamily = CourtDisplay, fontWeight = FontWeight.Black,
-                                fontSize = chestInk, lineHeight = chestInk, maxLines = 1)
-                        }
-                    }
-                    }
-                    if (showLabels) Text(tab.label,
-                        color = if (active) CourtQuestDesign.textPrimary else CourtQuestDesign.textSecondary,
-                        fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
-                        fontSize = 10.sp, lineHeight = 12.sp, maxLines = 1)
+                        if (showLabels) Text(tab.label,
+                            color = if (active) CourtQuestDesign.textPrimary else CourtQuestDesign.textSecondary,
+                            fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+                            fontSize = 10.sp, lineHeight = 12.sp, maxLines = 1)
                     }
                     if (active) {
                         Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 2.dp)

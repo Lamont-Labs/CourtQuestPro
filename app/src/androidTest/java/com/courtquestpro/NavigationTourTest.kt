@@ -20,7 +20,9 @@ class NavigationTourTest {
 
     @Test fun everyGuideActionFitsAboveTheDockAndContinuesToTheCorrectTab() {
         assertTrue("Run against a disposable Android emulator", Build.HARDWARE.contains("ranchu"))
-        click("welcome-get-started")
+        val guest = compose.onAllNodesWithTag("welcome-continue-guest", useUnmergedTree = true)
+            .fetchSemanticsNodes().isNotEmpty()
+        click(if (guest) "welcome-continue-guest" else "welcome-get-started")
         compose.waitUntil(timeoutMillis = 15_000) {
             compose.onAllNodesWithTag("dock-home", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()

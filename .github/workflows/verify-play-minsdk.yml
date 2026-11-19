@@ -1,0 +1,117 @@
+name: CourtQuest Android minimum SDK verification
+on:
+  push:
+    branches: [dev/play-production-candidate]
+    paths: ['.github/workflows/verify-play-minsdk.yml']
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  api26:
+    if: github.repository == 'Lamont-Labs/CourtQuestPro' && github.ref == 'refs/heads/dev/play-production-candidate'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      ANDROID_AVD_HOME: /tmp/courtquest-minsdk
+      ANDROID_SERIAL: emulator-5562
+      COURTQUEST_UI_EVIDENCE: ${{ github.workspace }}/min-sdk-evidence
+      VERIFIED_SOURCE: f12b362e5ede67cfef54894c27abb907d4ecb23d
+      VERIFIED_RUN: '44454237293'
+      VERIFIED_APK_SHA256: 482b0ae00be62f78ece3051c20a31d88e3e6aaa1d87af0d02108ed5c861f597b
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Retrieve the already built and upgrade-verified APK
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD:app)" = "$(git rev-parse "$VERIFIED_SOURCE:app")"
+          gh run download "$VERIFIED_RUN" --name "courtquest-v55-candidate-$VERIFIED_SOURCE" --dir verified
+          apk=verified/dist/CourtQuestPro-1.0.apk
+          printf '%s  %s\n' "$VERIFIED_APK_SHA256" "$apk" | sha256sum -c
+          jq -e --arg sha "$VERIFIED_APK_SHA256" '
+            .input_apk_sha256 == $sha and .android_install_replace and .saved_values_preserved_after_relaunch
+          ' verified/dist/install-upgrade.json
+      - name: Start one disposable minimum-SDK emulator
+        run: |
+          set -euo pipefail
+          mkdir -p "$ANDROID_AVD_HOME" "$COURTQUEST_UI_EVIDENCE"
+          echo "${ANDROID_HOME}/platform-tools" >> "$GITHUB_PATH"
+          test -e /dev/kvm
+          sudo chmod 666 /dev/kvm
+          component='system-images;android-26;google_apis;x86_64'
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" "$component" emulator
+          printf 'no\n' | "${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager" create avd \
+            --name CourtQuest_MinSdkQA --package "$component" --device pixel_2 --path "$ANDROID_AVD_HOME/CourtQuest_MinSdkQA.avd"
+          "${ANDROID_HOME}/emulator/emulator" -avd CourtQuest_MinSdkQA -port 5562 -no-window -no-audio \
+            -no-snapshot -no-boot-anim -gpu swiftshader_indirect -accel on -cores 2 -memory 2048 \
+            > "$COURTQUEST_UI_EVIDENCE/emulator.log" 2>&1 &
+          python3 - <<'PY'
+          import subprocess, sys, time
+          sys.path.insert(0, 'scripts')
+          import verify_android_daily_flow as ui
+          for _ in range(100):
+              try:
+                  if ui.shell('getprop', 'sys.boot_completed', timeout=8) == '1':
+                      break
+              except (RuntimeError, subprocess.TimeoutExpired):
+                  pass
+              time.sleep(3)
+          else:
+              raise RuntimeError('API 26 emulator did not boot')
+          assert ui.shell('getprop', 'ro.build.version.sdk') == '26'
+          assert ui.shell('getprop', 'ro.kernel.qemu') == '1'
+          ui.shell('input', 'keyevent', 'KEYCODE_WAKEUP')
+          ui.shell('input', 'keyevent', '82')
+          PY
+      - name: Verify years-old Android launcher, dock and tablet layout
+        run: |
+          set -euo pipefail
+          test "$(adb emu avd name | head -n1 | tr -d '\r')" = CourtQuest_MinSdkQA
+          adb install verified/dist/CourtQuestPro-1.0.apk
+          adb shell settings put global animator_duration_scale 0
+          adb shell settings put global window_animation_scale 0
+          adb shell settings put global transition_animation_scale 0
+          python3 - <<'PY'
+          import json, os, sys
+          sys.path.insert(0, 'scripts')
+          import verify_android_daily_flow as ui
+          from capture_v42_solo_baseline import enter_court, dismiss_hint
+          ui.shell('wm','density','320')
+          ui.shell('wm','size','720x1440')
+          ui.open_app()
+          ui.wait_tagged('court-welcome-screen')
+          enter_court()
+          dismiss_hint()
+          destinations = {'home':'court-player-hero', 'library':'train-plan-content', 'career':'progress-screen-title',
+                          'quests':'quests-screen-title', 'me':'me-jersey-hero'}
+          for route, target in destinations.items():
+              ui.tap(ui.wait_tagged('dock-' + route))
+              ui.wait_tagged(target)
+              ui.screenshot('api26-' + route)
+          ui.shell('wm','density','240')
+          ui.shell('wm','size','1600x2560')
+          ui.tap(ui.wait_tagged('dock-home'))
+          ui.wait_tagged('court-player-hero')
+          ui.screenshot('api26-tablet-court')
+          ui.shell('am','force-stop',ui.PACKAGE)
+          ui.open_app()
+          enter_court()
+          ui.wait_tagged('court-player-hero')
+          receipt = dict(androidSdk=26, apkSha256=os.environ['VERIFIED_APK_SHA256'],
+                         sourceCommit=os.environ['VERIFIED_SOURCE'], freshInstall=True, relaunch=True,
+                         reachedDestinations=list(destinations), displaySizes=['720x1440','1600x2560'])
+          (ui.OUT / 'minimum-sdk-receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: courtquest-v55-api26-evidence
+          path: min-sdk-evidence/
+          if-no-files-found: warn
+          retention-days: 30

@@ -1,5 +1,9 @@
 package com.courtquestpro
 
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.lazy.LazyColumn
@@ -227,7 +231,7 @@ internal fun DrillScreen(
                     TextButton(onClick = onVideo, modifier = Modifier.heightIn(min = 48.dp)) {
                         Icon(Icons.Default.PlayCircleOutline, null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Watch demonstration")
+                        Text("Find videos on YouTube")
                     }
                     Text("Use a dry, clear court. Warm up first, keep movements controlled, and stop if the surface is slippery or something hurts.",
                         color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
@@ -249,6 +253,14 @@ private fun DrillSessionTimer(minutes: Int, initialRemaining: Int, sessionId: St
     val initialSeconds = minutes.coerceAtLeast(1) * 60
     var remaining by remember(sessionId) { mutableIntStateOf(initialRemaining.coerceIn(0, initialSeconds)) }
     var running by remember(sessionId) { mutableStateOf(false) }
+    val lifecycle = (LocalActivity.current as? ComponentActivity)?.lifecycle
+    DisposableEffect(lifecycle, sessionId) {
+        val pauseOnBackground = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) running = false
+        }
+        lifecycle?.addObserver(pauseOnBackground)
+        onDispose { lifecycle?.removeObserver(pauseOnBackground) }
+    }
     LaunchedEffect(running, remaining) {
         if (running && remaining > 0) {
             delay(1000L)

@@ -1,7 +1,7 @@
 package com.courtquestpro
 
-import android.graphics.Bitmap
 import android.os.Build
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
@@ -11,7 +11,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
-import androidx.test.platform.app.InstrumentationRegistry
 import com.google.gson.Gson
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -23,7 +22,8 @@ class JerseyStudioTest {
 
     @Test fun customizationRestoresAcrossRecreationAndReturnsToCourt() {
         assertTrue("Use a disposable Android emulator", Build.HARDWARE.contains("ranchu"))
-        if (has("welcome-get-started")) click("welcome-get-started")
+        if (has("welcome-continue-guest")) click("welcome-continue-guest")
+        else if (has("welcome-get-started")) click("welcome-get-started")
         compose.waitUntil(timeoutMillis = 15_000) { has("dock-me") }
         if (has("tour-skip")) click("tour-skip")
         click("dock-me")
@@ -64,10 +64,52 @@ class JerseyStudioTest {
 
     @Test fun coldStartRestoresPreviouslySavedJersey() {
         assertTrue("Use a disposable Android emulator", Build.HARDWARE.contains("ranchu"))
-        if (has("welcome-get-started")) click("welcome-get-started")
+        if (has("welcome-continue-guest")) click("welcome-continue-guest")
+        else if (has("welcome-get-started")) click("welcome-get-started")
         compose.waitUntil(timeoutMillis = 15_000) { has("dock-me") }
         assertSavedJersey()
         node("court-player-jersey").assertContentDescriptionEquals("Front of Arena jersey, number 00")
+    }
+
+    @Test fun allStylesRenderBothSidesAndKeepThePrintedNumberInTheDock() {
+        assertTrue("Use a disposable Android emulator", Build.HARDWARE.contains("ranchu"))
+        if (has("welcome-continue-guest")) click("welcome-continue-guest")
+        else if (has("welcome-get-started")) click("welcome-get-started")
+        compose.waitUntil(timeoutMillis = 15_000) { has("dock-me") }
+        if (has("tour-skip")) click("tour-skip")
+        click("dock-me")
+        node("me-jersey-studio").performScrollTo().performClick()
+        node("jersey-number").performScrollTo().performTextReplacement("28")
+        node("jersey-name").performScrollTo().performTextReplacement("Jordan Reed")
+        JerseyTemplate.entries.forEach { template ->
+            click("segment-jersey-editor-style", scroll = true)
+            click("segment-${template.name.lowercase()}", scroll = true)
+            for (side in JerseyView.entries) {
+                click("segment-${side.label.lowercase()}", scroll = true)
+                val description = "${side.label} of ${template.label} jersey, number 28" +
+                    if (side == JerseyView.BACK) ", Jordan Reed" else ""
+                node("jersey-preview").performScrollTo().assertContentDescriptionEquals(description)
+                awaitGarment()
+                capture("store-${template.name.lowercase()}-${side.label.lowercase()}")
+            }
+        }
+        click("segment-classic", scroll = true)
+        node("jersey-save").assertIsEnabled().performClick()
+        click("jersey-close", scroll = true)
+        compose.waitUntil(timeoutMillis = 15_000) { has("dock-home") }
+        click("dock-home")
+        node("court-player-jersey").assertContentDescriptionEquals("Front of Classic jersey, number 28")
+        awaitGarment(minimumHeight = 100)
+        capture("store-court")
+    }
+
+    private fun awaitGarment(minimumHeight: Int = 160) {
+        compose.waitUntil(timeoutMillis = 15_000) {
+            val ready = compose.onAllNodes(
+                SemanticsMatcher.expectValue(JerseyArtworkReady, true), useUnmergedTree = true
+            ).fetchSemanticsNodes()
+            ready.any { it.size.height > minimumHeight }
+        }
     }
 
     private fun assertSavedJersey() {
@@ -83,15 +125,7 @@ class JerseyStudioTest {
 
     private fun capture(name: String) {
         compose.waitForIdle()
-        val instrumentation = InstrumentationRegistry.getInstrumentation()
-        instrumentation.waitForIdleSync()
-        val image = instrumentation.uiAutomation.takeScreenshot()
-        checkNotNull(image).usePng(name + ".png")
-    }
-
-    private fun Bitmap.usePng(name: String) {
-        compose.activity.openFileOutput(name, 0).use { output -> compress(Bitmap.CompressFormat.PNG, 100, output) }
-        recycle()
+        captureDeviceFrame(compose.activity, name)
     }
 
     private fun has(tag: String): Boolean =

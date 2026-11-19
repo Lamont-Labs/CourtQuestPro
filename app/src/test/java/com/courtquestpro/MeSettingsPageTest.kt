@@ -7,7 +7,7 @@ import org.junit.Test
 class MeSettingsPageTest {
     @Test fun settingsDestinationsHaveStableUniqueKeys() {
         val pages = MeSettingsPage.entries
-        assertEquals(7, pages.size)
+        assertEquals(8, pages.size)
         assertEquals(pages.size, pages.map { it.name }.distinct().size)
         assertEquals(MeSettingsPage.HOME, pages.first())
     }
@@ -23,7 +23,7 @@ class MeSettingsPageTest {
         assertTrue(MeSettingsPage.entries.containsAll(listOf(
             MeSettingsPage.PLAYER, MeSettingsPage.PREFERENCES,
             MeSettingsPage.HELP, MeSettingsPage.HOW_TO,
-            MeSettingsPage.ABOUT, MeSettingsPage.NOTICES
+            MeSettingsPage.ABOUT, MeSettingsPage.NOTICES, MeSettingsPage.PRIVACY
         )))
     }
 

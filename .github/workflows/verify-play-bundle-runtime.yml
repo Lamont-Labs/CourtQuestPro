@@ -1,0 +1,132 @@
+name: CourtQuest release bundle runtime verification
+on:
+  push:
+    branches: [dev/play-production-candidate]
+    paths: ['.github/workflows/verify-play-bundle-runtime.yml']
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  release-runtime:
+    if: github.repository == 'Lamont-Labs/CourtQuestPro' && github.ref == 'refs/heads/dev/play-production-candidate'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      ANDROID_AVD_HOME: /tmp/courtquest-release-runtime
+      ANDROID_SERIAL: emulator-5562
+      COURTQUEST_UI_EVIDENCE: ${{ github.workspace }}/play-runtime-evidence
+      BUNDLE_SHA256: 5fa87ebcb4fc62f333d7de397ac43e1a66f0b4949600897af07589bf4840fe7c
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Make disposable install set from the exact validated release bundle
+        run: |
+          set -euo pipefail
+          mkdir -p "$COURTQUEST_UI_EVIDENCE"
+          request=release-request/courtquest-v55-phone.json
+          run="$(jq -er '.candidateRunId' "$request")"
+          source="$(jq -er '.sourceCommit' "$request")"
+          [[ "$run" =~ ^[0-9]+$ && "$source" =~ ^[a-f0-9]{40}$ ]]
+          test "$(git rev-parse HEAD:app)" = "$(git rev-parse "$source:app")"
+          gh api "repos/$GH_REPO/actions/runs/$run" | jq -e --arg source "$source" '
+            .conclusion == "success" and .head_sha == $source
+          '
+          gh run download "$run" --name "courtquest-v55-candidate-$source" --dir verified
+          bundle=verified/dist/CourtQuestPro-v55-UNSIGNED.aab
+          printf '%s  %s\n' "$BUNDLE_SHA256" "$bundle" | sha256sum -c
+          curl -fLsS --retry 3 https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar -o bundletool.jar
+          echo 'a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29  bundletool.jar' | sha256sum -c
+          java -jar bundletool.jar build-apks --bundle="$bundle" --output=emulator-only.apks --mode=universal \
+            --ks=signing/debug.keystore --ks-key-alias=androiddebugkey --ks-pass=pass:android --key-pass=pass:android
+          unzip -p emulator-only.apks universal.apk > emulator-only.apk
+          test -s emulator-only.apk
+          echo "${ANDROID_HOME}/platform-tools" >> "$GITHUB_PATH"
+      - name: Start disposable Android 16 release-runtime emulator
+        run: |
+          set -euo pipefail
+          test -e /dev/kvm
+          sudo chmod 666 /dev/kvm
+          sdk_image='system-images;android-36;default;x86_64'
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" "$sdk_image" emulator
+          mkdir -p "$ANDROID_AVD_HOME"
+          printf 'no\n' | "${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager" create avd \
+            --name CourtQuest_ReleaseQA --package "$sdk_image" --device pixel_2 --path "$ANDROID_AVD_HOME/CourtQuest_ReleaseQA.avd"
+          "${ANDROID_HOME}/emulator/emulator" -avd CourtQuest_ReleaseQA -port 5562 -no-window -no-audio \
+            -no-snapshot -no-boot-anim -gpu swiftshader_indirect -accel on -cores 2 -memory 3072 \
+            > "$COURTQUEST_UI_EVIDENCE/emulator.log" 2>&1 &
+          python3 - <<'PY'
+          import subprocess, sys, time
+          sys.path.insert(0, 'scripts')
+          import verify_android_daily_flow as ui
+          for _ in range(100):
+              try:
+                  if ui.shell('getprop', 'sys.boot_completed', timeout=8) == '1':
+                      break
+              except (RuntimeError, subprocess.TimeoutExpired):
+                  pass
+              time.sleep(3)
+          else:
+              raise RuntimeError('Release-runtime QA emulator did not boot')
+          assert ui.shell('getprop', 'ro.kernel.qemu') == '1'
+          assert ui.shell('getprop', 'ro.build.version.sdk') == '36'
+          ui.shell('input', 'keyevent', 'KEYCODE_WAKEUP')
+          ui.shell('wm', 'dismiss-keyguard')
+          PY
+      - name: Exercise the release-runtime build through the real interface
+        run: |
+          set -euo pipefail
+          test "$(adb emu avd name | head -n1 | tr -d '\r')" = CourtQuest_ReleaseQA
+          adb install emulator-only.apk
+          adb shell cmd connectivity airplane-mode enable
+          adb shell settings put global animator_duration_scale 0
+          adb shell settings put global window_animation_scale 0
+          adb shell settings put global transition_animation_scale 0
+          python3 - <<'PY'
+          import hashlib, json, os, sys
+          from pathlib import Path
+          sys.path.insert(0, 'scripts')
+          import verify_android_daily_flow as ui
+          from capture_v42_solo_baseline import enter_court, dismiss_hint
+          ui.open_app()
+          enter_court()
+          dismiss_hint()
+          ui.tap(ui.wait_tagged('dock-library'))
+          ui.wait_tagged('train-plan-content')
+          ui.tap(ui.wait_tagged('segment-library'))
+          ui.wait_tagged('library-search')
+          ui.screenshot('release-library-offline')
+          ui.shell('input','keyevent','KEYCODE_HOME')
+          ui.open_app()
+          ui.wait_tagged('library-search')
+          ui.tap(ui.wait_tagged('dock-me'))
+          ui.wait_tagged('me-jersey-studio')
+          ui.tap(ui.wait_tagged('me-jersey-studio'))
+          ui.wait_tagged('jersey-preview')
+          ui.screenshot('release-jersey-studio')
+          ui.shell('am','force-stop',ui.PACKAGE)
+          ui.open_app()
+          enter_court()
+          ui.wait_tagged('court-player-hero')
+          receipt = dict(bundleSha256=os.environ['BUNDLE_SHA256'],
+                         emulatorInstallSetSha256=hashlib.sha256(Path('emulator-only.apk').read_bytes()).hexdigest(),
+                         androidSdk=36, releaseVariant=True, emulatorOnlyDevelopmentSigning=True, offlineLibrary=True,
+                         backgroundReturn=True, studio=True, processRelaunch=True)
+          (ui.OUT / 'release-runtime.json').write_text(json.dumps(receipt, indent=2) + '\n')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: courtquest-v55-release-runtime
+          path: play-runtime-evidence/
+          if-no-files-found: warn
+          retention-days: 30

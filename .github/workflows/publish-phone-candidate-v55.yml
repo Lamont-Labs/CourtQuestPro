@@ -1,0 +1,154 @@
+name: Publish verified CourtQuest v55 phone candidate
+on:
+  push:
+    branches: [dev/play-production-candidate]
+    paths: [release-request/courtquest-v55-phone.json]
+
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: courtquest-phone-v55-public-candidate
+  cancel-in-progress: false
+
+jobs:
+  phone:
+    if: github.repository == 'Lamont-Labs/CourtQuestPro' && github.ref == 'refs/heads/dev/play-production-candidate'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Select the exact successful QA run
+        run: |
+          set -euo pipefail
+          run="$(jq -er '.candidateRunId' release-request/courtquest-v55-phone.json)"
+          source="$(jq -er '.sourceCommit' release-request/courtquest-v55-phone.json)"
+          [[ "$run" =~ ^[0-9]+$ && "$source" =~ ^[a-f0-9]{40}$ ]]
+          test "$(git rev-parse HEAD:app)" = "$(git rev-parse "$source:app")"
+          test "$(git rev-parse HEAD:gradle)" = "$(git rev-parse "$source:gradle")"
+          git diff --exit-code "$source" HEAD -- app gradle build.gradle.kts settings.gradle.kts gradle.properties
+          gh api "repos/$GH_REPO/actions/runs/$run" > checked-run.json
+          jq -e --arg source "$source" '
+            .conclusion == "success" and .status == "completed" and .head_sha == $source and
+            .head_branch == "dev/play-production-candidate" and .path == ".github/workflows/android-play-candidate.yml"
+          ' checked-run.json
+          gh run download "$run" --name "courtquest-v55-candidate-$source" --dir native-evidence
+          compatibility="$(jq -er '.minimumSdkRunId' release-request/courtquest-v55-phone.json)"
+          [[ "$compatibility" =~ ^[0-9]+$ ]]
+          gh api "repos/$GH_REPO/actions/runs/$compatibility" | jq -e '
+            .conclusion == "success" and .path == ".github/workflows/verify-play-minsdk.yml"
+          '
+          gh run download "$compatibility" --name courtquest-v55-api26-evidence --dir min-sdk-evidence
+      - name: Verify APK, same-signer upgrade, visual evidence and artifact digest
+        run: |
+          set -euo pipefail
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" 'build-tools;35.0.1'
+          python3 scripts/verify_apk.py --apk native-evidence/dist/CourtQuestPro-Update-v55.apk \
+            --build-tools "${ANDROID_HOME}/build-tools/35.0.1" --output checked
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          request = json.loads(Path('release-request/courtquest-v55-phone.json').read_text())
+          checked = json.loads(Path('checked/apk-manifest.json').read_text())
+          dist = Path('native-evidence/dist')
+          upgrade = json.loads((dist / 'install-upgrade.json').read_text())
+          assert checked['version_code'] == 55 and checked['target_sdk'] == 36
+          minimum = json.loads(Path('min-sdk-evidence/minimum-sdk-receipt.json').read_text())
+          assert minimum['androidSdk'] == 26 and minimum['freshInstall'] and minimum['relaunch']
+          assert checked['apk_sha256'] == request['apkSha256'] == upgrade['input_apk_sha256'] == minimum['apkSha256']
+          assert upgrade['versions'] == [54,55]
+          assert upgrade['android_install_replace'] and upgrade['preferences_byte_identical_after_install']
+          assert upgrade['saved_values_preserved_after_launch'] and upgrade['saved_values_preserved_after_relaunch']
+          assert request['visualEvidenceReviewed'] is True
+          for style in ('arena','classic','fastbreak','retro'):
+              for side in ('front','back'):
+                  assert (dist / f'store/store-{style}-{side}.png').is_file()
+          for mode in ('normal','compact','large'):
+              assert (dist / mode / 'jersey-dock-compact.png').is_file()
+          checked['git_commit'] = request['sourceCommit']
+          checked['native_run_id'] = request['candidateRunId']
+          checked['apk_filename'] = 'CourtQuestPro-Update-v55.apk'
+          checked['checks']['emulator_test'] = 'PASS_SAME_BINARY_ANDROID_16'
+          (dist / 'apk-manifest.json').write_text(json.dumps(checked, indent=2) + '\n')
+          PY
+      - name: Package Play listing and reviewed Android captures
+        run: |
+          set -euo pipefail
+          python3 -m pip install 'Pillow==11.3.0'
+          python3 - <<'PY'
+          from pathlib import Path
+          from shutil import copytree
+          from zipfile import ZipFile, ZIP_DEFLATED
+          from PIL import Image
+          source = Path('native-evidence/dist/store')
+          root = Path('play-store-listing')
+          copytree('docs/release/play-store', root)
+          captures = root / 'phone-screenshots'
+          captures.mkdir()
+          sequence = ('court', 'library', 'progress', 'quests', 'classic-front', 'retro-back')
+          for index, screen in enumerate(sequence, 1):
+              with Image.open(source / f'store-{screen}.png') as shot:
+                  assert shot.size == (1080,1920), (screen, shot.size)
+                  shot.convert('RGB').save(captures / f'{index:02}-{screen}.png', optimize=True)
+          archive = Path('native-evidence/dist/CourtQuestPro-Play-Listing-v55.zip')
+          with ZipFile(archive, 'w', compression=ZIP_DEFLATED) as output:
+              for path in sorted(root.rglob('*')):
+                  if path.is_file():
+                      output.write(path, path.relative_to(root))
+          with ZipFile(archive) as output:
+              assert output.testzip() is None
+          PY
+      - name: Publish and verify the immutable GitHub phone test
+        run: |
+          set -euo pipefail
+          tag=courtquest-phone-update-v55
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo 'v55 already exists. Refusing to replace it.'
+            exit 1
+          fi
+          source="$(jq -er '.sourceCommit' release-request/courtquest-v55-phone.json)"
+          run="$(jq -er '.candidateRunId' release-request/courtquest-v55-phone.json)"
+          dist=native-evidence/dist
+          cat > PHONE_NOTES.md <<NOTES
+          # CourtQuest Pro v55 phone-test candidate
+
+          Pre-release Android phone-test APK with photographic Arena, Classic, Fastbreak and Retro jerseys, integrated dock print, and restored player setup.
+
+          Android API 36 QA verified install-over from v54 with existing saves. This APK uses the established development signer for in-place GitHub phone testing.
+
+          Exact binary Android evidence: https://github.com/$GH_REPO/actions/runs/$run
+          Android build source: $source
+          NOTES
+          gh release create "$tag" "$dist/CourtQuestPro-Update-v55.apk" "$dist/CourtQuestPro-Update-v55.apk.sha256" \
+            "$dist/apk-manifest.json" "$dist/install-upgrade.json" "$dist/CourtQuestPro-Play-Listing-v55.zip" --target "$GITHUB_SHA" \
+            --prerelease --latest=false --title 'CourtQuest Pro v55 — Photographic jersey phone candidate' \
+            --notes-file PHONE_NOTES.md
+          mkdir verified
+          curl --fail --location --retry 3 \
+            "https://github.com/$GH_REPO/releases/download/$tag/CourtQuestPro-Update-v55.apk" \
+            --output verified/CourtQuestPro-Update-v55.apk
+          cmp "$dist/CourtQuestPro-Update-v55.apk" verified/CourtQuestPro-Update-v55.apk
+          sha256sum verified/CourtQuestPro-Update-v55.apk
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: courtquest-v55-owner-delivery
+          path: |
+            native-evidence/dist/CourtQuestPro-Update-v55.apk
+            native-evidence/dist/CourtQuestPro-Update-v55.apk.sha256
+            native-evidence/dist/CourtQuestPro-Play-Listing-v55.zip
+            native-evidence/dist/apk-manifest.json
+            native-evidence/dist/install-upgrade.json
+          retention-days: 30
+          if-no-files-found: warn
