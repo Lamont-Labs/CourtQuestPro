@@ -5,6 +5,15 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class PlayerNavigationTest {
+    @Test fun playerCardStudioOpensFromMeAndReturnsWithoutLosingProfile() {
+        val profile = listOf("home", "me")
+        val studio = PlayerNavigation.open(profile, "playerCardStudio")
+        assertEquals(listOf("home", "me", "playerCardStudio"), studio)
+        assertEquals(studio, PlayerNavigation.restore(studio))
+        assertEquals(PlayerTab.ME, PlayerNavigation.tab(studio))
+        assertEquals(profile, PlayerNavigation.back(studio))
+        assertFalse(PlayerNavigation.retainsState("playerCardStudio"))
+    }
     @Test fun teamRouteIsNotExposedInTheSoloPlayerNavigation() {
         assertEquals(listOf("home"), PlayerNavigation.open(listOf("home"), "team"))
         assertEquals(listOf("home"), PlayerNavigation.restore(listOf("home", "team")))
