@@ -57,8 +57,15 @@ class JerseyStudioTest {
         capture("jersey-court")
         click("dock-me")
         node("me-jersey-studio").performScrollTo().performClick()
+        compose.waitUntil(timeoutMillis = 15_000) { has("jersey-preview") }
         node("jersey-preview").assertContentDescriptionEquals("Front of Arena jersey, number 00")
         assertSavedJersey()
+        // The capture must be taken after the editor is actually displayed.
+        // Force a Studio navigation frame before capturing the approved Arena baseline.
+        click("segment-jersey-editor-style", scroll = true)
+        click("segment-arena", scroll = true)
+        node("jersey-preview").assertIsDisplayed()
+        capture("jersey-style-arena-front")
         capture("jersey-studio-front")
         // Visual regression evidence for every garment, not only the Arena renderer.
         // A green Arena screenshot cannot validate the separate Canvas styles.
