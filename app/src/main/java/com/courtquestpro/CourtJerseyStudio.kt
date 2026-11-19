@@ -88,10 +88,31 @@ internal fun CourtJerseyStudio(saved: PlayerJersey, onSave: (String, String, Jer
     val dirty = name.trim() != saved.name || number != saved.number.orEmpty() || normalizedDesign != saved.design
     val preview = PlayerJersey(design, parseJerseyNumber(number), name.trim())
     val fontScale = LocalDensity.current.fontScale
+    val canSave = dirty && nameValid && numberValid && teamValid && hexValid
+    fun saveChanges(): Boolean {
+        if (!canSave) return false
+        if (!onSave(name.trim(), number, normalizedDesign)) return false
+        design = normalizedDesign
+        savedNotice = true
+        focus.clearFocus()
+        return true
+    }
     fun close() { if (dirty) discard = true else onBack() }
     BackHandler(enabled = dirty && !discard) { close() }
-    if (discard) AlertDialog(onDismissRequest = { discard = false }, title = { Text("Discard jersey changes?") },
-        confirmButton = { TextButton(onBack) { Text("Discard") } }, dismissButton = { TextButton({ discard = false }) { Text("Keep editing") } })
+    if (discard) AlertDialog(
+        onDismissRequest = { discard = false },
+        title = { Text("Save jersey changes?") },
+        text = { Text(if (canSave) "Save your jersey before leaving the studio." else "Your edits need a valid name, number, team text, and color before saving.") },
+        confirmButton = {
+            TextButton(onClick = { if (saveChanges()) { discard = false; onBack() } }, enabled = canSave,
+                modifier = Modifier.testTag("jersey-save-exit")) { Text("Save & exit") }
+        },
+        dismissButton = {
+            TextButton(onClick = { discard = false }, modifier = Modifier.testTag("jersey-keep-editing")) { Text("Keep editing") }
+        },
+        // Destructive action remains explicit; closing never silently loses edits.
+        icon = null
+    )
 
     BoxWithConstraints(Modifier.fillMaxSize().background(CourtQuestDesign.background).imePadding().testTag("jersey-studio")) {
         val wide = maxWidth >= 600.dp && maxWidth > maxHeight
@@ -106,11 +127,9 @@ internal fun CourtJerseyStudio(saved: PlayerJersey, onSave: (String, String, Jer
                 IconButton(::close, Modifier.testTag("jersey-close")) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Close Jersey Studio", tint = CourtQuestDesign.textPrimary) }
                 Text("Jersey Studio", Modifier.weight(1f).semantics { heading() }, style = MaterialTheme.typography.titleLarge,
                     color = CourtQuestDesign.textPrimary, fontWeight = FontWeight.Bold)
-                val enabled = dirty && nameValid && numberValid && teamValid && hexValid
+                val enabled = canSave
                 val saveLabel = if (savedNotice && !dirty) "Saved" else "Save"
-                val action = {
-                    if (onSave(name, number, normalizedDesign)) { design = normalizedDesign; savedNotice = true; focus.clearFocus() }
-                }
+                val action = { saveChanges(); Unit }
                 val saveMod = Modifier.testTag("jersey-save").semantics {
                     contentDescription = if (saveLabel == "Saved") "Jersey saved" else "Save jersey"
                     liveRegion = LiveRegionMode.Polite
