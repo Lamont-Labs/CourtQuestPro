@@ -144,13 +144,14 @@ internal fun CourtArenaJerseyArtwork(jersey: PlayerJersey, modifier: Modifier, s
                 draw()
             }
             if (front && width >= 76f) {
-                mark("COURTQUEST", .328f, .103f, .71f, design.nameInk, true, design.side)
-                mark("PRO", .371f, .052f, .4f, design.side, false, null)
+                // Keep the app identity off the garment: COURTQUEST is the team wordmark.
+                // No PRO subtitle; reserve the central chest for a larger player number.
+                mark("COURTQUEST", .305f, .087f, .73f, design.nameInk, true, design.side)
             } else if (!front) {
                 mark(jersey.name.uppercase(Locale.ROOT), .239f, .108f, .65f, design.nameInk, true, null)
             }
-            jersey.number?.let { mark(it, if (front) .548f else .503f, if (front) .215f else .267f,
-                if (front) .46f else .56f, design.numberInk, false, design.side) }
+            jersey.number?.let { mark(it, if (front) .555f else .503f, if (front) .255f else .267f,
+                if (front) .55f else .56f, design.numberInk, false, design.side) }
         }
     }
 }
