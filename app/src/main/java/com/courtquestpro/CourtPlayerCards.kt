@@ -97,7 +97,7 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
     var selected by remember { mutableStateOf(PlayerCardSelection.read(context)) }
     var saved by remember { mutableStateOf(true) }
     Column(Modifier.fillMaxSize().background(CourtQuestDesign.background)
-        .verticalScroll(rememberScrollState()).padding(16.dp),
+        .verticalScroll(rememberScrollState()).padding(16.dp).testTag("player-card-studio-screen"),
         horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             TextButton(onBack) { Text("Back") }
