@@ -24,7 +24,7 @@ import java.time.LocalDate
 
 @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
-internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Unit, onWalkthrough: () -> Unit, onJersey: () -> Unit) {
+internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Unit, onWalkthrough: () -> Unit, onJersey: () -> Unit, onPlayerCard: () -> Unit) {
     var section by rememberSaveable { mutableStateOf("Profile") }
     var settingsMenu by remember { mutableStateOf(false) }
     val days = save.trainingDays.orEmpty().filter { it in 1..7 }.distinct().sorted()
@@ -56,6 +56,8 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                             leadingIcon = { Icon(Icons.Default.Edit, null) })
                         DropdownMenuItem(text = { Text("Jersey Studio") },
                             onClick = { settingsMenu = false; onJersey() })
+                        DropdownMenuItem(text = { Text("Player Card Studio") },
+                            onClick = { settingsMenu = false; onPlayerCard() })
                         DropdownMenuItem(modifier = Modifier.testTag("me-start-walkthrough"), text = { Text("Start app walkthrough") },
                             onClick = { settingsMenu = false; onWalkthrough() },
                             leadingIcon = { Icon(Icons.Default.HelpOutline, null) })
@@ -76,6 +78,22 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
         }
         item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (section == "Profile") {
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    val selectedStyle = PlayerCardSelection.read(context)
+                    CourtQuestPremiumSurface(Modifier.fillMaxWidth().testTag("me-player-card"), PaddingValues(16.dp)) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text("MY PLAYER CARD", color = CourtQuestDesign.textPrimary,
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                            CourtPlayerCard(save.playerJersey, save.playerName, selectedStyle,
+                                Modifier.width(220.dp))
+                            CourtQuestPrimaryButton(onPlayerCard, Modifier.fillMaxWidth().testTag("me-player-card-studio")) {
+                                Text("Customize player card")
+                            }
+                        }
+                    }
+                }
                 if (section == "Profile") CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(20.dp), highlighted = true) {
                     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(14.dp)) {
