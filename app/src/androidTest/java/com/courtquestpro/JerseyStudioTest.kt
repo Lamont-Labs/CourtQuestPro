@@ -152,6 +152,28 @@ class JerseyStudioTest {
         assertEquals(JerseyTemplate.RETRO, j.design.template); assertEquals(values, JerseyPart.entries.map { jerseyHex(j.design.color(it)) })
     }
 
+    @Test fun playerCardSelectionPersistsAndUsesSavedJersey() {
+        assertTrue("Use the disposable Android emulator", Build.HARDWARE.contains("ranchu"))
+        compose.waitUntil(20_000) { has("welcome-get-started") || has("dock-me") }
+        if (has("welcome-get-started")) tap("welcome-get-started")
+        wait("dock-me")
+        if (has("tour-skip")) tap("tour-skip")
+        tap("dock-me")
+        if (has("tour-skip")) tap("tour-skip")
+        choose("me-player-card-studio")
+        wait("player-card-preview")
+        choose("player-card-style-classic")
+        node("player-card-save").assertIsEnabled().performClick()
+        node("player-card-save").assertIsNotEnabled()
+        compose.activityRule.scenario.recreate()
+        wait("player-card-preview")
+        // Preference survives process recreation and returns to the player profile.
+        assertEquals(PlayerCardStyle.CLASSIC, PlayerCardSelection.read(compose.activity))
+        compose.onNodeWithText("Back", useUnmergedTree = true).performClick()
+        wait("me-player-card")
+        assertEquals(PlayerCardStyle.CLASSIC, PlayerCardSelection.read(compose.activity))
+    }
+
     private fun percentile95(values: List<Long>): Double? = values.filter { it >= 0 }.sorted().let {
         if (it.isEmpty()) null else it[(it.lastIndex * .95).toInt()] / 1_000_000.0
     }
