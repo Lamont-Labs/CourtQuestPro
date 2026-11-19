@@ -20,7 +20,9 @@ class TrainingEntryTest {
 
     @Test fun randomDrillMatchesSearchAndDailyRecordingCanResumeAndSave() {
         assertTrue("Use a disposable Android emulator", Build.HARDWARE.contains("ranchu"))
-        click("welcome-get-started")
+        val guest = compose.onAllNodesWithTag("welcome-continue-guest", useUnmergedTree = true)
+            .fetchSemanticsNodes().isNotEmpty()
+        click(if (guest) "welcome-continue-guest" else "welcome-get-started")
         compose.waitUntil(timeoutMillis = 15_000) {
             compose.onAllNodesWithTag("tour-skip", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
         }

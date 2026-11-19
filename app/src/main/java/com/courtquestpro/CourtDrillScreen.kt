@@ -227,7 +227,7 @@ internal fun DrillScreen(
                     TextButton(onClick = onVideo, modifier = Modifier.heightIn(min = 48.dp)) {
                         Icon(Icons.Default.PlayCircleOutline, null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Watch demonstration")
+                        Text("Find videos on YouTube")
                     }
                     Text("Use a dry, clear court. Warm up first, keep movements controlled, and stop if the surface is slippery or something hurts.",
                         color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)

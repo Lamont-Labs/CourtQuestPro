@@ -21,7 +21,10 @@ def bounds(node):
 def enter_court():
     # v41 opens a welcome on every cold launch, even after fixture seeding.
     # The released APK predates the separate guest CTA in canonical source.
-    target = ui.tagged(ui.nodes(), 'welcome-get-started')
+    nodes = ui.nodes()
+    target = ui.tagged(nodes, 'welcome-continue-guest')
+    if target is None:
+        target = ui.tagged(nodes, 'welcome-get-started')
     ui.tap(target if target is not None else ui.scroll_to('ENTER COURT', 18))
     try:
         return ui.wait_tagged('player-bottom-dock', attempts=4)

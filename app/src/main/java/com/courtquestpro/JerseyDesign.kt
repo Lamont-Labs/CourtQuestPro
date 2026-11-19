@@ -116,3 +116,11 @@ internal fun jerseyContrast(first: Int, second: Int): Double {
     val b = luminance(second)
     return (maxOf(a, b) + .05) / (minOf(a, b) + .05)
 }
+
+/** Choose the stronger black or white outline while preserving the selected print color. */
+internal fun jerseyPrintOutline(fabric: Int): Int =
+    if (jerseyContrast(0xFF000000.toInt(), fabric) >= jerseyContrast(0xFFFFFFFF.toInt(), fabric)) {
+        0xFF000000.toInt()
+    } else {
+        0xFFFFFFFF.toInt()
+    }
