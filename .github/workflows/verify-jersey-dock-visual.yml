@@ -57,7 +57,7 @@ jobs:
           test -e /dev/kvm
           sudo chmod 666 /dev/kvm
           "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" 'system-images;android-35;default;x86_64' emulator
-          mkdir -p "$ANDROID_AVD_HOME"
+          mkdir -p dist "$ANDROID_AVD_HOME"
           printf 'no\n' | "${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager" create avd --name CourtQuest_PremiumQA --package 'system-images;android-35;default;x86_64' --device pixel_2 --path "$ANDROID_AVD_HOME/CourtQuest_PremiumQA.avd"
           "${ANDROID_HOME}/emulator/emulator" -avd CourtQuest_PremiumQA -port 5562 -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect -accel on -cores 2 -memory 2048 > dist/emulator.log 2>&1 &
           python3 - <<'PY'
