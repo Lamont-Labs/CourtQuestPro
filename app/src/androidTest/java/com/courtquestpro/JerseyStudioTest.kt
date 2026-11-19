@@ -74,17 +74,16 @@ class JerseyStudioTest {
         val shot = checkNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
         try {
             saveImage(shot, name)
-        if (garment) {
-            // PixelCopy from Compose captureToImage fails intermittently on hardware-
-            // accelerated emulator surfaces. Crop the already captured real window frame.
-            val bounds = node("jersey-preview").fetchSemanticsNode().boundsInWindow
-            val left = bounds.left.toInt().coerceIn(0, shot.width - 1)
-            val top = bounds.top.toInt().coerceIn(0, shot.height - 1)
-            val right = kotlin.math.ceil(bounds.right.toDouble()).toInt().coerceIn(left + 1, shot.width)
-            val bottom = kotlin.math.ceil(bounds.bottom.toDouble()).toInt().coerceIn(top + 1, shot.height)
-            val crop = Bitmap.createBitmap(shot, left, top, right - left, bottom - top)
-            try { saveImage(crop, "$name-garment") } finally { crop.recycle() }
-        }
+            if (garment) {
+                // Crop the displayed Android frame. A second PixelCopy can fail while the IME is active.
+                val bounds = node("jersey-preview").fetchSemanticsNode().boundsInWindow
+                val left = kotlin.math.floor(bounds.left.toDouble()).toInt().coerceIn(0, shot.width - 1)
+                val top = kotlin.math.floor(bounds.top.toDouble()).toInt().coerceIn(0, shot.height - 1)
+                val right = kotlin.math.ceil(bounds.right.toDouble()).toInt().coerceIn(left + 1, shot.width)
+                val bottom = kotlin.math.ceil(bounds.bottom.toDouble()).toInt().coerceIn(top + 1, shot.height)
+                val crop = Bitmap.createBitmap(shot, left, top, right - left, bottom - top)
+                try { saveImage(crop, "$name-garment") } finally { if (crop !== shot) crop.recycle() }
+            }
         } finally { shot.recycle() }
     }
     private fun matrix(group: String, sides: List<JerseyView> = JerseyView.entries) {
@@ -103,7 +102,8 @@ class JerseyStudioTest {
         matrix("default")
         tool("identity"); edit("jersey-number", "7X"); node("jersey-save").assertIsNotEnabled()
         edit("jersey-number", "07"); edit("jersey-name", longName)
-        branding(ChestBrand.CUSTOM); node("jersey-save").assertIsNotEnabled(); edit("jersey-team", "EAST RIDGE"); capture("identity-controls")
+        branding(ChestBrand.CUSTOM); node("jersey-save").assertIsNotEnabled(); edit("jersey-team", "EAST RIDGE"); capture("identity-keyboard", false)
+        panel("jersey-team").performImeAction(); node("jersey-close").assertIsDisplayed(); capture("identity-controls", false)
         tool("colors")
         JerseyPart.entries.forEach { part -> zone(part); choose("jersey-swatch-${colors[part.ordinal]}") }
         zone(JerseyPart.FABRIC); choose("jersey-edit-hex"); edit("jersey-hex", "#XY"); node("jersey-save").assertIsNotEnabled()
@@ -143,13 +143,21 @@ class JerseyStudioTest {
         assertEquals(JerseyTemplate.RETRO, j.design.template); assertEquals(values, JerseyPart.entries.map { jerseyHex(j.design.color(it)) })
     }
 
+    private fun percentile95(values: List<Long>): Double? = values.filter { it >= 0 }.sorted().let {
+        if (it.isEmpty()) null else it[(it.lastIndex * .95).toInt()] / 1_000_000.0
+    }
+
     @Test fun paletteFrameTimingAndRapidInput() {
         enter(); tool("colors"); zone(JerseyPart.FABRIC); ready(JerseyTemplate.RETRO, JerseyView.FRONT)
         val timings = Collections.synchronizedList(mutableListOf<Long>())
+        val drawTimes = Collections.synchronizedList(mutableListOf<Long>())
+        val gpuTimes = Collections.synchronizedList(mutableListOf<Long>())
         val thread = HandlerThread("jersey-frame-metrics").apply { start() }
         val window = compose.activity.window
         val listener = Window.OnFrameMetricsAvailableListener { _, metrics, _ ->
             timings += metrics.getMetric(FrameMetrics.TOTAL_DURATION)
+            drawTimes += metrics.getMetric(FrameMetrics.DRAW_DURATION)
+            if (Build.VERSION.SDK_INT >= 31) gpuTimes += metrics.getMetric(FrameMetrics.GPU_DURATION)
         }
         val palette = listOf("royal-blue", "crimson", "white", "gold")
         val plate = JerseyMaterials.cached(JerseyTemplate.RETRO, JerseyView.FRONT, 1)
@@ -169,6 +177,7 @@ class JerseyStudioTest {
         val p95 = ms[(ms.lastIndex * .95).toInt()]
         File(out, "performance.json").writeText(Gson().toJson(mapOf("frames" to ms.size, "p50_ms" to ms[ms.size / 2], "p95_ms" to p95,
             "max_ms" to ms.last(), "frames_over_32ms" to ms.count { it > 32 }, "burst_inputs" to 102,
+            "draw_p95_ms" to percentile95(drawTimes), "gpu_p95_ms" to percentile95(gpuTimes),
             "plate_bytes" to plate?.byteCount, "api" to Build.VERSION.SDK_INT)))
         assertTrue("Warm palette p95 ${p95}ms", p95 < 150)
     }

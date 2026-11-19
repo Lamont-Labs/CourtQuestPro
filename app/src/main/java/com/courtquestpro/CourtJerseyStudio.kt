@@ -1,5 +1,9 @@
 package com.courtquestpro
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
@@ -27,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
@@ -53,6 +58,16 @@ private val swatches = listOf("Onyx" to 0xFF141519, "White" to 0xFFFFFFFF, "Stee
 
 @Composable
 internal fun CourtJerseyStudio(saved: PlayerJersey, onSave: (String, String, JerseyDesign) -> Boolean, onBack: () -> Unit) {
+    val context = LocalContext.current
+    // The Studio owns its scrollable inspector. Let the keyboard resize it without panning the entire window.
+    DisposableEffect(context) {
+        val window = generateSequence<Context>(context) { (it as? ContextWrapper)?.baseContext }
+            .filterIsInstance<Activity>().firstOrNull()?.window
+        val previous = window?.attributes?.softInputMode
+        if (window != null && previous != null) window.setSoftInputMode(
+            (previous and WindowManager.LayoutParams.SOFT_INPUT_MASK_ADJUST.inv()) or WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        onDispose { if (window != null && previous != null) window.setSoftInputMode(previous) }
+    }
     var design by rememberSaveable(stateSaver = designSaver) { mutableStateOf(saved.design) }
     var name by rememberSaveable { mutableStateOf(saved.name) }
     var number by rememberSaveable { mutableStateOf(saved.number.orEmpty()) }
@@ -81,10 +96,14 @@ internal fun CourtJerseyStudio(saved: PlayerJersey, onSave: (String, String, Jer
     BoxWithConstraints(Modifier.fillMaxSize().background(CourtQuestDesign.background).imePadding().testTag("jersey-studio")) {
         val wide = maxWidth >= 600.dp && maxWidth > maxHeight
         val smallHeader = maxWidth < 400.dp && fontScale > 1.45f
-        val stageHeight = (maxHeight * if (fontScale > 1.45f) .40f else .54f).coerceIn(96.dp, 515.dp)
+        val typing = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+        val previewFraction = when { typing -> .28f; fontScale > 1.45f -> .40f; else -> .61f }
+        val remainingInspector = if (typing) 180.dp else 235.dp
+        val stageHeight = (maxHeight * previewFraction).coerceIn(88.dp, 515.dp)
+            .coerceAtMost((maxHeight - remainingInspector).coerceAtLeast(88.dp))
         Column(Modifier.fillMaxSize().padding(horizontal = if (maxWidth < 370.dp) 10.dp else 16.dp)) {
             Row(Modifier.fillMaxWidth().heightIn(min = 52.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(::close, Modifier.testTag("jersey-close")) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Close Jersey Studio") }
+                IconButton(::close, Modifier.testTag("jersey-close")) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Close Jersey Studio", tint = CourtQuestDesign.textPrimary) }
                 Text("Jersey Studio", Modifier.weight(1f).semantics { heading() }, style = MaterialTheme.typography.titleLarge,
                     color = CourtQuestDesign.textPrimary, fontWeight = FontWeight.Bold)
                 val enabled = dirty && nameValid && numberValid && teamValid && hexValid

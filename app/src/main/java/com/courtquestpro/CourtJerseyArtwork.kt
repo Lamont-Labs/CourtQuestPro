@@ -19,6 +19,8 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
@@ -63,7 +65,9 @@ internal fun CourtJerseyArtwork(
         val loaded = plate
         if (loaded != null) {
             val ready = if (describe) Modifier.testTag("material-${style.name.lowercase()}-${view.name.lowercase()}") else Modifier
-            Box(ready.fillMaxSize().clipToBounds().drawWithCache {
+            Box(ready.fillMaxSize().clipToBounds().graphicsLayer {
+                compositingStrategy = CompositingStrategy.Offscreen
+            }.drawWithCache {
                 val factor = minOf(size.width / loaded.width, size.height / loaded.height) * if (zoom) 1.8f else 1f
                 val left = (size.width - loaded.width * factor) * .5f
                 val top = if (zoom) size.height * .50f - loaded.height * factor * .40f else (size.height - loaded.height * factor) * .5f
@@ -123,7 +127,7 @@ private fun kitLettering(jersey: PlayerJersey, view: JerseyView, plate: JerseyPl
             postTranslate(w * .5f - box.centerX() * scale, h * center - box.centerY() * scale)
         })
         val trim = if (jerseyContrast(design.side, design.fabric) >= 2.0 && jerseyContrast(design.side, color) >= 1.7) design.side
-            else if (jerseyContrast(android.graphics.Color.BLACK, design.fabric) > jerseyContrast(android.graphics.Color.WHITE, design.fabric))
+            else if (jerseyContrast(android.graphics.Color.BLACK, color) > jerseyContrast(android.graphics.Color.WHITE, color))
                 android.graphics.Color.BLACK else android.graphics.Color.WHITE
         val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             this.color = trim; style = Paint.Style.STROKE; strokeJoin = Paint.Join.ROUND
@@ -140,8 +144,21 @@ private fun kitLettering(jersey: PlayerJersey, view: JerseyView, plate: JerseyPl
         prints += JerseyPrint(path, stroke, ink)
     }
     if (!compact) {
-        if (front) mark(design.chestText.uppercase(Locale.ROOT), baseline, .046f, .63f, design.nameInk, false)
-        else mark(jersey.name.uppercase(Locale.ROOT), .204f, .049f, .69f, design.nameInk, false)
+        val text = (if (front) design.chestText else jersey.name).uppercase(Locale.ROOT)
+        val center = if (front) baseline else .204f
+        val cap = if (front) .046f else .049f
+        val widthLimit = if (front) .63f else .69f
+        val measure = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = font; textSize = 100f }
+        val capHeight = android.graphics.Rect().also { measure.getTextBounds("H", 0, 1, it) }.height().coerceAtLeast(1)
+        val naturalWidth = measure.measureText(text) * h * cap / capHeight
+        val breaks = text.indices.filter { i -> i > 1 && i < text.lastIndex - 1 && (text[i] == ' ' || text[i] == '-') }
+        val split = if (naturalWidth > w * widthLimit * 1.55f) breaks.minByOrNull { i ->
+            kotlin.math.abs(measure.measureText(text.substring(0, i + 1).trimEnd()) - measure.measureText(text.substring(i + 1).trimStart()))
+        } else null
+        if (split != null) {
+            mark(text.substring(0, split + 1).trimEnd(), center - .019f, .032f, widthLimit, design.nameInk, false)
+            mark(text.substring(split + 1).trimStart(), center + .019f, .032f, widthLimit, design.nameInk, false)
+        } else mark(text, center, cap, widthLimit, design.nameInk, false)
     }
     jersey.number?.let {
         val center = when { compact -> .49f; !front -> .405f; design.chestText.isBlank() -> .424f; else -> baseline + .157f }
