@@ -105,7 +105,8 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
         }
         Text("Your saved Jersey Studio uniform appears on every card.",
             color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.bodyMedium)
-        CourtPlayerCard(jersey, playerName, selected, Modifier.width(264.dp))
+        // Keep the choices above the tall preview so all three remain discoverable
+        // without scrolling through the artwork first.
         PlayerCardStyle.entries.forEach { style ->
             val active = selected == style
             Surface(
@@ -123,6 +124,7 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
                 }
             }
         }
+        CourtPlayerCard(jersey, playerName, selected, Modifier.width(264.dp))
         Button(
             onClick = { if (PlayerCardSelection.write(context, selected)) saved = true },
             enabled = !saved,
