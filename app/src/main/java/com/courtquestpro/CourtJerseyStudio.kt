@@ -108,10 +108,11 @@ internal fun CourtJerseyStudio(saved: PlayerJersey, onSave: (String, String, Jer
                 modifier = Modifier.testTag("jersey-save-exit")) { Text("Save & exit") }
         },
         dismissButton = {
-            TextButton(onClick = { discard = false }, modifier = Modifier.testTag("jersey-keep-editing")) { Text("Keep editing") }
-        },
-        // Destructive action remains explicit; closing never silently loses edits.
-        icon = null
+            Row {
+                TextButton(onClick = onBack, modifier = Modifier.testTag("jersey-discard")) { Text("Discard") }
+                TextButton(onClick = { discard = false }, modifier = Modifier.testTag("jersey-keep-editing")) { Text("Keep editing") }
+            }
+        }
     )
 
     BoxWithConstraints(Modifier.fillMaxSize().background(CourtQuestDesign.background).imePadding().testTag("jersey-studio")) {
