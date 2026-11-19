@@ -4,6 +4,8 @@ on:
     branches: [dev/jersey-reference-studio]
     paths:
       - '.github/workflows/verify-jersey-dock-visual.yml'
+      - 'app/src/androidTest/java/com/courtquestpro/JerseyStudioTest.kt'
+      - 'app/src/main/java/com/courtquestpro/CourtQuestBottomDock.kt'
   workflow_dispatch:
 
 permissions:
