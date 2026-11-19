@@ -4,9 +4,9 @@ Native Android basketball training and one-on-one scorekeeping, built with Kotli
 
 ## Android phone testing and Play preparation
 
-The latest published phone-test baseline is [CourtQuest Pro v54](https://github.com/Lamont-Labs/CourtQuestPro/releases/tag/courtquest-phone-update-v54). It installs on Android 8.0 or newer as `com.courtquestpro` using the established development certificate. The published release contains a checksum and the v53-to-v54 emulator upgrade receipt.
+The current [CourtQuest Pro v55 phone-test APK](https://github.com/Lamont-Labs/CourtQuestPro/releases/download/courtquest-phone-update-v55/CourtQuestPro-Update-v55.apk) installs on Android 8.0 or newer as `com.courtquestpro` using the established development certificate. The verified v54-to-v55 install-over retained the emulator profile and history. The [v55 prerelease](https://github.com/Lamont-Labs/CourtQuestPro/releases/tag/courtquest-phone-update-v55) includes the checksum, upgrade receipt, and Play listing package.
 
-The API 36 candidate uses version code 55. Its Android verification and upload-key workflow is in [Android Play candidate](.github/workflows/android-play-candidate.yml). Read the [engineering audit](docs/release/ENGINEERING_AUDIT.md), [store listing package](docs/release/play-store/LISTING.md) and [Play Console worksheet](docs/release/play-store/PLAY_CONSOLE.md). CourtQuest Pro stores player records locally and currently ships the solo-player experience.
+The API 36 candidate uses version code 55. Read the [release verification](docs/release/VERIFICATION.md), [engineering audit](docs/release/ENGINEERING_AUDIT.md), [store listing package](docs/release/play-store/LISTING.md) and [Play Console worksheet](docs/release/play-store/PLAY_CONSOLE.md). CourtQuest Pro stores player records locally and currently ships the solo-player experience.
 
 ## Signature training journey
 

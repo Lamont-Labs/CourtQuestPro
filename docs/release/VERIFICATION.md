@@ -26,3 +26,13 @@ The [successful Android 16 run](https://github.com/Lamont-Labs/CourtQuestPro/act
 The [Android 8 minimum-SDK run](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/44455315142) passed with the same verified APK SHA-256. Its [evidence archive](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/44455315142/artifacts/14497716520) contains a fresh install, relaunch, all five destinations, and a Court capture at a tablet-sized viewport. The enlarged viewport was letterboxed in the phone emulator framebuffer. A dedicated tablet capture set remains open for store use.
 
 Physical phone testing, full TalkBack and switch/keyboard traversal, low-memory recovery, an exact Play-signed install, a 16 KB runtime device, and dedicated tablet Play listing shots remain open. The isolated solo scorekeeping and Mission interfaces retain their prior unit and historical device coverage.
+
+## Published downloads
+
+[Download the tested v55 phone APK](https://github.com/Lamont-Labs/CourtQuestPro/releases/download/courtquest-phone-update-v55/CourtQuestPro-Update-v55.apk) · [Download the Play listing package](https://github.com/Lamont-Labs/CourtQuestPro/releases/download/courtquest-phone-update-v55/CourtQuestPro-Play-Listing-v55.zip)
+
+The [publication workflow](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/44456793867) verified the Android 8 and Android 16 receipts, tagged the matching app and Gradle trees, and redownloaded the published APK for byte comparison. An independent redownload also matched the tested APK. The published listing ZIP contains six reviewed 1080 × 1920 RGB phone screenshots, the approved branding assets, copy, and policy worksheets. Its SHA-256 is `659eafbb4605fffb4e0851a7d935548e6ca96977989fbdd261ed49d4ad33eee6`.
+
+The [release variant runtime run](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/44456612982) used the validated unsigned bundle to produce an emulator-only install set with the existing test certificate. [Runtime evidence](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/44456612982/artifacts/14497502778) confirms an Android 16 offline Library, background return, Jersey Studio, and a process relaunch. Play upload signing and Play-distributed APK verification require the authorized account and signatures.
+
+The Figma Starter rate limit blocked a fresh design-file read. Jersey visual review used the owner reference, the approved Arena baseline, and actual Android captures. Automatic browser review rejected Play Console navigation on an unexpected origin. The repository work proceeded using Google’s public requirements.
