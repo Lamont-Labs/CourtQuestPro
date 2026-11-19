@@ -58,7 +58,7 @@ jobs:
           gh release download courtquest-phone-update-v55 --pattern 'CourtQuestPro-Update-v55.apk' --pattern 'CourtQuestPro-Update-v55.apk.sha256' --dir previous
           (cd previous && sha256sum --check CourtQuestPro-Update-v55.apk.sha256)
           python3 scripts/verify_apk.py --apk app/build/outputs/apk/debug/app-debug.apk --build-tools "${ANDROID_HOME}/build-tools/35.0.1" --output dist
-          python3 scripts/verify_phone_update.py identity --previous previous/CourtQuestPro-Update-v55.apk --candidate app/build/outputs/apk/debug/app-debug.apk --previous-version 54 --candidate-version 55 --tools "${ANDROID_HOME}/build-tools/35.0.1" --output dist
+          python3 scripts/verify_phone_update.py identity --previous previous/CourtQuestPro-Update-v55.apk --candidate app/build/outputs/apk/debug/app-debug.apk --previous-version 55 --candidate-version 56 --tools "${ANDROID_HOME}/build-tools/35.0.1" --output dist
       - name: Prepare one disposable upgrade emulator
         run: |
           set -euo pipefail
@@ -81,9 +81,9 @@ jobs:
           ui.shell('input','keyevent','KEYCODE_WAKEUP')
           ui.shell('wm','dismiss-keyguard')
           PY
-      - name: Verify v54-to-v56 upgrade preserves saved player data
+      - name: Verify v55-to-v56 upgrade preserves saved player data
         run: |
-          python3 scripts/verify_phone_update.py upgrade --previous previous/CourtQuestPro-Update-v55.apk --candidate app/build/outputs/apk/debug/app-debug.apk --previous-version 54 --candidate-version 55 --output dist
+          python3 scripts/verify_phone_update.py upgrade --previous previous/CourtQuestPro-Update-v55.apk --candidate app/build/outputs/apk/debug/app-debug.apk --previous-version 55 --candidate-version 56 --output dist
       - name: Exercise Studio, walkthrough and training on the exact candidate
         run: |
           set -euo pipefail
@@ -132,7 +132,7 @@ jobs:
           identity=json.loads((root/'upgrade-identity.json').read_text())
           upgrade=json.loads((root/'install-upgrade.json').read_text())
           digest=hashlib.sha256(apk.read_bytes()).hexdigest()
-          assert manifest['package_id']=='com.courtquestpro' and manifest['version_code']==55
+          assert manifest['package_id']=='com.courtquestpro' and manifest['version_code']==56
           assert manifest['apk_sha256']==digest
           assert identity['candidate']['apk_sha256']==digest
           assert identity['previous']['certificate_sha256']==identity['candidate']['certificate_sha256']
@@ -141,7 +141,7 @@ jobs:
           assert upgrade['saved_values_preserved_after_launch'] and upgrade['saved_values_preserved_after_relaunch']
           assert upgrade['destructive_phone_operations']=='NONE'
           manifest.update(source_commit=os.environ['GITHUB_SHA'],release_tag='courtquest-phone-update-v56',upgrade_identity=identity,install_upgrade=upgrade)
-          manifest['checks']['emulator_test'] = 'PASS_V54_UPGRADE_STUDIO_WALKTHROUGH_TRAINING'
+          manifest['checks']['emulator_test'] = 'PASS_V55_UPGRADE_STUDIO_WALKTHROUGH_TRAINING'
           (root/'apk-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
           (root/'RELEASE_NOTES.md').write_text('# CourtQuest Pro v56 phone-test APK\\n\\nRemoves the PRO subtitle, reduces the COURTQUEST chest wordmark, keeps the enlarged player number, and removes the intrusive contrast warning from Jersey Studio. Preserves existing player data. Upgrade verification checks that installing v56 over published v55 preserves existing player data. Physical phone testing remains pending.\\n')
           PY
