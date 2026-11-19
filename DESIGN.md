@@ -28,6 +28,37 @@ omitted:
 
 # CourtQuest Pro design standard
 
+## Player Card V2
+
+The selected collectible is now the main Me identity, replacing the duplicate
+jersey/profile hero. XP/rank, actual saved training summary, milestones, profile
+settings, history and Jersey Studio remain beneath it. No player metrics are
+invented or included as cosmetic collectible ratings.
+
+Holographic Elite uses cool prismatic foil and silver edge geometry; Court
+Legends uses heritage metallic framing, engraved court texture and serif
+collectible lettering; Battle Series uses angular black/orange light and action
+composition. Original full-body standing, dribbling and layup illustrations
+remain anonymous, with shadow, featureless and question-mark face treatments.
+Live uniform masks carry all saved dye/ink roles and front lettering. The
+edition/pose/face transaction is separate from player/training saves, preserves
+the prior edition preference key and exits only on successful persistence.
+
+The phone studio keeps a large live preview above progressive Edition/Pose/Face
+tools and a fixed Save & Exit action. Large-text edition choices reflow to
+thumbnail rows; native labels and controls respect font scaling. Back offers
+save/discard rather than silently writing a draft. Brief selection crossfades
+follow platform animation scaling; no continuous animation was added.
+
+Existing native Barlow, surface primitives, selectable semantics and the pinned
+Compose BOM remain authoritative. UI/UX Pro Max was not installed in this
+workspace; no use is claimed. The bundled Impeccable reference informs identity
+hierarchy, progressive disclosure, explicit save/discard copy, and actual Android
+capture review. No browser prototype, dependency upgrade or branding replacement
+is part of this implementation. Asset construction and illustration limits are
+documented in `tools/player-card/README.md`. Build/runtime/visual verification is
+recorded separately from owner approval; a green build is not aesthetic approval.
+
 ## v42 drill-to-receipt batch
 
 Drill discovery matches words across the catalog and written technique cues.

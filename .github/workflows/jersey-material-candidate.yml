@@ -1,12 +1,13 @@
 name: Jersey Studio candidate and emulator evidence
 on:
   push:
-    branches: [dev/jersey-material-studio, dev/jersey-reference-studio]
+    branches: [dev/jersey-material-studio, dev/jersey-reference-studio, dev/player-card-profile-v2]
     paths:
       - '.github/workflows/jersey-material-candidate.yml'
       - 'app/build.gradle.kts'
       - 'app/src/**'
       - 'tools/jersey/**'
+      - 'tools/player-card/**'
   workflow_dispatch:
 permissions:
   contents: read
@@ -31,6 +32,10 @@ jobs:
       - name: Build the APK and run unit tests and lint
         run: |
           "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-35' 'build-tools;35.0.1'
+          if [[ "$GITHUB_REF_NAME" == "dev/player-card-profile-v2" ]]; then
+            python3 -m pip install 'Pillow==11.3.0'
+            python3 tools/player-card/build_assets.py --check
+          fi
           ./gradlew --no-daemon --console=plain :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest
       - name: Compare the published v56 APK and the signed candidate
         env:
@@ -54,11 +59,27 @@ jobs:
           mkdir -p "$ANDROID_AVD_HOME"
           echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd --name CourtQuest_PremiumQA --package 'system-images;android-35;default;x86_64' --device pixel_2 --path "$ANDROID_AVD_HOME/CourtQuest_PremiumQA.avd"
           "$ANDROID_HOME/emulator/emulator" -avd CourtQuest_PremiumQA -port 5562 -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect -accel on -cores 2 -memory 2048 > evidence/emulator.log 2>&1 &
+      - name: Download the exact verified original card baseline
+        if: github.ref_name == 'dev/player-card-profile-v2'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44612071475 --json headSha --jq .headSha)" = "6537a9447968ecaa6d50cf5965a1d4bfa7bb6a9b"
+          test "$(gh run view 44612071475 --json conclusion --jq .conclusion)" = "success"
+          gh run download 44612071475 --name CourtQuestPro-JerseyStudio-v57-RC --dir baseline
+          (cd baseline && sha256sum -c CourtQuestPro-JerseyStudio-v57-RC.apk.sha256)
       - name: Exercise migration, live printing, persistence and frame timing on the candidate
+        if: github.ref_name != 'dev/player-card-profile-v2'
         run: |
           python3 tools/jersey/verify_device.py --previous previous/CourtQuestPro-Update-v56.apk --candidate candidate/CourtQuestPro-JerseyStudio-v57-RC.apk --instrumentation app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk --out evidence
           python3 -m pip install 'Pillow==11.3.0'
           python3 tools/jersey/comparison.py evidence/normal evidence/JerseyStudio-Comparison.png
+          (cd candidate && sha256sum *.apk > CourtQuestPro-JerseyStudio-v57-RC.apk.sha256)
+      - name: Verify collectible cards, live uniforms, persistence and existing native flows
+        if: github.ref_name == 'dev/player-card-profile-v2'
+        run: |
+          python3 tools/player-card/verify_device.py --previous previous/CourtQuestPro-Update-v56.apk --baseline baseline/CourtQuestPro-JerseyStudio-v57-RC.apk --candidate candidate/CourtQuestPro-JerseyStudio-v57-RC.apk --instrumentation app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk --out evidence
           (cd candidate && sha256sum *.apk > CourtQuestPro-JerseyStudio-v57-RC.apk.sha256)
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()

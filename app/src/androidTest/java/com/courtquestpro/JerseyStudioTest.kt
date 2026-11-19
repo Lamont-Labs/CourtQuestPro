@@ -165,7 +165,8 @@ class JerseyStudioTest {
         wait("player-card-style-classic")
         tap("player-card-style-classic")
         node("player-card-save").assertIsEnabled().performClick()
-        node("player-card-save").assertIsNotEnabled()
+        wait("me-player-card-studio")
+        node("player-card-studio-screen").assertDoesNotExist()
         // Assert persisted disk state before recreation, not only the in-memory cache.
         assertEquals("CLASSIC", compose.activity.getSharedPreferences("courtquest_player_card", 0)
             .getString("selected_style_v1", null))

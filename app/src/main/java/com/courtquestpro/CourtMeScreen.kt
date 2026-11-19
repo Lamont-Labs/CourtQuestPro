@@ -80,38 +80,24 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (section == "Profile") {
                     val context = androidx.compose.ui.platform.LocalContext.current
-                    val selectedStyle = PlayerCardSelection.read(context)
-                    CourtQuestPremiumSurface(Modifier.fillMaxWidth().testTag("me-player-card"), PaddingValues(16.dp)) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Text("MY PLAYER CARD", color = CourtQuestDesign.textPrimary,
-                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-                            CourtPlayerCard(save.playerJersey, save.playerName, selectedStyle,
-                                Modifier.width(220.dp))
+                    val identity = PlayerCardSelection.identity(context)
+                    Column(Modifier.fillMaxWidth().testTag("me-player-card"),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            CourtPlayerCard(save.playerJersey, save.playerName, identity.style,
+                                Modifier.widthIn(max = 292.dp).fillMaxWidth(), identity.pose, identity.face)
                             CourtQuestPrimaryButton(onPlayerCard, Modifier.fillMaxWidth().testTag("me-player-card-studio")) {
                                 Text("Customize player card")
                             }
-                        }
                     }
                 }
                 if (section == "Profile") CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(20.dp), highlighted = true) {
-                    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally,
+                    Column(Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        CourtEyebrow("PLAYER PROFILE")
-                        Box(
-                            Modifier.size(if (LocalDensity.current.fontScale > 1.5f) 132.dp else 148.dp)
-                                .clip(CircleShape).testTag("me-jersey-hero")
-                                .background(Brush.radialGradient(listOf(Color(0xFF351609), Color(0xFF151517), Color(0xFF0B0B0C))))
-                                .border(1.dp, CourtQuestDesign.accent.copy(alpha = .45f), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CourtJerseyArtwork(save.playerJersey, Modifier.fillMaxSize().padding(12.dp))
-                        }
-                        Text(save.playerName.ifBlank { "Your player profile" },
-                            color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.displaySmall,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                        Text(save.playerJersey.number?.let { "JERSEY #$it" } ?: "JERSEY NUMBER NOT SET",
-                            color = CourtQuestDesign.accent, style = MaterialTheme.typography.titleMedium)
+                        CourtEyebrow("YOUR DEVELOPMENT")
+                        // A readable text counterpart to the collectible artwork at enlarged font scales.
+                        if (LocalDensity.current.fontScale > 1.3f) Text(save.playerName.ifBlank { "Your player" },
+                            color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleLarge)
                         Text("${rankFor(save.totalXp)}  ·  ${save.totalXp} XP",
                             color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineSmall)
                         CourtRankMeter(save.totalXp)
