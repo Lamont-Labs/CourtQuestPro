@@ -9,7 +9,6 @@ import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
@@ -20,6 +19,8 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
@@ -44,11 +45,15 @@ internal fun CourtJerseyArtwork(
         jersey.name.takeIf { view == JerseyView.BACK && it.isNotBlank() }).joinToString(", ")
     val context = LocalContext.current
     val font = remember(context) { ResourcesCompat.getFont(context, R.font.barlow_condensed_extra_bold) }
-    BoxWithConstraints(if (describe) modifier.semantics { contentDescription = description } else modifier,
+    var pixelHeight by remember { mutableIntStateOf(0) }
+    val bounds = modifier.onSizeChanged { pixelHeight = it.height }
+    val loadingThreshold = with(LocalDensity.current) { 100.dp.roundToPx() }
+    Box(if (describe) bounds.semantics { contentDescription = description } else bounds,
         contentAlignment = Alignment.Center) {
+        if (pixelHeight == 0) return@Box
         val sample = when {
-            !zoom && constraints.maxHeight <= 150 -> 4
-            !zoom && constraints.maxHeight <= 360 -> 2
+            !zoom && pixelHeight <= 150 -> 4
+            !zoom && pixelHeight <= 360 -> 2
             else -> 1
         }
         var plate by remember(style, view, sample) { mutableStateOf(JerseyMaterials.cached(style, view, sample)) }
@@ -87,7 +92,7 @@ internal fun CourtJerseyArtwork(
                     }
                 }
             })
-        } else if (describe && maxHeight > 100.dp) {
+        } else if (describe && pixelHeight > loadingThreshold) {
             CircularProgressIndicator(Modifier.size(20.dp), color = CourtQuestDesign.accent, strokeWidth = 2.dp)
         }
     }

@@ -1,7 +1,12 @@
 name: Jersey Studio candidate and emulator evidence
 on:
   push:
-    branches: [dev/jersey-material-studio]
+    branches: [dev/jersey-material-studio, dev/jersey-reference-studio]
+    paths:
+      - '.github/workflows/jersey-material-candidate.yml'
+      - 'app/build.gradle.kts'
+      - 'app/src/**'
+      - 'tools/jersey/**'
   workflow_dispatch:
 permissions:
   contents: read
@@ -38,6 +43,8 @@ jobs:
           cp app/build/outputs/apk/debug/app-debug.apk candidate/CourtQuestPro-JerseyStudio-v57-RC.apk
           python3 scripts/verify_apk.py --apk candidate/CourtQuestPro-JerseyStudio-v57-RC.apk --build-tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
           python3 scripts/verify_phone_update.py identity --previous previous/CourtQuestPro-Update-v56.apk --candidate candidate/CourtQuestPro-JerseyStudio-v57-RC.apk --previous-version 56 --candidate-version 57 --tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
+          # The shared verifier also stages phone-release files. Keep candidate transport separate from evidence.
+          rm evidence/CourtQuestPro-1.0.apk evidence/SHA256SUMS.txt evidence/RELEASE_NOTES.md
           git rev-parse HEAD > evidence/commit.txt
       - name: Boot the disposable Android 35 emulator
         run: |
