@@ -139,7 +139,7 @@ internal fun CourtCardAthlete(
                     }
                 }
             })
-            if(inspection!=AvatarInspection.NONE) Box(Modifier.testTag("avatar-inspection-ready"))
+            if(inspection!=AvatarInspection.NONE) Box(Modifier.fillMaxSize().testTag("avatar-inspection-ready"))
         } else if (failure) {
             Text("Player artwork unavailable", color = CourtQuestDesign.textPrimary,
                 style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("card-artwork-error"))

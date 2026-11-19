@@ -18,7 +18,7 @@ class PlayerCardStudioTest {
     private fun node(tag:String)=compose.onNodeWithTag(tag,useUnmergedTree=true)
     private fun has(tag:String)=compose.onAllNodesWithTag(tag,useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()
     private fun wait(tag:String)=compose.waitUntil(20_000){has(tag)}
-    private fun tap(tag:String) {node(tag).performClick()}
+    private fun tap(tag:String) {node(tag).assertIsDisplayed().performClick()}
     private fun choose(tag:String) {node(tag).performScrollTo().performClick()}
     private fun enter() {
         assertTrue("Only the disposable emulator",Build.HARDWARE.contains("ranchu"))
@@ -141,13 +141,14 @@ class PlayerCardStudioTest {
             if(has("segment-avatar-hair"))tap("player-card-avatar")
             tap("segment-card-pose");choose("player-card-pose-${pose.name.lowercase()}");ready(pose)
             tap("player-card-avatar")
-            choose("segment-avatar-hair")
+            ready(pose);capture("avatar-${pose.name.lowercase()}-studio-entry")
+            tap("segment-avatar-hair")
             options("hair",AvatarHair.entries.map{it.name})
             options("headwear",AvatarHeadwear.entries.map{it.name})
-            choose("segment-avatar-body")
+            tap("segment-avatar-body")
             options("build",AvatarBuild.entries.map{it.name})
             options("skin",AvatarSkin.entries.map{it.name})
-            choose("segment-avatar-gear")
+            tap("segment-avatar-gear")
             options("shoes",AvatarShoes.entries.map{it.name})
             options("gear",AvatarGear.entries.map{it.name})
         }
@@ -165,7 +166,7 @@ class PlayerCardStudioTest {
         enter();ready(PlayerCardPose.ACTION)
         assertEquals(customizedAvatar,PlayerCardSelection.identity(compose.activity).avatar)
         choose("me-player-card-studio");wait("player-card-studio-screen")
-        tap("player-card-avatar");choose("segment-avatar-body");choose("avatar-skin-deep")
+        tap("player-card-avatar");tap("segment-avatar-body");choose("avatar-skin-deep")
         compose.activityRule.scenario.recreate();wait("player-card-studio-screen")
         node("avatar-skin-deep").performScrollTo().assertIsSelected()
         tap("player-card-close");tap("player-card-discard");wait("me-player-card-studio")
