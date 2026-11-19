@@ -279,17 +279,6 @@ internal fun CourtJerseyStudio(saved: PlayerJersey, onSave: (String, String, Jer
                 Spacer(Modifier.height(8.dp))
             }
             Column(Modifier.fillMaxWidth().background(CourtQuestDesign.background).padding(horizontal = 16.dp, vertical = 8.dp)) {
-                val lowContrast = design.lowContrastParts()
-                if (lowContrast.isNotEmpty()) {
-                    val warning = when {
-                        lowContrast.size == 2 -> "Low contrast for name and number."
-                        lowContrast.single() == JerseyPart.NAME -> "Name color has low contrast."
-                        else -> "Number color has low contrast."
-                    }
-                    Text(warning,
-                        color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }.testTag("jersey-contrast"))
-                }
                 if (savedNotice) Text("Jersey saved", color = CourtQuestDesign.accent,
                     modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
                 CourtQuestPrimaryButton(
