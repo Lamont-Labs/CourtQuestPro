@@ -18,9 +18,10 @@ class AvatarAppearanceTest {
             AvatarBuild.entries.map{base.copy(build=it)}+
             AvatarSkin.entries.map{base.copy(skin=it)}+
             AvatarShoes.entries.map{base.copy(shoes=it)}+
-            AvatarGear.entries.map{base.copy(gear=it)}
+            AvatarGear.entries.map{base.copy(gear=it)}+
+            AvatarFootwear.entries.map{base.copy(footwear=it)}
         variants.forEach{assertEquals(it,AvatarAppearance.restore(it.values))}
-        assertEquals(6,AvatarAppearance.keys.distinct().size)
+        assertEquals(7,AvatarAppearance.keys.distinct().size)
     }
     @Test fun proportionsKeepHeadFeetAndDistantHandsStable() {
         for(pose in PlayerCardPose.entries)for(build in AvatarBuild.entries) {
@@ -37,5 +38,23 @@ class AvatarAppearanceTest {
         assertTrue(AvatarGeometry.x(PlayerCardPose.STANDING,AvatarBuild.POWER,600f,400f)>600f)
         assertTrue(AvatarGeometry.x(PlayerCardPose.STANDING,AvatarBuild.LEAN,600f,400f)<600f)
         assertEquals(600f,AvatarGeometry.x(PlayerCardPose.STANDING,AvatarBuild.ORIGINAL,600f,400f),.001f)
+    }
+    @Test fun existingSixDimensionSavesRetainEveryChoiceAndDefaultOnlyNewFootwear() {
+        val old=listOf("BRAIDS","ORANGE","POWER","LIGHT","VIOLET","BOTH")
+        val restored=AvatarAppearance.restore(old)
+        assertEquals(old,restored.values.take(6))
+        assertEquals(AvatarFootwear.ORIGINAL,restored.footwear)
+        assertEquals(restored,AvatarAppearance.restore(restored.values))
+    }
+    @Test fun everyPoseHasAnatomicalAnchorsAndValidUnobstructedPrintQuads() {
+        for(pose in PlayerCardPose.entries) {
+            val layout=pose.layout
+            assertEquals(8,layout.print.size);assertEquals(6,layout.arm.size)
+            assertTrue(layout.faceY in 50f..250f)
+            layout.print.forEach{assertTrue(it in 100f..700f)}
+            assertTrue(layout.print[0]<layout.print[2])
+            assertTrue(layout.shoes[0]<layout.shoes[2] && layout.shoes[1]<layout.shoes[3])
+        }
+        assertEquals(529f,AvatarGeometry.x(PlayerCardPose.FOLLOWTHROUGH,AvatarBuild.POWER,529f,201f),.001f)
     }
 }

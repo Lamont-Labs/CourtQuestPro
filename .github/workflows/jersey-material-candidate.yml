@@ -17,7 +17,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-24.04
-    timeout-minutes: 55
+    timeout-minutes: 100
     env:
       ANDROID_AVD_HOME: /tmp/courtquest-jersey-avd
       CANDIDATE_APK: ${{ github.ref_name == 'dev/player-card-profile-v2' && 'CourtQuestPro-PlayerCard-V2-v57-RC.apk' || 'CourtQuestPro-JerseyStudio-v57-RC.apk' }}
@@ -68,10 +68,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          test "$(gh run view 44612071475 --json headSha --jq .headSha)" = "6537a9447968ecaa6d50cf5965a1d4bfa7bb6a9b"
-          test "$(gh run view 44612071475 --json conclusion --jq .conclusion)" = "success"
-          gh run download 44612071475 --name CourtQuestPro-JerseyStudio-v57-RC --dir baseline
-          (cd baseline && sha256sum -c CourtQuestPro-JerseyStudio-v57-RC.apk.sha256)
+          test "$(gh run view 44631807988 --json headSha --jq .headSha)" = "6d158d027a129459d61e4786205ffd60af86e2f7"
+          test "$(gh run view 44631807988 --json conclusion --jq .conclusion)" = "success"
+          gh run download 44631807988 --name CourtQuestPro-PlayerCard-V2-v57-RC --dir baseline
+          (cd baseline && sha256sum -c CourtQuestPro-PlayerCard-V2-v57-RC.apk.sha256)
       - name: Exercise migration, live printing, persistence and frame timing on the candidate
         if: github.ref_name != 'dev/player-card-profile-v2'
         run: |
@@ -82,7 +82,7 @@ jobs:
       - name: Verify collectible cards, live uniforms, persistence and existing native flows
         if: github.ref_name == 'dev/player-card-profile-v2'
         run: |
-          python3 tools/player-card/verify_device.py --previous previous/CourtQuestPro-Update-v56.apk --baseline baseline/CourtQuestPro-JerseyStudio-v57-RC.apk --candidate "candidate/$CANDIDATE_APK" --instrumentation app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk --out evidence
+          python3 tools/player-card/verify_device.py --previous previous/CourtQuestPro-Update-v56.apk --baseline baseline/CourtQuestPro-PlayerCard-V2-v57-RC.apk --candidate "candidate/$CANDIDATE_APK" --instrumentation app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk --out evidence
           (cd candidate && sha256sum *.apk > "$CANDIDATE_APK.sha256")
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()

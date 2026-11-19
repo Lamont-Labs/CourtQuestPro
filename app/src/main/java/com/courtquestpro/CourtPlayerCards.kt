@@ -29,7 +29,7 @@ import java.util.Locale
 internal fun CourtPlayerCard(
     jersey:PlayerJersey,playerName:String,style:PlayerCardStyle,modifier:Modifier=Modifier,
     pose:PlayerCardPose=PlayerCardPose.STANDING,face:PlayerCardFace=PlayerCardFace.SHADOW,
-    thumbnail:Boolean=false,appearance:AvatarAppearance=AvatarAppearance()
+    thumbnail:Boolean=false,appearance:AvatarAppearance=AvatarAppearance(),interactive:Boolean=false
 ) {
     val context=LocalContext.current
     val display=remember(context){ResourcesCompat.getFont(context,R.font.barlow_condensed_extra_bold)}
@@ -40,6 +40,7 @@ internal fun CourtPlayerCard(
         PlayerCardStyle.HOLOGRAPHIC->Color(0xFFB9F1FF)
         PlayerCardStyle.CLASSIC->Color(0xFFE6C690)
         PlayerCardStyle.BATTLE->Color(0xFFFF8D45)
+        PlayerCardStyle.OBSIDIAN->Color(0xFFD0DAEA)
     }
     val name=playerName.ifBlank{"YOUR PLAYER"}.uppercase(Locale.ROOT)
     val identity=PlayerCardIdentity(style,pose,face,appearance)
@@ -63,12 +64,12 @@ internal fun CourtPlayerCard(
                 fun title(value:String,y:Float,cap:Float,color:Color,font:Typeface?,max:Float) {
                     val p=Paint(Paint.ANTI_ALIAS_FLAG).apply {
                         typeface=font;textSize=w*cap;this.color=color.toArgb();textAlign=Paint.Align.CENTER
-                        setShadowLayer(w*.004f,0f,w*.002f,android.graphics.Color.BLACK)
+                        if(!classic)setShadowLayer(w*.004f,0f,w*.002f,android.graphics.Color.BLACK)
                     }
                     if(p.measureText(value)>w*max)p.textSize*=w*max/p.measureText(value)
                     drawText(value,w*.5f,h*y,p)
                 }
-                title(style.label.uppercase(Locale.ROOT),.194f,.035f,accent,body,.66f)
+                title(style.label.uppercase(Locale.ROOT),if(style==PlayerCardStyle.OBSIDIAN).122f else .194f,.035f,accent,body,.66f)
                 title(name,.903f,.093f,if(classic)Color(0xFF281C13)else Color.White,
                     if(classic)Typeface.create(Typeface.SERIF,Typeface.BOLD)else display,.65f)
                 title(jersey.number?.let{"Nº $it  /  PLAYER EDITION"}?:"PLAYER EDITION",
@@ -76,7 +77,8 @@ internal fun CourtPlayerCard(
             }
         }
         Image(painterResource(R.drawable.courtquest_signature_wordmark),null,
-            Modifier.align(Alignment.TopCenter).offset(y=maxHeight*.115f)
-                .fillMaxWidth(.33f).height(maxHeight*.054f))
+            Modifier.align(Alignment.TopCenter).offset(y=maxHeight*(if(style==PlayerCardStyle.OBSIDIAN).055f else .115f))
+                .fillMaxWidth(.33f).height(maxHeight*(if(style==PlayerCardStyle.OBSIDIAN).04f else .054f)))
+        CardMaterialFinish(style,interactive)
     }
 }

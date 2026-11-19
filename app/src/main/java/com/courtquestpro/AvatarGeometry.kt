@@ -3,18 +3,23 @@ package com.courtquestpro
 import kotlin.math.abs
 import kotlin.math.sin
 
-/** Mild localized proportions; head, ball and distal hands stay out of the body deformation. */
+/** Mild localized illustration proportions; no height change or player measurements. */
 internal object AvatarGeometry {
     fun x(pose:PlayerCardPose,build:AvatarBuild,x:Float,y:Float):Float {
-        if(build==AvatarBuild.ORIGINAL || y<=160f || y>=750f) return x
+        val start=if(pose==PlayerCardPose.FOLLOWTHROUGH)280f else 160f
+        if(build==AvatarBuild.ORIGINAL || y<=start || y>=750f) return x
         val center=when(pose) {
             PlayerCardPose.STANDING -> 510f
             PlayerCardPose.DRIBBLING -> 490f-(y-300f)*.12f
             PlayerCardPose.ACTION -> 439f
+            PlayerCardPose.READY -> 514f
+            PlayerCardPose.FOLLOWTHROUGH -> 525f
         }
         val delta=x-center
         val influence=(1f-abs(delta)/220f).coerceIn(0f,1f)
-        val vertical=sin((y-160f)/590f*Math.PI).toFloat()
+        val end=if(build==AvatarBuild.SHOULDERS)start+240f else 750f
+        if(y>=end)return x
+        val vertical=sin((y-start)/(end-start)*Math.PI).toFloat()
         return x+delta*(build.width-1f)*influence*vertical
     }
     fun mesh(pose:PlayerCardPose,build:AvatarBuild,columns:Int=32,rows:Int=48):FloatArray =

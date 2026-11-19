@@ -180,7 +180,7 @@ internal fun CourtJerseyStudio(saved: PlayerJersey, onSave: (String, String, Jer
                                         })
                                     if (design.branding == ChestBrand.CUSTOM) OutlinedTextField(design.teamName.orEmpty(), {
                                         design = design.copy(teamName = it.take(32)); view = JerseyView.FRONT; savedNotice = false
-                                    }, Modifier.fillMaxWidth().testTag("jersey-team"), label = { Text("Team name") }, singleLine = true,
+                                    }, Modifier.fillMaxWidth().testTag("jersey-team"), label = { Text("Custom chest text") }, singleLine = true,
                                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Done))
                                 }
                                 StudioTool.COLORS -> {

@@ -11,6 +11,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
@@ -49,12 +50,8 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
     val scope = rememberCoroutineScope()
     val close = { if (dirty) discard = true else onBack() }
     fun selectEdition(choice: PlayerCardStyle) {
+        if(saving)return
         style = choice
-        pose = when(choice) {
-            PlayerCardStyle.HOLOGRAPHIC -> PlayerCardPose.STANDING
-            PlayerCardStyle.CLASSIC -> PlayerCardPose.DRIBBLING
-            PlayerCardStyle.BATTLE -> PlayerCardPose.ACTION
-        }
     }
     fun saveAndExit() {
         if (saving) return
@@ -110,7 +107,7 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
                         modifier = Modifier.fillMaxSize()) { choice ->
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             CourtPlayerCard(jersey,playerName,choice.style,Modifier.fillMaxHeight().padding(4.dp),
-                                choice.pose,choice.face,appearance=choice.avatar)
+                                choice.pose,choice.face,appearance=choice.avatar,interactive=true)
                         }
                     }
                 }
@@ -127,7 +124,7 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
                             .testTag("player-card-inspector").padding(vertical=8.dp),
                             verticalArrangement=Arrangement.spacedBy(8.dp)) {
                             when(tool) {
-                                "Avatar" -> AvatarControls(avatar,avatarPart,{inspection=it}){avatar=it}
+                                "Avatar" -> AvatarControls(avatar,avatarPart,{inspection=it}){if(!saving)avatar=it}
                                 "Edition" -> {
                                     if (largeText) {
                                         PlayerCardStyle.entries.forEach { choice ->
@@ -143,29 +140,26 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
                                                 if(style==choice) Icon(Icons.Default.CheckCircle,"Selected",tint=CourtQuestDesign.accent)
                                             }
                                         }
-                                    } else Row(Modifier.fillMaxWidth().selectableGroup(),horizontalArrangement=Arrangement.spacedBy(7.dp)) {
+                                    } else Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).selectableGroup(),
+                                        horizontalArrangement=Arrangement.spacedBy(10.dp)) {
                                         PlayerCardStyle.entries.forEach { choice ->
-                                            Column(Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
+                                            Column(Modifier.width(112.dp).clip(RoundedCornerShape(10.dp))
                                                 .border(if(style==choice) 2.dp else 1.dp,
                                                     if(style==choice) CourtQuestDesign.accent else CourtQuestDesign.border,RoundedCornerShape(10.dp))
                                                 .selectable(style==choice,role=Role.RadioButton,onClick={selectEdition(choice)})
                                                 .testTag("player-card-style-${choice.name.lowercase()}").padding(5.dp),
                                                 horizontalAlignment=Alignment.CenterHorizontally) {
                                                 CourtPlayerCard(jersey,playerName,choice,Modifier.fillMaxWidth(),
-                                                    when(choice) {
-                                                        PlayerCardStyle.HOLOGRAPHIC -> PlayerCardPose.STANDING
-                                                        PlayerCardStyle.CLASSIC -> PlayerCardPose.DRIBBLING
-                                                        PlayerCardStyle.BATTLE -> PlayerCardPose.ACTION
-                                                    },face,thumbnail=true,appearance=avatar)
+                                                    pose,face,thumbnail=true,appearance=avatar)
                                                 Spacer(Modifier.height(5.dp))
                                                 Text(choice.label,color=CourtQuestDesign.textPrimary,style=MaterialTheme.typography.labelMedium)
                                             }
                                         }
                                     }
                                 }
-                                "Pose" -> CardChoices(PlayerCardPose.entries,pose,{it.label},{"player-card-pose-${it.name.lowercase()}"}) { pose=it }
+                                "Pose" -> CardChoices(PlayerCardPose.entries,pose,{it.label},{"player-card-pose-${it.name.lowercase()}"}) { if(!saving)pose=it }
                                 "Face" -> {
-                                    CardChoices(PlayerCardFace.entries,face,{it.label},{"player-card-face-${it.name.lowercase()}"}) { face=it }
+                                    CardChoices(PlayerCardFace.entries,face,{it.label},{"player-card-face-${it.name.lowercase()}"}) { if(!saving)face=it }
                                     Text("All identities are anonymous original illustrations. No photo or real-person likeness.",
                                         color=CourtQuestDesign.textSecondary,style=MaterialTheme.typography.bodySmall)
                                 }

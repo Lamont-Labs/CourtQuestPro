@@ -9,15 +9,17 @@ import androidx.compose.runtime.setValue
 internal enum class PlayerCardStyle(val label: String, val edition: String) {
     HOLOGRAPHIC("Holographic Elite", "PRISM / ELITE"),
     CLASSIC("Court Legends", "HERITAGE COLLECTION"),
-    BATTLE("Battle Series", "BUILT FOR THE COURT")
+    BATTLE("Battle Series", "BUILT FOR THE COURT"),
+    OBSIDIAN("Obsidian Chrome","PRECISION / CHROME")
 }
 
 internal enum class PlayerCardPose(val label: String) {
-    STANDING("Standing"), DRIBBLING("Dribbling"), ACTION("Action")
+    STANDING("Standing"), DRIBBLING("Dribbling"), ACTION("Action"),
+    READY("Ready stance"), FOLLOWTHROUGH("Follow-through")
 }
 
 internal enum class PlayerCardFace(val label: String) {
-    SHADOW("Shadowed"), BLANK("Featureless"), QUESTION("Question mark")
+    SHADOW("Shadowed"), BLANK("Featureless"), QUESTION("Question mark"), VISOR("Reflective visor")
 }
 
 internal data class PlayerCardIdentity(

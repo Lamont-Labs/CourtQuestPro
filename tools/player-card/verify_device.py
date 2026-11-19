@@ -7,6 +7,7 @@ import re
 import sys
 import tarfile
 import time
+from xml.etree import ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -24,8 +25,8 @@ def collect(folder, location="player-card-proof"):
                 (folder / Path(entry.name).name).write_bytes(archive.extractfile(entry).read())
 
 
-def run(class_name, method, folder):
-    output = ui.shell("am", "instrument", "-w", "-e", "class", f"{ui.PACKAGE}.{class_name}" + (f"#{method}" if method else ""),
+def run(class_name, method, folder,baseline=False):
+    output = ui.shell("am", "instrument", "-w", "-e", "courtquestBaseline",str(baseline).lower(),"-e", "class", f"{ui.PACKAGE}.{class_name}" + (f"#{method}" if method else ""),
         f"{ui.PACKAGE}.test/androidx.test.runner.AndroidJUnitRunner", timeout=900)
     (folder / f"{class_name}-{method or 'suite'}.txt").write_text(output)
     if not re.search(r"OK \(\d+ tests?\)", output) or "FAILURES" in output:
@@ -81,15 +82,44 @@ def main():
     seed_state(fixture)
     ui.OUT=args.out
     enter(); ui.nodes("baseline-me");ui.screenshot("baseline-me")
+    for label,size,font in [("normal","720x1600","1.0"),("compact","640x1280","1.3"),("large-text","640x1280","2.0"),("landscape","1280x720","1.0")]:
+        folder=args.out/"before"/label;folder.mkdir(parents=True,exist_ok=True)
+        ui.shell("am","force-stop",ui.PACKAGE)
+        seed_state(fixture)
+        ui.shell("run-as",ui.PACKAGE,"rm","-rf","files/app-quality-proof")
+        ui.shell("wm","size",size);ui.shell("settings","put","system","font_scale",font)
+        run("PremiumJourneyAuditTest","everySoloDestinationAndSettingsPageIsReachable",folder,baseline=True)
+        collect(folder,"app-quality-proof")
     ui.shell("am","force-stop",ui.PACKAGE)
+    legacy=ET.Element("map")
+    legacy_values={"selected_style_v1":"CLASSIC","selected_pose_v2":"DRIBBLING","selected_face_v2":"BLANK",
+        "avatar_hair_v3":"BRAIDS","avatar_headwear_v3":"WHITE","avatar_build_v3":"LEAN",
+        "avatar_skin_v3":"DEEP","avatar_shoes_v3":"ORANGE","avatar_gear_v3":"BOTH"}
+    for key,value in legacy_values.items():ET.SubElement(legacy,"string",name=key).text=value
+    legacy_bytes=ET.tostring(legacy,encoding="utf-8")
+    ui.shell(f'run-as {ui.PACKAGE} sh -c "cat > shared_prefs/courtquest_player_card.xml"',data=legacy_bytes)
     saved=ui.adb("exec-out","run-as",ui.PACKAGE,"cat","shared_prefs/court_quest_pro.xml")
     assert "Success" in ui.adb("install","-r",str(args.candidate.resolve())).decode()
     assert saved==ui.adb("exec-out","run-as",ui.PACKAGE,"cat","shared_prefs/court_quest_pro.xml")
-    for label,size,font in [("normal","720x1600","1.0"),("compact","640x1280","1.3"),("large-text","640x1280","2.0")]:
+    assert legacy_bytes==ui.adb("exec-out","run-as",ui.PACKAGE,"cat","shared_prefs/courtquest_player_card.xml")
+    migration=args.out/"cosmetic-migration";migration.mkdir(exist_ok=True)
+    ui.shell("wm","size","720x1600");ui.shell("settings","put","system","font_scale","1.0")
+    run("PlayerCardStudioTest","legacyV3CosmeticsUpgradeWithoutChangingTraining",migration)
+    ui.shell("am","force-stop",ui.PACKAGE)
+    run("PlayerCardStudioTest","legacyV3CosmeticsSurviveColdStart",migration)
+    collect(migration)
+    for label,size,font in [("normal","720x1600","1.0"),("compact","640x1280","1.3"),("large-text","640x1280","2.0"),("landscape","1280x720","1.0")]:
         folder=args.out/label;folder.mkdir(exist_ok=True)
         ui.shell("am","force-stop",ui.PACKAGE)
+        # Disposable-AVD visual fixture only, after install-over preservation assertions.
+        # Reset cosmetic QA selections so paired app captures use the same saved identity.
+        seed_state(fixture)
+        ui.shell("run-as",ui.PACKAGE,"rm","-f","shared_prefs/courtquest_player_card.xml")
         ui.shell("run-as",ui.PACKAGE,"rm","-rf","files/player-card-proof")
         ui.shell("wm","size",size); ui.shell("settings","put","system","font_scale",font)
+        ui.shell("run-as",ui.PACKAGE,"rm","-rf","files/app-quality-proof")
+        run("PremiumJourneyAuditTest","everySoloDestinationAndSettingsPageIsReachable",folder)
+        collect(folder,"app-quality-proof")
         run("PlayerCardStudioTest","allEditionsPosesAndFacesAreRealAndSaveAsProfile",folder)
         ui.shell("am","force-stop",ui.PACKAGE)
         run("PlayerCardStudioTest","coldStartUsesSavedCardAndJerseyEditsSynchronizeWithoutCardResave",folder)
@@ -97,18 +127,45 @@ def main():
         ui.shell("am","force-stop",ui.PACKAGE)
         run("PlayerCardStudioTest","customizedAvatarSurvivesColdStartAndUnsavedAvatarDraftCanBeDiscarded",folder)
         collect(folder)
-        assert len(list(folder.glob("*-*-*.png")))>=27
+        gallery=json.loads((folder/"verified.json").read_text())
+        assert len(gallery["gallery_files"])==gallery["combinations"]==80
+        assert all((folder/name).is_file() for name in gallery["gallery_files"])
         (folder/"configuration.json").write_text(json.dumps(dict(size=size,font_scale=font)))
     ui.shell("wm","size","720x1600");ui.shell("settings","put","system","font_scale","1.0")
     ui.seed("visual-review")
     run("NavigationTourTest",None,args.out)
     ui.seed("visual-review")
     run("TrainingEntryTest",None,args.out)
+    # Existing deep receipt/progression/extra-practice and game/Undo checks, same guarded AVD.
+    import capture_v42_solo_baseline as solo
+    for label in ("normal","large"):
+        ui.OUT=args.out/"deep-journeys"/label;ui.OUT.mkdir(parents=True,exist_ok=True)
+        ui.shell("wm","size","640x1440" if label=="large" else "720x1600")
+        ui.shell("settings","put","system","font_scale","2.0" if label=="large" else "1.0")
+        ui.seed("visual-review");ui.open_app();solo.enter_court();solo.set_tour_complete(False)
+        solo.verify_candidate(label)
+        solo.verify_drill_batch(label)
+        solo.verify_progression_screens(label)
+    import verify_android_game_flow as games
+    ui.OUT=args.out/"game-journey";ui.OUT.mkdir(parents=True,exist_ok=True)
+    sys.argv=[sys.argv[0],"candidate",str(args.candidate.resolve())]
+    games.main()
+    census=json.loads((args.out/"normal"/"avatar-rendered-differences.json").read_text())
+    dimensions={key.split("-",1)[1]:len(value) for key,value in census.items() if key.startswith("STANDING-")}
+    assert len(dimensions)==7 and sum(dimensions.values())==43
+    assert len(census)==5*len(dimensions)
+    assert all(len(hashes)==len(set(hashes.values())) for hashes in census.values())
+    for pose in {key.split("-",1)[0] for key in census}:
+        assert {key.split("-",1)[1]:len(value) for key,value in census.items() if key.startswith(pose+"-")}==dimensions
     report=dict(candidate_sha256=hashlib.sha256(args.candidate.read_bytes()).hexdigest(),
         baseline_sha256=hashlib.sha256(args.baseline.read_bytes()).hexdigest(),
-        combinations_per_configuration=27,configurations=3,real_android_captures=True,
+        combinations_per_configuration=80,configurations=4,real_android_captures=True,
         original_jersey_journey=True,restart_and_live_uniform_sync=True,upgrade_preserved_preferences=True,
-        avatar_dimensions=6,avatar_options=30,avatar_all_poses=True,avatar_restart_and_discard=True)
+        avatar_dimensions=7,avatar_options=43,avatar_all_poses=True,avatar_restart_and_discard=True,
+        total_choices_including_card_pose_face=56,physical_footwear_models=3,
+        isolated_artwork_pixel_checks=True,landscape=True,deep_drill_receipt_progression_game_regressions=True)
+    report["legacy_cosmetic_upgrade_and_cold_start"]=True
+    report["avatar_option_counts"]=dimensions
     (args.out/"player-card-verification.json").write_text(json.dumps(report,indent=2)+"\n")
 
 

@@ -36,7 +36,10 @@ internal fun AvatarControls(value:AvatarAppearance,part:String,inspect:(AvatarIn
                 inspect(AvatarInspection.NONE);change(value.copy(skin=it))}
         }
         else -> {
-            Choices("Shoes",AvatarShoes.entries,value.shoes,{it.label},{"avatar-shoes-${it.name.lowercase()}"},{it.color}){
+            Choices("Footwear model",AvatarFootwear.entries,value.footwear,{it.label},{"avatar-footwear-${it.name.lowercase()}"},
+                preview={FootwearThumbnail(it)}){
+                inspect(AvatarInspection.SHOES);change(value.copy(footwear=it))}
+            Choices("Shoe color",AvatarShoes.entries,value.shoes,{it.label},{"avatar-shoes-${it.name.lowercase()}"},{it.color}){
                 inspect(AvatarInspection.SHOES);change(value.copy(shoes=it))}
             Choices("Accessories",AvatarGear.entries,value.gear,{it.label},{"avatar-gear-${it.name.lowercase()}"}){inspect(AvatarInspection.NONE);change(value.copy(gear=it))}
         }
@@ -45,7 +48,7 @@ internal fun AvatarControls(value:AvatarAppearance,part:String,inspect:(AvatarIn
 
 @Composable
 private fun <T> Choices(title:String,values:List<T>,selected:T,label:(T)->String,tag:(T)->String,
-    swatch:((T)->Int?)?=null,select:(T)->Unit) {
+    swatch:((T)->Int?)?=null,preview:(@Composable (T)->Unit)?=null,select:(T)->Unit) {
     Text(title,style=MaterialTheme.typography.titleSmall,color=CourtQuestDesign.textSecondary,
         modifier=Modifier.padding(top=8.dp).semantics{heading()})
     Column(Modifier.fillMaxWidth().selectableGroup()) {
@@ -55,6 +58,7 @@ private fun <T> Choices(title:String,values:List<T>,selected:T,label:(T)->String
                 .selectable(selected==choice,role=Role.RadioButton,onClick={select(choice)})
                 .testTag(tag(choice)).padding(horizontal=12.dp,vertical=10.dp),
                 verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)) {
+                preview?.invoke(choice)
                 swatch?.invoke(choice)?.let {Box(Modifier.size(25.dp).background(Color(it),CircleShape)
                     .border(1.dp,CourtQuestDesign.controlOutline,CircleShape))}
                 Text(label(choice),Modifier.weight(1f),color=CourtQuestDesign.textPrimary,style=MaterialTheme.typography.bodyLarge)

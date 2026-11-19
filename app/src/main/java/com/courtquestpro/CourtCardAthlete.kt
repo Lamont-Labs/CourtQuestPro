@@ -32,55 +32,38 @@ internal fun CourtCardAthlete(
     val context = LocalContext.current
     val font = remember(context) { ResourcesCompat.getFont(context, R.font.barlow_condensed_extra_bold) }
     var height by remember { mutableIntStateOf(0) }
-    val sample = when { height <= 260 -> 4; height <= 850 -> 2; else -> 1 }
+    val sample = when { inspection!=AvatarInspection.NONE -> 1; height <= 260 -> 4; height <= 850 -> 2; else -> 1 }
     val pose = identity.pose
-    var plate by remember(pose, sample) { mutableStateOf(PlayerCardMaterials.cached(pose, sample)) }
-    var failure by remember(pose, sample) { mutableStateOf(false) }
-    LaunchedEffect(pose, sample) {
-        try { plate = PlayerCardMaterials.load(context.assets, pose, sample) }
+    val wornTemplate=when(jersey.design.template){JerseyTemplate.ARENA->0;JerseyTemplate.CLASSIC->1;JerseyTemplate.FASTBREAK->2;JerseyTemplate.RETRO->3}
+    var plate by remember(pose, sample,wornTemplate) { mutableStateOf(PlayerCardMaterials.cached(pose, sample,wornTemplate)) }
+    var failure by remember(pose, sample,wornTemplate) { mutableStateOf(false) }
+    LaunchedEffect(pose, sample,wornTemplate) {
+        try { plate = PlayerCardMaterials.load(context.assets, pose, sample,wornTemplate) }
         catch (_: java.io.IOException) { failure = true }
     }
     Box(modifier.onSizeChanged { height = it.height }, contentAlignment = Alignment.Center) {
         val loaded = plate
         if (loaded != null) {
             Box(Modifier.fillMaxSize().testTag("card-athlete-${pose.name.lowercase()}-ready").drawWithCache {
+                val layout=pose.layout
                 val viewport=when(inspection) {
-                    AvatarInspection.HEAD -> when(pose) {
-                        PlayerCardPose.STANDING -> RectF(380f,-20f,635f,285f)
-                        PlayerCardPose.DRIBBLING -> RectF(405f,-20f,660f,285f)
-                        PlayerCardPose.ACTION -> RectF(330f,-30f,585f,275f)
-                    }
-                    AvatarInspection.SHOES -> when(pose) {
-                        PlayerCardPose.STANDING -> RectF(330f,780f,700f,1015f)
-                        PlayerCardPose.DRIBBLING -> RectF(200f,765f,720f,1010f)
-                        PlayerCardPose.ACTION -> RectF(290f,530f,690f,1030f)
-                    }
+                    AvatarInspection.HEAD -> RectF(layout.faceX-125f,layout.head[1]-38f,layout.faceX+125f,layout.head[1]+275f)
+                    AvatarInspection.SHOES -> RectF(layout.shoes[0],layout.shoes[1],layout.shoes[2],layout.shoes[3])
                     AvatarInspection.NONE -> null
                 }
                 val factor = if(viewport!=null) minOf(size.width/viewport.width(),size.height/viewport.height())
-                    else minOf(size.width / when (pose) {
-                    PlayerCardPose.STANDING -> 560f
-                    PlayerCardPose.DRIBBLING -> 780f
-                    PlayerCardPose.ACTION -> 580f
-                }, size.height / 1024f)
+                    else minOf(size.width/layout.width,size.height/1024f)
                 val left = size.width*.5f-(viewport?.centerX()?:512f)*factor
                 val top = if(viewport!=null) size.height*.5f-viewport.centerY()*factor else (size.height-1024f*factor)*.5f
                 val design = jersey.design
-                val template = when (design.template) {
-                    JerseyTemplate.ARENA -> 0; JerseyTemplate.CLASSIC -> 1
-                    JerseyTemplate.FASTBREAK -> 2; JerseyTemplate.RETRO -> 3
-                }
+                val template=wornTemplate
                 val diffuse = textileDyes(design.fabric, design.secondary, design.side)
                 val binding = textileDyes(design.collar, design.armhole)
                 val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
                 val avatar=identity.avatar
                 val mesh=AvatarGeometry.mesh(pose,avatar.build)
                 val dest = RectF(0f, 0f, 1024f, 1024f)
-                val printQuad = when (pose) {
-                    PlayerCardPose.STANDING -> floatArrayOf(447f,224f,577f,228f,575f,358f,443f,354f)
-                    PlayerCardPose.DRIBBLING -> floatArrayOf(440f,233f,580f,262f,540f,390f,402f,359f)
-                    PlayerCardPose.ACTION -> floatArrayOf(423f,301f,525f,273f,536f,346f,422f,373f)
-                }
+                val printQuad=layout.print.toFloatArray()
                 for(i in printQuad.indices step 2) printQuad[i]=AvatarGeometry.x(pose,avatar.build,printQuad[i],printQuad[i+1])
                 val warp = Matrix().apply { setPolyToPoly(floatArrayOf(0f,0f,200f,0f,200f,200f,0f,200f),0,printQuad,0,4) }
                 val text = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = font; textAlign = Paint.Align.CENTER }
@@ -93,9 +76,10 @@ internal fun CourtCardAthlete(
                             if(avatar.build==AvatarBuild.ORIGINAL) canvas.drawBitmap(loaded.images[index], null, dest, paint)
                             else canvas.drawBitmapMesh(loaded.images[index],32,48,mesh,0,null,0,paint)
                         }
-                        image(0)
+                        image(if(avatar.footwear==AvatarFootwear.ORIGINAL)0 else 13)
                         avatar.skin.color?.let {image(11,AvatarDetailPainter.dye(it))}
-                        avatar.shoes.color?.let {image(12,AvatarDetailPainter.dye(it))}
+                        if(avatar.footwear==AvatarFootwear.ORIGINAL)avatar.shoes.color?.let {image(12,AvatarDetailPainter.dye(it))}
+                        else image(13+avatar.footwear.ordinal,avatar.shoes.color?.let{AvatarDetailPainter.dye(it)})
                         image(2 + template * 2, diffuse)
                         image(3 + template * 2, binding)
                         canvas.save(); canvas.concat(warp)
@@ -120,20 +104,23 @@ internal fun CourtCardAthlete(
                             PlayerCardFace.SHADOW -> floatArrayOf(.16f,0f,0f,0f,0f, 0f,.14f,0f,0f,0f, 0f,0f,.14f,0f,0f, 0f,0f,0f,1f,0f)
                             PlayerCardFace.BLANK -> floatArrayOf(.70f,0f,0f,0f,58f, 0f,.70f,0f,0f,45f, 0f,0f,.70f,0f,34f, 0f,0f,0f,1f,0f)
                             PlayerCardFace.QUESTION -> floatArrayOf(.09f,0f,0f,0f,1f, 0f,.09f,0f,0f,2f, 0f,0f,.12f,0f,4f, 0f,0f,0f,1f,0f)
+                            PlayerCardFace.VISOR -> floatArrayOf(.10f,0f,0f,0f,2f,0f,.12f,0f,0f,3f,0f,0f,.14f,0f,5f,0f,0f,0f,1f,0f)
                         }
                         val complexion=avatar.skin.color
                         image(1,if(face==PlayerCardFace.BLANK && complexion!=null)
                             AvatarDetailPainter.dye(complexion) else ColorMatrixColorFilter(matrix))
-                        AvatarDetailPainter.draw(canvas,pose,avatar,avatar.skin.color?:0xFF925735.toInt(),loaded.images[11],mesh)
-                        if (face == PlayerCardFace.QUESTION) {
-                            val center = when (pose) {
-                                PlayerCardPose.STANDING -> 507f to 104f
-                                PlayerCardPose.DRIBBLING -> 538f to 119f
-                                PlayerCardPose.ACTION -> 457f to 98f
+                        AvatarDetailPainter.draw(canvas,pose,avatar,avatar.skin.color?:0xFF925735.toInt(),loaded.images[11],mesh,loaded.hair)
+                        if(face==PlayerCardFace.VISOR) {
+                            val visor=Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                                shader=android.graphics.LinearGradient(layout.faceX-27f,layout.faceY-12f,layout.faceX+26f,layout.faceY+5f,
+                                    intArrayOf(0xFF101A27.toInt(),0xFFB1D8E7.toInt(),0xFF324659.toInt()),null,android.graphics.Shader.TileMode.CLAMP)
                             }
+                            canvas.drawRoundRect(RectF(layout.faceX-27f,layout.faceY-13f,layout.faceX+27f,layout.faceY+4f),7f,7f,visor)
+                        }
+                        if (face == PlayerCardFace.QUESTION) {
                             text.color = android.graphics.Color.rgb(255,194,117)
                             text.style = Paint.Style.FILL; text.textSize = 59f
-                            canvas.drawText("?",center.first,center.second+20f,text)
+                            canvas.drawText("?",layout.faceX,layout.faceY+20f,text)
                         }
                         canvas.restore()
                     }

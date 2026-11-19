@@ -19,22 +19,32 @@ internal object AvatarDetailPainter {
         fun row(v:Float)=floatArrayOf(v*.001196f,v*.002348f,v*.000456f,0f,v*.27f)
         return ColorMatrixColorFilter(row(r)+row(g)+row(b)+floatArrayOf(0f,0f,0f,1f,0f))
     }
-    fun draw(canvas:Canvas,pose:PlayerCardPose,avatar:AvatarAppearance,skinColor:Int,skin:Bitmap,mesh:FloatArray) {
+    fun draw(canvas:Canvas,pose:PlayerCardPose,avatar:AvatarAppearance,skinColor:Int,skin:Bitmap,mesh:FloatArray,hair:List<Bitmap>) {
         val p=Paint(Paint.ANTI_ALIAS_FLAG)
-        val head=when(pose) {
-            PlayerCardPose.STANDING -> RectF(469f,24f,544f,93f)
-            PlayerCardPose.DRIBBLING -> RectF(489f,23f,584f,105f)
-            PlayerCardPose.ACTION -> RectF(418f,15f,482f,77f)
-        }
+        val layout=pose.layout
+        val head=RectF(layout.head[0],layout.head[1],layout.head[2],layout.head[3])
         val cx=head.centerX();val cy=head.centerY();val w=head.width();val h=head.height()
         canvas.save()
-        canvas.rotate(when(pose){PlayerCardPose.STANDING->0f;PlayerCardPose.DRIBBLING->12f;PlayerCardPose.ACTION->-14f},cx,cy)
+        canvas.rotate(layout.rotation,cx,cy)
         if(avatar.hair!=AvatarHair.ORIGINAL) {
             // Cover the previous crown using a lit scalp, never paint a flat rectangle on the head.
             p.shader=LinearGradient(head.left,head.top,head.right,head.bottom,
                 intArrayOf(skinColor,Color.rgb(Color.red(skinColor)/2,Color.green(skinColor)/2,Color.blue(skinColor)/2)),null,Shader.TileMode.CLAMP)
             canvas.drawOval(head,p);p.shader=null
-            if(avatar.hair!=AvatarHair.BALD) {
+            val material=when(avatar.hair) {
+                AvatarHair.CURLS->0;AvatarHair.AFRO->1;AvatarHair.LOCS->2;AvatarHair.BRAIDS->3;AvatarHair.TOPKNOT->3;else->null
+            }
+            if(material!=null) {
+                val volume=if(avatar.hair==AvatarHair.AFRO)1.5f else 1.15f
+                val target=RectF(cx-w*volume*.5f,head.top-h*(if(avatar.hair==AvatarHair.AFRO).48f else .15f),
+                    cx+w*volume*.5f,head.top+h*.65f)
+                p.isFilterBitmap=true;canvas.drawBitmap(hair[material],null,target,p)
+                if(avatar.hair==AvatarHair.TOPKNOT) {
+                    val bun=RectF(cx-w*.23f,head.top-h*.38f,cx+w*.23f,head.top+h*.05f)
+                    canvas.save();canvas.clipPath(Path().apply{addOval(bun,Path.Direction.CW)})
+                    canvas.drawBitmap(hair[2],null,bun,p);canvas.restore()
+                }
+            } else if(avatar.hair!=AvatarHair.BALD) {
                 val cap=RectF(head.left-2,head.top-2,head.right+2,head.top+h*.68f)
                 if(avatar.hair==AvatarHair.CURLS) {cap.top-=10;cap.left-=5;cap.right+=5}
                 p.color=Color.rgb(18,16,15);canvas.drawOval(cap,p)
@@ -72,17 +82,19 @@ internal object AvatarDetailPainter {
             canvas.drawRoundRect(band,5f,5f,p);p.shader=null
             p.color=0x66FFFFFF;p.strokeWidth=1.5f
             canvas.drawLine(band.left+4,band.top+3,band.right-4,band.top+3,p)
+            if(avatar.headwear==AvatarHeadwear.WRAP) {
+                p.color=ink
+                canvas.drawPath(Path().apply{moveTo(head.right-4,band.top);lineTo(head.right+19,band.bottom+20);lineTo(head.right+7,band.bottom+23);lineTo(head.right-7,band.bottom);close()},p)
+                p.color=0xFF72777C.toInt();p.strokeWidth=1f
+                canvas.drawLine(head.right+2,band.bottom,head.right+10,band.bottom+18,p)
+            }
         }
         canvas.restore()
         if(avatar.gear!=AvatarGear.NONE) {
             canvas.saveLayer(RectF(0f,0f,1024f,1024f),null)
-            val points=when(pose) {
-                PlayerCardPose.STANDING -> floatArrayOf(405f,235f,359f,404f,340f,442f)
-                PlayerCardPose.DRIBBLING -> floatArrayOf(407f,235f,352f,445f,340f,553f)
-                PlayerCardPose.ACTION -> floatArrayOf(396f,195f,438f,262f,552f,206f)
-            }
+            val points=layout.arm
             fun px(i:Int)=AvatarGeometry.x(pose,avatar.build,points[i],points[i+1])
-            if(avatar.gear==AvatarGear.SLEEVE || avatar.gear==AvatarGear.BOTH) {
+            if(avatar.gear in listOf(AvatarGear.SLEEVE,AvatarGear.BOTH,AvatarGear.FULL)) {
                 val x0=px(0);val y0=points[1];val x1=px(2);val y1=points[3]
                 p.strokeCap=Paint.Cap.BUTT;p.style=Paint.Style.STROKE;p.strokeWidth=72f
                 p.shader=LinearGradient(x0-10,y0,x0+15,y0,intArrayOf(0xFF101316.toInt(),0xFF3A3F43.toInt(),0xFF111315.toInt()),null,Shader.TileMode.CLAMP)
@@ -94,12 +106,21 @@ internal object AvatarDetailPainter {
                 p.strokeWidth=2f;p.color=0xFF676D71.toInt()
                 canvas.drawPath(Path().apply{moveTo(x0-10,y0);lineTo(x1-10,y1);lineTo(wristX-8,wristY)},p)
             }
-            if(avatar.gear==AvatarGear.WRISTS || avatar.gear==AvatarGear.BOTH) {
+            if(avatar.gear in listOf(AvatarGear.WRISTS,AvatarGear.BOTH,AvatarGear.FULL)) {
                 val x=px(4);val y=points[5]
                 p.style=Paint.Style.FILL;p.color=0xFFE2DFD4.toInt()
                 canvas.save();canvas.rotate(if(pose==PlayerCardPose.ACTION) 50f else 20f,x,y)
                 canvas.drawRoundRect(RectF(x-17,y-9,x+17,y+9),3f,3f,p)
                 p.color=0xFF8F8C84.toInt();canvas.drawRect(x-17,y-2,x+17,y,p);canvas.restore()
+            }
+            if(avatar.gear==AvatarGear.KNEES || avatar.gear==AvatarGear.FULL) {
+                for(i in listOf(0,2)) {
+                    val x=AvatarGeometry.x(pose,avatar.build,layout.knees[i],layout.knees[i+1]);val y=layout.knees[i+1]
+                    p.style=Paint.Style.FILL;p.shader=LinearGradient(x-27,y,x+27,y,
+                        intArrayOf(0xFF15181C.toInt(),0xFF4B5056.toInt(),0xFF101215.toInt()),null,Shader.TileMode.CLAMP)
+                    canvas.drawRoundRect(RectF(x-31,y-32,x+31,y+32),12f,12f,p);p.shader=null
+                    p.color=0xFFB1B5BA.toInt();p.strokeWidth=1.5f;canvas.drawLine(x-22,y-22,x+22,y-22,p)
+                }
             }
             p.style=Paint.Style.FILL;p.shader=null
             p.xfermode=PorterDuffXfermode(PorterDuff.Mode.DST_IN)

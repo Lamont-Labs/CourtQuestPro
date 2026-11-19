@@ -28,6 +28,45 @@ omitted:
 
 # CourtQuest Pro design standard
 
+## Premium customization and whole-app quality batch
+
+The approved expansion retains existing artwork and live jersey state. There are
+43 avatar choices across seven dimensions: eight hairstyles, five headwear
+choices, four illustrated builds, nine skin tones, seven shoe colors, six
+accessory combinations and four footwear constructions (the original plus
+three new models). Four card materials, five original poses and four anonymous
+face treatments bring the separate visible-choice inventory to 56; this is not
+a count of independent full-body models or theoretical combinations.
+
+New ready/follow-through athletes have original approved-direction illustration
+plates and authored garment/face/skin boundaries. New Court Low, Elevate High and
+Lockdown shoes use different original mesh, high-collar and strap constructions,
+not the same recolored silhouette. Detailed original hair cutouts replace the
+old repeated-dot curls/locs/braids. The original three athlete plates and three
+material masters remain untouched; Obsidian Chrome adds its own composition.
+
+Studio materials have short touch-triggered rail reflections, not perpetual
+shimmer. Edition changes retain the chosen pose. Larger material thumbnails
+scroll horizontally rather than shrinking four cards across a narrow phone.
+Detail inspection uses full-resolution textures, with inactive uniform maps
+sampled smaller and shared hair cutouts to constrain decoded memory. This is
+still a layered 2D illustration system, not a simulated 3D body or garment fit.
+
+The native source audit repaired lost informational section counts, added
+screen-reader heading semantics and large-text section reflow, corrected Back
+inside settings subpages, removed team-oriented custom lettering copy while
+preserving its saved field, and let the Quests hero grow with readable text
+rather than clipping its fixed-height content.
+
+UI/UX Pro Max remains unavailable; no use is claimed. The bundled Impeccable
+critique is applied to the impatient, one-handed and accessibility-dependent
+journeys. Existing Compose APIs, Barlow typography, near-black/orange tokens,
+48dp targets and solo-player scope remain authoritative. Matched baseline and
+candidate Android captures, isolated artwork pixel comparisons, legacy-save
+migration, four display configurations and deeper receipt/progression/game
+journeys are verification gates. CI evidence and PR #9 record their actual
+outcomes; source inspection and generated-art integrity are not runtime proof.
+
 ## Player Card V2
 
 ### Owner-requested avatar and collector-material revision
