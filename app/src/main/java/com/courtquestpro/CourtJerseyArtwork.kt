@@ -19,8 +19,6 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
@@ -65,9 +63,9 @@ internal fun CourtJerseyArtwork(
         val loaded = plate
         if (loaded != null) {
             val ready = if (describe) Modifier.testTag("material-${style.name.lowercase()}-${view.name.lowercase()}") else Modifier
-            Box(ready.fillMaxSize().clipToBounds().graphicsLayer {
-                compositingStrategy = CompositingStrategy.Offscreen
-            }.drawWithCache {
+            // The material layers are opaque/composited directly in draw order.
+            // Avoid an extra full-size GPU offscreen render target per jersey.
+            Box(ready.fillMaxSize().clipToBounds().drawWithCache {
                 val factor = minOf(size.width / loaded.width, size.height / loaded.height) * if (zoom) 1.8f else 1f
                 val left = (size.width - loaded.width * factor) * .5f
                 val top = if (zoom) size.height * .50f - loaded.height * factor * .40f else (size.height - loaded.height * factor) * .5f
