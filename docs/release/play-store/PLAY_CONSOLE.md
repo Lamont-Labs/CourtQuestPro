@@ -15,11 +15,23 @@
 | Data Safety | Use the separate inventory worksheet. | Confirm source and final build, all distribution variants, publisher practices, and external-video treatment before submitting. |
 | Testing eligibility | Account type/creation date were unavailable. | Check Dashboard for identity/device verification and production track requirements. |
 
+## Audience and schools
+
+The solo release has no school roster, coach portal, account, cloud, or student record disclosure. A child-directed Play listing still needs a Families review of the in-app content, imagery, external demonstration results, and every included SDK. Choose age groups based on intended audience and presentation. For future U.S. school use, review COPPA if an online service collects personal information from children under 13. A school authorization has limited educational use conditions. Plan any disclosure of school-maintained education records around the applicable FERPA route and district approval, data-use restrictions, access control, and retention.
+
+[Google Play Families policy](https://support.google.com/googleplay/android-developer/answer/9893335) · [FTC COPPA guidance for schools](https://www.ftc.gov/business-guidance/resources/complying-coppa-frequently-asked-questions) · [U.S. Department of Education FERPA vendor guidance](https://studentprivacy.ed.gov/faq/who-school-official-under-ferpa)
+
 ## Signing continuity
 
 The GitHub v54 APK is signed by a public Android Debug key. CourtQuest Pro can continue same-signature GitHub phone updates, such as the v55 development APK. Keep that channel available to existing testers who need their saves.
 
-The Play release AAB must use an owner-authorized upload signer. Check **Test and release → Setup → App signing** for existing record and certificate fingerprints. If this package is new to Play, decide on Play App Signing with a protected distribution key. A Play-signed install using a different certificate cannot update the existing debug install in place. Confirm a tested migration strategy before asking existing phone testers to move channels. Android's Settings clear-data or uninstall actions erase local progress unless it has been migrated separately. Do not use the public debug certificate as an upload or app signing identity.
+The Play release AAB must use an owner-authorized upload signer. Check **Test and release → Setup → App signing** (also available under **Protected with Play → Play Store protection**) for existing record and certificate fingerprints. If this package is new to Play, decide on Play App Signing with a protected distribution key. A Play-signed install using a different certificate cannot update the existing debug install in place. Confirm a tested migration strategy before asking existing phone testers to move channels. Android's Settings clear-data or uninstall actions erase local progress unless it has been migrated separately. Do not use the public debug certificate as an upload or app signing identity.
+
+### Build an upload bundle after signer approval
+
+Configure the authorized upload key in secure build settings. The GitHub candidate defines `COURTQUEST_PLAY_KEYSTORE_BASE64`, `COURTQUEST_PLAY_STORE_PASSWORD`, `COURTQUEST_PLAY_KEY_ALIAS`, and `COURTQUEST_PLAY_KEY_PASSWORD` as secrets and `COURTQUEST_PLAY_UPLOAD_CERT_SHA256` as a public certificate fingerprint variable. GitHub manual runs require the workflow to be available from the default branch. Its signing option creates and validates an artifact without uploading it to Play.
+
+For a local build, the repository reads `COURTQUEST_UPLOAD_KEYSTORE`, `COURTQUEST_UPLOAD_STORE_PASSWORD`, `COURTQUEST_UPLOAD_KEY_ALIAS`, and `COURTQUEST_UPLOAD_KEY_PASSWORD` from the approved signing environment. Run `./gradlew :app:bundleRelease` and use `scripts/verify_play_bundle.py` with the registered upload certificate fingerprint. Retain the package, version, build SHA-256, upload certificate receipt, and the separate Play app signing certificate receipt.
 
 ## Internal, closed, and production tracks
 

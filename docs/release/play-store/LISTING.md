@@ -16,7 +16,7 @@ Build a basketball practice routine you can take to the court. CourtQuest Pro gi
 
 **Train at your pace.** Start a daily workout, build a practice mission, or pick one drill. Record attempts and successful reps as you go, then save the session and review the receipt. Pause and return to unfinished training.
 
-**See your progress.** Review saved practice results and game history. Set personal challenges, work toward quests, and keep score in a one-on-one game.
+**See your progress.** Review saved practice results and game history. Work toward personal quests and keep score in a one-on-one game.
 
 **Design your practice jersey.** Choose Arena, Classic, Fastbreak, or Retro. Customize the fabric, trim, panels, name, and number. Preview the front and back before saving.
 
