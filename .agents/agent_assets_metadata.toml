@@ -238,3 +238,31 @@ mtime_ms = 1795125189075
 storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/a0364700-beb5-444e-9ebf-da5a3dd8fd78/e2aa3745-18b4-4dea-b047-1086ee508a0b"
 storage_version_token = "1795125214210759"
 content_type = "image/png"
+
+[[outputs]]
+id = "cixGgfq90TJZH6qbQ_3F3"
+uri = "file://generated-artifacts/player-card-v3/cards-before-after.png"
+type = "image"
+title = "Cards: previous versus rebuilt"
+description = "Actual Android emulator captures comparing the previous V2 frames with the rebuilt foil, heritage basketball and black/orange metal cards. Identical QA identity; images only resized and arranged."
+logical_id = "be4189c2-6d5c-45e6-aca8-1e3d39d5e888"
+content_hash = "sha256:f25b00228e5ce1a3a4a09ffaa96ea95d197978e8d2574436cd79b39ffb3aefed"
+size = 900721
+mtime_ms = 1795129395372
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/be4189c2-6d5c-45e6-aca8-1e3d39d5e888/cb607fb7-7ce8-4efd-bf79-c62dced0867a"
+storage_version_token = "1795129444076362"
+content_type = "image/png"
+
+[[outputs]]
+id = "Bk3irOF8PgmncvAVwLOg2"
+uri = "file://generated-artifacts/player-card-v3/avatar-customization.png"
+type = "image"
+title = "Native avatar customization"
+description = "Final verified Android captures showing hair/headwear, build/skin controls, shoe detail inspection and pinned controls at 200% text. Synthetic QA player data."
+logical_id = "18946ed9-93ea-4e2d-b17d-1659a18571d2"
+content_hash = "sha256:42608226ccb4a2733e57d645757cba81ce67e3d685605989c5047ec3c1780c87"
+size = 570465
+mtime_ms = 1795129395900
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/18946ed9-93ea-4e2d-b17d-1659a18571d2/7b894404-b394-48b1-bfa3-7cc7c60fd253"
+storage_version_token = "1795129444582822"
+content_type = "image/png"
