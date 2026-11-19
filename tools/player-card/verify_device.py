@@ -95,7 +95,9 @@ def main():
         assert len(list(folder.glob("*-*-*.png")))>=27
         (folder/"configuration.json").write_text(json.dumps(dict(size=size,font_scale=font)))
     ui.shell("wm","size","720x1600");ui.shell("settings","put","system","font_scale","1.0")
+    ui.seed("visual-review")
     run("NavigationTourTest",None,args.out)
+    ui.seed("visual-review")
     run("TrainingEntryTest",None,args.out)
     report=dict(candidate_sha256=hashlib.sha256(args.candidate.read_bytes()).hexdigest(),
         baseline_sha256=hashlib.sha256(args.baseline.read_bytes()).hexdigest(),

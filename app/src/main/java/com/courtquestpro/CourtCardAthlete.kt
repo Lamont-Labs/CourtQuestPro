@@ -31,7 +31,7 @@ internal fun CourtCardAthlete(
     val context = LocalContext.current
     val font = remember(context) { ResourcesCompat.getFont(context, R.font.barlow_condensed_extra_bold) }
     var height by remember { mutableIntStateOf(0) }
-    val sample = if (height <= 600) 2 else 1
+    val sample = when { height <= 260 -> 4; height <= 850 -> 2; else -> 1 }
     val pose = identity.pose
     var plate by remember(pose, sample) { mutableStateOf(PlayerCardMaterials.cached(pose, sample)) }
     var failure by remember(pose, sample) { mutableStateOf(false) }

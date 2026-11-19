@@ -122,12 +122,12 @@ internal fun CourtPlayerCard(
         }
         // Pose compositions remain full-body; each edition has a different art window.
         CourtCardAthlete(jersey, identity, Modifier.fillMaxWidth(if(classic) .86f else .96f)
-            .fillMaxHeight(if(classic) .69f else .74f)
-            .align(Alignment.TopCenter).padding(top=if(classic) 35.dp else 25.dp))
+            .fillMaxHeight(if(classic) .61f else .66f)
+            .align(Alignment.Center))
         Canvas(Modifier.fillMaxSize()) {
             val w=size.width; val h=size.height
-            if (!classic) drawRect(Brush.verticalGradient(listOf(Color.Transparent,Color(0xEF06080E))),
-                topLeft=Offset(0f,h*.68f),size=Size(w,h*.32f))
+            if (!classic) drawRect(Brush.verticalGradient(listOf(Color.Transparent,Color(0xEF06080E)),
+                startY=h*.62f,endY=h*.93f),topLeft=Offset(0f,h*.62f),size=Size(w,h*.38f))
             drawContext.canvas.nativeCanvas.apply {
                 fun title(value:String,x:Float,y:Float,cap:Float,color:Color,font:Typeface?,max:Float,align:Paint.Align=Paint.Align.CENTER) {
                     val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface=font;textSize=w*cap;this.color=color.toArgb();textAlign=align }

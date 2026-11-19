@@ -20,6 +20,7 @@ jobs:
     timeout-minutes: 55
     env:
       ANDROID_AVD_HOME: /tmp/courtquest-jersey-avd
+      CANDIDATE_APK: ${{ github.ref_name == 'dev/player-card-profile-v2' && 'CourtQuestPro-PlayerCard-V2-v57-RC.apk' || 'CourtQuestPro-JerseyStudio-v57-RC.apk' }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -45,9 +46,9 @@ jobs:
           mkdir -p previous evidence candidate
           gh release download courtquest-phone-update-v56 -R "$GITHUB_REPOSITORY" --pattern 'CourtQuestPro-Update-v56.apk*' --dir previous
           (cd previous && sha256sum -c CourtQuestPro-Update-v56.apk.sha256)
-          cp app/build/outputs/apk/debug/app-debug.apk candidate/CourtQuestPro-JerseyStudio-v57-RC.apk
-          python3 scripts/verify_apk.py --apk candidate/CourtQuestPro-JerseyStudio-v57-RC.apk --build-tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
-          python3 scripts/verify_phone_update.py identity --previous previous/CourtQuestPro-Update-v56.apk --candidate candidate/CourtQuestPro-JerseyStudio-v57-RC.apk --previous-version 56 --candidate-version 57 --tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
+          cp app/build/outputs/apk/debug/app-debug.apk "candidate/$CANDIDATE_APK"
+          python3 scripts/verify_apk.py --apk "candidate/$CANDIDATE_APK" --build-tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
+          python3 scripts/verify_phone_update.py identity --previous previous/CourtQuestPro-Update-v56.apk --candidate "candidate/$CANDIDATE_APK" --previous-version 56 --candidate-version 57 --tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
           # The shared verifier also stages phone-release files. Keep candidate transport separate from evidence.
           rm evidence/CourtQuestPro-1.0.apk evidence/SHA256SUMS.txt evidence/RELEASE_NOTES.md
           git rev-parse HEAD > evidence/commit.txt
@@ -72,15 +73,15 @@ jobs:
       - name: Exercise migration, live printing, persistence and frame timing on the candidate
         if: github.ref_name != 'dev/player-card-profile-v2'
         run: |
-          python3 tools/jersey/verify_device.py --previous previous/CourtQuestPro-Update-v56.apk --candidate candidate/CourtQuestPro-JerseyStudio-v57-RC.apk --instrumentation app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk --out evidence
+          python3 tools/jersey/verify_device.py --previous previous/CourtQuestPro-Update-v56.apk --candidate "candidate/$CANDIDATE_APK" --instrumentation app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk --out evidence
           python3 -m pip install 'Pillow==11.3.0'
           python3 tools/jersey/comparison.py evidence/normal evidence/JerseyStudio-Comparison.png
-          (cd candidate && sha256sum *.apk > CourtQuestPro-JerseyStudio-v57-RC.apk.sha256)
+          (cd candidate && sha256sum *.apk > "$CANDIDATE_APK.sha256")
       - name: Verify collectible cards, live uniforms, persistence and existing native flows
         if: github.ref_name == 'dev/player-card-profile-v2'
         run: |
-          python3 tools/player-card/verify_device.py --previous previous/CourtQuestPro-Update-v56.apk --baseline baseline/CourtQuestPro-JerseyStudio-v57-RC.apk --candidate candidate/CourtQuestPro-JerseyStudio-v57-RC.apk --instrumentation app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk --out evidence
-          (cd candidate && sha256sum *.apk > CourtQuestPro-JerseyStudio-v57-RC.apk.sha256)
+          python3 tools/player-card/verify_device.py --previous previous/CourtQuestPro-Update-v56.apk --baseline baseline/CourtQuestPro-JerseyStudio-v57-RC.apk --candidate "candidate/$CANDIDATE_APK" --instrumentation app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk --out evidence
+          (cd candidate && sha256sum *.apk > "$CANDIDATE_APK.sha256")
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
@@ -92,6 +93,6 @@ jobs:
           retention-days: 30
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: CourtQuestPro-JerseyStudio-v57-RC
+          name: ${{ github.ref_name == 'dev/player-card-profile-v2' && 'CourtQuestPro-PlayerCard-V2-v57-RC' || 'CourtQuestPro-JerseyStudio-v57-RC' }}
           path: candidate/
           retention-days: 30

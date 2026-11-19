@@ -10,6 +10,8 @@ import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class PlayerCardStudioTest {
     @get:Rule val compose=createAndroidComposeRule<MainActivity>()
@@ -29,6 +31,15 @@ class PlayerCardStudioTest {
     private fun stored()=Gson().fromJson(compose.activity.getSharedPreferences("court_quest_pro",0).getString("state",null),SaveState::class.java)
     private fun capture(name:String) {
         compose.waitForIdle()
+        val presented=CountDownLatch(1)
+        compose.runOnUiThread {
+            val root=compose.activity.window.decorView
+            if(Build.VERSION.SDK_INT>=29 && root.isHardwareAccelerated) {
+                root.viewTreeObserver.registerFrameCommitCallback { presented.countDown() }
+                root.invalidate()
+            } else root.postOnAnimation { root.postOnAnimation { presented.countDown() } }
+        }
+        assertTrue("Android must present the selected card before capture",presented.await(5,TimeUnit.SECONDS))
         val bitmap=checkNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
         try {
             val out=File(compose.activity.filesDir,"player-card-proof").apply{mkdirs()}
@@ -79,15 +90,19 @@ class PlayerCardStudioTest {
         assertEquals(PlayerCardIdentity(PlayerCardStyle.BATTLE,PlayerCardPose.ACTION,PlayerCardFace.QUESTION),
             PlayerCardSelection.identity(compose.activity))
         ready(PlayerCardPose.ACTION)
+        val expectedNumber=if(stored().playerJersey.number=="08") "09" else "08"
+        val expectedName=if(stored().playerName=="RIVER") "BLAKE" else "RIVER"
         choose("me-jersey-studio");wait("jersey-studio")
         tap("segment-jersey-editor-identity")
-        node("jersey-number").performScrollTo().performTextReplacement("08")
-        node("jersey-name").performScrollTo().performTextReplacement("RIVER")
+        node("jersey-number").performScrollTo().performTextReplacement(expectedNumber)
+        node("jersey-name").performScrollTo().performTextReplacement(expectedName)
+        node("jersey-save").assertIsEnabled()
         node("jersey-close").performClick()
-        node("jersey-save-exit").performClick();wait("me-player-card-studio");ready(PlayerCardPose.ACTION)
-        node("player-card-preview").assertContentDescriptionContains("Jersey number 08",substring=true)
-        node("player-card-preview").assertContentDescriptionContains("RIVER",substring=true)
-        assertEquals("08",stored().playerJersey.number)
+        wait("jersey-save-exit");node("jersey-save-exit").assertIsEnabled().performClick()
+        wait("me-player-card-studio");ready(PlayerCardPose.ACTION)
+        node("player-card-preview").assertContentDescriptionContains("Jersey number $expectedNumber",substring=true)
+        node("player-card-preview").assertContentDescriptionContains(expectedName,substring=true)
+        assertEquals(expectedNumber,stored().playerJersey.number)
         capture("me-live-jersey-updated")
         // Unsaved card drafts may restore during recreation, but leaving with Discard never changes disk.
         choose("me-player-card-studio");wait("player-card-studio-screen")

@@ -15,7 +15,7 @@ internal data class PlayerCardPlate(val images: List<Bitmap>) {
     val bytes get() = images.sumOf { it.allocationByteCount }
 }
 
-/** Two decoded poses maximum at full size; decoding is serialized and never on the UI thread. */
+/** Bounded decoded-plate cache; decoding is serialized and never on the UI thread. */
 internal object PlayerCardMaterials {
     private data class Key(val pose: PlayerCardPose, val sample: Int)
     private val cache = object : LruCache<Key, PlayerCardPlate>(48 * 1024 * 1024) {

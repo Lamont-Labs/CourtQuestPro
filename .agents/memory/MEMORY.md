@@ -2,3 +2,4 @@
 - [Native visual acceptance](native-visual-acceptance.md) — verify visible Compose changes against the installed APK; release pipeline success is not a visual redesign.
 - [GitHub artifact downloads](github-artifact-downloads.md) — relative gh api ZIP requests preserve proxy authentication when gh run download follows an unauthenticated absolute URL.
 - [Compose loading lint](compose-state-lint.md) — current lint can reject produceState assignments; keep async loading lifecycle-aware without suppressing lint.
+- [Generated image alpha](generated-image-alpha.md) — edited PNG cutouts can become opaque; verify actual alpha instead of trusting the checkerboard preview.

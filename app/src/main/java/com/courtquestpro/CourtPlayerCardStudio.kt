@@ -45,6 +45,14 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
     val dirty = identity != initial
     val scope = rememberCoroutineScope()
     val close = { if (dirty) discard = true else onBack() }
+    fun selectEdition(choice: PlayerCardStyle) {
+        style = choice
+        pose = when(choice) {
+            PlayerCardStyle.HOLOGRAPHIC -> PlayerCardPose.STANDING
+            PlayerCardStyle.CLASSIC -> PlayerCardPose.DRIBBLING
+            PlayerCardStyle.BATTLE -> PlayerCardPose.ACTION
+        }
+    }
     fun saveAndExit() {
         if (saving) return
         saving = true
@@ -101,7 +109,7 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
                                             Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
                                                 .background(CourtQuestDesign.surface)
                                                 .border(1.dp,if(style==choice) CourtQuestDesign.accent else CourtQuestDesign.border,RoundedCornerShape(12.dp))
-                                                .selectable(style==choice,role=Role.RadioButton,onClick={style=choice})
+                                                .selectable(style==choice,role=Role.RadioButton,onClick={selectEdition(choice)})
                                                 .testTag("player-card-style-${choice.name.lowercase()}").padding(8.dp),
                                                 verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
                                                 CourtPlayerCard(jersey,playerName,choice,Modifier.width(62.dp),
@@ -115,7 +123,7 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
                                             Column(Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
                                                 .border(if(style==choice) 2.dp else 1.dp,
                                                     if(style==choice) CourtQuestDesign.accent else CourtQuestDesign.border,RoundedCornerShape(10.dp))
-                                                .selectable(style==choice,role=Role.RadioButton,onClick={style=choice})
+                                                .selectable(style==choice,role=Role.RadioButton,onClick={selectEdition(choice)})
                                                 .testTag("player-card-style-${choice.name.lowercase()}").padding(5.dp),
                                                 horizontalAlignment=Alignment.CenterHorizontally) {
                                                 CourtPlayerCard(jersey,playerName,choice,Modifier.fillMaxWidth(),

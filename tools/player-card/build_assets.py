@@ -163,12 +163,22 @@ def validate_plate(path):
     with path.open("rb") as f:
         magic,w,h,count=struct.unpack(">4sHHB",f.read(9))
         assert magic==b"CQP2" and (w,h)==(1024,1024) and count==11
-        for _ in range(count):
+        for index in range(count):
             length=struct.unpack(">I",f.read(4))[0]
             data=f.read(length)
             assert len(data)==length and 0<length<5_000_000
             with Image.open(io.BytesIO(data)) as im:
                 assert im.size==(w,h) and im.mode=="RGBA"
+                assert im.getchannel("A").getextrema()==(0,255) or index==10
+                if index in (2,4,6,8):
+                    # Every template must carry all three live textile roles.
+                    for channel in ("R","G","B"):
+                        visible=ImageChops.multiply(im.getchannel(channel),im.getchannel("A"))
+                        assert sum(visible.histogram()[1:])>200
+                if index in (3,5,7,9):
+                    for channel in ("R","G"):
+                        visible=ImageChops.multiply(im.getchannel(channel),im.getchannel("A"))
+                        assert sum(visible.histogram()[1:])>200
                 im.verify()
         assert not f.read(1)
 
