@@ -156,8 +156,28 @@ private fun kitLettering(jersey: PlayerJersey, view: JerseyView, plate: JerseyPl
             kotlin.math.abs(measure.measureText(text.substring(0, i + 1).trimEnd()) - measure.measureText(text.substring(i + 1).trimStart()))
         } else null
         if (split != null) {
-            mark(text.substring(0, split + 1).trimEnd(), center - .019f, .032f, widthLimit, design.nameInk, false)
-            mark(text.substring(split + 1).trimStart(), center + .019f, .032f, widthLimit, design.nameInk, false)
+            val first = text.substring(0, split + 1).trimEnd()
+            val remaining = text.substring(split + 1).trimStart()
+            // Long surnames must remain readable rather than shrinking a full
+            // back print to a single tiny line. Use three balanced lines only
+            // when the second line would otherwise exceed the print area.
+            val remainderWidth = measure.measureText(remaining) * h * .032f / capHeight
+            val secondBreaks = remaining.indices.filter { i ->
+                i > 1 && i < remaining.lastIndex - 1 && (remaining[i] == ' ' || remaining[i] == '-')
+            }
+            val secondSplit = if (!front && remainderWidth > w * widthLimit * 1.2f)
+                secondBreaks.minByOrNull { i ->
+                    kotlin.math.abs(measure.measureText(remaining.substring(0, i + 1).trimEnd()) -
+                        measure.measureText(remaining.substring(i + 1).trimStart()))
+                } else null
+            if (secondSplit != null) {
+                mark(first, center - .032f, .028f, widthLimit, design.nameInk, false)
+                mark(remaining.substring(0, secondSplit + 1).trimEnd(), center, .028f, widthLimit, design.nameInk, false)
+                mark(remaining.substring(secondSplit + 1).trimStart(), center + .032f, .028f, widthLimit, design.nameInk, false)
+            } else {
+                mark(first, center - .019f, .032f, widthLimit, design.nameInk, false)
+                mark(remaining, center + .019f, .032f, widthLimit, design.nameInk, false)
+            }
         } else mark(text, center, cap, widthLimit, design.nameInk, false)
     }
     jersey.number?.let {
