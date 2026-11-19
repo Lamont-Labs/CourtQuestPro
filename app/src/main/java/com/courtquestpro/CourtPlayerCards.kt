@@ -5,6 +5,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -94,7 +96,8 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
     val context = LocalContext.current
     var selected by remember { mutableStateOf(PlayerCardSelection.read(context)) }
     var saved by remember { mutableStateOf(true) }
-    Column(Modifier.fillMaxSize().background(CourtQuestDesign.background).padding(16.dp),
+    Column(Modifier.fillMaxSize().background(CourtQuestDesign.background)
+        .verticalScroll(rememberScrollState()).padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             TextButton(onBack) { Text("Back") }
@@ -102,7 +105,7 @@ internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: 
         }
         Text("Your saved Jersey Studio uniform appears on every card.",
             color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.bodyMedium)
-        CourtPlayerCard(jersey, playerName, selected, Modifier.weight(1f).widthIn(max = 340.dp))
+        CourtPlayerCard(jersey, playerName, selected, Modifier.width(264.dp))
         PlayerCardStyle.entries.forEach { style ->
             val active = selected == style
             Surface(
