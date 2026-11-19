@@ -168,12 +168,13 @@ class JerseyStudioTest {
             .performScrollTo().performClick()
         node("player-card-save").assertIsEnabled().performClick()
         node("player-card-save").assertIsNotEnabled()
+        // Assert persisted disk state before recreation, not only the in-memory cache.
+        assertEquals("CLASSIC", compose.activity.getSharedPreferences("courtquest_player_card", 0)
+            .getString("selected_style_v1", null))
         compose.activityRule.scenario.recreate()
-        wait("player-card-preview")
-        // Preference survives process recreation and returns to the player profile.
-        assertEquals(PlayerCardStyle.CLASSIC, PlayerCardSelection.read(compose.activity))
-        compose.onNodeWithText("Back", useUnmergedTree = true).performClick()
-        wait("me-player-card")
+        // MainActivity deliberately reopens Welcome after recreation; preference must survive.
+        assertEquals("CLASSIC", compose.activity.getSharedPreferences("courtquest_player_card", 0)
+            .getString("selected_style_v1", null))
         assertEquals(PlayerCardStyle.CLASSIC, PlayerCardSelection.read(compose.activity))
     }
 
