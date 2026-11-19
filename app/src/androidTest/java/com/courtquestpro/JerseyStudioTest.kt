@@ -48,10 +48,12 @@ class JerseyStudioTest {
         // Regression evidence for number placement and icon scale on device.
         compose.waitUntil(timeoutMillis = 15_000) { !has("jersey-preview") && has("dock-me") }
         node("dock-me").assertIsDisplayed()
-        capture("jersey-dock-compact")
         click("dock-home")
         node("court-player-jersey").assertIsDisplayed()
             .assertContentDescriptionEquals("Front of Arena jersey, number 00")
+        // Capture after an independently verified Court navigation frame.
+        // The prior screenshot was taken during the Studio-to-dock transition.
+        capture("jersey-dock-compact")
         capture("jersey-court")
         click("dock-me")
         node("me-jersey-studio").performScrollTo().performClick()
