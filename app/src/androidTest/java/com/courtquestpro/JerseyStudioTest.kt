@@ -46,6 +46,7 @@ class JerseyStudioTest {
         click("jersey-close", scroll = true)
         // Capture the real 58dp dock, not just the large Studio preview.
         // Regression evidence for number placement and icon scale on device.
+        compose.waitUntil(timeoutMillis = 15_000) { !has("jersey-preview") && has("dock-me") }
         node("dock-me").assertIsDisplayed()
         capture("jersey-dock-compact")
         click("dock-home")
