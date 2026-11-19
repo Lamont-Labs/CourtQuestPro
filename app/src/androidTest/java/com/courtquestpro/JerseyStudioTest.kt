@@ -119,6 +119,15 @@ class JerseyStudioTest {
         tap("dock-me"); choose("me-jersey-studio"); ready(JerseyTemplate.RETRO, JerseyView.FRONT)
         tool("identity"); edit("jersey-number", "99"); tap("jersey-close"); compose.onNodeWithText("Discard", useUnmergedTree = true).performClick()
         wait("dock-me"); assertCustom()
+        // Exit dialog must save pending changes, not just offer Discard.
+        choose("me-jersey-studio"); ready(JerseyTemplate.RETRO, JerseyView.FRONT)
+        tool("identity"); edit("jersey-number", "88"); tap("jersey-close")
+        node("jersey-save-exit").assertIsEnabled().performClick()
+        wait("dock-me"); assertEquals("88", stored().playerJersey.number)
+        choose("me-jersey-studio"); ready(JerseyTemplate.RETRO, JerseyView.FRONT)
+        tool("identity"); edit("jersey-number", "07"); tap("jersey-close")
+        node("jersey-save-exit").assertIsEnabled().performClick()
+        wait("dock-me"); assertCustom()
     }
 
     @Test fun coldStartRestoresPreviouslySavedJersey() {
