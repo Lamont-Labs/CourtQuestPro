@@ -32,5 +32,5 @@ The core library and training tools work offline. Your player profile and progre
 
 - [Play icon](play-icon.png) — 512 × 512 RGBA PNG from the approved Signature launcher art.
 - [Feature graphic](feature-graphic.jpg) — 1024 × 500 JPEG using the approved wordmark and shipped arena imagery.
-- Phone capture order after exact-build visual review: Court, Train Library, live drill or receipt, Progress, Jersey Studio. Use actual emulator captures with a fictional profile. Play accepts 2–8 phone captures. Use tablet captures only after tablet rendering is verified.
+- Phone screenshot order is Court, Train Library, Progress, Quests, Classic Jersey Studio front, and Retro Jersey Studio back. All six are actual 1,080 × 1,920 Android 16 captures. The phone package uses fictional profile data. Dedicated tablet listing captures remain open.
 - Complete store field and asset review against [Google Play preview asset guidance](https://support.google.com/googleplay/android-developer/answer/9866151).

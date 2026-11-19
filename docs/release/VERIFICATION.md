@@ -1,6 +1,6 @@
 # CourtQuest Pro v55 verification
 
-The v55 app source built at [f12b362e5ede67cfef54894c27abb907d4ecb23d](https://github.com/Lamont-Labs/CourtQuestPro/commit/f12b362e5ede67cfef54894c27abb907d4ecb23d). The staged package remains `com.courtquestpro`, version name `1.0`, version code `55`, target SDK 36, and minimum SDK 26. The source and release documentation are in [draft pull request #8](https://github.com/Lamont-Labs/CourtQuestPro/pull/8).
+The verified v55 candidate was built at [f53edba6cdb168001f9bc148527c9ed13e8993d0](https://github.com/Lamont-Labs/CourtQuestPro/commit/f53edba6cdb168001f9bc148527c9ed13e8993d0). The staged package remains `com.courtquestpro`, version name `1.0`, version code `55`, target SDK 36, and minimum SDK 26. The source and release documentation are in [draft pull request #8](https://github.com/Lamont-Labs/CourtQuestPro/pull/8).
 
 | Check | Verified evidence |
 | --- | --- |
@@ -12,14 +12,17 @@ The v55 app source built at [f12b362e5ede67cfef54894c27abb907d4ecb23d](https://g
 | AAB | 18,985,817 bytes. Bundletool, ZIP integrity, manifest, release debug flag and signature absence, four native ABIs and 16 KB ELF/package alignment passed. It is unsigned. |
 | Exact phone APK | 25,879,822 bytes. Android v2 development certificate `25f8007f0a8503b01ded3f4856d02e830c64c823aa2c816da4d347ed5015f27b`. |
 | Android 16 upgrade | The published v54 APK was installed with synthetic saved profile, history, active drill, jersey, and custom and Mission records. Android installed v55 in place, preserved preferences byte for byte during installation, and retained preexisting values after launch and relaunch. |
-| Compact dock | Reviewed the Android 16 install-over screenshot with saved jersey number 42 in the garment and the low-profile five-tab dock. |
-| First-run and all eight views | The main instrumentation stage in the first APK/AAB run stopped before running a test because the runner shell lacked `adb` on PATH. The workflow now adds the SDK platform tools to PATH and reruns the harness. |
+| Compact dock | Reviewed the Android 16 install-over screenshot with legacy number 42 and the normal, 320dp/130% and 320dp/200% captures with number 00. The saved print is integrated into the jersey and the five destinations fit. |
+| Native instrumentation | Twelve Android 16 tests passed. The suite covers a fresh named profile and recreation, offline drill recording and exact saved result, Progress and Quests, all eight garment views, and Jersey Studio persistence and all walkthrough steps at normal, 130% and 200% type. |
+| Visual review | Reviewed the exact Android 16 Court, Train, Progress and Quests captures, four jersey constructions on both sides, and three dock captures. Some Studio evidence frames are scrolled. Store selection uses reviewed shots with full garment silhouettes. |
+| Performance samples | Three cold starts on the Android 16 emulator were 1,548ms, 1,217ms and 1,289ms. One process snapshot measured 104,748 KiB total PSS. The captured app crash buffer was empty. These measurements describe the emulator. |
 
-The [build, lint, bundle and Android 16 upgrade artifacts](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/44454237293/artifacts/14497128351) include the binary, AAB, Android captures, certificate, test XML, lint, advisory report and build receipts. The workflow's overall failure belongs to the subsequent instrumentation launcher. [Run log](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/44454237293)
+The [successful Android 16 run](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/44455082702) and [exact artifact archive](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/44455082702/artifacts/14498180510) include the APK, unsigned AAB, native screenshots, certificate, test XML, lint, audit and persistence receipts. An earlier run completed the upgrade and stopped at instrumentation due to its runner PATH. The corrected workflow passed all configured tests.
 
 - APK SHA-256 `482b0ae00be62f78ece3051c20a31d88e3e6aaa1d87af0d02108ed5c861f597b`.
-- AAB SHA-256 `87b5229f911cc6764d4925f29f07ca38451c4a449658b165e28838e49e943b5c`.
-- Current Android 16 regression [run 44455082702](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/44455082702).
+- AAB SHA-256 `5fa87ebcb4fc62f333d7de397ac43e1a66f0b4949600897af07589bf4840fe7c`.
 - Store launch still requires an approved Play upload signer, Play App Signing confirmation, a decision for existing development-signed installs, policy answers and any account-specific testing.
 
-The [Android 8 minimum-SDK run](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/44455315142) reuses the verified APK bytes on a separate emulator and checks the five destinations on the older system, including a tablet-sized Court capture.
+The [Android 8 minimum-SDK run](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/44455315142) passed with the same verified APK SHA-256. Its [evidence archive](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/44455315142/artifacts/14497716520) contains a fresh install, relaunch, all five destinations, and a Court capture at a tablet-sized viewport. The enlarged viewport was letterboxed in the phone emulator framebuffer. A dedicated tablet capture set remains open for store use.
+
+Physical phone testing, full TalkBack and switch/keyboard traversal, low-memory recovery, an exact Play-signed install, a 16 KB runtime device, and dedicated tablet Play listing shots remain open. The isolated solo scorekeeping and Mission interfaces retain their prior unit and historical device coverage.

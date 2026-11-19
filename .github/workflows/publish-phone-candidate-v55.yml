@@ -42,6 +42,12 @@ jobs:
             .head_branch == "dev/play-production-candidate" and .path == ".github/workflows/android-play-candidate.yml"
           ' checked-run.json
           gh run download "$run" --name "courtquest-v55-candidate-$source" --dir native-evidence
+          compatibility="$(jq -er '.minimumSdkRunId' release-request/courtquest-v55-phone.json)"
+          [[ "$compatibility" =~ ^[0-9]+$ ]]
+          gh api "repos/$GH_REPO/actions/runs/$compatibility" | jq -e '
+            .conclusion == "success" and .path == ".github/workflows/verify-play-minsdk.yml"
+          '
+          gh run download "$compatibility" --name courtquest-v55-api26-evidence --dir min-sdk-evidence
       - name: Verify APK, same-signer upgrade, visual evidence and artifact digest
         run: |
           set -euo pipefail
@@ -56,7 +62,9 @@ jobs:
           dist = Path('native-evidence/dist')
           upgrade = json.loads((dist / 'install-upgrade.json').read_text())
           assert checked['version_code'] == 55 and checked['target_sdk'] == 36
-          assert checked['apk_sha256'] == request['apkSha256'] == upgrade['input_apk_sha256']
+          minimum = json.loads(Path('min-sdk-evidence/minimum-sdk-receipt.json').read_text())
+          assert minimum['androidSdk'] == 26 and minimum['freshInstall'] and minimum['relaunch']
+          assert checked['apk_sha256'] == request['apkSha256'] == upgrade['input_apk_sha256'] == minimum['apkSha256']
           assert upgrade['versions'] == [54,55]
           assert upgrade['android_install_replace'] and upgrade['preferences_byte_identical_after_install']
           assert upgrade['saved_values_preserved_after_launch'] and upgrade['saved_values_preserved_after_relaunch']
@@ -86,7 +94,7 @@ jobs:
           copytree('docs/release/play-store', root)
           captures = root / 'phone-screenshots'
           captures.mkdir()
-          sequence = ('court', 'library', 'receipt', 'progress', 'arena-front', 'retro-back', 'quests')
+          sequence = ('court', 'library', 'progress', 'quests', 'classic-front', 'retro-back')
           for index, screen in enumerate(sequence, 1):
               with Image.open(source / f'store-{screen}.png') as shot:
                   assert shot.size == (1080,1920), (screen, shot.size)
