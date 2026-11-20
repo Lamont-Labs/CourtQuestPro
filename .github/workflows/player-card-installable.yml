@@ -44,6 +44,10 @@ jobs:
           mkdir -p previous candidate evidence
           gh release download courtquest-phone-update-v56 -R "$GITHUB_REPOSITORY" --pattern 'CourtQuestPro-Update-v56.apk*' --dir previous
           (cd previous && sha256sum -c CourtQuestPro-Update-v56.apk.sha256)
+          # Record the exact artwork manifest bundled by this commit so the
+          # downloadable APK can be traced to the regenerated shoe plates.
+          cp app/src/main/assets/player_cards/premium-manifest.json evidence/footwear-manifest.json
+          git rev-parse HEAD > evidence/source-commit.txt
           cp app/build/outputs/apk/debug/app-debug.apk candidate/CourtQuestPro-PlayerCard-V2-v57-Installable-RC.apk
           python3 scripts/verify_apk.py --apk candidate/CourtQuestPro-PlayerCard-V2-v57-Installable-RC.apk --build-tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
           python3 scripts/verify_phone_update.py identity --previous previous/CourtQuestPro-Update-v56.apk --candidate candidate/CourtQuestPro-PlayerCard-V2-v57-Installable-RC.apk --previous-version 56 --candidate-version 57 --tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
