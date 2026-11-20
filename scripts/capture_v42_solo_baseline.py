@@ -239,7 +239,9 @@ def verify_candidate(config):
     capture('resumed-drill')
     ui.shell('input','keyevent','KEYCODE_BACK')
     ui.navigate('Train')
-    ui.tap(ui.wait_tagged('segment-custom'))
+    # On compact screens the Custom tab can be outside the initial viewport.
+    # Locate it through the same scroll-aware helper used for drill rows.
+    ui.tap(scroll_to_tag('segment-custom'))
     ui.tap(ui.scroll_to('Create custom drill', 18))
     ui.wait_tagged('custom-title')
     capture('custom-drill-editor')
