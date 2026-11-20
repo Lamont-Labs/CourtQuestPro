@@ -109,8 +109,18 @@ def navigate(label):
     # the icon-only dock. Verify whichever navigation is actually installed.
     if tagged(nodes(), 'player-bottom-dock') is not None:
         tap(dock_target(label))
-        selected = wait_tagged('dock-' + NAV_ROUTES[label])
-        assert selected.get('selected') == 'true', (label, 'tab not selected')
+        # The destination node can exist before Compose commits its selected
+        # semantics after a navigation animation. Wait for the state transition,
+        # not merely the node's presence; still fail if it never becomes selected.
+        tag = 'dock-' + NAV_ROUTES[label]
+        for attempt in range(15):
+            selected = tagged(nodes(), tag)
+            if selected is not None and selected.get('selected') == 'true':
+                break
+            if attempt < 14:
+                time.sleep(0.2)
+        else:
+            raise AssertionError((label, 'tab not selected after navigation settled'))
     else:
         tap(drawer_target(label))
         wait_tagged('nav-open-handle')
