@@ -20,18 +20,38 @@ class PlayerCardStudioTest {
     private fun node(tag:String)=compose.onNodeWithTag(tag,useUnmergedTree=true)
     private fun has(tag:String)=compose.onAllNodesWithTag(tag,useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()
     private fun wait(tag:String)=compose.waitUntil(20_000){has(tag)}
+    private fun studioTitleDisplayed() = listOf("Card Studio","Studio").any { title ->
+        try { compose.onNodeWithText(title,useUnmergedTree=true).assertIsDisplayed(); true }
+        catch (_:AssertionError) { false }
+    }
+    private fun waitStudio() {
+        compose.waitUntil(20_000) {
+            if(!has("player-card-studio-screen")) false else try {
+                node("player-card-studio-screen").assertIsDisplayed()
+                studioTitleDisplayed()
+            } catch (_:AssertionError) { false }
+        }
+        node("player-card-studio-screen").assertIsDisplayed()
+        assertTrue("Card Studio title is visible",studioTitleDisplayed())
+    }
     private fun tap(tag:String) {node(tag).assertIsDisplayed().performClick()}
     private fun choose(tag:String) {
         val rail="${tag.substringBeforeLast('-')}-rail"
-        if(has(rail)) node(rail).performScrollToNode(hasTestTag(tag))
         val target=node(tag)
-        try {
-            target.performScrollTo()
-        } catch (error:AssertionError) {
-            if(error.message?.contains("no parent layout with a Scroll SemanticsAction")!=true) throw error
+        if(has(rail)) {
+            node(rail).performScrollTo().assertIsDisplayed()
+            node(rail).performScrollToNode(hasTestTag(tag))
+            target.assertIsDisplayed()
+        } else {
+            try {
+                target.performScrollTo()
+            } catch (error:AssertionError) {
+                if(error.message?.contains("no parent layout with a Scroll SemanticsAction")!=true) throw error
+                target.assertIsDisplayed()
+            }
             target.assertIsDisplayed()
         }
-        target.assertIsDisplayed().performClick()
+        target.performClick()
     }
     private fun enter() {
         assertTrue("Only the disposable emulator",Build.HARDWARE.contains("ranchu"))
@@ -75,7 +95,7 @@ class PlayerCardStudioTest {
         // The old separate jersey/profile hero must not coexist with the selected card.
         node("me-jersey-hero").assertDoesNotExist()
         val before=stored()
-        choose("me-player-card-studio");wait("player-card-studio-screen")
+        choose("me-player-card-studio");waitStudio()
         for(style in PlayerCardStyle.entries) {
             tap("segment-card-edition");choose("player-card-style-${style.name.lowercase()}")
             for(pose in PlayerCardPose.entries) {
@@ -133,9 +153,9 @@ class PlayerCardStudioTest {
         assertEquals(expectedNumber,stored().playerJersey.number)
         capture("me-live-jersey-updated")
         // Unsaved card drafts may restore during recreation, but leaving with Discard never changes disk.
-        choose("me-player-card-studio");wait("player-card-studio-screen")
+        choose("me-player-card-studio");waitStudio()
         tap("segment-card-pose");choose("player-card-pose-standing")
-        compose.activityRule.scenario.recreate();wait("player-card-studio-screen");ready(PlayerCardPose.STANDING)
+        compose.activityRule.scenario.recreate();waitStudio();ready(PlayerCardPose.STANDING)
         node("player-card-close").performClick();node("player-card-discard").performClick()
         wait("me-player-card-studio")
         assertEquals(PlayerCardPose.ACTION,PlayerCardSelection.identity(compose.activity).pose)
@@ -162,7 +182,7 @@ class PlayerCardStudioTest {
     @Test fun avatarOptionsRenderOnEveryPoseAndPersistWithoutTouchingTraining() {
         enter()
         val before=Gson().toJson(stored())
-        choose("me-player-card-studio");wait("player-card-studio-screen")
+        choose("me-player-card-studio");waitStudio()
         val allOptions=compose.activity.resources.configuration.fontScale<=1.05f &&
             compose.activity.resources.configuration.orientation!=android.content.res.Configuration.ORIENTATION_LANDSCAPE
         val pixelEvidence=linkedMapOf<String,Map<String,String>>()
@@ -254,7 +274,7 @@ class PlayerCardStudioTest {
             assertEquals(template,stored().playerJersey.design.template)
             ready(identity.pose)
             node("player-card-preview").assertContentDescriptionContains("${template.label} saved uniform",substring=true)
-            choose("me-player-card-studio");wait("player-card-studio-screen");tap("segment-card-pose")
+            choose("me-player-card-studio");waitStudio();tap("segment-card-pose")
             for(pose in PlayerCardPose.entries) {
                 choose("player-card-pose-${pose.name.lowercase()}");ready(pose)
                 hashes.getOrPut(pose.name){linkedSetOf()}.add(renderedSignature())
@@ -272,9 +292,9 @@ class PlayerCardStudioTest {
     @Test fun customizedAvatarSurvivesColdStartAndUnsavedAvatarDraftCanBeDiscarded() {
         enter();ready(PlayerCardPose.ACTION)
         assertEquals(customizedAvatar,PlayerCardSelection.identity(compose.activity).avatar)
-        choose("me-player-card-studio");wait("player-card-studio-screen")
+        choose("me-player-card-studio");waitStudio()
         tap("player-card-avatar");tap("segment-avatar-body");choose("avatar-skin-deep")
-        compose.activityRule.scenario.recreate();wait("player-card-studio-screen")
+        compose.activityRule.scenario.recreate();waitStudio()
         node("avatar-skin-deep").performScrollTo().assertIsSelected()
         tap("player-card-close");tap("player-card-discard");wait("me-player-card-studio")
         assertEquals(customizedAvatar,PlayerCardSelection.identity(compose.activity).avatar)

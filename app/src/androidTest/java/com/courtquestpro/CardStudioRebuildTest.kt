@@ -21,13 +21,30 @@ class CardStudioRebuildTest {
     private fun node(tag:String)=ui.onNodeWithTag(tag,useUnmergedTree=true)
     private fun has(tag:String)=ui.onAllNodesWithTag(tag,useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()
     private fun wait(tag:String)=ui.waitUntil(20_000){has(tag)}
+    private fun waitStudio() {
+        ui.waitUntil(20_000) {
+            if(!has("player-card-studio-screen")) false else try {
+                node("player-card-studio-screen").assertIsDisplayed()
+                ui.onNodeWithText("Card Studio",useUnmergedTree=true).assertIsDisplayed()
+                true
+            } catch (_:AssertionError) { false }
+        }
+        node("player-card-studio-screen").assertIsDisplayed()
+        ui.onNodeWithText("Card Studio",useUnmergedTree=true).assertIsDisplayed()
+    }
     private fun click(tag:String) { node(tag).assertIsDisplayed().performClick() }
     private fun pick(tag:String) {
         // Choices live in horizontal LazyRows, so an off-screen option has no
-        // semantics node yet. Scroll its owning rail before vertical alignment.
+        // semantics node yet. First expose its vertically stacked rail, then
+        // scroll that rail horizontally to compose the requested option.
         val rail="${tag.substringBeforeLast('-')}-rail"
-        if(has(rail)) node(rail).performScrollToNode(hasTestTag(tag))
-        node(tag).performScrollTo().assertIsDisplayed().performClick()
+        if(has(rail)) {
+            node(rail).performScrollTo().assertIsDisplayed()
+            node(rail).performScrollToNode(hasTestTag(tag))
+            node(tag).assertIsDisplayed().performClick()
+        } else {
+            node(tag).performScrollTo().assertIsDisplayed().performClick()
+        }
     }
     private fun prefs()=ui.activity.getSharedPreferences("court_quest_pro",0).getString("state",null)!!
     private fun ready(pose:PlayerCardPose,hair:AvatarHair) {
@@ -43,7 +60,7 @@ class CardStudioRebuildTest {
         if(has("tour-skip"))click("tour-skip")
         click("dock-me")
         if(has("tour-skip"))click("tour-skip")
-        wait("me-player-card-studio");pick("me-player-card-studio");wait("player-card-studio-screen")
+        wait("me-player-card-studio");pick("me-player-card-studio");waitStudio()
     }
     private fun write(name:String,bitmap:Bitmap):String {
         val file=File(out,"$name.png")
@@ -134,7 +151,7 @@ class CardStudioRebuildTest {
         node("jersey-number").performScrollTo().performTextReplacement("00")
         node("jersey-name").performScrollTo().performTextReplacement("Avery West")
         click("jersey-close");wait("jersey-save-exit");click("jersey-save-exit")
-        wait("player-card-studio-screen");ready(expected.pose,expected.avatar.hair)
+        waitStudio();ready(expected.pose,expected.avatar.hair)
         assertTrue(description(),description().contains("Jersey number 00"))
         assertTrue(description().contains("Avery West"));screen("live-uniform")
         val old=Gson().fromJson(before,SaveState::class.java)
