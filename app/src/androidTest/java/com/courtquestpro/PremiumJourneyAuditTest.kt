@@ -20,8 +20,10 @@ class PremiumJourneyAuditTest {
     private fun has(tag:String)=compose.onAllNodesWithTag(tag,useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()
     private fun wait(tag:String)=compose.waitUntil(20_000){has(tag)}
     private fun reach(tag:String) {
-        if(!has(tag))compose.onNode(hasScrollToIndexAction(),useUnmergedTree=true).performScrollToNode(hasTestTag(tag))
-        node(tag).performScrollTo().assertIsDisplayed()
+        // Lazy items may retain semantics while unplaced. A child scroll-to
+        // cannot position such a cached item; ask the owning list to find it.
+        compose.onNode(hasScrollToIndexAction(),useUnmergedTree=true).performScrollToNode(hasTestTag(tag))
+        node(tag).assertIsDisplayed()
     }
     private fun click(tag:String,scroll:Boolean=false) {
         if(scroll)reach(tag)
@@ -49,6 +51,16 @@ class PremiumJourneyAuditTest {
         }finally{bitmap.recycle()}
     }
     @Test fun everySoloDestinationAndSettingsPageIsReachable() {
+        try {audit()}catch(error:Throwable) {
+            try {
+                capture("failure-visible")
+                File(compose.activity.filesDir,"app-quality-proof/failure-semantics.txt")
+                    .writeText(compose.onRoot(useUnmergedTree=true).printToString())
+            }catch(_:Exception){/* Preserve the original assertion, even if the app has crashed. */}
+            throw error
+        }
+    }
+    private fun audit() {
         assertTrue("Disposable emulator only",Build.HARDWARE.contains("ranchu"))
         val baseline=InstrumentationRegistry.getArguments().getString("courtquestBaseline")=="true"
         compose.waitUntil(20_000){has("welcome-get-started")||has("dock-home")}

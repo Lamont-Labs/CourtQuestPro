@@ -221,6 +221,33 @@ class PlayerCardStudioTest {
         assertEquals(legacyIdentity,PlayerCardSelection.identity(compose.activity))
         node("player-card-preview").assertContentDescriptionContains(legacyIdentity.avatar.description,substring=true)
     }
+    @Test fun savedUniformTemplatesRenderAcrossEveryAthletePoseWithoutChangingTraining() {
+        enter()
+        val before=Gson().toJson(stored().copy(jerseyDesign=null))
+        val identity=PlayerCardSelection.identity(compose.activity)
+        val hashes=linkedMapOf<String,MutableSet<String>>()
+        for(template in JerseyTemplate.entries) {
+            choose("me-jersey-studio");wait("jersey-studio")
+            tap("segment-jersey-editor-style");choose("segment-${template.name.lowercase()}")
+            tap("jersey-close");wait("jersey-save-exit");tap("jersey-save-exit")
+            wait("me-player-card-studio")
+            assertEquals(template,stored().playerJersey.design.template)
+            ready(identity.pose)
+            node("player-card-preview").assertContentDescriptionContains("${template.label} saved uniform",substring=true)
+            choose("me-player-card-studio");wait("player-card-studio-screen");tap("segment-card-pose")
+            for(pose in PlayerCardPose.entries) {
+                choose("player-card-pose-${pose.name.lowercase()}");ready(pose)
+                hashes.getOrPut(pose.name){linkedSetOf()}.add(renderedSignature())
+                capture("uniform-${template.name.lowercase()}-${pose.name.lowercase()}")
+            }
+            choose("player-card-pose-${identity.pose.name.lowercase()}");ready(identity.pose)
+            tap("player-card-save");wait("me-player-card-studio")
+            assertEquals(identity,PlayerCardSelection.identity(compose.activity))
+        }
+        hashes.forEach{(pose,values)->assertEquals("Real worn template differences for $pose",JerseyTemplate.entries.size,values.size)}
+        assertEquals(before,Gson().toJson(stored().copy(jerseyDesign=null)))
+        File(compose.activity.filesDir,"player-card-proof/uniform-matrix.json").writeText(Gson().toJson(hashes))
+    }
 
     @Test fun customizedAvatarSurvivesColdStartAndUnsavedAvatarDraftCanBeDiscarded() {
         enter();ready(PlayerCardPose.ACTION)

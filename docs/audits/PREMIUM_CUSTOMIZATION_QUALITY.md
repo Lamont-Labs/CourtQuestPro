@@ -77,6 +77,9 @@ memory diagnostics and checks the 48 MiB cache bound. Legacy six-dimension
 cosmetics are restored from their original saved keys, upgraded atomically
 with only the new footwear default, and checked after recreation/cold start
 without changing canonical training records.
+An additional normal-size matrix saves all four real Jersey Studio templates,
+renders each on all five athletes, requires distinct worn-uniform pixels for
+each pose and preserves non-jersey player/training data and card selections.
 
 The build gate runs JVM tests and Android lint before building. Python checks
 validate source digests, real alpha, dimensions, garment/skin separation,

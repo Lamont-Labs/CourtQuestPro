@@ -21,7 +21,7 @@ def collect(folder, location="player-card-proof"):
     payload = ui.adb("exec-out", "run-as", ui.PACKAGE, "tar", "-cf", "-", "-C", f"files/{location}", ".")
     with tarfile.open(fileobj=io.BytesIO(payload)) as archive:
         for entry in archive:
-            if entry.isfile() and re.fullmatch(r"(?:\./)?[a-z0-9-]+\.(?:png|json)", entry.name):
+            if entry.isfile() and re.fullmatch(r"(?:\./)?[a-z0-9-]+\.(?:png|json|txt)", entry.name):
                 (folder / Path(entry.name).name).write_bytes(archive.extractfile(entry).read())
 
 
@@ -139,6 +139,8 @@ def main():
         run("PlayerCardStudioTest","avatarOptionsRenderOnEveryPoseAndPersistWithoutTouchingTraining",folder)
         ui.shell("am","force-stop",ui.PACKAGE)
         run("PlayerCardStudioTest","customizedAvatarSurvivesColdStartAndUnsavedAvatarDraftCanBeDiscarded",folder)
+        if label=="normal":
+            run("PlayerCardStudioTest","savedUniformTemplatesRenderAcrossEveryAthletePoseWithoutChangingTraining",folder)
         collect(folder)
         gallery=json.loads((folder/"verified.json").read_text())
         assert len(gallery["gallery_files"])==gallery["combinations"]==80
@@ -179,6 +181,7 @@ def main():
         isolated_artwork_pixel_checks=True,landscape=True,deep_drill_receipt_progression_game_regressions=True)
     report["legacy_cosmetic_upgrade_and_cold_start"]=True
     report["avatar_option_counts"]=dimensions
+    report["saved_uniform_template_pose_combinations"]=20
     (args.out/"player-card-verification.json").write_text(json.dumps(report,indent=2)+"\n")
 
 
