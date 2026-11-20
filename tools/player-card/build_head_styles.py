@@ -11,8 +11,8 @@ import hashlib
 import json
 from pathlib import Path
 
-import numpy as np
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
+from PIL import ImageOps
 
 ROOT = Path(__file__).resolve().parents[2]
 POSES = ("standing", "dribbling", "action", "ready", "followthrough")
@@ -61,12 +61,15 @@ def foreground_alpha(image: Image.Image) -> Image.Image:
     diagonally join. Only the light component connected to the image border is
     removed; bright uniform pixels enclosed by the athlete remain foreground.
     """
-    rgb = np.asarray(image.convert("RGB"))
-    light = (rgb.min(axis=2) > 215) & ((rgb.max(axis=2) - rgb.min(axis=2)) < 34)
-    flood = Image.fromarray((light * 255).astype("uint8"), "L").filter(ImageFilter.MaxFilter(3))
+    red,green,blue=image.convert("RGB").split()
+    minimum=ImageChops.darker(ImageChops.darker(red,green),blue)
+    maximum=ImageChops.lighter(ImageChops.lighter(red,green),blue)
+    chroma=ImageChops.subtract(maximum,minimum)
+    bright=Image.eval(minimum,lambda value:255 if value>215 else 0)
+    neutral=ImageOps.invert(Image.eval(chroma,lambda value:255 if value>=34 else 0))
+    flood=ImageChops.multiply(bright,neutral).filter(ImageFilter.MaxFilter(3))
     ImageDraw.floodfill(flood, (0, 0), 128)
-    is_background = np.asarray(flood) == 128
-    alpha = Image.fromarray((~is_background * 255).astype("uint8"), "L")
+    alpha=flood.point(lambda value:0 if value==128 else 255)
     return alpha.filter(ImageFilter.GaussianBlur(0.35))
 
 

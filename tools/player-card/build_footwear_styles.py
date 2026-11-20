@@ -7,8 +7,8 @@ import io
 import json
 from pathlib import Path
 
-import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
+from PIL import ImageChops,ImageOps
 
 ROOT = Path(__file__).resolve().parents[2]
 POSES = ("standing", "dribbling", "action", "ready", "followthrough")
@@ -55,11 +55,15 @@ def read_cqp(path: Path, expected_count: int) -> list[Image.Image]:
 
 
 def foreground_alpha(image: Image.Image) -> Image.Image:
-    rgb = np.asarray(image.convert("RGB"))
-    light = (rgb.min(axis=2) > 215) & ((rgb.max(axis=2) - rgb.min(axis=2)) < 34)
-    flood = Image.fromarray((light * 255).astype("uint8"), "L").filter(ImageFilter.MaxFilter(3))
+    red,green,blue=image.convert("RGB").split()
+    minimum=ImageChops.darker(ImageChops.darker(red,green),blue)
+    maximum=ImageChops.lighter(ImageChops.lighter(red,green),blue)
+    chroma=ImageChops.subtract(maximum,minimum)
+    bright=Image.eval(minimum,lambda value:255 if value>215 else 0)
+    neutral=ImageOps.invert(Image.eval(chroma,lambda value:255 if value>=34 else 0))
+    flood=ImageChops.multiply(bright,neutral).filter(ImageFilter.MaxFilter(3))
     ImageDraw.floodfill(flood, (0, 0), 128)
-    return Image.fromarray((np.asarray(flood) != 128).astype("uint8") * 255, "L")
+    return flood.point(lambda value:0 if value==128 else 255)
 
 
 def extract(edit_dir: Path) -> int:
@@ -81,10 +85,12 @@ def extract(edit_dir: Path) -> int:
                 draw = ImageDraw.Draw(extension)
                 for polygon in HIGH_COLLARS[pose]:
                     draw.polygon(polygon, fill=255)
-                rgb=np.asarray(edited.convert("RGB"))
-                dark_shoe=(rgb.max(axis=2)<210)&(np.asarray(foreground_alpha(edited))>0)
-                high_pixels=(np.asarray(extension)>0)&dark_shoe
-                alpha = Image.fromarray(np.maximum(np.asarray(alpha), high_pixels.astype("uint8")*255), "L")
+                red,green,blue=edited.convert("RGB").split()
+                maximum=ImageChops.lighter(ImageChops.lighter(red,green),blue)
+                dark=ImageOps.invert(Image.eval(maximum,lambda value:255 if value>=210 else 0))
+                dark_shoe=ImageChops.multiply(dark,foreground_alpha(edited))
+                high_pixels=ImageChops.multiply(extension,dark_shoe)
+                alpha=ImageChops.lighter(alpha,high_pixels)
             shoe = edited.copy()
             shoe.putalpha(alpha)
             target = SOURCES / f"{pose}-{model}.png"
