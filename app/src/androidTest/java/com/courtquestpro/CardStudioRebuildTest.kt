@@ -175,6 +175,9 @@ class CardStudioRebuildTest {
             val hash=crop("${p.name.lowercase()}-face-${face.name.lowercase()}","player-card-preview")
             assertTrue("${p.name}/${face.label} face treatment must render differently",faceHashes.add(hash))
         }
+        // Use the featureless skin-matched face for appearance captures so
+        // complexion and hairline changes remain visible in every pose.
+        pick("player-card-face-blank");ready(p,AvatarHair.ORIGINAL)
         screen("pose-${p.name.lowercase()}")
         click("player-card-avatar")
         fun options(group:String,names:List<String>,original:String) {
