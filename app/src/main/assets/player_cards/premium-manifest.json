@@ -2,7 +2,7 @@
   "poses": {
     "standing": {
       "file": "standing-footwear.pcmat",
-      "sha256": "b4f27883f228172ef9bf2244738564bbb773276e03fa1f9f89779f594a70cd9a",
+      "sha256": "fc3a1ac4110782eea79e4b584a8529d4e737f99aab1090b1777d0160555e3396",
       "layers": 4,
       "feet": [
         [
@@ -25,7 +25,7 @@
     },
     "dribbling": {
       "file": "dribbling-footwear.pcmat",
-      "sha256": "533b4a60af7c0a02435c671b427c2f4d6c2961e0047008a6716a0cb187b41521",
+      "sha256": "3cb313d7e64c02534b0d448c86cc58c6ff2c7eb12a01a856af9ec80a445ea794",
       "layers": 4,
       "feet": [
         [
@@ -48,7 +48,7 @@
     },
     "action": {
       "file": "action-footwear.pcmat",
-      "sha256": "80a3ea95279e34678e78c72f2167982b035f7e5abca36afa4215f9c6399e27f4",
+      "sha256": "9da2ba75bb52c1dbc0a5e4f5740f8d336fdd9d5a5df1e394eec9251b398af04c",
       "layers": 4,
       "feet": [
         [
@@ -71,7 +71,7 @@
     },
     "ready": {
       "file": "ready-footwear.pcmat",
-      "sha256": "5f4e8b61c38c1a4b209e730281ef33453db0ef28691ec4b5aed0804a11aa40c3",
+      "sha256": "2b5ba6970666ad0fecec670837d503245d84594a0f5cfadb4a20a50c54233fe2",
       "layers": 4,
       "feet": [
         [
@@ -94,7 +94,7 @@
     },
     "followthrough": {
       "file": "followthrough-footwear.pcmat",
-      "sha256": "016d0ee2da48e464df9ce8e2aa14c562b2042f9cddd6a1aabd5129f6dee8d9eb",
+      "sha256": "23227fd64c7f8f7b262464a9dd2c290fd7d69c30e4972ca23f7ddfc55dcd80a8",
       "layers": 4,
       "feet": [
         [
@@ -119,19 +119,19 @@
   "parts": {
     "hair-curls": {
       "file": "hair-curls.webp",
-      "sha256": "f1d3bccd88b796fa08f8520ba2e689b5f6f5afd98ec8ba27e017322dbd4a75d9"
+      "sha256": "a0e00b822b6f957d1882dff3d75dade4768d004b3fc51a047780df081742aef5"
     },
     "hair-afro": {
       "file": "hair-afro.webp",
-      "sha256": "93b6eb3d3d5d031cc147c409c5a76e506837064e67901a4a7f3051b986353394"
+      "sha256": "07f0f6eb05183d6ac74946b6c6facdf51938e56a500493794bc59d687febe1ec"
     },
     "hair-locs": {
       "file": "hair-locs.webp",
-      "sha256": "757852c07411824b1f717ca228c4332f0231078c7bd9c6560d6dd269775709d6"
+      "sha256": "60b50972ee3ade001efd511164769909494a92aed54b37e5c2b7e78161147b20"
     },
     "hair-braids": {
       "file": "hair-braids.webp",
-      "sha256": "a5158a5846edbe92a00670e0eec9acf4f84680ea0553329810526462d7ded1b3"
+      "sha256": "514e591b8afdfe6382373e57d8ad4119948d07ccf670e5c37bde95b4e8303949"
     },
     "footwear-original": {
       "file": "footwear-original.webp",
@@ -139,15 +139,15 @@
     },
     "footwear-low": {
       "file": "footwear-low.webp",
-      "sha256": "1155ec1f421e57ee8ae74bb59f76df8f26dda3fa7b427dbfdd4058eae4b8e953"
+      "sha256": "2358203add5b24a07fc1ccc86feb37d89981064782b8794bac81975b39cc4e2c"
     },
     "footwear-high": {
       "file": "footwear-high.webp",
-      "sha256": "d52902b7c36f34800415ba5ed49941c6e18475fdbe9b433ddde8cf36a5908525"
+      "sha256": "a364c9f57b71f08959e8003aeecf8a7f84d8fc503927552925fa951313a99ec8"
     },
     "footwear-strap": {
       "file": "footwear-strap.webp",
-      "sha256": "a64893ea1f125e77f580a95c1221db109b24745bbce66f0054b5ceebbdef65ce"
+      "sha256": "bc536aa9f9e6e125173368f2f1dec795031137afeba6393d750f15012ec61a24"
     }
   }
 }
