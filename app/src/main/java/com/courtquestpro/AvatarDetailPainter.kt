@@ -37,7 +37,11 @@ internal object AvatarDetailPainter {
                     (Color.red(skinColor)*.72f).toInt(),
                     (Color.green(skinColor)*.72f).toInt(),
                     (Color.blue(skinColor)*.72f).toInt())),null,Shader.TileMode.CLAMP)
-            canvas.drawOval(crown,p);p.shader=null
+            // Textured hair bitmaps have their own alpha silhouette. Drawing
+            // an opaque scalp underneath them produces a visible oval across
+            // the forehead; only the bald option needs exposed crown skin.
+            if(avatar.hair==AvatarHair.BALD) canvas.drawOval(crown,p)
+            p.shader=null
             val material=when(avatar.hair) {
                 AvatarHair.CURLS->0;AvatarHair.AFRO->1;AvatarHair.LOCS->2;AvatarHair.BRAIDS->3;AvatarHair.TOPKNOT->3;else->null
             }
