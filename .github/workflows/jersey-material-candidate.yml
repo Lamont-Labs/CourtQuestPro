@@ -85,7 +85,31 @@ jobs:
       - name: Verify collectible cards, live uniforms, persistence and existing native flows
         if: github.ref_name == 'dev/player-card-profile-v2'
         run: |
-          python3 tools/player-card/verify_device.py --previous previous/CourtQuestPro-Update-v56.apk --baseline baseline/CourtQuestPro-PlayerCard-V2-v57-RC.apk --candidate "candidate/$CANDIDATE_APK" --instrumentation app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk --out evidence
+          set -euo pipefail
+          verify=(python3 tools/player-card/verify_device.py
+            --previous previous/CourtQuestPro-Update-v56.apk
+            --baseline baseline/CourtQuestPro-PlayerCard-V2-v57-RC.apk
+            --candidate "candidate/$CANDIDATE_APK"
+            --instrumentation app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+            --out evidence)
+          if ! "${verify[@]}" 2>&1 | tee evidence/verification-attempt-1.log; then
+            # Retry only a confirmed emulator transport failure, never a UI
+            # assertion or a failing instrumentation test on a live device.
+            if ! grep -Eq "device 'emulator-5562' not found|adb: device offline|device 'emulator-5562' offline" evidence/verification-attempt-1.log; then
+              echo "Verification failed with a live-device/test error; no retry."
+              exit 1
+            fi
+            echo "Emulator disconnected; restarting disposable AVD for one clean verification retry."
+            "$ANDROID_HOME/platform-tools/adb" -s emulator-5562 emu kill || true
+            if [[ -f evidence/emulator.pid ]]; then
+              kill "$(cat evidence/emulator.pid)" || true
+            fi
+            sleep 5
+            "$ANDROID_HOME/emulator/emulator" -avd CourtQuest_PremiumQA -port 5562 -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect -accel on -cores 2 -memory 3072 > evidence/emulator-retry.log 2>&1 &
+            echo $! > evidence/emulator.pid
+            mkdir -p evidence/attempt-2
+            "${verify[@]/evidence/evidence\/attempt-2}" 2>&1 | tee evidence/verification-attempt-2.log
+          fi
           (cd candidate && sha256sum *.apk > "$CANDIDATE_APK.sha256")
       - name: Report emulator health and process termination
         if: always()
