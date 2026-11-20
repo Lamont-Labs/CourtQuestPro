@@ -23,7 +23,9 @@ class PremiumJourneyAuditTest {
         // Lazy items may retain semantics while unplaced. A child scroll-to
         // cannot position such a cached item; ask the owning list to find it.
         compose.onNode(hasScrollToIndexAction(),useUnmergedTree=true).performScrollToNode(hasTestTag(tag))
-        node(tag).assertIsDisplayed()
+        // An item can itself be taller than the viewport (settings at large
+        // text). Once placed, position its requested descendant as well.
+        node(tag).performScrollTo().assertIsDisplayed()
     }
     private fun click(tag:String,scroll:Boolean=false) {
         if(scroll)reach(tag)
