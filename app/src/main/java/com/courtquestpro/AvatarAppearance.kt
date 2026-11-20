@@ -7,7 +7,12 @@ internal enum class AvatarHair(val label: String) {
     ORIGINAL("Original cut"), BALD("Shaved"), FADE("Close fade"),
     CURLS("Textured curls"), LOCS("Short locs"), BRAIDS("Braided rows"),
     AFRO("Natural volume"), TOPKNOT("Tied-back twists"), WAVES("360 waves"),
-    STRAIGHT("Straight side-part")
+    STRAIGHT("Straight side-part"), BRUSH("Brushed crop"), BOXBUN("Box-braid bun"),
+    TWISTKNOT("Twist knot"), SCULPTED("Sculpted waves")
+}
+internal enum class HairInk(val label: String, val color: Int?) {
+    ORIGINAL("Authored color",null), EBONY("Ebony",0xFF242127.toInt()), CHESTNUT("Chestnut",0xFF795038.toInt()),
+    COPPER("Copper",0xFFA45634.toInt()), HONEY("Honey blond",0xFFCEAA70.toInt()), SILVER("Silver",0xFFBCBFC3.toInt())
 }
 internal enum class AvatarHeadwear(val label: String, val ink: Int?) {
     NONE("No headwear",null), BLACK("Black headband",0xFF161719.toInt()),
@@ -49,12 +54,13 @@ internal data class AvatarAppearance(
     val skin: AvatarSkin = AvatarSkin.ORIGINAL,
     val shoes: AvatarShoes = AvatarShoes.ORIGINAL,
     val gear: AvatarGear = AvatarGear.NONE,
-    val footwear:AvatarFootwear = AvatarFootwear.ORIGINAL
+    val footwear:AvatarFootwear = AvatarFootwear.ORIGINAL,
+    val hairInk: HairInk = HairInk.ORIGINAL
 ) {
-    val values get() = listOf(hair.name,headwear.name,build.name,skin.name,shoes.name,gear.name,footwear.name)
-    val description get() = "${hair.label}, ${headwear.label}, ${build.label}, ${skin.label}, ${shoes.label}, ${gear.label}, ${footwear.label}"
+    val values get() = listOf(hair.name,headwear.name,build.name,skin.name,shoes.name,gear.name,footwear.name,hairInk.name)
+    val description get() = "${hair.label}, ${hairInk.label}, ${headwear.label}, ${build.label}, ${skin.label}, ${shoes.label}, ${gear.label}, ${footwear.label}"
     companion object {
-        val keys = listOf("hair","headwear","build","skin","shoes","gear","footwear")
+        val keys = listOf("hair","headwear","build","skin","shoes","gear","footwear","hairInk")
         private inline fun <reified T:Enum<T>> entry(value:String?,fallback:T):T =
             enumValues<T>().firstOrNull { it.name==value } ?: fallback
         fun restore(values:List<String?>) = AvatarAppearance(
@@ -64,7 +70,8 @@ internal data class AvatarAppearance(
             entry(values.getOrNull(3),AvatarSkin.ORIGINAL),
             entry(values.getOrNull(4),AvatarShoes.ORIGINAL),
             entry(values.getOrNull(5),AvatarGear.NONE),
-            entry(values.getOrNull(6),AvatarFootwear.ORIGINAL))
+            entry(values.getOrNull(6),AvatarFootwear.ORIGINAL),
+            entry(values.getOrNull(7),HairInk.ORIGINAL))
         val Saver = listSaver<AvatarAppearance,String>(save={it.values},restore={restore(it)})
     }
 }

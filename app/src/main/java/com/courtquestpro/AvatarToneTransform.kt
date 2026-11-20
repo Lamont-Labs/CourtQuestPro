@@ -7,6 +7,23 @@ internal object AvatarToneTransform {
     private const val BLUE_LUMA = 0.0722f
     private const val ORIGINAL_DETAIL = 0.08f
 
+    /** A swatch changes actual exposure as well as hue. Local source relief stays monotonic. */
+    fun surface(color: Int, baseLight: Float): FloatArray {
+        val out = FloatArray(20)
+        for (row in 0..2) {
+            val channel = ((color ushr (16 - row*8)) and 255).toFloat()
+            val gain = channel * .75f / baseLight
+            val offset = row * 5
+            out[offset] = gain * RED_LUMA
+            out[offset+1] = gain * GREEN_LUMA
+            out[offset+2] = gain * BLUE_LUMA
+            out[offset+row] += .08f
+            out[offset+4] = channel * .18f
+        }
+        out[18] = 1f
+        return out
+    }
+
     fun matrix(color: Int): FloatArray {
         val red = ((color ushr 16) and 0xff) / 255f
         val green = ((color ushr 8) and 0xff) / 255f

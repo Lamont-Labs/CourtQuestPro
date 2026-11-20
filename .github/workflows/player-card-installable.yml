@@ -1,4 +1,4 @@
-name: CourtQuest Pro installable v58 candidate
+name: Card Studio v59 Android verification
 on:
   workflow_dispatch:
   push:
@@ -6,18 +6,17 @@ on:
     paths:
       - '.github/workflows/player-card-installable.yml'
       - 'app/**'
+      - 'tools/player-card/**'
       - 'gradle/**'
-      - 'gradlew'
-      - 'gradle.properties'
-      - 'settings.gradle.kts'
-      - 'build.gradle.kts'
+      - '*.gradle.kts'
       - 'scripts/verify_apk.py'
       - 'scripts/verify_phone_update.py'
 permissions:
   contents: read
+  actions: read
 concurrency:
-  group: player-card-installable-${{ github.ref }}
-  cancel-in-progress: true
+  group: card-studio-v59-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   package:
     runs-on: ubuntu-24.04
@@ -31,37 +30,92 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: gradle
-      - name: Build candidate and run local checks
-        run: |
-          set -euo pipefail
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-35' 'build-tools;35.0.1'
-          ./gradlew --no-daemon --console=plain :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
-      - name: Verify package identity, signature, version and update compatibility
+      - name: Build and check the production entry points and signed phone APK
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          mkdir -p previous candidate evidence
-          gh release download courtquest-phone-update-v56 -R "$GITHUB_REPOSITORY" --pattern 'CourtQuestPro-Update-v56.apk*' --dir previous
-          (cd previous && sha256sum -c CourtQuestPro-Update-v56.apk.sha256)
-          # Record the exact artwork manifest bundled by this commit so the
-          # downloadable APK can be traced to the regenerated shoe plates.
-          cp app/src/main/assets/player_cards/premium-manifest.json evidence/footwear-manifest.json
-          git rev-parse HEAD > evidence/source-commit.txt
-          cp app/build/outputs/apk/debug/app-debug.apk candidate/CourtQuestPro-PlayerCard-V2-v58-Installable-RC.apk
-          python3 scripts/verify_apk.py --apk candidate/CourtQuestPro-PlayerCard-V2-v58-Installable-RC.apk --build-tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
-          python3 scripts/verify_phone_update.py identity --previous previous/CourtQuestPro-Update-v56.apk --candidate candidate/CourtQuestPro-PlayerCard-V2-v58-Installable-RC.apk --previous-version 56 --candidate-version 58 --tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
-          (cd candidate && sha256sum *.apk > SHA256SUMS.txt)
-          printf 'Commit: %s\nStatus: installable release candidate; full emulator verification remains pending.\n' "$GITHUB_SHA" > candidate/VERIFICATION_STATUS.txt
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-35' 'build-tools;35.0.1'
+          python3 -m pip install 'Pillow==11.3.0'
+          python3 tools/player-card/build_assets.py --check
+          python3 tools/player-card/build_head_styles.py --check
+          python3 tools/player-card/build_footwear_styles.py --check
+          python3 -m unittest discover -s scripts -p 'test_*.py'
+          ./gradlew --no-daemon --console=plain :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest
+          mkdir -p candidate tests evidence v57 v58
+          cp app/build/outputs/apk/debug/app-debug.apk candidate/CourtQuestPro-Update-v59.apk
+          cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk tests/instrumentation.apk
+          gh run download 44631807988 -n CourtQuestPro-PlayerCard-V2-v57-RC -D v57
+          gh run download 44797671170 -n CourtQuestPro-v58-Installable-RC -D v58
+          (cd v57 && sha256sum -c *.apk.sha256)
+          (cd v58 && sha256sum -c SHA256SUMS.txt)
+          for version in 57 58; do
+            prev=(v"$version"/*.apk)
+            python3 scripts/verify_phone_update.py identity --previous "${prev[0]}" --candidate candidate/CourtQuestPro-Update-v59.apk --previous-version "$version" --candidate-version 59 --tools "$ANDROID_HOME/build-tools/35.0.1" --output "evidence/v$version"
+          done
+          python3 scripts/verify_apk.py --apk candidate/CourtQuestPro-Update-v59.apk --build-tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
+          (cd candidate && sha256sum *.apk > CourtQuestPro-Update-v59.apk.sha256)
+          cp -r app/build/test-results/testDebugUnitTest evidence/unit-tests
+          cp app/build/reports/lint-results-debug.xml evidence/lint.xml
+          echo "$GITHUB_SHA" > candidate/source-commit.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        if: success()
         with:
-          name: CourtQuestPro-v58-Installable-RC
+          name: CourtQuestPro-v59-candidate
           path: candidate/
-          retention-days: 30
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: card-studio-build-inputs
+          path: |
+            tests/
+            v57/*.apk
+            v58/*.apk
+            evidence/
+          retention-days: 14
+  device:
+    needs: package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 65
+    env:
+      ANDROID_AVD_HOME: /tmp/card-studio-avd
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Retrieve the exact verified bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download "$GITHUB_RUN_ID" -n CourtQuestPro-v59-candidate -D candidate
+          gh run download "$GITHUB_RUN_ID" -n card-studio-build-inputs -D inputs
+          (cd candidate && sha256sum -c *.apk.sha256)
+      - name: Start a dedicated Android emulator
+        run: |
+          set -euo pipefail
+          mkdir -p "$ANDROID_AVD_HOME" evidence
+          sudo chmod 666 /dev/kvm
+          sdk="$ANDROID_HOME/cmdline-tools/latest/bin"
+          "$sdk/sdkmanager" 'system-images;android-34;default;x86_64' 'emulator'
+          echo no | "$sdk/avdmanager" create avd -n CourtQuest_PremiumQA -k 'system-images;android-34;default;x86_64' --device pixel_2
+          "$ANDROID_HOME/emulator/emulator" -version | head -n 3 > evidence/emulator-version.txt
+          "$ANDROID_HOME/emulator/emulator" -avd CourtQuest_PremiumQA -port 5562 -no-window -no-audio -no-snapshot -no-boot-anim -gpu software -feature -Vulkan -accel on -cores 2 -memory 2048 -skin 720x1600 > evidence/emulator.log 2>&1 &
+          "$ANDROID_HOME/platform-tools/adb" -s emulator-5562 wait-for-device
+      - name: Prove native front, back, anatomy, cold restart and both direct upgrades
+        run: |
+          set -euo pipefail
+          python3 -m pip install 'Pillow==11.3.0' 'numpy>=1.26,<3'
+          python3 tools/player-card/verify_rebuild.py --v57 inputs/v57/*.apk --v58 inputs/v58/*.apk --candidate candidate/CourtQuestPro-Update-v59.apk --instrumentation inputs/tests/instrumentation.apk --out evidence
+      - name: Retain app and emulator diagnostics
+        if: failure()
+        run: |
+          adb="$ANDROID_HOME/platform-tools/adb"
+          "$adb" devices -l
+          timeout 10 "$adb" -s emulator-5562 logcat -d -b crash > evidence/android-crash.txt || true
+          timeout 15 "$adb" -s emulator-5562 logcat -d -t 1200 > evidence/android-logcat.txt || true
+          timeout 10 "$adb" -s emulator-5562 exec-out screencap -p > evidence/device-at-failure.png || true
+          tail -60 evidence/emulator.log
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: CourtQuestPro-v58-Package-Evidence
+          name: CardStudio-v59-Android-evidence
           path: evidence/
           retention-days: 30

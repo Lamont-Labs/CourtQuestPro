@@ -43,13 +43,14 @@ internal fun CourtCardAthlete(
     val pose = identity.pose
     val wornTemplate=when(jersey.design.template){JerseyTemplate.ARENA->0;JerseyTemplate.CLASSIC->1;JerseyTemplate.FASTBREAK->2;JerseyTemplate.RETRO->3}
     val hair=identity.avatar.hair
-    var plate by remember(pose, sample,wornTemplate,hair) { mutableStateOf(PlayerCardMaterials.cached(pose, sample,wornTemplate,hair)) }
-    var failure by remember(pose, sample,wornTemplate,hair) { mutableStateOf(false) }
+    val footwear=identity.avatar.footwear
+    var plate by remember(pose, sample,wornTemplate,hair,footwear) { mutableStateOf(PlayerCardMaterials.cached(pose, sample,wornTemplate,hair,footwear)) }
+    var failure by remember(pose, sample,wornTemplate,hair,footwear) { mutableStateOf(false) }
     val latestFrame = rememberUpdatedState(PlayerCardRenderFrame(plate, jersey, identity, inspection))
-    LaunchedEffect(pose, sample,wornTemplate,hair) {
+    LaunchedEffect(pose, sample,wornTemplate,hair,footwear) {
         failure = false
         try {
-            plate = PlayerCardMaterials.load(context.assets, pose, sample,wornTemplate,hair)
+            plate = PlayerCardMaterials.load(context.assets, pose, sample,wornTemplate,hair,footwear)
         } catch (cancelled: kotlinx.coroutines.CancellationException) {
             throw cancelled
         } catch (_: java.io.IOException) {
@@ -73,7 +74,7 @@ internal fun CourtCardAthlete(
                 // face, jersey or inspection view. Capturing them outside this block can
                 // leave one pose rendering the previous bitmap indefinitely.
                 val frame=latestFrame.value
-                val loaded=checkNotNull(frame.plate)
+                val loaded=frame.plate ?: return@drawWithCache onDrawBehind { }
                 val liveIdentity=frame.identity
                 val liveJersey=frame.jersey
                 val livePose=liveIdentity.pose
@@ -109,33 +110,30 @@ internal fun CourtCardAthlete(
                         canvas.save(); canvas.translate(left, top); canvas.scale(factor, factor)
                         fun image(index: Int, filter: android.graphics.ColorFilter? = null) {
                             paint.colorFilter = filter
-                            if(index==0 && loaded.head!=null) {
-                                val cleanBase=loaded.clearedHeadBase?:loaded.images[index]
-                                if(avatar.build==AvatarBuild.ORIGINAL) canvas.drawBitmap(cleanBase, null, dest, paint)
-                                else canvas.drawBitmapMesh(cleanBase,32,48,mesh,0,null,0,paint)
-                            } else if(avatar.build==AvatarBuild.ORIGINAL) canvas.drawBitmap(loaded.images[index], null, dest, paint)
+                            if(avatar.build==AvatarBuild.ORIGINAL) canvas.drawBitmap(loaded.images[index], null, dest, paint)
                             else canvas.drawBitmapMesh(loaded.images[index],32,48,mesh,0,null,0,paint)
                         }
-                        image(if(avatar.footwear==AvatarFootwear.ORIGINAL)0 else 13)
-                        // Reapply the authored skin layer even at the original
-                        // tone so replacement head plates keep the source
-                        // complexion, light and facial treatment exactly.
-                        image(11,avatar.skin.color?.let{AvatarDetailPainter.dye(it)})
-                        // Replacement head artwork must be composited after the
-                        // skin matte; otherwise the matte can repaint the hairline
-                        // and facial details that the authored head plate supplies.
-                        if (loaded.head != null) {
-                            val bounds = livePose.headPlateBounds
-                            // Authored replacement heads contain both skin and hair.
-                            // Tinting the entire bitmap would recolor hairstyles.
-                            // The separate skin matte and face layer handle complexion.
-                            paint.colorFilter = null
-                            canvas.drawBitmap(loaded.head, null,
-                                RectF(bounds.left.toFloat(), bounds.top.toFloat(),
-                                    bounds.right.toFloat(), bounds.bottom.toFloat()), paint)
+                        fun part(patch: RegisteredPatch, dye: Int?, baseLight: Float, deform: Boolean) {
+                            paint.colorFilter=dye?.let { ColorMatrixColorFilter(AvatarToneTransform.surface(it,baseLight)) }
+                            if (!deform || avatar.build==AvatarBuild.ORIGINAL) {
+                                canvas.drawBitmap(patch.bitmap,null,patch.bounds,paint)
+                            } else {
+                                val columns=12; val rows=24
+                                val vertices=FloatArray((columns+1)*(rows+1)*2)
+                                var index=0
+                                for(row in 0..rows) for(column in 0..columns) {
+                                    val y=patch.bounds.top+patch.bounds.height()*row/rows
+                                    val x=patch.bounds.left+patch.bounds.width()*column/columns
+                                    vertices[index++]=AvatarGeometry.x(livePose,avatar.build,x,y)
+                                    vertices[index++]=y
+                                }
+                                canvas.drawBitmapMesh(patch.bitmap,columns,rows,vertices,0,null,0,paint)
+                            }
                         }
-                        if(avatar.footwear==AvatarFootwear.ORIGINAL)avatar.shoes.color?.let {image(12,AvatarDetailPainter.dye(it))}
-                        else image(13+avatar.footwear.ordinal,avatar.shoes.color?.let{AvatarDetailPainter.dye(it)})
+                        image(0)
+                        val complexion=avatar.skin.color?.let { AvatarToneTransform.surface(it,112f) }
+                        if(complexion!=null) image(11,ColorMatrixColorFilter(complexion))
+                        part(loaded.shoe,avatar.shoes.color,95f,true)
                         image(2 + template * 2, diffuse)
                         image(3 + template * 2, binding)
                         canvas.save(); canvas.concat(warp)
@@ -157,14 +155,18 @@ internal fun CourtCardAthlete(
                         image(10) // original mesh folds and specular lighting above live ink
                         val face = liveIdentity.face
                         val matrix = when (face) {
-                            PlayerCardFace.SHADOW -> floatArrayOf(.16f,0f,0f,0f,0f, 0f,.14f,0f,0f,0f, 0f,0f,.14f,0f,0f, 0f,0f,0f,1f,0f)
-                            PlayerCardFace.BLANK -> floatArrayOf(.70f,0f,0f,0f,58f, 0f,.70f,0f,0f,45f, 0f,0f,.70f,0f,34f, 0f,0f,0f,1f,0f)
+                            PlayerCardFace.SHADOW -> floatArrayOf(.64f,0f,0f,0f,0f, 0f,.63f,0f,0f,0f, 0f,0f,.64f,0f,0f, 0f,0f,0f,1f,0f)
+                            PlayerCardFace.BLANK -> floatArrayOf(.96f,0f,0f,0f,3f, 0f,.96f,0f,0f,3f, 0f,0f,.96f,0f,3f, 0f,0f,0f,1f,0f)
                             PlayerCardFace.QUESTION -> floatArrayOf(.09f,0f,0f,0f,1f, 0f,.09f,0f,0f,2f, 0f,0f,.12f,0f,4f, 0f,0f,0f,1f,0f)
                             PlayerCardFace.VISOR -> floatArrayOf(.10f,0f,0f,0f,2f,0f,.12f,0f,0f,3f,0f,0f,.14f,0f,5f,0f,0f,0f,1f,0f)
                         }
-                        val complexion=avatar.skin.color
-                        image(1,if(face==PlayerCardFace.BLANK && complexion!=null)
-                            AvatarDetailPainter.dye(complexion) else ColorMatrixColorFilter(matrix))
+                        val lighting = android.graphics.ColorMatrix(matrix)
+                        val faceColor = android.graphics.ColorMatrix().apply {
+                            if(complexion!=null) set(complexion)
+                            postConcat(lighting)
+                        }
+                        image(1, ColorMatrixColorFilter(faceColor))
+                        part(loaded.hair,avatar.hairInk.color,54f,false)
                         AvatarDetailPainter.draw(canvas,livePose,avatar,loaded.images[11],mesh)
                         if(face==PlayerCardFace.VISOR) {
                             val visor=Paint(Paint.ANTI_ALIAS_FLAG).apply {

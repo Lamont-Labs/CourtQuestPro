@@ -2,6 +2,8 @@ package com.courtquestpro
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -25,13 +27,14 @@ internal fun AvatarControls(value:AvatarAppearance,part:String,inspect:(AvatarIn
     when(part) {
         "Hair" -> {
             Choices("Hair",AvatarHair.entries,value.hair,{it.label},{"avatar-hair-${it.name.lowercase()}"}){inspect(AvatarInspection.HEAD);change(value.copy(hair=it))}
+            if(value.hair!=AvatarHair.BALD) Choices("Hair color",HairInk.entries,value.hairInk,{it.label},{"avatar-ink-${it.name.lowercase()}"},{it.color}) {
+                inspect(AvatarInspection.HEAD);change(value.copy(hairInk=it))
+            }
             Choices("Headwear",AvatarHeadwear.entries,value.headwear,{it.label},{"avatar-headwear-${it.name.lowercase()}"},{it.ink}){
                 inspect(AvatarInspection.HEAD);change(value.copy(headwear=it))}
         }
         "Body" -> {
             Choices("Build",AvatarBuild.entries,value.build,{it.label},{"avatar-build-${it.name.lowercase()}"}){inspect(AvatarInspection.NONE);change(value.copy(build=it))}
-            Text("Illustrated proportions only. This does not change your player data or training.",
-                style=MaterialTheme.typography.bodySmall,color=CourtQuestDesign.textSecondary)
             Choices("Skin tone",AvatarSkin.entries,value.skin,{it.label},{"avatar-skin-${it.name.lowercase()}"},{it.color}){
                 inspect(AvatarInspection.NONE);change(value.copy(skin=it))}
         }
@@ -46,25 +49,29 @@ internal fun AvatarControls(value:AvatarAppearance,part:String,inspect:(AvatarIn
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun <T> Choices(title:String,values:List<T>,selected:T,label:(T)->String,tag:(T)->String,
+internal fun <T> Choices(title:String,values:List<T>,selected:T,label:(T)->String,tag:(T)->String,
     swatch:((T)->Int?)?=null,preview:(@Composable (T)->Unit)?=null,select:(T)->Unit) {
-    Text(title,style=MaterialTheme.typography.titleSmall,color=CourtQuestDesign.textSecondary,
-        modifier=Modifier.padding(top=8.dp).semantics{heading()})
-    Column(Modifier.fillMaxWidth().selectableGroup()) {
+    Text(title,style=MaterialTheme.typography.labelMedium,color=CourtQuestDesign.textSecondary,
+        modifier=Modifier.padding(start=4.dp,top=4.dp).semantics{heading()})
+    FlowRow(Modifier.fillMaxWidth().selectableGroup(),horizontalArrangement=Arrangement.spacedBy(6.dp),
+        verticalArrangement=Arrangement.spacedBy(3.dp)) {
         values.forEach { choice ->
-            Row(Modifier.fillMaxWidth().heightIn(min=52.dp)
-                .background(if(selected==choice)CourtQuestDesign.warmSurface else CourtQuestDesign.surface)
-                .selectable(selected==choice,role=Role.RadioButton,onClick={select(choice)})
-                .testTag(tag(choice)).padding(horizontal=12.dp,vertical=10.dp),
-                verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)) {
+            val active=choice==selected
+            val shape=RoundedCornerShape(9.dp)
+            Row(Modifier.heightIn(min=48.dp).clip(shape)
+                .selectable(active,role=Role.RadioButton,onClick={select(choice)}).testTag(tag(choice)).padding(vertical=3.dp)
+                .background(if(active) CourtQuestDesign.warmSurface else CourtQuestDesign.surface,shape)
+                .border(1.dp,if(active) CourtQuestDesign.accent else CourtQuestDesign.border,shape)
+                .padding(horizontal=11.dp,vertical=7.dp),verticalAlignment=Alignment.CenterVertically,
+                horizontalArrangement=Arrangement.spacedBy(6.dp)) {
                 preview?.invoke(choice)
-                swatch?.invoke(choice)?.let {Box(Modifier.size(25.dp).background(Color(it),CircleShape)
-                    .border(1.dp,CourtQuestDesign.controlOutline,CircleShape))}
-                Text(label(choice),Modifier.weight(1f),color=CourtQuestDesign.textPrimary,style=MaterialTheme.typography.bodyLarge)
-                if(selected==choice)Icon(Icons.Default.CheckCircle,"Selected",tint=CourtQuestDesign.accent)
+                swatch?.invoke(choice)?.let { Box(Modifier.size(15.dp).background(Color(it),CircleShape)
+                    .border(1.dp,Color.White.copy(alpha=.48f),CircleShape)) }
+                Text(label(choice),style=MaterialTheme.typography.labelLarge,color=CourtQuestDesign.textPrimary)
+                if(active) Icon(Icons.Default.CheckCircle,null,Modifier.size(15.dp),tint=CourtQuestDesign.accent)
             }
-            HorizontalDivider(color=CourtQuestDesign.border)
         }
     }
 }

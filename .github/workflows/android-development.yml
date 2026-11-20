@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'dev/**'
+      - '!dev/player-card-profile-v2'
       - 'integration/gpt-work-v48-review'
       - 'repair/premium-flow-stabilization'
   pull_request:

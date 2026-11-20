@@ -1,7 +1,7 @@
 name: Jersey Studio candidate and emulator evidence
 on:
   push:
-    branches: [dev/jersey-material-studio, dev/jersey-reference-studio, dev/player-card-profile-v2]
+    branches: [dev/jersey-material-studio, dev/jersey-reference-studio]
     paths:
       - '.github/workflows/jersey-material-candidate.yml'
       - 'app/build.gradle.kts'

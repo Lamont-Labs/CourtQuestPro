@@ -178,6 +178,7 @@ class PlayerCardStudioTest {
             ready(pose);capture("avatar-${pose.name.lowercase()}-studio-entry")
             tap("segment-avatar-hair")
             options("hair",AvatarHair.entries.map{it.name})
+            options("ink",HairInk.entries.map{it.name})
             options("headwear",AvatarHeadwear.entries.map{it.name})
             tap("segment-avatar-body")
             options("build",AvatarBuild.entries.map{it.name})
@@ -187,6 +188,8 @@ class PlayerCardStudioTest {
             options("shoes",AvatarShoes.entries.map{it.name})
             options("gear",AvatarGear.entries.map{it.name})
         }
+        tap("segment-avatar-hair");choose("avatar-hair-topknot");choose("avatar-ink-original")
+        tap("segment-avatar-body");choose("avatar-skin-cool")
         tap("player-card-avatar");tap("segment-card-pose");choose("player-card-pose-action");ready(PlayerCardPose.ACTION)
         tap("player-card-save");wait("me-player-card-studio");ready(PlayerCardPose.ACTION)
         assertEquals(customizedAvatar,PlayerCardSelection.identity(compose.activity).avatar)
@@ -199,8 +202,7 @@ class PlayerCardStudioTest {
         assertTrue("Bounded decoded cache",PlayerCardMaterials.cacheBytes<=48*1024*1024)
         File(compose.activity.filesDir,"player-card-proof/avatar-memory.json").writeText(Gson().toJson(mapOf(
             "cache_bytes" to PlayerCardMaterials.cacheBytes,"largest_decoded_plate_bytes" to PlayerCardMaterials.largestPlateBytes,
-            "pose_matched_head_bytes" to PlayerCardMaterials.headCacheBytes,
-            "cleared_head_base_bytes" to PlayerCardMaterials.clearedBaseCacheBytes,
+            "registered_patch_bytes" to PlayerCardMaterials.patchCacheBytes,
             "heap_limit_bytes" to Runtime.getRuntime().maxMemory(),
             "device_is_emulator" to true,"physical_phone_performance_verified" to false)))
     }
