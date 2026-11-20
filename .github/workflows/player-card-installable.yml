@@ -1,0 +1,63 @@
+name: CourtQuest Pro installable v57 candidate
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev/player-card-profile-v2]
+    paths:
+      - '.github/workflows/player-card-installable.yml'
+      - 'app/**'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradle.properties'
+      - 'settings.gradle.kts'
+      - 'build.gradle.kts'
+      - 'scripts/verify_apk.py'
+      - 'scripts/verify_phone_update.py'
+permissions:
+  contents: read
+concurrency:
+  group: player-card-installable-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Build candidate and run local checks
+        run: |
+          set -euo pipefail
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-35' 'build-tools;35.0.1'
+          ./gradlew --no-daemon --console=plain :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
+      - name: Verify package identity, signature, version and update compatibility
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p previous candidate evidence
+          gh release download courtquest-phone-update-v56 -R "$GITHUB_REPOSITORY" --pattern 'CourtQuestPro-Update-v56.apk*' --dir previous
+          (cd previous && sha256sum -c CourtQuestPro-Update-v56.apk.sha256)
+          cp app/build/outputs/apk/debug/app-debug.apk candidate/CourtQuestPro-PlayerCard-V2-v57-Installable-RC.apk
+          python3 scripts/verify_apk.py --apk candidate/CourtQuestPro-PlayerCard-V2-v57-Installable-RC.apk --build-tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
+          python3 scripts/verify_phone_update.py identity --previous previous/CourtQuestPro-Update-v56.apk --candidate candidate/CourtQuestPro-PlayerCard-V2-v57-Installable-RC.apk --previous-version 56 --candidate-version 57 --tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
+          (cd candidate && sha256sum *.apk > SHA256SUMS.txt)
+          printf 'Commit: %s\nStatus: installable release candidate; full emulator verification remains pending.\n' "$GITHUB_SHA" > candidate/VERIFICATION_STATUS.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: success()
+        with:
+          name: CourtQuestPro-v57-Installable-RC
+          path: candidate/
+          retention-days: 30
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: CourtQuestPro-v57-Package-Evidence
+          path: evidence/
+          retention-days: 30
