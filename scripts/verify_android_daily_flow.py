@@ -163,6 +163,8 @@ def require(items, text):
 
 def assert_empty_progress(items, read_tag=None):
     xp_card = tagged(items, 'progress-lifetime-xp')
+    if xp_card is None and read_tag is not None:
+        xp_card = tagged(read_tag('progress-lifetime-xp'), 'progress-lifetime-xp')
     assert xp_card is not None, 'Player level and lifetime XP card is missing'
     require(list(xp_card.iter('node')), 'PLAYER LEVEL')
     require(list(xp_card.iter('node')), 'TOTAL XP')
