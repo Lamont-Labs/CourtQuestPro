@@ -21,7 +21,18 @@ class PlayerCardStudioTest {
     private fun has(tag:String)=compose.onAllNodesWithTag(tag,useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()
     private fun wait(tag:String)=compose.waitUntil(20_000){has(tag)}
     private fun tap(tag:String) {node(tag).assertIsDisplayed().performClick()}
-    private fun choose(tag:String) {node(tag).performScrollTo().performClick()}
+    private fun choose(tag:String) {
+        val rail="${tag.substringBeforeLast('-')}-rail"
+        if(has(rail)) node(rail).performScrollToNode(hasTestTag(tag))
+        val target=node(tag)
+        try {
+            target.performScrollTo()
+        } catch (error:AssertionError) {
+            if(error.message?.contains("no parent layout with a Scroll SemanticsAction")!=true) throw error
+            target.assertIsDisplayed()
+        }
+        target.assertIsDisplayed().performClick()
+    }
     private fun enter() {
         assertTrue("Only the disposable emulator",Build.HARDWARE.contains("ranchu"))
         compose.waitUntil(20_000){has("welcome-get-started")||has("dock-me")}
