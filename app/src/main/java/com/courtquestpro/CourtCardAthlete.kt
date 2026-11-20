@@ -114,11 +114,13 @@ internal fun CourtCardAthlete(
                         // and facial details that the authored head plate supplies.
                         if (loaded.head != null) {
                             val bounds = livePose.headPlateBounds
-                            paint.colorFilter = avatar.skin.color?.let { AvatarDetailPainter.dye(it) }
+                            // Authored replacement heads contain both skin and hair.
+                            // Tinting the entire bitmap would recolor hairstyles.
+                            // The separate skin matte and face layer handle complexion.
+                            paint.colorFilter = null
                             canvas.drawBitmap(loaded.head, null,
                                 RectF(bounds.left.toFloat(), bounds.top.toFloat(),
                                     bounds.right.toFloat(), bounds.bottom.toFloat()), paint)
-                            paint.colorFilter = null
                         }
                         if(avatar.footwear==AvatarFootwear.ORIGINAL)avatar.shoes.color?.let {image(12,AvatarDetailPainter.dye(it))}
                         else image(13+avatar.footwear.ordinal,avatar.shoes.color?.let{AvatarDetailPainter.dye(it)})
