@@ -46,9 +46,20 @@ internal object AvatarDetailPainter {
                 AvatarHair.CURLS->0;AvatarHair.AFRO->1;AvatarHair.LOCS->2;AvatarHair.BRAIDS->3;AvatarHair.TOPKNOT->3;else->null
             }
             if(material!=null) {
-                val volume=if(avatar.hair==AvatarHair.AFRO)1.5f else 1.15f
-                val target=RectF(cx-w*volume*.5f,head.top-h*(if(avatar.hair==AvatarHair.AFRO).48f else .15f),
-                    cx+w*volume*.5f,head.top+h*.65f)
+                // The five illustrations use different camera angles and
+                // crown silhouettes. Fit hair against each authored pose,
+                // rather than forcing one shared rectangle onto every head.
+                val (widthScale,topScale,bottomScale)=when(pose) {
+                    PlayerCardPose.STANDING -> Triple(1.06f,.23f,.45f)
+                    PlayerCardPose.DRIBBLING -> Triple(1.03f,.21f,.43f)
+                    PlayerCardPose.ACTION -> Triple(1.10f,.25f,.47f)
+                    PlayerCardPose.READY -> Triple(1.04f,.22f,.44f)
+                    PlayerCardPose.FOLLOWTHROUGH -> Triple(1.02f,.20f,.42f)
+                }
+                val volume=if(avatar.hair==AvatarHair.AFRO)1.28f else widthScale
+                val crownLift=if(avatar.hair==AvatarHair.AFRO)topScale+.23f else topScale
+                val target=RectF(cx-w*volume*.5f,head.top-h*crownLift,
+                    cx+w*volume*.5f,head.top+h*bottomScale)
                 p.isFilterBitmap=true;canvas.drawBitmap(hair[material],null,target,p)
                 if(avatar.hair==AvatarHair.TOPKNOT) {
                     val bun=RectF(cx-w*.23f,head.top-h*.38f,cx+w*.23f,head.top+h*.05f)
