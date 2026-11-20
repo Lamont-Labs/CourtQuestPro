@@ -27,7 +27,7 @@ def layers(path,count):
 class CollectorArtworkTest(unittest.TestCase):
     def testPoseMatchedHairPlatesAreCompleteTransparentAndVisuallyDistinct(self):
         entries=json.loads((ROOT/"head-style-manifest.json").read_text())["assets"]
-        styles=("bald","fade","curls","locs","braids","afro","topknot","waves")
+        styles=("bald","fade","curls","locs","braids","afro","topknot","waves","straight")
         self.assertEqual(len(POSES)*len(styles),len(entries))
         for pose in POSES:
             heads=[]

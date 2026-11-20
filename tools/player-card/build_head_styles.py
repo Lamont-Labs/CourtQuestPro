@@ -16,7 +16,7 @@ from PIL import ImageOps
 
 ROOT = Path(__file__).resolve().parents[2]
 POSES = ("standing", "dribbling", "action", "ready", "followthrough")
-STYLES = ("bald", "fade", "curls", "locs", "braids", "afro", "topknot", "waves")
+STYLES = ("bald", "fade", "curls", "locs", "braids", "afro", "topknot", "waves", "straight")
 ASSET_ROOT = ROOT / "app/src/main/assets/player_cards/heads"
 SOURCE_ROOT = ROOT / "attached_assets/generated_images/player_head_edits"
 MANIFEST = ROOT / "app/src/main/assets/player_cards/head-style-manifest.json"
@@ -45,8 +45,10 @@ REGIONS = {
 EDIT_NAMES = {
     ("standing", "locs"): "standing-fullbody-longloc-edit.png",
     **{(pose, "waves"): f"{pose}-waves-full-edit.png" for pose in POSES},
+    **{(pose, "straight"): f"{pose}-straight-v2-full-edit.png" for pose in POSES},
     **{(pose, style): f"{pose}-{style}-full-edit.png"
-       for pose in POSES for style in STYLES if (pose, style) != ("standing", "locs")},
+       for pose in POSES for style in STYLES
+       if (pose, style) != ("standing", "locs") and style != "straight"},
 }
 
 

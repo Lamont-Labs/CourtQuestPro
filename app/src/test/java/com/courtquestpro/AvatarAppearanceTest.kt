@@ -77,6 +77,10 @@ class AvatarAppearanceTest {
             java.io.File("app/src/main/assets/player_cards/head-style-manifest.json")).first{it.isFile}
         val entries=com.google.gson.JsonParser.parseString(asset.readText()).asJsonObject
             .getAsJsonObject("assets")
+        val manifest=com.google.gson.JsonParser.parseString(asset.readText()).asJsonObject
+        val cleanBases=manifest.getAsJsonObject("cleanBases")
+        assertEquals(PlayerCardPose.entries.size,cleanBases.size())
+        assertTrue(entries.has("standing/straight"))
         assertEquals(PlayerCardPose.entries.size*AvatarHair.entries.count{it!=AvatarHair.ORIGINAL},entries.size())
         for(pose in PlayerCardPose.entries) {
             val bounds=pose.headPlateBounds

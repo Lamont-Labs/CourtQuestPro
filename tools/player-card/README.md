@@ -1,8 +1,8 @@
 # Avatar and collector-material revision
 
-The avatar inspector offers nine hair choices, five headwear choices, four
+The avatar inspector offers ten hair choices, five headwear choices, four
 illustrated builds, ten skin choices, seven shoe colorways, six accessory
-combinations and four footwear constructions (45 choices). Original choices retain the shipped art. These are cosmetic
+combinations and four footwear constructions (46 choices). Original choices retain the shipped art. These are cosmetic
 illustration settings, not body measurements or performance claims.
 Pinned Hair/Body/Gear tools keep categories reachable while scrolling. Hair and
 shoe colorways have pose-aware detail views beside the full live collectible;

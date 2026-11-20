@@ -6,7 +6,8 @@ import androidx.compose.runtime.saveable.listSaver
 internal enum class AvatarHair(val label: String) {
     ORIGINAL("Original cut"), BALD("Shaved"), FADE("Close fade"),
     CURLS("Textured curls"), LOCS("Short locs"), BRAIDS("Braided rows"),
-    AFRO("Natural volume"), TOPKNOT("Tied-back twists"), WAVES("360 waves")
+    AFRO("Natural volume"), TOPKNOT("Tied-back twists"), WAVES("360 waves"),
+    STRAIGHT("Straight side-part")
 }
 internal enum class AvatarHeadwear(val label: String, val ink: Int?) {
     NONE("No headwear",null), BLACK("Black headband",0xFF161719.toInt()),

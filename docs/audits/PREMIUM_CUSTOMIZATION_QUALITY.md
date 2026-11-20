@@ -11,10 +11,10 @@ separately queued readiness work; this document is not a compliance approval.
 
 ## Delivered changes
 
-* **45 avatar choices / seven dimensions**, rather than the previous 30/six.
+* **46 avatar choices / seven dimensions**, rather than the previous 30/six.
   Hair: 9; headwear: 5; build: 4; skin: 10; shoe color: 7; equipment: 6;
   footwear construction: 4. Five poses, four anonymous faces and four card
-  editions bring the separate choice inventory to **58**.
+  editions bring the separate choice inventory to **59**.
 * Original ready-stance and follow-through athletes, detailed hair materials,
   mesh low-tops, padded high-tops, molded strap shoes and Obsidian Chrome frame.
   Shoe construction is independent of shoe color.
@@ -36,7 +36,7 @@ separately queued readiness work; this document is not a compliance approval.
   compact identity card beside its readable label/action and folds tabs into
   the heading. No duplicate avatar or second profile identity is restored.
 * Native screenshot review found floating/cropped generic shoe sprites and
-  artificial hair-cap seams. Hair now uses 40 pose-matched transparent head
+  artificial hair-cap seams. Hair now uses 45 pose-matched transparent head
   plates; shoes use 15 pose/model cutouts at authored source coordinates, with
   no generic runtime resize or rotation. The alternate base clears only the
   shoe silhouette plus its one-pixel antialias edge, preserving socks and
