@@ -47,8 +47,20 @@ internal fun CourtCardAthlete(
     var failure by remember(pose, sample,wornTemplate,hair) { mutableStateOf(false) }
     val latestFrame = rememberUpdatedState(PlayerCardRenderFrame(plate, jersey, identity, inspection))
     LaunchedEffect(pose, sample,wornTemplate,hair) {
-        try { plate = PlayerCardMaterials.load(context.assets, pose, sample,wornTemplate,hair) }
-        catch (_: java.io.IOException) { failure = true }
+        failure = false
+        try {
+            plate = PlayerCardMaterials.load(context.assets, pose, sample,wornTemplate,hair)
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (_: java.io.IOException) {
+            failure = true
+        } catch (_: IllegalArgumentException) {
+            // Invalid or missing decoded artwork should show the existing
+            // recoverable error state instead of crashing the whole screen.
+            failure = true
+        } catch (_: IllegalStateException) {
+            failure = true
+        }
     }
     Box(modifier.onSizeChanged { height = it.height }, contentAlignment = Alignment.Center) {
         if (plate != null) {
