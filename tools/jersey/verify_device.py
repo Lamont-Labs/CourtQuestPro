@@ -87,7 +87,7 @@ def upgrade(previous, candidate, folder):
         ui.open_app(); ui.tap(ui.wait_tagged('welcome-get-started')); ui.wait_tagged('dock-me')
         assert saved_values_preserved(before, state())
         ui.shell('am', 'force-stop', ui.PACKAGE)
-    record = dict(versions=[56,57], android_install_replace=True, preferences_byte_identical_after_install=True,
+    record = dict(versions=[56,58], android_install_replace=True, preferences_byte_identical_after_install=True,
                   saved_values_preserved_after_launch=True, saved_values_preserved_after_relaunch=True,
                   legacy_style='RETRO', legacy_number='00', checked_jersey_colors=7, matches=len(before['matches']),
                   drill_results=len(before['drillResults']), xp=before['totalXp'], input_apk_sha256=digest(candidate),
