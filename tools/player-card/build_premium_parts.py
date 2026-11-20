@@ -78,8 +78,21 @@ def main():
                 rise=20 if index==1 else 10 if index==2 else 2
                 sprite=ImageOps.mirror(shoe) if side else shoe
                 sprite=sprite.rotate(ANGLES[pose][side],resample=Image.Resampling.BICUBIC,expand=True)
-                sprite=sprite.resize((x1-x0,y1-y0+rise),Image.Resampling.LANCZOS)
-                layer.alpha_composite(sprite,(x0,y0-rise))
+                # Preserve the actual visible shoe silhouette instead of forcing
+                # every model into the entire rectangular foot exclusion area.
+                # Stretching to that box moves the sole and makes the upper
+                # appear disconnected from the ankle, especially in dribble poses.
+                available_width=x1-x0
+                available_height=y1-y0+rise
+                scale=min(available_width/sprite.width,available_height/sprite.height)
+                width=max(1,round(sprite.width*scale))
+                height=max(1,round(sprite.height*scale))
+                sprite=sprite.resize((width,height),Image.Resampling.LANCZOS)
+                # Anchor the shoe at the bottom of the original foot bounds;
+                # center the narrower model rather than shifting its sole.
+                left=x0+(available_width-width)//2
+                top=y1-height
+                layer.alpha_composite(sprite,(left,top))
             layers.append(layer)
         manifest["poses"][pose]={**pack(OUT/f"{pose}-footwear.pcmat",layers),"feet":feet,"rotation_degrees":ANGLES[pose]}
     (OUT/"premium-manifest.json").write_text(json.dumps(manifest,indent=2)+"\n")
