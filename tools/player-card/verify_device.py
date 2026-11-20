@@ -121,8 +121,13 @@ def main():
     collect(regression,"jersey-proof")
     ui.shell("am","force-stop",ui.PACKAGE)
     run("JerseyStudioTest","coldStartRestoresPreviouslySavedJersey",regression)
-    # Compare the exact verified v57 baseline with the candidate using one saved fixture.
-    assert "Success" in ui.adb("install","-r",str(args.baseline.resolve())).decode()
+    # The preceding jersey regression installed v58. Reset only the guarded
+    # disposable emulator before loading the older v57 visual baseline;
+    # Android correctly refuses an in-place downgrade from v58 to v57.
+    # The baseline fixture is seeded below, then upgraded in place to v58
+    # with its saved preferences verified byte-for-byte.
+    assert "Success" in ui.adb("uninstall",ui.PACKAGE).decode()
+    assert "Success" in ui.adb("install",str(args.baseline.resolve())).decode()
     ui.seed("visual-review")
     fixture=state()
     fixture.update(playerName="CourtQuest QA",jerseyNumber=8,jerseyNumberText="08",
