@@ -25,6 +25,14 @@ def layers(path,count):
     return result
 
 class CollectorArtworkTest(unittest.TestCase):
+    def testNewPoseSkinMattesCoverCalvesAndFingertipsWithoutDyeingSocks(self):
+        landmarks={"ready":[(390,730)],"followthrough":[(421,815),(591,815),(550,35)]}
+        socks={"ready":[(409,807),(616,808)],"followthrough":[(421,850),(590,850)]}
+        for pose,points in landmarks.items():
+            matte=layers(ROOT/f"{pose}-avatar.pcmat",2)[0].getchannel("A")
+            for point in points:self.assertGreater(matte.getpixel(point),250,(pose,point))
+            for point in socks[pose]:self.assertLess(matte.getpixel(point),4,(pose,point))
+            self.assertLess(matte.getpixel((514,300)),4,"Garment must not receive a skin tint")
     def testReplacementFootwearRemovesTheEntireOldShoeIncludingOuterToes(self):
         for pose in POSES:
             original=layers(ROOT/f"{pose}.pcmat",11)[0]

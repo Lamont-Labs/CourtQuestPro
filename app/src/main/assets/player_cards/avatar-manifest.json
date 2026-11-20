@@ -791,7 +791,7 @@
   },
   "ready": {
     "file": "ready-avatar.pcmat",
-    "sha256": "2505fd91c5977b92519bedf6935d176fc0ff5baf2e06a1349485bb4b6e3c2762",
+    "sha256": "a02503937bf3fc46de21ccab313b249c44f4ff1febdc842093167780d727ef4b",
     "skin_polygons": [
       [
         [
@@ -1053,11 +1053,37 @@
           959
         ]
       ]
+    ],
+    "skin_refinement_regions": [
+      [
+        325,
+        165,
+        455,
+        465
+      ],
+      [
+        565,
+        165,
+        705,
+        465
+      ],
+      [
+        365,
+        630,
+        500,
+        807
+      ],
+      [
+        520,
+        630,
+        650,
+        807
+      ]
     ]
   },
   "followthrough": {
     "file": "followthrough-avatar.pcmat",
-    "sha256": "92815419cfe7fd6a912a25aea968051b9cdbdf31fd29a1bc70a1728a5a39523b",
+    "sha256": "d4539f9cef342a62a9e81d64bf0dfafa642fa44e8ad53a9804a81be5d209ede0",
     "skin_polygons": [
       [
         [
@@ -1310,6 +1336,32 @@
           557,
           969
         ]
+      ]
+    ],
+    "skin_refinement_regions": [
+      [
+        385,
+        10,
+        484,
+        335
+      ],
+      [
+        525,
+        10,
+        665,
+        305
+      ],
+      [
+        395,
+        645,
+        500,
+        850
+      ],
+      [
+        520,
+        645,
+        630,
+        850
       ]
     ]
   }

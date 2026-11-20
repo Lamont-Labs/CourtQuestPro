@@ -40,6 +40,24 @@ SHOES={
  "dribbling":[[(165,835),(301,835),(301,1003),(165,1003)],[(626,835),(796,835),(796,959),(626,959)]],
  "action":[[(307,862),(395,862),(395,1013),(307,1013)],[(585,595),(729,595),(729,727),(585,727)]]
 }
+# Source-colour refinement within anatomy-only regions catches finger tips and
+# curved calf edges that a coarse polygon misses. Neutral socks and fabric are
+# not skin; garment mattes are still subtracted after this refinement.
+SKIN_REFINEMENT={
+ "ready":[(325,165,455,465),(565,165,705,465),(365,630,500,807),(520,630,650,807)],
+ "followthrough":[(385,10,484,335),(525,10,665,305),(395,645,500,850),(520,645,630,850)]
+}
+
+def refine_skin(source,skin,pose):
+    extra=Image.new("L",source.size)
+    pixels=extra.load();rgba=source.load()
+    for left,top,right,bottom in SKIN_REFINEMENT.get(pose,[]):
+        for y in range(top,bottom):
+            for x in range(left,right):
+                r,g,b,a=rgba[x,y]
+                if a and r>g*1.14 and r>b*1.25 and r-g>=2:
+                    pixels[x,y]=a
+    return ImageChops.lighter(skin,extra)
 
 def read(path,expected_count=11):
     with path.open("rb") as f:
@@ -59,7 +77,7 @@ def main():
         original=read(OUT/f"{pose}.pcmat")
         source=Image.open(io.BytesIO(original[0])).convert("RGBA")
         alpha=source.getchannel("A")
-        skin=mask(SKIN[pose]+[info["face"]],alpha)
+        skin=refine_skin(source,mask(SKIN[pose]+[info["face"]],alpha),pose)
         cloth=ImageChops.add(Image.open(io.BytesIO(original[2])).getchannel("A"),
             Image.open(io.BytesIO(original[3])).getchannel("A")).point(lambda x:255 if x>=254 else x)
         skin=ImageChops.subtract(skin,cloth)
@@ -76,7 +94,8 @@ def main():
             for im in (skin_plate,shoe_plate):
                 data=encode(im);f.write(struct.pack(">I",len(data)));f.write(data)
         manifest[pose]={"file":dest.name,"sha256":hashlib.sha256(dest.read_bytes()).hexdigest(),
-            "skin_polygons":SKIN[pose],"shoe_polygons":SHOES[pose]}
+            "skin_polygons":SKIN[pose],"shoe_polygons":SHOES[pose],
+            "skin_refinement_regions":SKIN_REFINEMENT.get(pose,[])}
     (OUT/"avatar-manifest.json").write_text(json.dumps(manifest,indent=2)+"\n")
 
 if __name__=="__main__":main()
