@@ -1,6 +1,10 @@
 name: Regenerate fitted player footwear assets
 on:
   workflow_dispatch:
+  push:
+    branches: [dev/player-card-profile-v2]
+    paths:
+      - '.github/workflows/regenerate-player-footwear.yml'
 permissions:
   contents: write
 jobs:
