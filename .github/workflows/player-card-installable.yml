@@ -41,7 +41,16 @@ jobs:
           python3 tools/player-card/build_head_styles.py --check
           python3 tools/player-card/build_footwear_styles.py --check
           python3 -m unittest discover -s scripts -p 'test_*.py'
-          ./gradlew --no-daemon --console=plain :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest
+          # Hosted runner egress to Maven Central returned HTTP 429 during plugin resolution.
+          # Prefer Google's Maven Central mirror for this CI job; Gradle retains the normal fallback repositories.
+          cat > "$RUNNER_TEMP/card-central.gradle" <<'GRADLE'
+          beforeSettings { settings ->
+              def centralMirror = 'https://maven-central.storage-download.googleapis.com/maven2'
+              settings.pluginManagement.repositories.maven { url = uri(centralMirror) }
+              settings.dependencyResolutionManagement.repositories.maven { url = uri(centralMirror) }
+          }
+          GRADLE
+          ./gradlew -I "$RUNNER_TEMP/card-central.gradle" --no-daemon --console=plain :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest
           mkdir -p candidate tests evidence v57 v58
           cp app/build/outputs/apk/debug/app-debug.apk candidate/CourtQuestPro-Update-v59.apk
           cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk tests/instrumentation.apk
