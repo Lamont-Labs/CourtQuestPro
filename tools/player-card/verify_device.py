@@ -47,6 +47,18 @@ def run(class_name, method, folder,baseline=False):
             (folder / "instrumentation-failure.png").write_bytes(ui.adb("exec-out", "screencap", "-p", timeout=45))
         except Exception:
             pass
+        # Surface bounded failure evidence in the Actions log so the root
+        # cause is inspectable without downloading an artifact.
+        for diagnostic in ("instrumentation-crash-log.txt", "instrumentation-system-log.txt"):
+            report = folder / diagnostic
+            if report.exists():
+                lines = report.read_text(errors="replace").splitlines()
+                matches = [line for line in lines if any(token in line.lower() for token in (
+                    "fatal exception", "androidruntime", "outofmemory", "lowmemory",
+                    "killed process", "instrumentation", "anr in", "process crashed"))]
+                print(f"Diagnostic {diagnostic}: {len(lines)} lines, {len(matches)} relevant", flush=True)
+                for line in matches[-45:]:
+                    print(line[:700], flush=True)
         raise
     (folder / f"{class_name}-{method or 'suite'}.txt").write_text(output)
     if not re.search(r"OK \(\d+ tests?\)", output) or "FAILURES" in output:
