@@ -102,6 +102,9 @@ jobs:
           set -euo pipefail
           mkdir -p "$ANDROID_AVD_HOME" evidence
           sudo chmod 666 /dev/kvm
+          # Hosted Ubuntu lacks the PulseAudio library required by Android emulator.
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libpulse0
           sdk="$ANDROID_HOME/cmdline-tools/latest/bin"
           "$sdk/sdkmanager" 'system-images;android-34;default;x86_64' 'emulator'
           echo no | "$sdk/avdmanager" create avd -n CourtQuest_PremiumQA -k 'system-images;android-34;default;x86_64' --device pixel_2
