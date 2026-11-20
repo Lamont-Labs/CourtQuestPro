@@ -12,7 +12,7 @@ separately queued readiness work; this document is not a compliance approval.
 ## Delivered changes
 
 * **46 avatar choices / seven dimensions**, rather than the previous 30/six.
-  Hair: 9; headwear: 5; build: 4; skin: 10; shoe color: 7; equipment: 6;
+  Hair: 10; headwear: 5; build: 4; skin: 10; shoe color: 7; equipment: 6;
   footwear construction: 4. Five poses, four anonymous faces and four card
   editions bring the separate choice inventory to **59**.
 * Original ready-stance and follow-through athletes, detailed hair materials,
