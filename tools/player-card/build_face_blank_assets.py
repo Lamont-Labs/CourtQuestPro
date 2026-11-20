@@ -6,7 +6,7 @@ import json
 import zipfile
 from pathlib import Path
 
-from PIL import Image, ImageChops, ImageFilter
+from PIL import Image, ImageChops, ImageFilter, ImageStat
 
 ROOT = Path(__file__).resolve().parents[2]
 ASSETS = ROOT / "app/src/main/assets/player_cards"
@@ -80,9 +80,20 @@ def check(archive_path: Path, source_file: str) -> str:
         source = Image.open(SOURCES / source_file).convert("RGBA")
         mask = Image.new("L", source.size)
         mask.paste(face.getchannel("A"), (left, top))
-        expected = encode(anonymous_face(source, mask).crop((left, top, right, bottom)))
-        if hashlib.sha256(embedded).digest() != hashlib.sha256(expected).digest():
-            raise AssertionError(f"{archive_path.name}: anonymous face layer is stale or not source-derived")
+        expected_bytes=encode(anonymous_face(source, mask).crop((left, top, right, bottom)))
+        expected=Image.open(io.BytesIO(expected_bytes)).convert("RGBA")
+        difference=ImageChops.difference(image,expected)
+        channel=ImageStat.Stat(difference)
+        maximum=max(high for _,high in channel.extrema)
+        mean=sum(channel.mean)/len(channel.mean)
+        # Pillow's GaussianBlur has small rounding changes between compatible
+        # versions. Compare decoded RGBA pixels, not encoder bytes, while still
+        # rejecting shifted masks or a stale/source-unrelated face patch.
+        if maximum>8 or mean>.75:
+            raise AssertionError(
+                f"{archive_path.name}: anonymous face layer differs from source "
+                f"(maximum channel delta {maximum}, mean {mean:.3f})"
+            )
         return hashlib.sha256(embedded).hexdigest()
 
 
