@@ -34,7 +34,8 @@ internal fun CourtCardAthlete(
     jersey: PlayerJersey,
     identity: PlayerCardIdentity,
     modifier: Modifier = Modifier,
-    inspection: AvatarInspection = AvatarInspection.NONE
+    inspection: AvatarInspection = AvatarInspection.NONE,
+    showTestTags:Boolean = true
 ) {
     val context = LocalContext.current
     val font = remember(context) { ResourcesCompat.getFont(context, R.font.barlow_condensed_extra_bold) }
@@ -65,9 +66,10 @@ internal fun CourtCardAthlete(
     }
     Box(modifier.onSizeChanged { height = it.height }, contentAlignment = Alignment.Center) {
         if (plate != null) {
-            Box(Modifier.fillMaxSize().testTag("card-athlete-${pose.name.lowercase()}-ready")) {
-                Box(Modifier.fillMaxSize()
-                    .testTag("card-athlete-${pose.name.lowercase()}-${hair.name.lowercase()}-ready")
+            val poseReady=if(showTestTags) Modifier.testTag("card-athlete-${pose.name.lowercase()}-ready") else Modifier
+            val selectedReady=if(showTestTags) Modifier.testTag("card-athlete-${pose.name.lowercase()}-${hair.name.lowercase()}-ready") else Modifier
+            Box(Modifier.fillMaxSize().then(poseReady)) {
+                Box(Modifier.fillMaxSize().then(selectedReady)
                     .drawWithCache {
                 // These values are read inside drawWithCache so Compose invalidates the
                 // cached drawing program when a player selects another hairstyle, pose,
@@ -165,7 +167,12 @@ internal fun CourtCardAthlete(
                             if(complexion!=null) set(complexion)
                             postConcat(lighting)
                         }
-                        image(1, ColorMatrixColorFilter(faceColor))
+                        val faceFilter=ColorMatrixColorFilter(faceColor)
+                        if(face==PlayerCardFace.BLANK) {
+                            paint.colorFilter=faceFilter
+                            canvas.drawBitmap(loaded.blankFace.bitmap,null,loaded.blankFace.bounds,paint)
+                            paint.colorFilter=null
+                        } else image(1,faceFilter)
                         part(loaded.hair,avatar.hairInk.color,54f,false)
                         AvatarDetailPainter.draw(canvas,livePose,avatar,loaded.images[11],mesh)
                         if(face==PlayerCardFace.VISOR) {
@@ -184,7 +191,8 @@ internal fun CourtCardAthlete(
                     }
                 }
                 })
-                if(inspection!=AvatarInspection.NONE) Box(Modifier.fillMaxSize().testTag("avatar-inspection-ready"))
+                if(showTestTags && inspection!=AvatarInspection.NONE)
+                    Box(Modifier.fillMaxSize().testTag("avatar-inspection-ready"))
             }
         } else if (failure) {
             Text("Player artwork unavailable", color = CourtQuestDesign.textPrimary,

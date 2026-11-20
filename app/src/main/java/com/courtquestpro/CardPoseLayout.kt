@@ -5,7 +5,13 @@ internal data class CardPoseLayout(
     val width:Float,val faceX:Float,val faceY:Float,
     val head:List<Float>,val rotation:Float,val print:List<Float>,
     val arm:List<Float>,val knees:List<Float>,val shoes:List<Float>
-)
+) {
+    /** The tape crosses the forearm at a right angle, derived from each pose's wrist line. */
+    val wristBandRotation:Float
+        get() = wristBandRotation(arm[2],arm[3],arm[4],arm[5])
+}
+internal fun wristBandRotation(elbowX:Float,elbowY:Float,wristX:Float,wristY:Float):Float =
+    Math.toDegrees(kotlin.math.atan2((wristY-elbowY).toDouble(),(wristX-elbowX).toDouble())).toFloat()+90f
 /** Pixel bounds of an authored, pose-matched head plate on the 1024px athlete. */
 internal data class AvatarHeadPlateBounds(val left:Int,val top:Int,val right:Int,val bottom:Int)
 internal val PlayerCardPose.headPlateBounds:AvatarHeadPlateBounds get()=when(this) {
@@ -20,7 +26,7 @@ internal val PlayerCardPose.layout:CardPoseLayout get()=when(this) {
         listOf(447f,224f,577f,228f,575f,358f,443f,354f),listOf(405f,235f,359f,404f,340f,442f),
         listOf(441f,719f,588f,719f),listOf(300f,775f,720f,1024f))
     PlayerCardPose.DRIBBLING->CardPoseLayout(780f,538f,119f,listOf(489f,23f,584f,105f),12f,
-        listOf(440f,233f,580f,262f,540f,390f,402f,359f),listOf(407f,235f,352f,445f,340f,553f),
+        listOf(440f,233f,580f,262f,540f,390f,402f,359f),listOf(405f,235f,320f,390f,280f,545f),
         listOf(389f,690f,646f,715f),listOf(150f,760f,810f,1024f))
     PlayerCardPose.ACTION->CardPoseLayout(580f,457f,98f,listOf(418f,15f,482f,77f),-14f,
         listOf(423f,301f,525f,273f,536f,346f,422f,373f),listOf(396f,195f,438f,262f,552f,206f),

@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 @Composable
 internal fun CardMaterialFinish(style:PlayerCardStyle,interactive:Boolean) {
     var pressed by remember{mutableStateOf(false)}
-    val light by animateFloatAsState(if(pressed).16f else .035f,tween(180),label="Card reflection")
+    val light by animateFloatAsState(if(pressed).22f else .06f,tween(210),label="Card reflection")
     val touch=if(interactive)Modifier.pointerInput(style){
         detectTapGestures(onPress={pressed=true;try{tryAwaitRelease()}finally{pressed=false}})
     }else Modifier

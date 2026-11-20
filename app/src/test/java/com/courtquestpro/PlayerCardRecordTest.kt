@@ -20,9 +20,11 @@ class PlayerCardRecordTest {
         val empty=PlayerCardRecord.from(SaveState())
         assertTrue((empty.training+empty.games).all{it.value==null})
         assertEquals("0",empty.progress.first().value)
+        assertFalse(empty.hasRecordedActivity)
         val recorded=PlayerCardRecord.from(SaveState(drillResults=mutableListOf(DrillResult("","s","s1",0,9))))
         assertEquals("0%",recorded.training.first{it.label=="Shooting accuracy"}.value)
         assertEquals("0",recorded.training.first{it.label=="Successful reps"}.value)
+        assertTrue(recorded.hasRecordedActivity)
     }
     @Test fun complexionMovesLuminanceWhilePreservingPixelRelief() {
         fun channel(color:Int,light:Float):Float {

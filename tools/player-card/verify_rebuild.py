@@ -1,4 +1,4 @@
-"""Capture v58 and v59 on the same disposable Android AVD; prove both direct install-over paths."""
+"""Capture v56, v58, v59 and v60 on one disposable Android AVD; prove direct upgrades."""
 import argparse
 import hashlib
 import json
@@ -86,17 +86,17 @@ def before_screen(out):
 
 def main():
     parser=argparse.ArgumentParser()
-    for arg in ("v57","v58","candidate","instrumentation","out"):parser.add_argument("--"+arg,type=Path,required=True)
+    for arg in ("v56","v58","v59","candidate","instrumentation","out"):parser.add_argument("--"+arg,type=Path,required=True)
     args=parser.parse_args();out=args.out.resolve();out.mkdir(parents=True,exist_ok=True);ui.OUT=out
     ready();upgrades={}
     def digest(data):return hashlib.sha256(data).hexdigest()
     def pref(file):return ui.adb("exec-out","run-as",ui.PACKAGE,"cat","shared_prefs/"+file+".xml")
-    for code,apk in [(57,args.v57),(58,args.v58)]:
-        if code==58:assert "Success" in ui.adb("uninstall",ui.PACKAGE).decode()
+    for code,apk in [(56,args.v56),(58,args.v58),(59,args.v59)]:
+        if code!=56:assert "Success" in ui.adb("uninstall",ui.PACKAGE).decode()
         install(apk,code);saved=seed()
-        if code==58:before_screen(out)
+        if code==59:before_screen(out)
         ui.shell("am","force-stop",ui.PACKAGE);files=["court_quest_pro","courtquest_player_card"]
-        before={k:pref(k) for k in files};install(args.candidate,59,True)
+        before={k:pref(k) for k in files};install(args.candidate,60,True)
         assert before=={k:pref(k) for k in files}
         ui.open_app();ui.wait_tagged("welcome-get-started",attempts=12)
         now=state()
@@ -104,7 +104,7 @@ def main():
             assert saved_values_preserved(saved[key],now[key]),key
         assert pref("courtquest_player_card")==before["courtquest_player_card"]
         upgrades[str(code)]={"input_apk_sha256":digest(apk.read_bytes()),"candidate_sha256":digest(args.candidate.read_bytes()),
-            "previous_version":code,"installed_version":59,"preferences_byte_identical":True,
+            "previous_version":code,"installed_version":60,"preferences_byte_identical":True,
             "after_cold_launch":True,"preference_hashes":{k:digest(v) for k,v in before.items()}}
     (out/"upgrades.json").write_text(json.dumps(upgrades,indent=2))
     install(args.instrumentation,None,True)
@@ -123,5 +123,6 @@ def main():
     ui.seed("visual-review")
     native(out/"navigation","everyGuideActionFitsAboveTheDockAndContinuesToTheCorrectTab","NavigationTourTest")
     (out/"result.json").write_text(json.dumps({"commit":os.environ["GITHUB_SHA"],"candidate_sha256":digest(args.candidate.read_bytes()),
-        "poses":5,"editions":4,"avatar_options":56,"real_android_option_captures":280,"direct_upgrades":[57,58],"status":"passed"},indent=2))
+        "version_code":60,"poses":5,"editions":4,"face_treatments":4,"avatar_options":56,
+        "real_android_option_captures":300,"direct_upgrades":[56,58,59],"status":"passed"},indent=2))
 if __name__=="__main__":main()

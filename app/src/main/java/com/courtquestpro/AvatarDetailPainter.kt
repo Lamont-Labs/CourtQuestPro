@@ -56,10 +56,16 @@ internal object AvatarDetailPainter {
             }
             if(avatar.gear in listOf(AvatarGear.WRISTS,AvatarGear.BOTH,AvatarGear.FULL)) {
                 val x=px(4);val y=points[5]
-                p.style=Paint.Style.FILL;p.color=0xFFE2DFD4.toInt()
-                canvas.save();canvas.rotate(if(pose==PlayerCardPose.ACTION) 50f else 20f,x,y)
-                canvas.drawRoundRect(RectF(x-17,y-9,x+17,y+9),3f,3f,p)
-                p.color=0xFF8F8C84.toInt();canvas.drawRect(x-17,y-2,x+17,y,p);canvas.restore()
+                p.style=Paint.Style.FILL
+                canvas.save();canvas.rotate(wristBandRotation(px(2),points[3],x,y),x,y)
+                p.shader=LinearGradient(x-17,y-9,x+17,y+9,
+                    intArrayOf(0xFFC5C2B9.toInt(),0xFFF1EEE5.toInt(),0xFFB4B1A9.toInt()),null,Shader.TileMode.CLAMP)
+                canvas.drawRoundRect(RectF(x-17,y-9,x+17,y+9),4f,4f,p)
+                p.shader=null;p.color=0xFF8F8C84.toInt()
+                canvas.drawRect(x-16,y-1,x+16,y,p)
+                p.color=0x88FFFFFF.toInt();p.strokeWidth=1f;p.style=Paint.Style.STROKE
+                canvas.drawRoundRect(RectF(x-17,y-9,x+17,y+9),4f,4f,p)
+                p.style=Paint.Style.FILL;canvas.restore()
             }
             if(avatar.gear==AvatarGear.KNEES || avatar.gear==AvatarGear.FULL) {
                 for(i in listOf(0,2)) {

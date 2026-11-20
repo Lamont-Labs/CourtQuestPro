@@ -66,13 +66,17 @@ class CardStudioRebuildTest {
         val record=PlayerCardRecord.from(Gson().fromJson(state,SaveState::class.java))
         ready(saved.pose,saved.avatar.hair)
         screen("after-studio");crop("after-front","player-card-preview")
+        val frontHashes=mutableSetOf<String>()
+        val backHashes=mutableSetOf<String>()
         for(style in PlayerCardStyle.entries) {
             pick("player-card-style-${style.name.lowercase()}")
             wait("card-surface-${style.name.lowercase()}-ready");ready(saved.pose,saved.avatar.hair)
-            crop("edition-${style.name.lowercase()}-front","player-card-preview")
+            val front=crop("edition-${style.name.lowercase()}-front","player-card-preview")
+            assertTrue("${style.label} front should have its own composition",frontHashes.add(front))
             click("player-card-preview");wait("player-card-back");ui.waitForIdle()
             assertTrue(description(),description().contains(record.description))
-            crop("edition-${style.name.lowercase()}-back","player-card-preview")
+            val backHash=crop("edition-${style.name.lowercase()}-back","player-card-preview")
+            assertTrue("${style.label} reverse should carry its material",backHashes.add(backHash))
             if(style==PlayerCardStyle.HOLOGRAPHIC) {
                 screen("back-screen")
                 ui.activityRule.scenario.recreate();wait("player-card-back")
@@ -138,6 +142,13 @@ class CardStudioRebuildTest {
         val p=PlayerCardPose.valueOf(InstrumentationRegistry.getArguments().getString("pose")!!)
         click("segment-card-pose");pick("player-card-pose-${p.name.lowercase()}")
         click("segment-card-face");pick("player-card-face-blank");ready(p,AvatarHair.ORIGINAL)
+        val faceHashes=mutableSetOf<String>()
+        for(face in PlayerCardFace.entries) {
+            pick("player-card-face-${face.name.lowercase()}")
+            ready(p,AvatarHair.ORIGINAL)
+            val hash=crop("${p.name.lowercase()}-face-${face.name.lowercase()}","player-card-preview")
+            assertTrue("${p.name}/${face.label} face treatment must render differently",faceHashes.add(hash))
+        }
         screen("pose-${p.name.lowercase()}")
         click("player-card-avatar")
         fun options(group:String,names:List<String>,original:String) {

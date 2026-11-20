@@ -1,4 +1,4 @@
-name: Card Studio v59 Android verification
+name: CourtQuest Pro v60 Card Studio Android verification
 on:
   workflow_dispatch:
   push:
@@ -15,7 +15,7 @@ permissions:
   contents: read
   actions: read
 concurrency:
-  group: card-studio-v59-${{ github.ref }}
+  group: card-studio-v60-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   package:
@@ -40,6 +40,9 @@ jobs:
           python3 tools/player-card/build_assets.py --check
           python3 tools/player-card/build_head_styles.py --check
           python3 tools/player-card/build_footwear_styles.py --check
+          python3 tools/player-card/build_studio_thumbnails.py --check
+          python3 tools/player-card/build_face_blank_assets.py --check
+          python3 tools/player-card/verify_accessory_anchors.py
           python3 -m unittest discover -s scripts -p 'test_*.py'
           # Hosted runner egress to Maven Central returned HTTP 429 during plugin resolution.
           # Prefer Google's Maven Central mirror for this CI job; Gradle retains the normal fallback repositories.
@@ -51,33 +54,37 @@ jobs:
           }
           GRADLE
           ./gradlew -I "$RUNNER_TEMP/card-central.gradle" --no-daemon --console=plain :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest
-          mkdir -p candidate tests evidence v57 v58
-          cp app/build/outputs/apk/debug/app-debug.apk candidate/CourtQuestPro-Update-v59.apk
+          mkdir -p candidate tests evidence v56 v58 v59
+          cp app/build/outputs/apk/debug/app-debug.apk candidate/CourtQuestPro-Update-v60.apk
           cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk tests/instrumentation.apk
-          gh run download 44631807988 -n CourtQuestPro-PlayerCard-V2-v57-RC -D v57
+          curl --fail --location --retry 3 'https://github.com/Lamont-Labs/CourtQuestPro/releases/download/courtquest-phone-update-v56/CourtQuestPro-Update-v56.apk' --output v56/CourtQuestPro-Update-v56.apk
+          echo '788164fe1fd9e1e38557d16aedd5cb641e763e85017dd12fa7d0164c72858037  CourtQuestPro-Update-v56.apk' > v56/SHA256SUMS.txt
+          (cd v56 && sha256sum -c SHA256SUMS.txt)
           gh run download 44797671170 -n CourtQuestPro-v58-Installable-RC -D v58
-          (cd v57 && sha256sum -c *.apk.sha256)
           (cd v58 && sha256sum -c SHA256SUMS.txt)
-          for version in 57 58; do
+          gh run download 44809896559 -n CourtQuestPro-v59-candidate -D v59
+          (cd v59 && sha256sum -c *.apk.sha256)
+          for version in 56 58 59; do
             prev=(v"$version"/*.apk)
-            python3 scripts/verify_phone_update.py identity --previous "${prev[0]}" --candidate candidate/CourtQuestPro-Update-v59.apk --previous-version "$version" --candidate-version 59 --tools "$ANDROID_HOME/build-tools/35.0.1" --output "evidence/v$version"
+            python3 scripts/verify_phone_update.py identity --previous "${prev[0]}" --candidate candidate/CourtQuestPro-Update-v60.apk --previous-version "$version" --candidate-version 60 --tools "$ANDROID_HOME/build-tools/35.0.1" --output "evidence/v$version"
           done
-          python3 scripts/verify_apk.py --apk candidate/CourtQuestPro-Update-v59.apk --build-tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
-          (cd candidate && sha256sum *.apk > CourtQuestPro-Update-v59.apk.sha256)
+          python3 scripts/verify_apk.py --apk candidate/CourtQuestPro-Update-v60.apk --build-tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
+          (cd candidate && sha256sum *.apk > CourtQuestPro-Update-v60.apk.sha256)
           cp -r app/build/test-results/testDebugUnitTest evidence/unit-tests
           cp app/build/reports/lint-results-debug.xml evidence/lint.xml
           echo "$GITHUB_SHA" > candidate/source-commit.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: CourtQuestPro-v59-candidate
+          name: CourtQuestPro-v60-candidate
           path: candidate/
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: card-studio-build-inputs
+          name: card-studio-v60-build-inputs
           path: |
             tests/
-            v57/*.apk
+            v56/*.apk
             v58/*.apk
+            v59/*.apk
             evidence/
           retention-days: 14
   device:
@@ -94,8 +101,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh run download "$GITHUB_RUN_ID" -n CourtQuestPro-v59-candidate -D candidate
-          gh run download "$GITHUB_RUN_ID" -n card-studio-build-inputs -D inputs
+          gh run download "$GITHUB_RUN_ID" -n CourtQuestPro-v60-candidate -D candidate
+          gh run download "$GITHUB_RUN_ID" -n card-studio-v60-build-inputs -D inputs
           (cd candidate && sha256sum -c *.apk.sha256)
       - name: Start a dedicated Android emulator
         run: |
@@ -115,7 +122,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m pip install 'Pillow==11.3.0' 'numpy>=1.26,<3'
-          python3 tools/player-card/verify_rebuild.py --v57 inputs/v57/*.apk --v58 inputs/v58/*.apk --candidate candidate/CourtQuestPro-Update-v59.apk --instrumentation inputs/tests/instrumentation.apk --out evidence
+          python3 tools/player-card/verify_rebuild.py --v56 inputs/v56/*.apk --v58 inputs/v58/*.apk --v59 inputs/v59/*.apk --candidate candidate/CourtQuestPro-Update-v60.apk --instrumentation inputs/tests/instrumentation.apk --out evidence
       - name: Retain app and emulator diagnostics
         if: failure()
         run: |
@@ -128,6 +135,6 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: CardStudio-v59-Android-evidence
+          name: CardStudio-v60-Android-evidence
           path: evidence/
           retention-days: 30

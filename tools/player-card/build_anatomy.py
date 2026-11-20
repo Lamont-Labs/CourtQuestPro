@@ -6,10 +6,11 @@ import zipfile
 from pathlib import Path
 
 from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageOps
-from build_assets import OUT, SOURCES
+from build_assets import OUT, SOURCES, POSES as ARTWORK_POSES
 from build_footwear_styles import POSES, read_cqp
 from build_head_styles import REGIONS, STYLES
 from build_premium_parts import FEET
+from build_face_blank_assets import create as add_anonymous_face, check as check_anonymous_face
 
 # Hairlines are traced on the transparent head crop (percent of crop width/height).
 # The outer contour always comes from the authored cutout, including locs and flyaways.
@@ -237,4 +238,8 @@ def write_bundle(pose):
 
 if __name__=="__main__":
     for pose in POSES:
-        path=write_bundle(pose);print(path.name,path.stat().st_size,flush=True)
+        path=write_bundle(pose)
+        source=ARTWORK_POSES[pose]["source"]
+        add_anonymous_face(pose,source,path)
+        check_anonymous_face(path,source)
+        print(path.name,path.stat().st_size,flush=True)

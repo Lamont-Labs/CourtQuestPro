@@ -51,11 +51,17 @@ class AvatarAppearanceTest {
             val layout=pose.layout
             assertEquals(8,layout.print.size);assertEquals(6,layout.arm.size)
             assertTrue(layout.faceY in 50f..250f)
+            assertTrue("$pose wrist band angle",layout.wristBandRotation.isFinite())
             layout.print.forEach{assertTrue(it in 100f..700f)}
             assertTrue(layout.print[0]<layout.print[2])
             assertTrue(layout.shoes[0]<layout.shoes[2] && layout.shoes[1]<layout.shoes[3])
         }
         assertEquals(529f,AvatarGeometry.x(PlayerCardPose.FOLLOWTHROUGH,AvatarBuild.POWER,529f,201f),.001f)
+    }
+    @Test fun dribblingArmAccessoriesFollowTheRegisteredForearmInsteadOfTheShorts() {
+        val arm=PlayerCardPose.DRIBBLING.layout.arm
+        assertEquals(listOf(405f,235f,320f,390f,280f,545f),arm)
+        assertTrue(PlayerCardPose.DRIBBLING.layout.wristBandRotation in -360f..360f)
     }
     @Test fun footwearInspectionContainsAuthoredFeetAndHighCollarsForEveryBuild() {
         val asset=sequenceOf(java.io.File("src/main/assets/player_cards/premium-manifest.json"),
@@ -90,6 +96,39 @@ class AvatarAppearanceTest {
                 val size=item.getAsJsonArray("dimensions").map{it.asInt}
                 assertEquals(bounds.right-bounds.left,size[0])
                 assertEquals(bounds.bottom-bounds.top,size[1])
+            }
+        }
+    }
+    @Test fun everyBuiltInHaircutHasARegisteredAnonymousStudioThumbnail() {
+        val manifestFile=sequenceOf(
+            java.io.File("src/main/assets/player_cards/appearance-thumbnails.json"),
+            java.io.File("app/src/main/assets/player_cards/appearance-thumbnails.json")
+        ).first{it.isFile}
+        val styles=com.google.gson.JsonParser.parseString(manifestFile.readText()).asJsonObject
+            .getAsJsonObject("styles")
+        assertEquals(AvatarHair.entries.size,styles.size())
+        for(hair in AvatarHair.entries) {
+            val item=styles.getAsJsonObject(hair.name.lowercase())
+            assertNotNull("$hair thumbnail manifest entry",item)
+            val path=java.io.File(manifestFile.parentFile,item.get("file").asString)
+            assertTrue("$hair thumbnail asset is missing",path.isFile)
+            assertEquals(128,item.getAsJsonArray("dimensions")[0].asInt)
+            assertEquals(128,item.getAsJsonArray("dimensions")[1].asInt)
+        }
+    }
+    @Test fun allPoseBundlesContainTheAlignedBlankFaceVariant() {
+        val root=sequenceOf(
+            java.io.File("src/main/assets/player_cards/anatomy"),
+            java.io.File("app/src/main/assets/player_cards/anatomy")
+        ).first{it.isDirectory}
+        for(pose in PlayerCardPose.entries) {
+            java.util.zip.ZipFile(java.io.File(root,"${pose.name.lowercase()}.zip")).use { zip ->
+                val blank=zip.getEntry("face-blank.webp")
+                assertNotNull("$pose blank face layer",blank)
+                assertTrue("$pose blank face layer is empty",blank.size>0)
+                val manifest=com.google.gson.JsonParser.parseString(zip.getInputStream(zip.getEntry("bounds.json"))
+                    .bufferedReader().use{it.readText()}).asJsonObject
+                assertTrue("$pose blank face bounds",manifest.has("face-blank"))
             }
         }
     }

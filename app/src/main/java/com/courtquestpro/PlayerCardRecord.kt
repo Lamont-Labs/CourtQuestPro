@@ -3,6 +3,11 @@ package com.courtquestpro
 internal data class CardMetric(val label: String, val value: String?)
 internal data class PlayerCardRecord(val training: List<CardMetric>, val games: List<CardMetric>, val progress: List<CardMetric>) {
     val description get() = (training + games + progress).joinToString(". ") { "${it.label}: ${it.value ?: "No record"}" }
+    /** Progress defaults such as 0 XP and Rookie are not evidence of a completed activity. */
+    val hasRecordedActivity:Boolean
+        get() = (training+games).any { it.value!=null } ||
+            progress.firstOrNull { it.label=="Lifetime XP" }?.value?.toIntOrNull()?.let { it>0 }==true ||
+            progress.firstOrNull { it.label=="Best streak" }?.value!=null
 
     companion object {
         fun from(save: SaveState): PlayerCardRecord {

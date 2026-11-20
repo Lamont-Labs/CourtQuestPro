@@ -90,7 +90,7 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
     BoxWithConstraints(Modifier.fillMaxSize().background(CourtQuestDesign.background).testTag("player-card-studio-screen")) {
         val wide=maxWidth>maxHeight && maxWidth>=540.dp
         val large=LocalDensity.current.fontScale>1.4f
-        val stageHeight=(maxHeight*(if(large) .46f else .62f)).coerceIn(120.dp,540.dp)
+        val stageHeight=(maxHeight*(if(large) .42f else .55f)).coerceIn(120.dp,540.dp)
         Column(Modifier.fillMaxSize().padding(horizontal=10.dp)) {
             Row(Modifier.fillMaxWidth().heightIn(min=52.dp),verticalAlignment=Alignment.CenterVertically) {
                 IconButton({close()},Modifier.testTag("player-card-close")) {
@@ -135,9 +135,13 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
                         TextButton({
                             tool=if(tool=="Avatar") "Edition" else "Avatar";inspection=AvatarInspection.NONE
                         },Modifier.heightIn(min=48.dp).testTag("player-card-avatar")) {
-                            Text(if(tool=="Avatar") "Card tools" else "Athlete tools")
+                            Text(if(tool=="Avatar") "CARD STUDIO" else "ATHLETE STUDIO")
                         }
                         Spacer(Modifier.weight(1f))
+                        TextButton({editingUniform=true},Modifier.heightIn(min=48.dp).testTag("card-live-jersey")) {
+                            Text("Uniform")
+                        }
+                        Spacer(Modifier.width(2.dp))
                         if(tool=="Avatar" && avatarPart!="Body") {
                             TextButton({inspection=if(inspection!=AvatarInspection.NONE) AvatarInspection.NONE
                                 else if(avatarPart=="Hair") AvatarInspection.HEAD else AvatarInspection.SHOES},
@@ -156,14 +160,14 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
                         Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()).testTag("player-card-inspector")
                             .padding(vertical=6.dp),verticalArrangement=Arrangement.spacedBy(5.dp)) {
                             when(tool) {
-                                "Avatar" -> AvatarControls(avatar,avatarPart,{ if(inspection!=AvatarInspection.NONE) inspection=it }) { avatar=it }
+                                "Avatar" -> AvatarControls(avatar,avatarPart,identity,jersey,
+                                    { if(inspection!=AvatarInspection.NONE) inspection=it }) { avatar=it }
                                 "Edition" -> Choices("Card material",PlayerCardStyle.entries,style,{it.label},{"player-card-style-${it.name.lowercase()}"},
-                                    swatch={it.metal.toArgb()}) { style=it }
-                                "Pose" -> Choices("Athlete pose",PlayerCardPose.entries,pose,{it.label},{"player-card-pose-${it.name.lowercase()}"}) { pose=it }
-                                "Face" -> Choices("Portrait finish",PlayerCardFace.entries,face,{it.label},{"player-card-face-${it.name.lowercase()}"}) { face=it }
-                            }
-                            TextButton({editingUniform=true},Modifier.heightIn(min=48.dp).testTag("card-live-jersey")) {
-                                Text("Edit uniform · ${jersey.design.template.label}${jersey.number?.let{" · #$it"}.orEmpty()}")
+                                    swatch={it.metal.toArgb()},preview={CardStyleOptionPreview(jersey,save.playerName,it,identity)}) { style=it }
+                                "Pose" -> Choices("Athlete pose",PlayerCardPose.entries,pose,{it.label},{"player-card-pose-${it.name.lowercase()}"},
+                                    preview={CardPoseOptionPreview(jersey,identity,it)}) { pose=it }
+                                "Face" -> Choices("Portrait finish",PlayerCardFace.entries,face,{it.label},{"player-card-face-${it.name.lowercase()}"},
+                                    preview={CardFaceOptionPreview(jersey,identity,it)}) { face=it }
                             }
                         }
                     }

@@ -81,26 +81,141 @@ internal fun CourtPlayerCard(
                     drawOval(Brush.radialGradient(listOf(Color.Black.copy(alpha=.78f),Color.Transparent),
                         center=Offset(w*.5f,h*.846f),radius=w*.29f),
                         topLeft=Offset(w*.18f,h*.815f),size=Size(w*.64f,h*.065f))
+                    drawEditionSpotlight(style)
                 }
+                val placement=style.heroPlacement
                 CourtCardAthlete(jersey,PlayerCardIdentity(style,pose,face,appearance),
-                    Modifier.fillMaxWidth(.945f).fillMaxHeight(.780f).align(Alignment.TopCenter)
-                        .offset(y=maxHeight*.068f))
+                    Modifier.fillMaxWidth(placement.width).fillMaxHeight(placement.height).align(Alignment.TopCenter)
+                        .offset(x=maxWidth*placement.x,y=maxHeight*placement.top),
+                    showTestTags=!thumbnail)
                 Canvas(Modifier.fillMaxSize()) {
-                    val w=size.width; val h=size.height
-                    drawRect(Brush.verticalGradient(listOf(Color(0x1005070C),Color(0xF0080A10),Color(0xFF090B10)),
-                        startY=h*.84f,endY=h*.91f), topLeft=Offset(w*.065f,h*.843f),size=Size(w*.87f,h*.132f))
-                    drawLine(style.metal,Offset(w*.09f,h*.853f),Offset(w*.91f,h*.853f),w*.004f)
-                    drawContext.canvas.nativeCanvas.apply {
-                        printLine(style.edition,w*.5f,h*.072f,w*.044f,w*.75f,style.metal,body)
-                        printLine(name.uppercase(Locale.ROOT),w*.5f,h*.919f,w*.092f,w*.79f,Color.White,display)
-                        printLine(jersey.number?.let { "Nº $it   /   ${style.label.uppercase(Locale.ROOT)}" }
-                            ?: style.label.uppercase(Locale.ROOT),w*.5f,h*.954f,w*.039f,w*.76f,style.metal,body)
-                    }
+                    drawEditionNameplate(style,name,jersey.number,display,body)
                 }
                 CardMaterialFinish(style,false)
             }
             if (reverse && record != null) CardReverse(name,jersey.number,style,record,display,body)
         }
+    }
+}
+
+private data class HeroPlacement(val width:Float,val height:Float,val x:Float,val top:Float)
+private val PlayerCardStyle.heroPlacement:HeroPlacement get()=when(this) {
+    PlayerCardStyle.HOLOGRAPHIC->HeroPlacement(.945f,.780f,0f,.068f)
+    PlayerCardStyle.CLASSIC->HeroPlacement(.865f,.748f,-.008f,.086f)
+    PlayerCardStyle.BATTLE->HeroPlacement(.985f,.800f,-.014f,.040f)
+    PlayerCardStyle.OBSIDIAN->HeroPlacement(.885f,.770f,.030f,.073f)
+}
+
+/** Edition-specific light and framing preserve the same approved athlete while changing composition. */
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawEditionSpotlight(style:PlayerCardStyle) {
+    val w=size.width;val h=size.height
+    val center=Offset(w*when(style){PlayerCardStyle.OBSIDIAN->.56f;else->.5f},h*.43f)
+    val radius=w*when(style){PlayerCardStyle.CLASSIC->.42f;PlayerCardStyle.BATTLE->.52f;else->.46f}
+    val glow=when(style) {
+        PlayerCardStyle.HOLOGRAPHIC->Color(0xFF75DDF2)
+        PlayerCardStyle.CLASSIC->Color(0xFFE8B764)
+        PlayerCardStyle.BATTLE->Color(0xFFFF5B0A)
+        PlayerCardStyle.OBSIDIAN->Color(0xFF8BA8D0)
+    }
+    drawCircle(Brush.radialGradient(listOf(glow.copy(alpha=.23f),glow.copy(alpha=.06f),Color.Transparent),
+        center=center,radius=radius),radius=radius,center=center)
+    when(style) {
+        PlayerCardStyle.HOLOGRAPHIC -> {
+            drawLine(Color.Cyan.copy(alpha=.24f),Offset(w*.13f,h*.28f),Offset(w*.37f,h*.12f),w*.006f)
+            drawLine(Color(0xFFB197FF).copy(alpha=.30f),Offset(w*.88f,h*.30f),Offset(w*.67f,h*.14f),w*.005f)
+        }
+        PlayerCardStyle.CLASSIC -> {
+            drawArc(Color(0xFFF2D39C).copy(alpha=.24f),180f,180f,false,
+                Offset(w*.14f,h*.27f),Size(w*.72f,h*.60f),style=Stroke(w*.004f))
+            drawLine(Color(0xFFFFE8B8).copy(alpha=.18f),Offset(w*.19f,h*.34f),Offset(w*.81f,h*.34f),w*.003f)
+        }
+        PlayerCardStyle.BATTLE -> {
+            drawPath(Path().apply {
+                moveTo(0f,h*.23f);lineTo(w*.13f,h*.19f);lineTo(w*.04f,h*.40f);lineTo(0f,h*.43f);close()
+            },Brush.linearGradient(listOf(glow.copy(alpha=.48f),Color.Transparent)))
+            drawPath(Path().apply {
+                moveTo(w,h*.29f);lineTo(w*.88f,h*.24f);lineTo(w*.97f,h*.47f);lineTo(w,h*.49f);close()
+            },Brush.linearGradient(listOf(Color.Transparent,glow.copy(alpha=.42f))))
+            drawLine(glow.copy(alpha=.22f),Offset(w*.02f,h*.58f),Offset(w*.19f,h*.46f),w*.009f)
+        }
+        PlayerCardStyle.OBSIDIAN -> {
+            drawLine(Color.White.copy(alpha=.14f),Offset(w*.83f,h*.22f),Offset(w*.96f,h*.79f),w*.003f)
+            drawLine(glow.copy(alpha=.28f),Offset(w*.08f,h*.73f),Offset(w*.18f,h*.44f),w*.004f)
+        }
+    }
+}
+
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawEditionNameplate(
+    style:PlayerCardStyle,name:String,number:String?,display:Typeface?,body:Typeface?
+) {
+    val w=size.width;val h=size.height
+    val left=w*.065f;val right=w*.935f;val top=h*.846f;val bottom=h*.978f
+    val plate=Path()
+    when(style) {
+        PlayerCardStyle.HOLOGRAPHIC -> plate.apply {
+            moveTo(left,top+h*.014f);lineTo(w*.12f,top);lineTo(w*.88f,top);lineTo(right,top+h*.014f)
+            lineTo(right,bottom-h*.018f);lineTo(w*.87f,bottom);lineTo(w*.13f,bottom);lineTo(left,bottom-h*.018f);close()
+        }
+        PlayerCardStyle.CLASSIC -> plate.apply {
+            moveTo(left+12,bottom);lineTo(left,bottom-12);lineTo(left,top+12);lineTo(left+12,top)
+            lineTo(right-12,top);lineTo(right,top+12);lineTo(right,bottom-12);lineTo(right-12,bottom);close()
+        }
+        PlayerCardStyle.BATTLE -> plate.apply {
+            moveTo(left,top+h*.035f);lineTo(w*.17f,top);lineTo(right,top);lineTo(right-h*.024f,bottom)
+            lineTo(w*.11f,bottom);lineTo(left,bottom-h*.018f);close()
+        }
+        PlayerCardStyle.OBSIDIAN -> plate.apply {
+            moveTo(left,top);lineTo(right-h*.012f,top);lineTo(right,bottom-h*.02f)
+            lineTo(w*.78f,bottom);lineTo(left,bottom);close()
+        }
+    }
+    val fill=when(style) {
+        PlayerCardStyle.CLASSIC->Color(0xFFF1E4C7)
+        PlayerCardStyle.BATTLE->Color(0xF00A0C11)
+        PlayerCardStyle.HOLOGRAPHIC->Color(0xEE09141D)
+        PlayerCardStyle.OBSIDIAN->Color(0xF0070A10)
+    }
+    drawPath(plate,fill)
+    drawPath(plate,style.metal.copy(alpha=.9f),style=Stroke(w*.0035f))
+    when(style) {
+        PlayerCardStyle.HOLOGRAPHIC -> {
+            drawLine(Color.Cyan.copy(alpha=.88f),Offset(w*.14f,top+h*.021f),Offset(w*.86f,top+h*.021f),w*.003f)
+            drawLine(Color(0xFFB197FF).copy(alpha=.75f),Offset(w*.15f,bottom-h*.015f),Offset(w*.85f,bottom-h*.015f),w*.002f)
+        }
+        PlayerCardStyle.CLASSIC -> {
+            drawRoundRect(Color(0xFFD4B477),Offset(w*.095f,top+h*.012f),Size(w*.81f,h*.105f),
+                cornerRadius=androidx.compose.ui.geometry.CornerRadius(5.dp.toPx()),style=Stroke(w*.002f))
+            drawCircle(Color(0xFFD0A953),w*.026f,Offset(w*.875f,(top+bottom)*.51f))
+            drawCircle(Color(0xFF5D421D),w*.012f,Offset(w*.875f,(top+bottom)*.51f))
+        }
+        PlayerCardStyle.BATTLE -> {
+            drawPath(Path().apply {
+                moveTo(left,top+h*.035f);lineTo(w*.35f,top+h*.035f);lineTo(w*.31f,top+h*.050f);lineTo(left,top+h*.050f);close()
+            },Color(0xFFFF5B0A))
+            drawLine(Color(0xFFFF5B0A),Offset(w*.78f,bottom-h*.013f),Offset(right,bottom-h*.013f),w*.004f)
+        }
+        PlayerCardStyle.OBSIDIAN -> {
+            drawLine(Color.White.copy(alpha=.56f),Offset(w*.77f,top+h*.012f),Offset(w*.77f,bottom-h*.012f),w*.002f)
+            drawLine(style.metal.copy(alpha=.36f),Offset(w*.10f,bottom-h*.014f),Offset(w*.74f,bottom-h*.014f),w*.002f)
+        }
+    }
+    val nameColor=if(style==PlayerCardStyle.CLASSIC) Color(0xFF241A12) else Color.White
+    val infoColor=if(style==PlayerCardStyle.CLASSIC) Color(0xFF79521F) else style.metal
+    val nameLeft=style==PlayerCardStyle.BATTLE || style==PlayerCardStyle.OBSIDIAN
+    val x=if(nameLeft) w*.15f else w*.5f
+    val align=if(nameLeft) Paint.Align.LEFT else Paint.Align.CENTER
+    val maxName=if(style==PlayerCardStyle.OBSIDIAN) w*.58f else if(nameLeft) w*.70f else w*.78f
+    drawContext.canvas.nativeCanvas.apply {
+        printLine(name.uppercase(Locale.ROOT),x,h*.921f,w*.090f,maxName,nameColor,display,align)
+        val info=when(style) {
+            PlayerCardStyle.CLASSIC -> number?.let{"COURT LEGENDS  ·  #$it"} ?: "COURT LEGENDS"
+            PlayerCardStyle.BATTLE -> number?.let{"#$it  /  BATTLE SERIES"} ?: "BATTLE SERIES"
+            PlayerCardStyle.OBSIDIAN -> number?.let{"NO. $it  ·  OBSIDIAN CHROME"} ?: "OBSIDIAN CHROME"
+            PlayerCardStyle.HOLOGRAPHIC -> number?.let{"Nº $it   /   HOLOGRAPHIC ELITE"} ?: "HOLOGRAPHIC ELITE"
+        }
+        val infoAlign=if(style==PlayerCardStyle.OBSIDIAN) Paint.Align.LEFT else Paint.Align.CENTER
+        val infoX=if(style==PlayerCardStyle.OBSIDIAN) w*.15f else w*.5f
+        printLine(info.uppercase(Locale.ROOT),infoX,h*.957f,w*.036f,w*.72f,infoColor,body,infoAlign)
     }
 }
 
@@ -126,18 +241,24 @@ private fun CardReverse(name:String,number:String?,style:PlayerCardStyle,record:
             PlayerCardStyle.HOLOGRAPHIC -> Color(0xFF142D3C)
         }
         drawRect(Brush.linearGradient(listOf(ground,Color(0xFF090C12),ground)),Offset(w*.05f,h*.038f),Size(w*.90f,h*.924f))
-        drawLine(ink,Offset(w*.095f,h*.175f),Offset(w*.905f,h*.175f),w*.005f)
+        drawLine(ink.copy(alpha=.78f),Offset(w*.095f,h*.175f),Offset(w*.905f,h*.175f),w*.005f)
         with(drawContext.canvas.nativeCanvas) {
             printLine("COURTQUEST   /   PLAYER RECORD",w*.10f,h*.083f,w*.043f,w*.81f,ink,body,Paint.Align.LEFT)
             printLine(name.uppercase(Locale.ROOT),w*.095f,h*.147f,w*.093f,w*.66f,Color.White,display,Paint.Align.LEFT)
             number?.let { printLine("#$it",w*.905f,h*.146f,w*.077f,w*.16f,ink,display,Paint.Align.RIGHT) }
             var y=.222f
             fun section(heading:String, metrics:List<CardMetric>) {
-                printLine(heading,w*.10f,h*y,w*.038f,w*.74f,ink,body,Paint.Align.LEFT)
+                val sectionTop=y-.027f
+                val sectionBottom=sectionTop+.054f+metrics.size*.049f+.012f
+                val panel=Paint(Paint.ANTI_ALIAS_FLAG).apply{color=ink.copy(alpha=.065f).toArgb()}
+                drawRoundRect(RectF(w*.065f,h*sectionTop,w*.935f,h*sectionBottom),w*.022f,h*.014f,panel)
+                val edge=Paint(Paint.ANTI_ALIAS_FLAG).apply{color=ink.copy(alpha=.52f).toArgb();strokeWidth=w*.003f}
+                drawLine(w*.078f,h*(sectionTop+.014f),w*.078f,h*(sectionBottom-.014f),edge)
+                printLine(heading,w*.105f,h*y,w*.035f,w*.74f,ink,body,Paint.Align.LEFT)
                 y+=.047f
                 metrics.forEach { metric ->
-                    printLine(metric.label,w*.10f,h*y,w*.051f,w*.49f,Color(0xFFE6E7E6),body,Paint.Align.LEFT)
-                    printLine(metric.value ?: "—",w*.90f,h*y,w*.060f,w*.28f,Color.White,display,Paint.Align.RIGHT)
+                    printLine(metric.label,w*.105f,h*y,w*.047f,w*.49f,Color(0xFFE6E7E6),body,Paint.Align.LEFT)
+                    printLine(metric.value ?: "—",w*.90f,h*y,w*.057f,w*.28f,Color.White,display,Paint.Align.RIGHT)
                     y+=.049f
                 }
                 y+=.014f
@@ -145,8 +266,8 @@ private fun CardReverse(name:String,number:String?,style:PlayerCardStyle,record:
             section("TRAINING",record.training)
             section("GAME LOG",record.games)
             section("PROGRESSION",record.progress)
-            printLine(if ((record.training+record.games+record.progress).any{it.value==null}) "—  NO RECORD" else style.edition,
-                w*.90f,h*.939f,w*.035f,w*.68f,ink,body,Paint.Align.RIGHT)
+            printLine(if(record.hasRecordedActivity) "SAVED PLAYER RECORD" else "NO SAVED TRAINING OR GAME DATA",
+                w*.90f,h*.941f,w*.034f,w*.72f,ink,body,Paint.Align.RIGHT)
         }
     }
 }

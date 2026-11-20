@@ -20,9 +20,11 @@ import java.util.zip.ZipInputStream
 
 internal data class RegisteredPatch(val bitmap: Bitmap, val bounds: RectF)
 internal data class PlayerCardPlate(
-    val images: List<Bitmap>, val hair: RegisteredPatch, val shoe: RegisteredPatch
+    val images: List<Bitmap>, val hair: RegisteredPatch, val shoe: RegisteredPatch,
+    val blankFace:RegisteredPatch
 ) {
-    val bytes get() = images.sumOf { it.allocationByteCount } + hair.bitmap.allocationByteCount + shoe.bitmap.allocationByteCount
+    val bytes get() = images.sumOf { it.allocationByteCount } + hair.bitmap.allocationByteCount +
+        shoe.bitmap.allocationByteCount + blankFace.bitmap.allocationByteCount
 }
 
 internal object PlayerCardMaterials {
@@ -58,7 +60,8 @@ internal object PlayerCardMaterials {
         val base = bases.get(BaseKey(pose, sample, template)) ?: return null
         val hairPatch = patches.get(hairKey(pose, sample, hair)) ?: return null
         val shoePatch = patches.get(shoeKey(pose, sample, shoe)) ?: return null
-        return PlayerCardPlate(base, hairPatch, shoePatch)
+        val blankFace = patches.get(PartKey(pose,sample,"face-blank")) ?: return null
+        return PlayerCardPlate(base, hairPatch, shoePatch,blankFace)
     }
     suspend fun load(assets: AssetManager, pose: PlayerCardPose, sample: Int, template: Int, hair: AvatarHair, shoe: AvatarFootwear) =
         withContext(Dispatchers.IO) {
@@ -76,7 +79,8 @@ internal object PlayerCardMaterials {
                 fun part(key: PartKey) = patches.get(key) ?: bundle.patch(key.name, sample).also { patches.put(key, it) }
                 val key = BaseKey(pose, sample, template)
                 val base = bases.get(key) ?: decodeBase(assets, key, bundle).also { bases.put(key, it) }
-                PlayerCardPlate(base, part(hairKey(pose, sample, hair)), part(shoeKey(pose, sample, shoe))).also {
+                PlayerCardPlate(base, part(hairKey(pose, sample, hair)), part(shoeKey(pose, sample, shoe)),
+                    part(PartKey(pose,sample,"face-blank"))).also {
                     largestPlateBytes = maxOf(largestPlateBytes, it.bytes)
                 }
             }
