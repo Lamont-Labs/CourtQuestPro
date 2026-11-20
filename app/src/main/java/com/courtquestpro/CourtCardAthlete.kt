@@ -101,9 +101,6 @@ internal fun CourtCardAthlete(
                                 val cleanBase=loaded.clearedHeadBase?:loaded.images[index]
                                 if(avatar.build==AvatarBuild.ORIGINAL) canvas.drawBitmap(cleanBase, null, dest, paint)
                                 else canvas.drawBitmapMesh(cleanBase,32,48,mesh,0,null,0,paint)
-                                val bounds=livePose.headPlateBounds
-                                canvas.drawBitmap(loaded.head,null,RectF(bounds.left.toFloat(),bounds.top.toFloat(),
-                                    bounds.right.toFloat(),bounds.bottom.toFloat()),paint)
                             } else if(avatar.build==AvatarBuild.ORIGINAL) canvas.drawBitmap(loaded.images[index], null, dest, paint)
                             else canvas.drawBitmapMesh(loaded.images[index],32,48,mesh,0,null,0,paint)
                         }
@@ -112,6 +109,17 @@ internal fun CourtCardAthlete(
                         // tone so replacement head plates keep the source
                         // complexion, light and facial treatment exactly.
                         image(11,avatar.skin.color?.let{AvatarDetailPainter.dye(it)})
+                        // Replacement head artwork must be composited after the
+                        // skin matte; otherwise the matte can repaint the hairline
+                        // and facial details that the authored head plate supplies.
+                        if (loaded.head != null) {
+                            val bounds = livePose.headPlateBounds
+                            paint.colorFilter = avatar.skin.color?.let { AvatarDetailPainter.dye(it) }
+                            canvas.drawBitmap(loaded.head, null,
+                                RectF(bounds.left.toFloat(), bounds.top.toFloat(),
+                                    bounds.right.toFloat(), bounds.bottom.toFloat()), paint)
+                            paint.colorFilter = null
+                        }
                         if(avatar.footwear==AvatarFootwear.ORIGINAL)avatar.shoes.color?.let {image(12,AvatarDetailPainter.dye(it))}
                         else image(13+avatar.footwear.ordinal,avatar.shoes.color?.let{AvatarDetailPainter.dye(it)})
                         image(2 + template * 2, diffuse)
