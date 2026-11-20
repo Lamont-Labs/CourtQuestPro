@@ -26,14 +26,24 @@ def collect(folder, location="player-card-proof"):
 
 
 def run(class_name, method, folder,baseline=False):
+    print(f"Native gate: {folder} / {class_name}#{method or 'suite'} (baseline={baseline})",flush=True)
     output = ui.shell("am", "instrument", "-w", "-e", "courtquestBaseline",str(baseline).lower(),"-e", "class", f"{ui.PACKAGE}.{class_name}" + (f"#{method}" if method else ""),
         f"{ui.PACKAGE}.test/androidx.test.runner.AndroidJUnitRunner", timeout=900)
     (folder / f"{class_name}-{method or 'suite'}.txt").write_text(output)
     if not re.search(r"OK \(\d+ tests?\)", output) or "FAILURES" in output:
         (folder / "failure.png").write_bytes(ui.adb("exec-out","screencap","-p"))
-        try: collect(folder)
-        except Exception: pass
+        for location in ("player-card-proof","app-quality-proof"):
+            try:collect(folder,location)
+            except Exception:pass
+        previous_out=ui.OUT
+        try:
+            ui.OUT=folder;ui.nodes("failure-hierarchy")
+            (folder/"failure-crash-log.txt").write_bytes(ui.adb("logcat","-d","-b","crash"))
+        except Exception as diagnostic_error:
+            (folder/"diagnostic-collection-failure.txt").write_text(str(diagnostic_error))
+        finally:ui.OUT=previous_out
         raise AssertionError(output)
+    print(f"Passed: {class_name}#{method or 'suite'}",flush=True)
 
 
 def enter():
@@ -114,6 +124,9 @@ def main():
         # Disposable-AVD visual fixture only, after install-over preservation assertions.
         # Reset cosmetic QA selections so paired app captures use the same saved identity.
         seed_state(fixture)
+        # seed_state launches the app. Stop it before replacing preferences so
+        # Android cannot retain a cached SharedPreferences map from the last case.
+        ui.shell("am","force-stop",ui.PACKAGE)
         ui.shell("run-as",ui.PACKAGE,"rm","-f","shared_prefs/courtquest_player_card.xml")
         ui.shell("run-as",ui.PACKAGE,"rm","-rf","files/player-card-proof")
         ui.shell("wm","size",size); ui.shell("settings","put","system","font_scale",font)

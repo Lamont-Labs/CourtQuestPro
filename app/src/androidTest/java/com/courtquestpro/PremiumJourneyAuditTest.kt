@@ -88,6 +88,11 @@ class PremiumJourneyAuditTest {
         click("segment-settings",true);capture("settings")
         for(page in listOf("player","preferences","help","how-to","about","notices")) {
             click("me-settings-$page",true);capture("settings-$page")
+            if(page=="player") {
+                compose.onNodeWithText("Edit player settings").performScrollTo().performClick()
+                compose.waitForIdle();compose.onNodeWithText("Player name").assertExists()
+                capture("player-settings-editor");back();wait("me-settings-back")
+            }
             if(!baseline&&page=="help"){back();wait("me-settings-player")}
             else click("me-settings-back",true)
         }
