@@ -31,6 +31,11 @@ separately queued readiness work; this document is not a compliance approval.
   returns to All settings. The Quests hero no longer fixes enlarged content to
   112dp. Custom jersey copy describes chest text rather than a team experience,
   without renaming or dropping the saved field.
+* Authoring review found pre-existing shoe-dye bounds missed outer toes.
+  Re-authored bounds cover the actual original feet; replacement plates clear
+  the entire old shoe and anti-aliased collar, not merely part of it. Source
+  shoe angles are retained before additional pose rotation, and raised/dribble
+  inspection crops accommodate the full foot, including broader builds.
 
 ## Whole-app review and repeatable evidence
 

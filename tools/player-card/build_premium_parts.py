@@ -13,12 +13,15 @@ from build_assets import OUT,SOURCES,encode
 from build_avatar_assets import read
 
 FEET={
- "standing":[(350,890,453,989),(569,890,681,989)],
- "dribbling":[(208,849,338,992),(549,821,704,963)],
- "action":[(299,894,406,1024),(516,565,690,688)],
- "ready":[(331,846,435,961),(580,847,679,961)],
- "followthrough":[(367,868,451,974),(551,867,646,974)]
+ "standing":[(322,874,432,998),(591,874,701,999)],
+ "dribbling":[(165,835,301,1003),(626,835,796,959)],
+ "action":[(307,862,395,1013),(585,595,729,727)],
+ "ready":[(331,847,434,958),(583,847,679,959)],
+ "followthrough":[(368,866,445,971),(557,866,645,969)]
 }
+# The original shoe art already points down toward its toe; these are additional
+# rotations, not the athlete's full ankle-to-toe angle.
+ANGLES={"standing":[9,-13],"dribbling":[12,2],"action":[31,16],"ready":[6,-13],"followthrough":[24,-16]}
 
 def pack(path,images):
     with path.open("wb") as f:
@@ -62,18 +65,23 @@ def main():
         original=read(OUT/f"{pose}.pcmat");body=Image.open(io.BytesIO(original[0])).convert("RGBA")
         remove=Image.new("L",body.size);d=ImageDraw.Draw(remove)
         for box in feet:d.rectangle(box,fill=255)
+        # Include anti-aliased dye-mask edges; otherwise the old collar can remain
+        # visible around a lower shoe even when its toe rectangle was cleared.
+        old_shoe=Image.open(io.BytesIO(read(OUT/f"{pose}-avatar.pcmat",expected_count=2)[1])).getchannel("A")
+        remove=ImageChops.lighter(remove,old_shoe.point(lambda v:255 if v else 0))
         clean=body.copy();clean.putalpha(ImageChops.subtract(body.getchannel("A"),remove))
         layers=[clean]
         for index,shoe in enumerate(models):
             layer=Image.new("RGBA",body.size)
             for side,(x0,y0,x1,y1) in enumerate(feet):
                 # High collars rise above low-cut collars, rather than stretching the same silhouette.
-                rise=18 if index==1 else 8 if index==2 else 0
+                rise=20 if index==1 else 10 if index==2 else 2
                 sprite=ImageOps.mirror(shoe) if side else shoe
+                sprite=sprite.rotate(ANGLES[pose][side],resample=Image.Resampling.BICUBIC,expand=True)
                 sprite=sprite.resize((x1-x0,y1-y0+rise),Image.Resampling.LANCZOS)
                 layer.alpha_composite(sprite,(x0,y0-rise))
             layers.append(layer)
-        manifest["poses"][pose]={**pack(OUT/f"{pose}-footwear.pcmat",layers),"feet":feet}
+        manifest["poses"][pose]={**pack(OUT/f"{pose}-footwear.pcmat",layers),"feet":feet,"rotation_degrees":ANGLES[pose]}
     (OUT/"premium-manifest.json").write_text(json.dumps(manifest,indent=2)+"\n")
 
 if __name__=="__main__":main()

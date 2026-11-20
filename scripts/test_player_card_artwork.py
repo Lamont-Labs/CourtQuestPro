@@ -5,7 +5,7 @@ import json
 import struct
 import unittest
 from pathlib import Path
-from PIL import Image, ImageChops
+from PIL import Image, ImageChops, ImageOps
 
 ROOT=Path(__file__).resolve().parents[1]/"app/src/main/assets/player_cards"
 POSES=("standing","dribbling","action","ready","followthrough")
@@ -25,6 +25,29 @@ def layers(path,count):
     return result
 
 class CollectorArtworkTest(unittest.TestCase):
+    def testReplacementFootwearRemovesTheEntireOldShoeIncludingOuterToes(self):
+        for pose in POSES:
+            original=layers(ROOT/f"{pose}.pcmat",11)[0]
+            old_shoes=layers(ROOT/f"{pose}-avatar.pcmat",2)[1].getchannel("A")
+            clean=layers(ROOT/f"{pose}-footwear.pcmat",4)[0]
+            self.assertIsNone(ImageChops.multiply(clean.getchannel("A"),old_shoes).getbbox(),pose)
+        # Toe areas missed by the previous hand-authored bounds. Both the dye
+        # matte and the replacement-body removal must cover their real pixels.
+        toes={"standing":[(323,970,350,997),(680,975,700,997)],
+              "dribbling":[(166,974,205,1001),(769,923,794,953)],
+              "action":[(319,986,363,1011),(703,641,727,684)]}
+        for pose,regions in toes.items():
+            source=layers(ROOT/f"{pose}.pcmat",11)[0]
+            original=source.getchannel("A")
+            # Bright original soles deliberately keep their source material.
+            expected_dye=ImageChops.multiply(original,ImageOps.grayscale(source).point(lambda v:255 if v<190 else 0))
+            matte=layers(ROOT/f"{pose}-avatar.pcmat",2)[1].getchannel("A")
+            clean=layers(ROOT/f"{pose}-footwear.pcmat",4)[0].getchannel("A")
+            for region in regions:
+                self.assertGreater(original.crop(region).getextrema()[1],180,(pose,region))
+                self.assertIsNone(ImageChops.subtract(expected_dye.crop(region),matte.crop(region)).getbbox(),(pose,region))
+                self.assertIsNone(clean.crop(region).getbbox(),(pose,region))
+
     def testEveryPoseHasGenuineTransparentSkinAndFootwearLayers(self):
         for pose in POSES:
             with self.subTest(pose=pose):
@@ -47,7 +70,7 @@ class CollectorArtworkTest(unittest.TestCase):
         for entry in entries.values():
             self.assertEqual(entry["sha256"],hashlib.sha256((ROOT/entry["file"]).read_bytes()).hexdigest())
 
-    def testAllThreeMaterialPlatesExistAreDistinctAndSharp(self):
+    def testAllFourMaterialPlatesExistAreDistinctAndSharp(self):
         entries=json.loads((ROOT/"surface-manifest.json").read_text())
         self.assertEqual({"holographic","classic","battle","obsidian"},set(entries))
         hashes=set()

@@ -57,4 +57,19 @@ class AvatarAppearanceTest {
         }
         assertEquals(529f,AvatarGeometry.x(PlayerCardPose.FOLLOWTHROUGH,AvatarBuild.POWER,529f,201f),.001f)
     }
+    @Test fun footwearInspectionContainsAuthoredFeetAndHighCollarsForEveryBuild() {
+        val asset=sequenceOf(java.io.File("src/main/assets/player_cards/premium-manifest.json"),
+            java.io.File("app/src/main/assets/player_cards/premium-manifest.json")).first{it.isFile}
+        val poses=com.google.gson.JsonParser.parseString(asset.readText()).asJsonObject.getAsJsonObject("poses")
+        for(pose in PlayerCardPose.entries)for(build in AvatarBuild.entries) {
+            val crop=pose.layout.shoes
+            for(foot in poses.getAsJsonObject(pose.name.lowercase()).getAsJsonArray("feet")) {
+                val box=foot.asJsonArray.map{it.asFloat}
+                for(y in listOf(box[1]-20f,box[3]))for(x in listOf(box[0],box[2])) {
+                    val actual=AvatarGeometry.x(pose,build,x,y)
+                    assertTrue("$pose / $build foot outside inspection crop",actual in crop[0]..crop[2] && y in crop[1]..crop[3])
+                }
+            }
+        }
+    }
 }

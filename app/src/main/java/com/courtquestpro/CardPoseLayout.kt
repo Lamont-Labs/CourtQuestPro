@@ -12,10 +12,10 @@ internal val PlayerCardPose.layout:CardPoseLayout get()=when(this) {
         listOf(441f,719f,588f,719f),listOf(325f,775f,710f,1024f))
     PlayerCardPose.DRIBBLING->CardPoseLayout(780f,538f,119f,listOf(489f,23f,584f,105f),12f,
         listOf(440f,233f,580f,262f,540f,390f,402f,359f),listOf(407f,235f,352f,445f,340f,553f),
-        listOf(389f,690f,646f,715f),listOf(190f,760f,735f,1024f))
+        listOf(389f,690f,646f,715f),listOf(150f,760f,810f,1024f))
     PlayerCardPose.ACTION->CardPoseLayout(580f,457f,98f,listOf(418f,15f,482f,77f),-14f,
         listOf(423f,301f,525f,273f,536f,346f,422f,373f),listOf(396f,195f,438f,262f,552f,206f),
-        listOf(420f,701f,564f,454f),listOf(280f,520f,735f,1030f))
+        listOf(420f,701f,564f,454f),listOf(270f,520f,780f,1030f))
     PlayerCardPose.READY->CardPoseLayout(560f,514f,101f,listOf(476f,39f,550f,102f),0f,
         listOf(449f,224f,576f,226f,581f,360f,443f,360f),listOf(407f,221f,365f,316f,410f,408f),
         listOf(432f,716f,599f,716f),listOf(310f,775f,700f,1000f))
