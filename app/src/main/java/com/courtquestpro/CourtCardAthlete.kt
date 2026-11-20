@@ -21,6 +21,13 @@ import androidx.compose.ui.platform.testTag
 import androidx.core.content.res.ResourcesCompat
 import java.util.Locale
 
+private data class PlayerCardRenderFrame(
+    val plate: PlayerCardPlate?,
+    val jersey: PlayerJersey,
+    val identity: PlayerCardIdentity,
+    val inspection: AvatarInspection
+)
+
 /** Real textured athlete plates; textile dyes are applied only inside pose-specific cloth masks. */
 @Composable
 internal fun CourtCardAthlete(
@@ -37,17 +44,30 @@ internal fun CourtCardAthlete(
     val wornTemplate=when(jersey.design.template){JerseyTemplate.ARENA->0;JerseyTemplate.CLASSIC->1;JerseyTemplate.FASTBREAK->2;JerseyTemplate.RETRO->3}
     val hair=identity.avatar.hair
     var plate by remember(pose, sample,wornTemplate,hair) { mutableStateOf(PlayerCardMaterials.cached(pose, sample,wornTemplate,hair)) }
-    var failure by remember(pose, sample,wornTemplate) { mutableStateOf(false) }
+    var failure by remember(pose, sample,wornTemplate,hair) { mutableStateOf(false) }
+    val latestFrame = rememberUpdatedState(PlayerCardRenderFrame(plate, jersey, identity, inspection))
     LaunchedEffect(pose, sample,wornTemplate,hair) {
         try { plate = PlayerCardMaterials.load(context.assets, pose, sample,wornTemplate,hair) }
         catch (_: java.io.IOException) { failure = true }
     }
     Box(modifier.onSizeChanged { height = it.height }, contentAlignment = Alignment.Center) {
-        val loaded = plate
-        if (loaded != null) {
-            Box(Modifier.fillMaxSize().testTag("card-athlete-${pose.name.lowercase()}-ready").drawWithCache {
-                val layout=pose.layout
-                val viewport=when(inspection) {
+        if (plate != null) {
+            Box(Modifier.fillMaxSize().testTag("card-athlete-${pose.name.lowercase()}-ready")) {
+                Box(Modifier.fillMaxSize()
+                    .testTag("card-athlete-${pose.name.lowercase()}-${hair.name.lowercase()}-ready")
+                    .drawWithCache {
+                // These values are read inside drawWithCache so Compose invalidates the
+                // cached drawing program when a player selects another hairstyle, pose,
+                // face, jersey or inspection view. Capturing them outside this block can
+                // leave one pose rendering the previous bitmap indefinitely.
+                val frame=latestFrame.value
+                val loaded=checkNotNull(frame.plate)
+                val liveIdentity=frame.identity
+                val liveJersey=frame.jersey
+                val livePose=liveIdentity.pose
+                val liveInspection=frame.inspection
+                val layout=livePose.layout
+                val viewport=when(liveInspection) {
                     AvatarInspection.HEAD -> RectF(layout.faceX-125f,layout.head[1]-38f,layout.faceX+125f,layout.head[1]+275f)
                     AvatarInspection.SHOES -> RectF(layout.shoes[0],layout.shoes[1],layout.shoes[2],layout.shoes[3])
                     AvatarInspection.NONE -> null
@@ -56,16 +76,19 @@ internal fun CourtCardAthlete(
                     else minOf(size.width/layout.width,size.height/1024f)
                 val left = size.width*.5f-(viewport?.centerX()?:512f)*factor
                 val top = if(viewport!=null) size.height*.5f-viewport.centerY()*factor else (size.height-1024f*factor)*.5f
-                val design = jersey.design
-                val template=wornTemplate
+                val design = liveJersey.design
+                val template=when(liveJersey.design.template){
+                    JerseyTemplate.ARENA->0;JerseyTemplate.CLASSIC->1
+                    JerseyTemplate.FASTBREAK->2;JerseyTemplate.RETRO->3
+                }
                 val diffuse = textileDyes(design.fabric, design.secondary, design.side)
                 val binding = textileDyes(design.collar, design.armhole)
                 val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
-                val avatar=identity.avatar
-                val mesh=AvatarGeometry.mesh(pose,avatar.build)
+                val avatar=liveIdentity.avatar
+                val mesh=AvatarGeometry.mesh(livePose,avatar.build)
                 val dest = RectF(0f, 0f, 1024f, 1024f)
                 val printQuad=layout.print.toFloatArray()
-                for(i in printQuad.indices step 2) printQuad[i]=AvatarGeometry.x(pose,avatar.build,printQuad[i],printQuad[i+1])
+                for(i in printQuad.indices step 2) printQuad[i]=AvatarGeometry.x(livePose,avatar.build,printQuad[i],printQuad[i+1])
                 val warp = Matrix().apply { setPolyToPoly(floatArrayOf(0f,0f,200f,0f,200f,200f,0f,200f),0,printQuad,0,4) }
                 val text = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = font; textAlign = Paint.Align.CENTER }
                 onDrawBehind {
@@ -78,7 +101,7 @@ internal fun CourtCardAthlete(
                                 val cleanBase=loaded.clearedHeadBase?:loaded.images[index]
                                 if(avatar.build==AvatarBuild.ORIGINAL) canvas.drawBitmap(cleanBase, null, dest, paint)
                                 else canvas.drawBitmapMesh(cleanBase,32,48,mesh,0,null,0,paint)
-                                val bounds=pose.headPlateBounds
+                                val bounds=livePose.headPlateBounds
                                 canvas.drawBitmap(loaded.head,null,RectF(bounds.left.toFloat(),bounds.top.toFloat(),
                                     bounds.right.toFloat(),bounds.bottom.toFloat()),paint)
                             } else if(avatar.build==AvatarBuild.ORIGINAL) canvas.drawBitmap(loaded.images[index], null, dest, paint)
@@ -107,10 +130,10 @@ internal fun CourtCardAthlete(
                             canvas.drawText(value,100f,baseline,text)
                         }
                         fitted(design.chestText.uppercase(Locale.ROOT), 34f, 23f, design.nameInk)
-                        jersey.number?.let { fitted(it, if (design.chestText.isBlank()) 156f else 171f, 122f, design.numberInk) }
+                        liveJersey.number?.let { fitted(it, if (design.chestText.isBlank()) 156f else 171f, 122f, design.numberInk) }
                         canvas.restore()
                         image(10) // original mesh folds and specular lighting above live ink
-                        val face = identity.face
+                        val face = liveIdentity.face
                         val matrix = when (face) {
                             PlayerCardFace.SHADOW -> floatArrayOf(.16f,0f,0f,0f,0f, 0f,.14f,0f,0f,0f, 0f,0f,.14f,0f,0f, 0f,0f,0f,1f,0f)
                             PlayerCardFace.BLANK -> floatArrayOf(.70f,0f,0f,0f,58f, 0f,.70f,0f,0f,45f, 0f,0f,.70f,0f,34f, 0f,0f,0f,1f,0f)
@@ -120,7 +143,7 @@ internal fun CourtCardAthlete(
                         val complexion=avatar.skin.color
                         image(1,if(face==PlayerCardFace.BLANK && complexion!=null)
                             AvatarDetailPainter.dye(complexion) else ColorMatrixColorFilter(matrix))
-                        AvatarDetailPainter.draw(canvas,pose,avatar,loaded.images[11],mesh)
+                        AvatarDetailPainter.draw(canvas,livePose,avatar,loaded.images[11],mesh)
                         if(face==PlayerCardFace.VISOR) {
                             val visor=Paint(Paint.ANTI_ALIAS_FLAG).apply {
                                 shader=android.graphics.LinearGradient(layout.faceX-27f,layout.faceY-12f,layout.faceX+26f,layout.faceY+5f,
@@ -136,8 +159,9 @@ internal fun CourtCardAthlete(
                         canvas.restore()
                     }
                 }
-            })
-            if(inspection!=AvatarInspection.NONE) Box(Modifier.fillMaxSize().testTag("avatar-inspection-ready"))
+                })
+                if(inspection!=AvatarInspection.NONE) Box(Modifier.fillMaxSize().testTag("avatar-inspection-ready"))
+            }
         } else if (failure) {
             Text("Player artwork unavailable", color = CourtQuestDesign.textPrimary,
                 style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("card-artwork-error"))

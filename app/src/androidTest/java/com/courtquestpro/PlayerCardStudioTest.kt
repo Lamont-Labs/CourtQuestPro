@@ -158,7 +158,12 @@ class PlayerCardStudioTest {
         fun options(prefix:String,values:List<String>) {
             val hashes=linkedMapOf<String,String>()
             (if(allOptions)values else values.takeLast(1)).forEach { option ->
-                choose("avatar-$prefix-${option.lowercase()}");ready(currentPose)
+                choose("avatar-$prefix-${option.lowercase()}")
+                if(prefix=="hair") {
+                    wait("card-athlete-${currentPose.name.lowercase()}-${option.lowercase()}-ready")
+                    wait("avatar-inspection-ready")
+                    compose.waitForIdle()
+                } else ready(currentPose)
                 hashes[option]=renderedSignature()
                 capture("avatar-${currentPose.name.lowercase()}-$prefix-${option.lowercase()}")
             }
