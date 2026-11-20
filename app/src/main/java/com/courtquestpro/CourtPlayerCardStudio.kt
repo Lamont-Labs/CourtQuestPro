@@ -94,11 +94,12 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
         Column(Modifier.fillMaxSize().padding(horizontal=10.dp)) {
             Row(Modifier.fillMaxWidth().heightIn(min=52.dp),verticalAlignment=Alignment.CenterVertically) {
                 IconButton({close()},Modifier.testTag("player-card-close")) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack,"Close Card Studio")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack,"Close Card Studio",tint=CourtQuestDesign.textPrimary)
                 }
                 Column(Modifier.weight(1f)) {
                     Text(if(large)"Studio" else "Card Studio",style=MaterialTheme.typography.titleLarge,
-                        maxLines=1,overflow=TextOverflow.Ellipsis,modifier=Modifier.semantics{heading()})
+                        color=CourtQuestDesign.textPrimary,maxLines=1,overflow=TextOverflow.Ellipsis,
+                        modifier=Modifier.semantics{heading()})
                     if(dirty) Text("Unsaved",style=MaterialTheme.typography.labelSmall,color=CourtQuestDesign.accent,
                         modifier=Modifier.testTag("card-unsaved"))
                 }
@@ -106,7 +107,9 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
                     Text(if(saving)"Saving…" else "Save")
                 }
                 Box {
-                    IconButton({menu=true},Modifier.testTag("card-menu")){Icon(Icons.Default.MoreVert,"Card options")}
+                    IconButton({menu=true},Modifier.testTag("card-menu")) {
+                        Icon(Icons.Default.MoreVert,"Card options",tint=CourtQuestDesign.textPrimary)
+                    }
                     DropdownMenu(menu,{menu=false}) {
                         DropdownMenuItem(text={Text("Read player statistics")},onClick={menu=false;reading=true})
                         DropdownMenuItem(text={Text("Open Jersey Studio")},onClick={menu=false;editingUniform=true})

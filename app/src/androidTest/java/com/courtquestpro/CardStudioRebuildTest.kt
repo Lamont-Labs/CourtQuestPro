@@ -130,7 +130,7 @@ class CardStudioRebuildTest {
         click("player-card-close");click("player-card-discard");wait("me-player-card-studio")
         assertEquals(expected,PlayerCardSelection.identity(ui.activity));assertEquals(before,prefs())
         pick("me-player-card-studio")
-        pick("card-live-jersey");wait("jersey-studio");click("segment-jersey-editor-identity")
+        click("card-live-jersey");wait("jersey-studio");click("segment-jersey-editor-identity")
         node("jersey-number").performScrollTo().performTextReplacement("00")
         node("jersey-name").performScrollTo().performTextReplacement("Avery West")
         click("jersey-close");wait("jersey-save-exit");click("jersey-save-exit")
