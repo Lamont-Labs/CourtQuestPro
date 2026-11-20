@@ -27,8 +27,27 @@ def collect(folder, location="player-card-proof"):
 
 def run(class_name, method, folder,baseline=False):
     print(f"Native gate: {folder} / {class_name}#{method or 'suite'} (baseline={baseline})",flush=True)
-    output = ui.shell("am", "instrument", "-w", "-e", "courtquestBaseline",str(baseline).lower(),"-e", "class", f"{ui.PACKAGE}.{class_name}" + (f"#{method}" if method else ""),
-        f"{ui.PACKAGE}.test/androidx.test.runner.AndroidJUnitRunner", timeout=900)
+    try:
+        output = ui.shell("am", "instrument", "-w", "-e", "courtquestBaseline",str(baseline).lower(),"-e", "class", f"{ui.PACKAGE}.{class_name}" + (f"#{method}" if method else ""),
+            f"{ui.PACKAGE}.test/androidx.test.runner.AndroidJUnitRunner", timeout=900)
+    except (RuntimeError, TimeoutError) as error:
+        # Instrumentation can terminate before returning its test summary.
+        # Preserve the device evidence instead of losing the root cause.
+        (folder / f"{class_name}-{method or 'suite'}-transport-error.txt").write_text(str(error))
+        for name, command in (
+            ("instrumentation-crash-log.txt", ("logcat", "-d", "-b", "crash")),
+            ("instrumentation-system-log.txt", ("logcat", "-d", "-t", "1200")),
+            ("instrumentation-processes.txt", ("shell", "ps", "-A")),
+        ):
+            try:
+                (folder / name).write_bytes(ui.adb(*command, timeout=45))
+            except Exception as diagnostic_error:
+                (folder / (name + ".error")).write_text(str(diagnostic_error))
+        try:
+            (folder / "instrumentation-failure.png").write_bytes(ui.adb("exec-out", "screencap", "-p", timeout=45))
+        except Exception:
+            pass
+        raise
     (folder / f"{class_name}-{method or 'suite'}.txt").write_text(output)
     if not re.search(r"OK \(\d+ tests?\)", output) or "FAILURES" in output:
         (folder / "failure.png").write_bytes(ui.adb("exec-out","screencap","-p"))
