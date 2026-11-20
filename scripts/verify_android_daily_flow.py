@@ -120,7 +120,20 @@ def adb(*args, data=None, timeout=120):
     result = subprocess.run([str(ADB), '-s', 'emulator-5562', *args], input=data,
                             capture_output=True, timeout=timeout)
     if result.returncode:
-        raise RuntimeError(f'{args}: {result.stdout.decode(errors="replace")} {result.stderr.decode(errors="replace")}')
+        stdout = result.stdout.decode(errors="replace")
+        stderr = result.stderr.decode(errors="replace")
+        print(f'ADB command failed: exit={result.returncode}; args={args}; stdout={stdout[-3000:]}; stderr={stderr[-3000:]}', flush=True)
+        if args[:3] == ('shell', 'am', 'instrument'):
+            for diagnostic in (('devices', '-l'), ('logcat', '-d', '-b', 'crash')):
+                try:
+                    evidence = subprocess.run([str(ADB), '-s', 'emulator-5562', *diagnostic],
+                        capture_output=True, timeout=20)
+                    print(f'ADB diagnostic {diagnostic}: exit={evidence.returncode}; '
+                          f'output={evidence.stdout.decode(errors="replace")[-5000:]} '
+                          f'error={evidence.stderr.decode(errors="replace")[-1000:]}', flush=True)
+                except (OSError, subprocess.TimeoutExpired) as error:
+                    print(f'ADB diagnostic {diagnostic} unavailable: {error}', flush=True)
+        raise RuntimeError(f'ADB exit={result.returncode}; {args}: {stdout} {stderr}')
     return result.stdout
 
 
