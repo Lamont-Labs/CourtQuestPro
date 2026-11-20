@@ -82,7 +82,7 @@ def upgrade(previous, candidate, folder):
     before_bytes = ui.adb(*read_preferences)
     assert 'Success' in ui.adb('install', '-r', str(candidate), timeout=180).decode()
     assert ui.adb(*read_preferences) == before_bytes
-    assert re.search(r'versionCode=57\b', ui.shell('dumpsys', 'package', ui.PACKAGE))
+    assert re.search(r'versionCode=58\b', ui.shell('dumpsys', 'package', ui.PACKAGE))
     for _ in range(2):
         ui.open_app(); ui.tap(ui.wait_tagged('welcome-get-started')); ui.wait_tagged('dock-me')
         assert saved_values_preserved(before, state())
