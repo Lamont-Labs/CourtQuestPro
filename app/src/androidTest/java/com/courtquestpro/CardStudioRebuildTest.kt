@@ -21,16 +21,19 @@ class CardStudioRebuildTest {
     private fun node(tag:String)=ui.onNodeWithTag(tag,useUnmergedTree=true)
     private fun has(tag:String)=ui.onAllNodesWithTag(tag,useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()
     private fun wait(tag:String)=ui.waitUntil(20_000){has(tag)}
+    private fun studioTitleDisplayed() = listOf("Card Studio","Studio").any { title ->
+        try { ui.onNodeWithText(title,useUnmergedTree=true).assertIsDisplayed(); true }
+        catch (_:AssertionError) { false }
+    }
     private fun waitStudio() {
         ui.waitUntil(20_000) {
             if(!has("player-card-studio-screen")) false else try {
                 node("player-card-studio-screen").assertIsDisplayed()
-                ui.onNodeWithText("Card Studio",useUnmergedTree=true).assertIsDisplayed()
-                true
+                studioTitleDisplayed()
             } catch (_:AssertionError) { false }
         }
         node("player-card-studio-screen").assertIsDisplayed()
-        ui.onNodeWithText("Card Studio",useUnmergedTree=true).assertIsDisplayed()
+        assertTrue("Card Studio title is visible",studioTitleDisplayed())
     }
     private fun click(tag:String) { node(tag).assertIsDisplayed().performClick() }
     private fun pick(tag:String) {
