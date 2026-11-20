@@ -94,6 +94,7 @@ internal fun <T> Choices(
     preview:(@Composable (T)->Unit)?=null,
     select:(T)->Unit
 ) {
+    val railTag=values.firstOrNull()?.let { "${tag(it).substringBeforeLast('-')}-rail" }
     Column(verticalArrangement=Arrangement.spacedBy(4.dp)) {
         Row(Modifier.fillMaxWidth().padding(start=4.dp,end=5.dp,top=3.dp),
             verticalAlignment=Alignment.CenterVertically) {
@@ -103,7 +104,8 @@ internal fun <T> Choices(
             Text("Swipe options",style=MaterialTheme.typography.labelSmall,color=CourtQuestDesign.textSecondary)
         }
         LazyRow(
-            Modifier.fillMaxWidth().heightIn(min=92.dp).selectableGroup(),
+            Modifier.fillMaxWidth().heightIn(min=92.dp).selectableGroup()
+                .then(railTag?.let { Modifier.testTag(it) } ?: Modifier),
             horizontalArrangement=Arrangement.spacedBy(8.dp),
             contentPadding=PaddingValues(horizontal=3.dp,vertical=2.dp)
         ) {
