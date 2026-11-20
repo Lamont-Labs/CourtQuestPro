@@ -39,15 +39,19 @@ class PlayerCardStudioTest {
     }
     private fun tap(tag:String) {node(tag).assertIsDisplayed().performClick()}
     private fun choose(tag:String) {
+        compose.waitForIdle()
         val rail="${tag.substringBeforeLast('-')}-rail"
         val target=node(tag)
         if(has(rail)) {
             node(rail).performScrollTo().assertIsDisplayed()
+            compose.waitForIdle()
             node(rail).performScrollToNode(hasTestTag(tag))
+            compose.waitForIdle()
             target.assertIsDisplayed()
         } else {
             try {
                 target.performScrollTo()
+                compose.waitForIdle()
             } catch (error:AssertionError) {
                 if(error.message?.contains("no parent layout with a Scroll SemanticsAction")!=true) throw error
                 target.assertIsDisplayed()
@@ -55,6 +59,7 @@ class PlayerCardStudioTest {
             target.assertIsDisplayed()
         }
         target.performClick()
+        compose.waitForIdle()
     }
     private fun enter() {
         assertTrue("Only the disposable emulator",Build.HARDWARE.contains("ranchu"))

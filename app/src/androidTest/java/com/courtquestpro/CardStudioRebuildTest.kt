@@ -42,17 +42,21 @@ class CardStudioRebuildTest {
     }
     private fun click(tag:String) { node(tag).assertIsDisplayed().performClick() }
     private fun pick(tag:String) {
+        ui.waitForIdle()
         // Choices live in horizontal LazyRows, so an off-screen option has no
         // semantics node yet. First expose its vertically stacked rail, then
         // scroll that rail horizontally to compose the requested option.
         val rail="${tag.substringBeforeLast('-')}-rail"
         if(has(rail)) {
-            node(rail).performScrollTo().assertIsDisplayed()
+            node(rail).performScrollTo().assertIsDisplayed();ui.waitForIdle()
             node(rail).performScrollToNode(hasTestTag(tag))
+            ui.waitForIdle()
             node(tag).assertIsDisplayed().performClick()
         } else {
-            node(tag).performScrollTo().assertIsDisplayed().performClick()
+            node(tag).performScrollTo().assertIsDisplayed();ui.waitForIdle()
+            node(tag).performClick()
         }
+        ui.waitForIdle()
     }
     private fun prefs()=ui.activity.getSharedPreferences("court_quest_pro",0).getString("state",null)!!
     private fun ready(pose:PlayerCardPose,hair:AvatarHair) {
