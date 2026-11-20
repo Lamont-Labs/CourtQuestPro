@@ -8,6 +8,8 @@ on:
       - 'app/src/**'
       - 'tools/jersey/**'
       - 'tools/player-card/**'
+      - 'scripts/capture_v42_solo_baseline.py'
+      - 'scripts/verify_android_daily_flow.py'
   workflow_dispatch:
 permissions:
   contents: read
