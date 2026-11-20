@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 100
     env:
       ANDROID_AVD_HOME: /tmp/courtquest-jersey-avd
-      CANDIDATE_APK: ${{ github.ref_name == 'dev/player-card-profile-v2' && 'CourtQuestPro-PlayerCard-V2-v57-RC.apk' || 'CourtQuestPro-JerseyStudio-v57-RC.apk' }}
+      CANDIDATE_APK: ${{ github.ref_name == 'dev/player-card-profile-v2' && 'CourtQuestPro-PlayerCard-V2-v58-RC.apk' || 'CourtQuestPro-JerseyStudio-v58-RC.apk' }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -54,7 +54,7 @@ jobs:
           (cd previous && sha256sum -c CourtQuestPro-Update-v56.apk.sha256)
           cp app/build/outputs/apk/debug/app-debug.apk "candidate/$CANDIDATE_APK"
           python3 scripts/verify_apk.py --apk "candidate/$CANDIDATE_APK" --build-tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
-          python3 scripts/verify_phone_update.py identity --previous previous/CourtQuestPro-Update-v56.apk --candidate "candidate/$CANDIDATE_APK" --previous-version 56 --candidate-version 57 --tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
+          python3 scripts/verify_phone_update.py identity --previous previous/CourtQuestPro-Update-v56.apk --candidate "candidate/$CANDIDATE_APK" --previous-version 56 --candidate-version 58 --tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
           # The shared verifier also stages phone-release files. Keep candidate transport separate from evidence.
           rm evidence/CourtQuestPro-1.0.apk evidence/SHA256SUMS.txt evidence/RELEASE_NOTES.md
           git rev-parse HEAD > evidence/commit.txt
@@ -75,8 +75,8 @@ jobs:
           set -euo pipefail
           test "$(gh run view 44631807988 --json headSha --jq .headSha)" = "6d158d027a129459d61e4786205ffd60af86e2f7"
           test "$(gh run view 44631807988 --json conclusion --jq .conclusion)" = "success"
-          gh run download 44631807988 --name CourtQuestPro-PlayerCard-V2-v57-RC --dir baseline
-          (cd baseline && sha256sum -c CourtQuestPro-PlayerCard-V2-v57-RC.apk.sha256)
+          gh run download 44631807988 --name CourtQuestPro-PlayerCard-V2-v58-RC --dir baseline
+          (cd baseline && sha256sum -c CourtQuestPro-PlayerCard-V2-v58-RC.apk.sha256)
       - name: Exercise migration, live printing, persistence and frame timing on the candidate
         if: github.ref_name != 'dev/player-card-profile-v2'
         run: |
@@ -90,7 +90,7 @@ jobs:
           set -euo pipefail
           verify=(python3 tools/player-card/verify_device.py
             --previous previous/CourtQuestPro-Update-v56.apk
-            --baseline baseline/CourtQuestPro-PlayerCard-V2-v57-RC.apk
+            --baseline baseline/CourtQuestPro-PlayerCard-V2-v58-RC.apk
             --candidate "candidate/$CANDIDATE_APK"
             --instrumentation app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             --out evidence)
@@ -141,6 +141,6 @@ jobs:
           retention-days: 30
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ${{ github.ref_name == 'dev/player-card-profile-v2' && 'CourtQuestPro-PlayerCard-V2-v57-RC' || 'CourtQuestPro-JerseyStudio-v57-RC' }}
+          name: ${{ github.ref_name == 'dev/player-card-profile-v2' && 'CourtQuestPro-PlayerCard-V2-v58-RC' || 'CourtQuestPro-JerseyStudio-v58-RC' }}
           path: candidate/
           retention-days: 30
