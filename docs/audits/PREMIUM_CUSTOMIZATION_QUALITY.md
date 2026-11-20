@@ -84,6 +84,10 @@ five athlete plates, 20 template maps and distinct footwear silhouettes.
 APK identity/signature and in-place v56-to-candidate data checks remain in the
 same guarded disposable emulator pipeline. The prior verified v57 is also
 installed in place for matched before/after and cosmetic migration testing.
+The v56 fixture explicitly includes its existing `DrillResult.practice=false`
+primitive default. Previously a sparse fixture passed strict equality only
+before v56's asynchronous reserialization added that field. Strict value/list
+equality remains unchanged; timeout evidence now names the actual differences.
 
 ## Evidence locations
 

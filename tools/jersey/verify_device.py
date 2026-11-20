@@ -20,6 +20,12 @@ from verify_phone_update import saved_values_preserved
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
+def v56_fixture(raw):
+    """Include the actual v56 DrillResult primitive default before starting its writer."""
+    fixture=json.loads(json.dumps(raw))
+    for result in fixture.get("drillResults",[]):result.setdefault("practice",False)
+    return fixture
+
 def wait_for_fixture(expected, timeout=30):
     """SharedPreferences writes asynchronously; require complete matching fixture data."""
     deadline=time.monotonic()+timeout
@@ -29,7 +35,9 @@ def wait_for_fixture(expected, timeout=30):
             current=state()
             if all(current.get(key)==value for key,value in expected.items()):
                 return current
-            last="saved state did not yet match the seeded fixture"
+            differences={key:{"expected":value,"actual":current.get(key)}
+                         for key,value in expected.items() if current.get(key)!=value}
+            last="saved state did not yet match the seeded fixture: "+json.dumps(differences,sort_keys=True)
         except (ET.ParseError,json.JSONDecodeError,KeyError) as error:
             last=f"{type(error).__name__}: {error}"
         time.sleep(.1)
@@ -59,7 +67,9 @@ def upgrade(previous, candidate, folder):
     assert 'Success' in ui.adb('install', str(previous)).decode()
     assert re.search(r'versionCode=56\b', ui.shell('dumpsys', 'package', ui.PACKAGE))
     ui.seed('game-history')
-    fixture = state()
+    # v56 reserializes absent primitive `practice` as false. A sparse raw seed
+    # only passed the old strict comparison when read before that async write.
+    fixture = v56_fixture(state())
     inks = dict(zip(('fabric', 'secondary', 'side', 'collar', 'armhole', 'numberInk', 'nameInk'),
                     [int(x, 16) - (1 << 24) for x in ('21344A', 'E1B95B', '6D3848', 'BD7A5D', '819F98', 'F3E7D3', 'D9C4AE')]))
     fixture.update(playerName='Morgan Lane', jerseyNumber=0, jerseyDoubleZero=True, jerseyDesign=dict(templateId='RETRO', **inks))

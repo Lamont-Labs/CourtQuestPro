@@ -10,6 +10,18 @@ journey=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(journey)
 
 class FixtureWaitTest(unittest.TestCase):
+    def testV56CanonicalFixtureIncludesPrimitiveDefaultsWithoutChangingExistingValues(self):
+        raw={"drillResults":[{"drillId":"s1","completed":8},{"drillId":"b1","practice":True}],
+             "totalXp":100,"matches":[{"xp":0}]}
+        fixture=journey.v56_fixture(raw)
+        self.assertNotIn("practice",raw["drillResults"][0])
+        self.assertIs(False,fixture["drillResults"][0]["practice"])
+        self.assertIs(True,fixture["drillResults"][1]["practice"])
+        self.assertEqual(raw["matches"],fixture["matches"])
+        self.assertEqual(raw["totalXp"],fixture["totalXp"])
+        with patch.object(journey,"state",return_value=fixture):
+            self.assertEqual(fixture,journey.wait_for_fixture(fixture))
+
     def testPartialXmlAndStaleValuesMustNotPassTheFixtureGate(self):
         expected={"jerseyDoubleZero":True,"totalXp":100}
         with patch.object(journey,"state",side_effect=[ET.ParseError("in progress"),
