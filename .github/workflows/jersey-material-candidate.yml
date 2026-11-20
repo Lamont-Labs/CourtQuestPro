@@ -63,7 +63,8 @@ jobs:
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'system-images;android-35;default;x86_64' emulator
           mkdir -p "$ANDROID_AVD_HOME"
           echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd --name CourtQuest_PremiumQA --package 'system-images;android-35;default;x86_64' --device pixel_2 --path "$ANDROID_AVD_HOME/CourtQuest_PremiumQA.avd"
-          "$ANDROID_HOME/emulator/emulator" -avd CourtQuest_PremiumQA -port 5562 -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect -accel on -cores 2 -memory 2048 > evidence/emulator.log 2>&1 &
+          "$ANDROID_HOME/emulator/emulator" -avd CourtQuest_PremiumQA -port 5562 -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect -accel on -cores 2 -memory 3072 > evidence/emulator.log 2>&1 &
+          echo $! > evidence/emulator.pid
       - name: Download the exact verified original card baseline
         if: github.ref_name == 'dev/player-card-profile-v2'
         env:
@@ -86,6 +87,23 @@ jobs:
         run: |
           python3 tools/player-card/verify_device.py --previous previous/CourtQuestPro-Update-v56.apk --baseline baseline/CourtQuestPro-PlayerCard-V2-v57-RC.apk --candidate "candidate/$CANDIDATE_APK" --instrumentation app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk --out evidence
           (cd candidate && sha256sum *.apk > "$CANDIDATE_APK.sha256")
+      - name: Report emulator health and process termination
+        if: always()
+        run: |
+          echo '=== Emulator process ==='
+          if [[ -f evidence/emulator.pid ]]; then
+            ps -p "$(cat evidence/emulator.pid)" -o pid,ppid,%mem,rss,etime,stat,cmd || true
+          fi
+          echo '=== Connected devices ==='
+          "$ANDROID_HOME/platform-tools/adb" devices -l || true
+          echo '=== Host memory ==='
+          free -h || true
+          echo '=== Emulator output (last 150 lines) ==='
+          if [[ -f evidence/emulator.log ]]; then
+            tail -n 150 evidence/emulator.log
+          fi
+          echo '=== Kernel OOM messages (if accessible) ==='
+          dmesg 2>/dev/null | grep -Ei 'out of memory|oom-kill|killed process' | tail -n 25 || true
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
