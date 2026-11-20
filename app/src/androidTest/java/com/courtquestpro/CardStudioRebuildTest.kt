@@ -56,7 +56,20 @@ class CardStudioRebuildTest {
     }
     private fun prefs()=ui.activity.getSharedPreferences("court_quest_pro",0).getString("state",null)!!
     private fun ready(pose:PlayerCardPose,hair:AvatarHair) {
-        wait("card-athlete-${pose.name.lowercase()}-${hair.name.lowercase()}-ready")
+        val expected="card-athlete-${pose.name.lowercase()}-${hair.name.lowercase()}-ready"
+        try {
+            ui.waitUntil(20_000){has(expected)||has("card-artwork-error")}
+        } catch (timeout:androidx.compose.ui.test.ComposeTimeoutException) {
+            val state=listOf("player-card-studio-screen","me-player-card-studio","dock-me",
+                "card-artwork-loading","card-artwork-error").joinToString { "$it=${has(it)}" }
+            runCatching {
+                File(out,"artwork-readiness-timeout.txt").writeText(
+                    "expected=$expected; $state; cacheBytes=${PlayerCardMaterials.cacheBytes}; patchCacheBytes=${PlayerCardMaterials.patchCacheBytes}")
+                val bitmap=InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
+                if(bitmap!=null)try { write("artwork-readiness-timeout",bitmap) } finally { bitmap.recycle() }
+            }
+            throw AssertionError("Timed out waiting for $expected; $state",timeout)
+        }
         ui.waitForIdle()
         node("card-artwork-error").assertDoesNotExist()
     }
