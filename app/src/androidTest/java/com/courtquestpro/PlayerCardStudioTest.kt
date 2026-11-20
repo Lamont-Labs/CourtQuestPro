@@ -26,13 +26,16 @@ class PlayerCardStudioTest {
     }
     private fun waitStudio() {
         compose.waitUntil(20_000) {
-            if(!has("player-card-studio-screen")) false else try {
+            // Do not accept the outgoing Me composition during AnimatedContent.
+            if(!has("player-card-studio-screen") || has("me-player-card-studio") || has("dock-me")) false else try {
                 node("player-card-studio-screen").assertIsDisplayed()
                 studioTitleDisplayed()
             } catch (_:AssertionError) { false }
         }
         node("player-card-studio-screen").assertIsDisplayed()
         assertTrue("Card Studio title is visible",studioTitleDisplayed())
+        assertFalse("Me profile is still visible",has("me-player-card-studio"))
+        assertFalse("Player navigation dock is still visible",has("dock-me"))
     }
     private fun tap(tag:String) {node(tag).assertIsDisplayed().performClick()}
     private fun choose(tag:String) {

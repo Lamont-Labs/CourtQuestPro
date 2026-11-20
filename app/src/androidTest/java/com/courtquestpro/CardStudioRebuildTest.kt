@@ -27,13 +27,18 @@ class CardStudioRebuildTest {
     }
     private fun waitStudio() {
         ui.waitUntil(20_000) {
-            if(!has("player-card-studio-screen")) false else try {
+            // AnimatedContent exposes both routes during its transition.
+            // Wait until the outgoing Me route and its dock are actually gone
+            // so pixel captures cannot accidentally show the previous screen.
+            if(!has("player-card-studio-screen") || has("me-player-card-studio") || has("dock-me")) false else try {
                 node("player-card-studio-screen").assertIsDisplayed()
                 studioTitleDisplayed()
             } catch (_:AssertionError) { false }
         }
         node("player-card-studio-screen").assertIsDisplayed()
         assertTrue("Card Studio title is visible",studioTitleDisplayed())
+        assertFalse("Me profile is still visible",has("me-player-card-studio"))
+        assertFalse("Player navigation dock is still visible",has("dock-me"))
     }
     private fun click(tag:String) { node(tag).assertIsDisplayed().performClick() }
     private fun pick(tag:String) {
