@@ -75,8 +75,8 @@ jobs:
           set -euo pipefail
           test "$(gh run view 44631807988 --json headSha --jq .headSha)" = "6d158d027a129459d61e4786205ffd60af86e2f7"
           test "$(gh run view 44631807988 --json conclusion --jq .conclusion)" = "success"
-          gh run download 44631807988 --name CourtQuestPro-PlayerCard-V2-v58-RC --dir baseline
-          (cd baseline && sha256sum -c CourtQuestPro-PlayerCard-V2-v58-RC.apk.sha256)
+          gh run download 44631807988 --name CourtQuestPro-PlayerCard-V2-v57-RC --dir baseline
+          (cd baseline && sha256sum -c CourtQuestPro-PlayerCard-V2-v57-RC.apk.sha256)
       - name: Exercise migration, live printing, persistence and frame timing on the candidate
         if: github.ref_name != 'dev/player-card-profile-v2'
         run: |
@@ -90,7 +90,7 @@ jobs:
           set -euo pipefail
           verify=(python3 tools/player-card/verify_device.py
             --previous previous/CourtQuestPro-Update-v56.apk
-            --baseline baseline/CourtQuestPro-PlayerCard-V2-v58-RC.apk
+            --baseline baseline/CourtQuestPro-PlayerCard-V2-v57-RC.apk
             --candidate "candidate/$CANDIDATE_APK"
             --instrumentation app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             --out evidence)
