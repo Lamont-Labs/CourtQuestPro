@@ -194,7 +194,9 @@ class PlayerCardStudioTest {
         assertTrue("Bounded decoded cache",PlayerCardMaterials.cacheBytes<=48*1024*1024)
         File(compose.activity.filesDir,"player-card-proof/avatar-memory.json").writeText(Gson().toJson(mapOf(
             "cache_bytes" to PlayerCardMaterials.cacheBytes,"largest_decoded_plate_bytes" to PlayerCardMaterials.largestPlateBytes,
-            "shared_hair_bytes" to PlayerCardMaterials.sharedHairBytes,"heap_limit_bytes" to Runtime.getRuntime().maxMemory(),
+            "pose_matched_head_bytes" to PlayerCardMaterials.headCacheBytes,
+            "cleared_head_base_bytes" to PlayerCardMaterials.clearedBaseCacheBytes,
+            "heap_limit_bytes" to Runtime.getRuntime().maxMemory(),
             "device_is_emulator" to true,"physical_phone_performance_verified" to false)))
     }
     private var currentPose=PlayerCardPose.STANDING

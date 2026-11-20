@@ -1,20 +1,23 @@
 # Avatar and collector-material revision
 
-The avatar inspector offers eight hair choices, five headwear choices, four
-illustrated builds, nine skin choices, seven shoe colorways, six accessory
-combinations and four footwear constructions (43 choices). Original choices retain the shipped art. These are cosmetic
+The avatar inspector offers nine hair choices, five headwear choices, four
+illustrated builds, ten skin choices, seven shoe colorways, six accessory
+combinations and four footwear constructions (45 choices). Original choices retain the shipped art. These are cosmetic
 illustration settings, not body measurements or performance claims.
 Pinned Hair/Body/Gear tools keep categories reachable while scrolling. Hair and
 shoe colorways have pose-aware detail views beside the full live collectible;
 body and accessory choices retain the full-body view.
 
-`build_avatar_assets.py` derives transparent skin and shoe plates from the
-committed original athlete plates. Garment alpha is explicitly subtracted from
-skin. Skin/shoe color matrices retain source light and shade; modest localized
-bitmap meshes share their deformation with uniform lettering and accessory
-anchors. Head regions remain outside the body deformation.
-Hair uses original high-detail cutouts; headbands, sleeves, knee supports and wrist tape
-are composited through the skin matte. This is a 2D customization system, not a
+`build_avatar_assets.py` derives transparent skin and shoe mattes from the
+approved athlete plates. Garment alpha is explicitly subtracted from skin.
+Skin/shoe color transforms retain per-pixel luminance and source detail; modest
+localized bitmap meshes share their deformation with uniform lettering and
+accessory anchors. Head regions remain outside the body deformation.
+Each hairstyle is a high-resolution, pose-matched transparent head/neck plate,
+not a scalp oval or floating hair sprite. Footwear is a source-coordinate
+cutout authored for each pose/model; runtime fitting never stretches or rotates
+a generic shoe. Headbands, sleeves, knee supports and wrist tape are composited
+through the skin matte. This is a 2D customization system, not a
 3D character generator or realistic physical tailoring simulation.
 
 `build_card_surfaces.py` optimizes original generated material artwork into
@@ -24,7 +27,9 @@ Native foreground layers retain dynamic identity and the approved Signature logo
 `surface-manifest.json` records source names, dimensions and hashes; the avatar
 manifest records pose mattes and hashes. All production plates work offline.
 
-Run `python3 -m unittest scripts.test_player_card_artwork -v` in addition to
+Run `python3 tools/player-card/build_head_styles.py --check`,
+`python3 tools/player-card/build_footwear_styles.py --check`, and
+`python3 -m unittest scripts.test_player_card_artwork -v` in addition to
 the original plate check. Native tests exercise every cosmetic option on every
 pose at normal size, plus reachable selections at compact/200% text, save,
 restart, draft recreation, discard, and unchanged training state.
@@ -75,7 +80,8 @@ orange battle lighting, and Obsidian Chrome ceramic/platinum framing. They are n
 Generated shoe trademarks were removed from the standing production plate.
 
 `PlayerCardMaterials` uses serialized background decoding and a bounded 48 MiB
-cache, plus shared immutable hair textures and the active renderer references.
+base-plate cache plus a separate 8 MiB pose-matched head-plate cache. Hair
+selection therefore never duplicates every body/template bitmap in memory.
 Inactive uniform maps are sampled at quarter resolution even during detail inspection.
 Thumbnail/phone renders sample the assets; color changes never re-decode
 bitmaps. Studio changes crossfade briefly through Compose (which respects the
@@ -98,12 +104,11 @@ The generated PNG masters for ready/follow-through, footwear, hair and Obsidian
 are committed under `attached_assets/generated_images/`. No real photographs,
 external character likenesses, stock marks or runtime image services are used.
 `build_assets.py --poses ready followthrough` and
-`build_avatar_assets.py --poses ready followthrough` reproduce only the additions
-without rewriting the three approved plates.
-`build_premium_parts.py` alpha-separates three actual footwear sprites, preserves
-their distinct collars/straps/soles, fits them to five pose-specific foot regions,
-and creates alternative body plates without the original shoes. The original
-body remains the default; no destructive source erasure occurs.
-`premium-manifest.json` records exact per-pose files, authored fitting bounds,
-texture-part hashes and layer counts. Full-resolution original masters and
-optimized offline WebP/CQP2 assets are both retained.
+`build_avatar_assets.py --poses ready followthrough` reproduce only those additions
+without rewriting the three approved plates. `build_head_styles.py` extracts
+transparent head plates from the committed compact pose/style masters;
+`build_footwear_styles.py` records the 15 pose/model source cutouts.
+`build_premium_parts.py` builds the 1024px footwear layers without shoe
+resizing/rotation and removes only the original shoe matte from the alternate
+base plate. `head-style-manifest.json` and `premium-manifest.json` record
+dimensions, source coordinates and SHA-256 hashes for offline assets.

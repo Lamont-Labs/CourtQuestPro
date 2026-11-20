@@ -35,10 +35,11 @@ internal fun CourtCardAthlete(
     val sample = when { inspection!=AvatarInspection.NONE -> 1; height <= 260 -> 4; height <= 850 -> 2; else -> 1 }
     val pose = identity.pose
     val wornTemplate=when(jersey.design.template){JerseyTemplate.ARENA->0;JerseyTemplate.CLASSIC->1;JerseyTemplate.FASTBREAK->2;JerseyTemplate.RETRO->3}
-    var plate by remember(pose, sample,wornTemplate) { mutableStateOf(PlayerCardMaterials.cached(pose, sample,wornTemplate)) }
+    val hair=identity.avatar.hair
+    var plate by remember(pose, sample,wornTemplate,hair) { mutableStateOf(PlayerCardMaterials.cached(pose, sample,wornTemplate,hair)) }
     var failure by remember(pose, sample,wornTemplate) { mutableStateOf(false) }
-    LaunchedEffect(pose, sample,wornTemplate) {
-        try { plate = PlayerCardMaterials.load(context.assets, pose, sample,wornTemplate) }
+    LaunchedEffect(pose, sample,wornTemplate,hair) {
+        try { plate = PlayerCardMaterials.load(context.assets, pose, sample,wornTemplate,hair) }
         catch (_: java.io.IOException) { failure = true }
     }
     Box(modifier.onSizeChanged { height = it.height }, contentAlignment = Alignment.Center) {
@@ -73,11 +74,21 @@ internal fun CourtCardAthlete(
                         canvas.save(); canvas.translate(left, top); canvas.scale(factor, factor)
                         fun image(index: Int, filter: android.graphics.ColorFilter? = null) {
                             paint.colorFilter = filter
-                            if(avatar.build==AvatarBuild.ORIGINAL) canvas.drawBitmap(loaded.images[index], null, dest, paint)
+                            if(index==0 && loaded.head!=null) {
+                                val cleanBase=loaded.clearedHeadBase?:loaded.images[index]
+                                if(avatar.build==AvatarBuild.ORIGINAL) canvas.drawBitmap(cleanBase, null, dest, paint)
+                                else canvas.drawBitmapMesh(cleanBase,32,48,mesh,0,null,0,paint)
+                                val bounds=pose.headPlateBounds
+                                canvas.drawBitmap(loaded.head,null,RectF(bounds.left.toFloat(),bounds.top.toFloat(),
+                                    bounds.right.toFloat(),bounds.bottom.toFloat()),paint)
+                            } else if(avatar.build==AvatarBuild.ORIGINAL) canvas.drawBitmap(loaded.images[index], null, dest, paint)
                             else canvas.drawBitmapMesh(loaded.images[index],32,48,mesh,0,null,0,paint)
                         }
                         image(if(avatar.footwear==AvatarFootwear.ORIGINAL)0 else 13)
-                        avatar.skin.color?.let {image(11,AvatarDetailPainter.dye(it))}
+                        // Reapply the authored skin layer even at the original
+                        // tone so replacement head plates keep the source
+                        // complexion, light and facial treatment exactly.
+                        image(11,avatar.skin.color?.let{AvatarDetailPainter.dye(it)})
                         if(avatar.footwear==AvatarFootwear.ORIGINAL)avatar.shoes.color?.let {image(12,AvatarDetailPainter.dye(it))}
                         else image(13+avatar.footwear.ordinal,avatar.shoes.color?.let{AvatarDetailPainter.dye(it)})
                         image(2 + template * 2, diffuse)
@@ -109,7 +120,7 @@ internal fun CourtCardAthlete(
                         val complexion=avatar.skin.color
                         image(1,if(face==PlayerCardFace.BLANK && complexion!=null)
                             AvatarDetailPainter.dye(complexion) else ColorMatrixColorFilter(matrix))
-                        AvatarDetailPainter.draw(canvas,pose,avatar,avatar.skin.color?:0xFF925735.toInt(),loaded.images[11],mesh,loaded.hair)
+                        AvatarDetailPainter.draw(canvas,pose,avatar,loaded.images[11],mesh)
                         if(face==PlayerCardFace.VISOR) {
                             val visor=Paint(Paint.ANTI_ALIAS_FLAG).apply {
                                 shader=android.graphics.LinearGradient(layout.faceX-27f,layout.faceY-12f,layout.faceX+26f,layout.faceY+5f,

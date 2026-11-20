@@ -15,89 +15,15 @@ import android.graphics.PorterDuffXfermode
 /** Pose-anchored native detail over original 1024px plates; no remote images or real faces. */
 internal object AvatarDetailPainter {
     fun dye(color:Int):ColorMatrixColorFilter {
-        val r=Color.red(color).toFloat();val g=Color.green(color).toFloat();val b=Color.blue(color).toFloat()
-        fun row(v:Float)=floatArrayOf(v*.001196f,v*.002348f,v*.000456f,0f,v*.27f)
-        return ColorMatrixColorFilter(row(r)+row(g)+row(b)+floatArrayOf(0f,0f,0f,1f,0f))
+        return ColorMatrixColorFilter(AvatarToneTransform.matrix(color))
     }
-    fun draw(canvas:Canvas,pose:PlayerCardPose,avatar:AvatarAppearance,skinColor:Int,skin:Bitmap,mesh:FloatArray,hair:List<Bitmap>) {
+    fun draw(canvas:Canvas,pose:PlayerCardPose,avatar:AvatarAppearance,skin:Bitmap,mesh:FloatArray) {
         val p=Paint(Paint.ANTI_ALIAS_FLAG)
         val layout=pose.layout
         val head=RectF(layout.head[0],layout.head[1],layout.head[2],layout.head[3])
         val cx=head.centerX();val cy=head.centerY();val w=head.width();val h=head.height()
         canvas.save()
         canvas.rotate(layout.rotation,cx,cy)
-        if(avatar.hair!=AvatarHair.ORIGINAL) {
-            // The pose's head bounds include the upper face. Never cover the
-            // entire head with a flat skin-colored oval: that erases facial
-            // lighting and produces the detached mannequin-mask appearance.
-            // Only replace the crown where the original hair is visible.
-            val crown=RectF(head.left+w*.06f,head.top,head.right-w*.06f,head.top+h*.52f)
-            p.shader=LinearGradient(crown.left,crown.top,crown.right,crown.bottom,
-                intArrayOf(skinColor,Color.rgb(
-                    (Color.red(skinColor)*.72f).toInt(),
-                    (Color.green(skinColor)*.72f).toInt(),
-                    (Color.blue(skinColor)*.72f).toInt())),null,Shader.TileMode.CLAMP)
-            // Textured hair bitmaps have their own alpha silhouette. Drawing
-            // an opaque scalp underneath them produces a visible oval across
-            // the forehead; only the bald option needs exposed crown skin.
-            if(avatar.hair==AvatarHair.BALD) canvas.drawOval(crown,p)
-            p.shader=null
-            val material=when(avatar.hair) {
-                AvatarHair.CURLS->0;AvatarHair.AFRO->1;AvatarHair.LOCS->2;AvatarHair.BRAIDS->3;AvatarHair.TOPKNOT->3;else->null
-            }
-            if(material!=null) {
-                // The five illustrations use different camera angles and
-                // crown silhouettes. Fit hair against each authored pose,
-                // rather than forcing one shared rectangle onto every head.
-                val (widthScale,topScale,bottomScale)=when(pose) {
-                    PlayerCardPose.STANDING -> Triple(1.06f,.23f,.45f)
-                    PlayerCardPose.DRIBBLING -> Triple(1.03f,.21f,.43f)
-                    PlayerCardPose.ACTION -> Triple(1.10f,.25f,.47f)
-                    PlayerCardPose.READY -> Triple(1.04f,.22f,.44f)
-                    PlayerCardPose.FOLLOWTHROUGH -> Triple(1.02f,.20f,.42f)
-                }
-                val volume=if(avatar.hair==AvatarHair.AFRO)1.28f else widthScale
-                val crownLift=if(avatar.hair==AvatarHair.AFRO)topScale+.23f else topScale
-                val target=RectF(cx-w*volume*.5f,head.top-h*crownLift,
-                    cx+w*volume*.5f,head.top+h*bottomScale)
-                p.isFilterBitmap=true;canvas.drawBitmap(hair[material],null,target,p)
-                if(avatar.hair==AvatarHair.TOPKNOT) {
-                    val bun=RectF(cx-w*.23f,head.top-h*.38f,cx+w*.23f,head.top+h*.05f)
-                    canvas.save();canvas.clipPath(Path().apply{addOval(bun,Path.Direction.CW)})
-                    canvas.drawBitmap(hair[2],null,bun,p);canvas.restore()
-                }
-            } else if(avatar.hair!=AvatarHair.BALD) {
-                val cap=RectF(head.left-2,head.top-2,head.right+2,head.top+h*.68f)
-                if(avatar.hair==AvatarHair.CURLS) {cap.top-=10;cap.left-=5;cap.right+=5}
-                p.color=Color.rgb(18,16,15);canvas.drawOval(cap,p)
-                canvas.save();canvas.clipPath(Path().apply{addOval(cap,Path.Direction.CW)})
-                when(avatar.hair) {
-                    AvatarHair.FADE -> repeat(260) { i ->
-                        p.color=if(i%3==0) 0xFF4A4035.toInt() else 0xFF29241F.toInt()
-                        canvas.drawCircle(cap.left+(i*19%101)/101f*cap.width(),cap.top+(i*43%97)/97f*cap.height(),.9f,p)
-                    }
-                    AvatarHair.BRAIDS -> repeat(7) { i ->
-                        val x=cap.left+cap.width()*(i+1)/8
-                        p.style=Paint.Style.STROKE;p.strokeWidth=w*.07f;p.color=0xFF544436.toInt()
-                        canvas.drawPath(Path().apply{moveTo(x,cap.bottom);cubicTo(x-w*.2f,cy,x+w*.08f,head.top,x+w*.18f,head.top-h*.05f)},p)
-                        p.strokeWidth=w*.037f;p.color=0xFF12100F.toInt()
-                        canvas.drawPath(Path().apply{moveTo(x+1,cap.bottom);cubicTo(x-w*.2f,cy,x+w*.08f,head.top,x+w*.18f,head.top-h*.05f)},p)
-                        p.style=Paint.Style.FILL
-                    }
-                    else -> repeat(110) { i ->
-                        val x=cap.left+(i*37%113)/113f*cap.width()
-                        val y=cap.top+(i*17%107)/107f*cap.height()
-                        p.color=if(i%4==0) 0xFF504236.toInt() else 0xFF221C18.toInt()
-                        canvas.drawCircle(x,y,if(avatar.hair==AvatarHair.LOCS) w*.065f else w*.048f,p)
-                    }
-                }
-                canvas.restore()
-                if(avatar.hair==AvatarHair.LOCS) repeat(9) { i ->
-                    p.strokeWidth=w*.075f;p.strokeCap=Paint.Cap.ROUND;p.color=if(i%2==0)0xFF3D3026.toInt() else 0xFF201A16.toInt()
-                    canvas.drawLine(head.left+w*(i+.5f)/9,head.top+5,head.left+w*(i+.5f)/9-4,head.top-8-(i%3)*4,p)
-                }
-            }
-        }
         avatar.headwear.ink?.let { ink ->
             val band=RectF(head.left,head.top+h*.58f,head.right,head.top+h*.78f)
             p.shader=LinearGradient(band.left,band.top,band.right,band.bottom,intArrayOf(ink,ink,Color.DKGRAY),null,Shader.TileMode.CLAMP)

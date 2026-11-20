@@ -6,7 +6,7 @@ import androidx.compose.runtime.saveable.listSaver
 internal enum class AvatarHair(val label: String) {
     ORIGINAL("Original cut"), BALD("Shaved"), FADE("Close fade"),
     CURLS("Textured curls"), LOCS("Short locs"), BRAIDS("Braided rows"),
-    AFRO("Natural volume"), TOPKNOT("Twisted topknot")
+    AFRO("Natural volume"), TOPKNOT("Tied-back twists"), WAVES("360 waves")
 }
 internal enum class AvatarHeadwear(val label: String, val ink: Int?) {
     NONE("No headwear",null), BLACK("Black headband",0xFF161719.toInt()),
@@ -22,7 +22,7 @@ internal enum class AvatarSkin(val label: String, val color: Int?) {
     RICH("Rich brown",0xFF925735.toInt()), WARM("Warm brown",0xFFB87A50.toInt()),
     GOLDEN("Golden",0xFFD69D70.toInt()), TAN("Tan",0xFFE6B58D.toInt()),
     LIGHT("Light",0xFFF5CCAD.toInt()), UMBER("Deep umber",0xFF4C3027.toInt()),
-    COOL("Cool beige",0xFFCBA38C.toInt())
+    COOL("Cool beige",0xFFCBA38C.toInt()), OLIVE("Olive",0xFFC2AE87.toInt())
 }
 internal enum class AvatarShoes(val label: String, val color: Int?) {
     ORIGINAL("Original shoes",null), BLACK("Onyx",0xFF34363C.toInt()),

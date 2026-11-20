@@ -6,6 +6,15 @@ internal data class CardPoseLayout(
     val head:List<Float>,val rotation:Float,val print:List<Float>,
     val arm:List<Float>,val knees:List<Float>,val shoes:List<Float>
 )
+/** Pixel bounds of an authored, pose-matched head plate on the 1024px athlete. */
+internal data class AvatarHeadPlateBounds(val left:Int,val top:Int,val right:Int,val bottom:Int)
+internal val PlayerCardPose.headPlateBounds:AvatarHeadPlateBounds get()=when(this) {
+    PlayerCardPose.STANDING->AvatarHeadPlateBounds(430,0,586,169)
+    PlayerCardPose.DRIBBLING->AvatarHeadPlateBounds(449,0,621,194)
+    PlayerCardPose.ACTION->AvatarHeadPlateBounds(382,0,521,162)
+    PlayerCardPose.READY->AvatarHeadPlateBounds(438,10,587,161)
+    PlayerCardPose.FOLLOWTHROUGH->AvatarHeadPlateBounds(474,130,561,270)
+}
 internal val PlayerCardPose.layout:CardPoseLayout get()=when(this) {
     PlayerCardPose.STANDING->CardPoseLayout(560f,507f,104f,listOf(469f,24f,544f,93f),0f,
         listOf(447f,224f,577f,228f,575f,358f,443f,354f),listOf(405f,235f,359f,404f,340f,442f),

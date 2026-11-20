@@ -11,10 +11,10 @@ separately queued readiness work; this document is not a compliance approval.
 
 ## Delivered changes
 
-* **43 avatar choices / seven dimensions**, rather than the previous 30/six.
-  Hair: 8; headwear: 5; build: 4; skin: 9; shoe color: 7; equipment: 6;
+* **45 avatar choices / seven dimensions**, rather than the previous 30/six.
+  Hair: 9; headwear: 5; build: 4; skin: 10; shoe color: 7; equipment: 6;
   footwear construction: 4. Five poses, four anonymous faces and four card
-  editions bring the separate choice inventory to **56**.
+  editions bring the separate choice inventory to **58**.
 * Original ready-stance and follow-through athletes, detailed hair materials,
   mesh low-tops, padded high-tops, molded strap shoes and Obsidian Chrome frame.
   Shoe construction is independent of shoe color.
@@ -24,8 +24,8 @@ separately queued readiness work; this document is not a compliance approval.
 * Full-resolution Hair/Gear inspections; physical-model thumbnails; larger
   horizontally scrolling card thumbnails; preserved pose on material changes;
   short touch-triggered material reflections with system motion scaling.
-* Full-detail maps only for the worn uniform template, bounded decoded cache,
-  shared immutable hair textures and background-only asset decoding.
+* Full-detail maps only for the worn uniform template, bounded body/head caches
+  and background-only asset decoding.
 * Missing non-action section counts now render; headings expose their role and
   reflow instead of squeezing titles at enlarged text. Settings subpage Back
   returns to All settings. The Quests hero no longer fixes enlarged content to
@@ -35,11 +35,13 @@ separately queued readiness work; this document is not a compliance approval.
   layouts keep its Studio action reachable initially; landscape places the
   compact identity card beside its readable label/action and folds tabs into
   the heading. No duplicate avatar or second profile identity is restored.
-* Authoring review found pre-existing shoe-dye bounds missed outer toes.
-  Re-authored bounds cover the actual original feet; replacement plates clear
-  the entire old shoe and anti-aliased collar, not merely part of it. Source
-  shoe angles are retained before additional pose rotation, and raised/dribble
-  inspection crops accommodate the full foot, including broader builds.
+* Native screenshot review found floating/cropped generic shoe sprites and
+  artificial hair-cap seams. Hair now uses 40 pose-matched transparent head
+  plates; shoes use 15 pose/model cutouts at authored source coordinates, with
+  no generic runtime resize or rotation. The alternate base clears only the
+  shoe silhouette plus its one-pixel antialias edge, preserving socks and
+  ankles. The skin/shoe recolor matrix now preserves each source pixel's
+  luminance and texture.
 
 ## Whole-app review and repeatable evidence
 

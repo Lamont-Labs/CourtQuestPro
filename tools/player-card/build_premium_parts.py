@@ -1,4 +1,4 @@
-"""Original texture parts, fitted physical footwear models and non-destructive body plates.
+"""Original texture parts and pose-matched, non-destructive footwear plates.
 
 Approved masters/plates are never modified. Shoe alpha is removed only from the
 alternative body plate used when a physical footwear model is explicitly selected.
@@ -8,9 +8,10 @@ import io
 import json
 import struct
 from pathlib import Path
-from PIL import Image,ImageChops,ImageDraw,ImageFilter,ImageOps
+from PIL import Image,ImageChops,ImageDraw,ImageFilter
 from build_assets import OUT,SOURCES,encode
 from build_avatar_assets import read
+from build_footwear_styles import SOURCES as SHOE_SOURCES
 
 FEET={
  "standing":[(322,874,432,998),(591,874,701,999)],
@@ -19,10 +20,6 @@ FEET={
  "ready":[(331,847,434,958),(583,847,679,959)],
  "followthrough":[(368,866,445,971),(557,866,645,969)]
 }
-# The original shoe art already points down toward its toe; these are additional
-# rotations, not the athlete's full ankle-to-toe angle.
-ANGLES={"standing":[9,-13],"dribbling":[12,2],"action":[31,16],"ready":[6,-13],"followthrough":[24,-16]}
-
 def pack(path,images):
     with path.open("wb") as f:
         w,h=images[0].size;f.write(struct.pack(">4sHHB",b"CQP2",w,h,len(images)))
@@ -59,42 +56,30 @@ def main():
         im.thumbnail((512,512),Image.Resampling.LANCZOS)
         im.save(OUT/f"hair-{name}.webp","WEBP",lossless=True,method=6)
     manifest={"poses":{},"parts":{}}
+    shoe_sources=json.loads((SHOE_SOURCES/"manifest.json").read_text())
     for name in ["hair-curls","hair-afro","hair-locs","hair-braids","footwear-original","footwear-low","footwear-high","footwear-strap"]:
         p=OUT/f"{name}.webp";manifest["parts"][name]={"file":p.name,"sha256":hashlib.sha256(p.read_bytes()).hexdigest()}
     for pose,feet in FEET.items():
         original=read(OUT/f"{pose}.pcmat");body=Image.open(io.BytesIO(original[0])).convert("RGBA")
-        remove=Image.new("L",body.size);d=ImageDraw.Draw(remove)
-        for box in feet:d.rectangle(box,fill=255)
-        # Include anti-aliased dye-mask edges; otherwise the old collar can remain
-        # visible around a lower shoe even when its toe rectangle was cleared.
         old_shoe=Image.open(io.BytesIO(read(OUT/f"{pose}-avatar.pcmat",expected_count=2)[1])).getchannel("A")
-        remove=ImageChops.lighter(remove,old_shoe.point(lambda v:255 if v else 0))
+        # Clear only the source shoe silhouette and a one-pixel antialias edge.
+        # The previous broad rectangles also removed sock and ankle pixels.
+        remove=old_shoe.point(lambda value:255 if value else 0).filter(ImageFilter.MaxFilter(3))
         clean=body.copy();clean.putalpha(ImageChops.subtract(body.getchannel("A"),remove))
         layers=[clean]
-        for index,shoe in enumerate(models):
+        pose_art={}
+        for model in ("low","high","strap"):
+            item=shoe_sources[f"{pose}/{model}"]
+            cutout=Image.open(SHOE_SOURCES/item["file"]).convert("RGBA")
+            if cutout.size!=tuple(item["dimensions"]):
+                raise ValueError(f"Footwear source dimensions changed: {pose}/{model}")
             layer=Image.new("RGBA",body.size)
-            for side,(x0,y0,x1,y1) in enumerate(feet):
-                # High collars rise above low-cut collars, rather than stretching the same silhouette.
-                rise=20 if index==1 else 10 if index==2 else 2
-                sprite=ImageOps.mirror(shoe) if side else shoe
-                sprite=sprite.rotate(ANGLES[pose][side],resample=Image.Resampling.BICUBIC,expand=True)
-                # Preserve the actual visible shoe silhouette instead of forcing
-                # every model into the entire rectangular foot exclusion area.
-                # Stretching to that box moves the sole and makes the upper
-                # appear disconnected from the ankle, especially in dribble poses.
-                available_width=x1-x0
-                available_height=y1-y0+rise
-                scale=min(available_width/sprite.width,available_height/sprite.height)
-                width=max(1,round(sprite.width*scale))
-                height=max(1,round(sprite.height*scale))
-                sprite=sprite.resize((width,height),Image.Resampling.LANCZOS)
-                # Anchor the shoe at the bottom of the original foot bounds;
-                # center the narrower model rather than shifting its sole.
-                left=x0+(available_width-width)//2
-                top=y1-height
-                layer.alpha_composite(sprite,(left,top))
+            layer.alpha_composite(cutout,tuple(item["origin"]))
             layers.append(layer)
-        manifest["poses"][pose]={**pack(OUT/f"{pose}-footwear.pcmat",layers),"feet":feet,"rotation_degrees":ANGLES[pose]}
+            pose_art[model]={**item,"source":f"attached_assets/generated_images/player_shoe_edits/{item['file']}"}
+        manifest["poses"][pose]={**pack(OUT/f"{pose}-footwear.pcmat",layers),"feet":feet,
+            "attachment":"pose-matched source-coordinate cutout; no runtime scaling or rotation",
+            "shoe_art":pose_art}
     (OUT/"premium-manifest.json").write_text(json.dumps(manifest,indent=2)+"\n")
 
 if __name__=="__main__":main()

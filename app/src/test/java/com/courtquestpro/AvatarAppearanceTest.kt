@@ -72,4 +72,37 @@ class AvatarAppearanceTest {
             }
         }
     }
+    @Test fun headPlateCropsStayAlignedToTheApprovedAthleteCoordinateSpace() {
+        val asset=sequenceOf(java.io.File("src/main/assets/player_cards/head-style-manifest.json"),
+            java.io.File("app/src/main/assets/player_cards/head-style-manifest.json")).first{it.isFile}
+        val entries=com.google.gson.JsonParser.parseString(asset.readText()).asJsonObject
+            .getAsJsonObject("assets")
+        assertEquals(PlayerCardPose.entries.size*AvatarHair.entries.count{it!=AvatarHair.ORIGINAL},entries.size())
+        for(pose in PlayerCardPose.entries) {
+            val bounds=pose.headPlateBounds
+            for(hair in AvatarHair.entries.filter{it!=AvatarHair.ORIGINAL}) {
+                val item=entries.getAsJsonObject("${pose.name.lowercase()}/${hair.name.lowercase()}")
+                assertNotNull("$pose/$hair head plate",item)
+                val size=item.getAsJsonArray("dimensions").map{it.asInt}
+                assertEquals(bounds.right-bounds.left,size[0])
+                assertEquals(bounds.bottom-bounds.top,size[1])
+            }
+        }
+    }
+    @Test fun skinAndShoeToneTransformsPreserveSourceLuminanceAndOrder() {
+        val colors=AvatarSkin.entries.mapNotNull{it.color}+AvatarShoes.entries.mapNotNull{it.color}
+        fun mapped(matrix:FloatArray,r:Float,g:Float,b:Float):Triple<Float,Float,Float> {
+            fun output(row:Int)=matrix[row*5]*r+matrix[row*5+1]*g+matrix[row*5+2]*b+matrix[row*5+4]
+            return Triple(output(0),output(1),output(2))
+        }
+        fun luma(r:Float,g:Float,b:Float)=.2126f*r+.7152f*g+.0722f*b
+        for(color in colors) {
+            val matrix=AvatarToneTransform.matrix(color)
+            val shadow=mapped(matrix,42f,28f,23f)
+            val highlight=mapped(matrix,185f,121f,82f)
+            assertTrue(luma(shadow.first,shadow.second,shadow.third)<luma(highlight.first,highlight.second,highlight.third))
+            assertEquals(luma(42f,28f,23f),luma(shadow.first,shadow.second,shadow.third),.02f)
+            assertEquals(luma(185f,121f,82f),luma(highlight.first,highlight.second,highlight.third),.02f)
+        }
+    }
 }

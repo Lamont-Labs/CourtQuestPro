@@ -11,32 +11,58 @@ import kotlinx.coroutines.withContext
 import java.io.DataInputStream
 import java.util.Locale
 
-internal data class PlayerCardPlate(val images: List<Bitmap>,val hair:List<Bitmap>) {
-    val bytes get() = images.sumOf { it.allocationByteCount }
+internal data class PlayerCardPlate(val images:List<Bitmap>,val head:Bitmap?,val clearedHeadBase:Bitmap?) {
+    val bytes get()=images.sumOf{it.allocationByteCount}+(head?.allocationByteCount?:0)+(clearedHeadBase?.allocationByteCount?:0)
+}
+private data class PlayerCardBase(val images:List<Bitmap>) {
+    val bytes get()=images.sumOf{it.allocationByteCount}
 }
 
 /** Bounded decoded-plate cache; decoding is serialized and never on the UI thread. */
 internal object PlayerCardMaterials {
-    private data class Key(val pose: PlayerCardPose, val sample: Int,val template:Int)
-    private val cache = object : LruCache<Key, PlayerCardPlate>(48 * 1024 * 1024) {
-        override fun sizeOf(key: Key, value: PlayerCardPlate) = value.bytes
+    private data class Key(val pose:PlayerCardPose,val sample:Int,val template:Int)
+    private data class HeadKey(val pose:PlayerCardPose,val sample:Int,val hair:AvatarHair)
+    private data class ClearKey(val pose:PlayerCardPose,val sample:Int)
+    private val bases = object : LruCache<Key,PlayerCardBase>(32*1024*1024) {
+        override fun sizeOf(key:Key,value:PlayerCardBase)=value.bytes
+    }
+    private val heads = object : LruCache<HeadKey,Bitmap>(8*1024*1024) {
+        override fun sizeOf(key:HeadKey,value:Bitmap)=value.allocationByteCount
+    }
+    private val clearedBases = object : LruCache<ClearKey,Bitmap>(8*1024*1024) {
+        override fun sizeOf(key:ClearKey,value:Bitmap)=value.allocationByteCount
     }
     private val lock = Mutex()
-    @Volatile private var hairParts:List<Bitmap>?=null // shared immutable cutouts, not duplicated per pose
     @Volatile var largestPlateBytes:Int=0
         private set
-    val cacheBytes get()=cache.size()
-    val sharedHairBytes get()=hairParts?.sumOf{it.allocationByteCount}?:0
-    fun cached(pose: PlayerCardPose, sample: Int,template:Int) = cache.get(Key(pose, sample,template))
-    suspend fun load(assets: AssetManager, pose: PlayerCardPose, sample: Int,template:Int): PlayerCardPlate =
+    val cacheBytes get()=bases.size()+heads.size()+clearedBases.size()
+    val headCacheBytes get()=heads.size()
+    val clearedBaseCacheBytes get()=clearedBases.size()
+    fun cached(pose:PlayerCardPose,sample:Int,template:Int,hair:AvatarHair):PlayerCardPlate? {
+        val base=bases.get(Key(pose,sample,template))?:return null
+        if(hair==AvatarHair.ORIGINAL)return PlayerCardPlate(base.images,null,null)
+        val head=heads.get(HeadKey(pose,sample,hair))?:return null
+        val clear=clearedBases.get(ClearKey(pose,sample))?:return null
+        return PlayerCardPlate(base.images,head,clear)
+    }
+    suspend fun load(assets: AssetManager, pose: PlayerCardPose, sample: Int,template:Int,hair:AvatarHair): PlayerCardPlate =
         withContext(Dispatchers.IO) {
             lock.withLock {
-                val key = Key(pose, sample,template)
-                cache.get(key) ?: decode(assets, key).also { cache.put(key, it) }
+                val key=Key(pose,sample,template)
+                val base=bases.get(key)?:decodeBase(assets,key).also{bases.put(key,it)}
+                val head=if(hair==AvatarHair.ORIGINAL)null else {
+                    val headKey=HeadKey(pose,sample,hair)
+                    heads.get(headKey)?:decodeHead(assets,headKey).also{heads.put(headKey,it)}
+                }
+                val clear=if(hair==AvatarHair.ORIGINAL)null else {
+                    val clearKey=ClearKey(pose,sample)
+                    clearedBases.get(clearKey)?:decodeClearedHead(assets,clearKey).also{clearedBases.put(clearKey,it)}
+                }
+                PlayerCardPlate(base.images,head,clear).also{largestPlateBytes=maxOf(largestPlateBytes,it.bytes)}
             }
         }
 
-    private fun decode(assets: AssetManager, key: Key): PlayerCardPlate {
+    private fun decodeBase(assets:AssetManager,key:Key):PlayerCardBase {
         val path = "player_cards/${key.pose.name.lowercase(Locale.ROOT)}.pcmat"
         return DataInputStream(assets.open(path).buffered()).use { input ->
             require(input.readInt() == 0x43515032)
@@ -72,10 +98,23 @@ internal object PlayerCardMaterials {
                     requireNotNull(BitmapFactory.decodeByteArray(data,0,size,options)).apply {prepareToDraw()}
                 }.also {require(extra.read()==-1)}
             }
-            val hair=hairParts?:listOf("curls","afro","locs","braids").map { name ->
-                assets.open("player_cards/hair-$name.webp").use {requireNotNull(BitmapFactory.decodeStream(it)).apply{prepareToDraw()}}
-            }.also{hairParts=it}
-            PlayerCardPlate(images+avatar+footwear,hair).also{largestPlateBytes=maxOf(largestPlateBytes,it.bytes)}
+            PlayerCardBase(images+avatar+footwear)
+        }
+    }
+
+    private fun decodeHead(assets:AssetManager,key:HeadKey):Bitmap {
+        val name="${key.pose.name.lowercase(Locale.ROOT)}-${key.hair.name.lowercase(Locale.ROOT)}.webp"
+        val options=BitmapFactory.Options().apply{inSampleSize=key.sample;inScaled=false}
+        return assets.open("player_cards/heads/$name").use {
+            requireNotNull(BitmapFactory.decodeStream(it,null,options)).apply{prepareToDraw()}
+        }
+    }
+
+    private fun decodeClearedHead(assets:AssetManager,key:ClearKey):Bitmap {
+        val name="cleared-${key.pose.name.lowercase(Locale.ROOT)}.webp"
+        val options=BitmapFactory.Options().apply{inSampleSize=key.sample;inScaled=false}
+        return assets.open("player_cards/heads/$name").use {
+            requireNotNull(BitmapFactory.decodeStream(it,null,options)).apply{prepareToDraw()}
         }
     }
 }

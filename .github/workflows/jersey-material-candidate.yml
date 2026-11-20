@@ -38,6 +38,8 @@ jobs:
           if [[ "$GITHUB_REF_NAME" == "dev/player-card-profile-v2" ]]; then
             python3 -m pip install 'Pillow==11.3.0'
             python3 tools/player-card/build_assets.py --check
+            python3 tools/player-card/build_head_styles.py --check
+            python3 tools/player-card/build_footwear_styles.py --check
             python3 -m unittest scripts.test_player_card_artwork -v
             python3 -m unittest scripts.test_jersey_fixture_wait -v
           fi
@@ -99,13 +101,13 @@ jobs:
               echo "Verification failed with a live-device/test error; no retry."
               exit 1
             fi
-            echo "Emulator disconnected; restarting disposable AVD for one clean verification retry."
+            echo "Emulator disconnected; wiping only the disposable AVD so the v56-to-v57 install sequence restarts from a clean test device."
             "$ANDROID_HOME/platform-tools/adb" -s emulator-5562 emu kill || true
             if [[ -f evidence/emulator.pid ]]; then
               kill "$(cat evidence/emulator.pid)" || true
             fi
             sleep 5
-            "$ANDROID_HOME/emulator/emulator" -avd CourtQuest_PremiumQA -port 5562 -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect -accel on -cores 2 -memory 3072 > evidence/emulator-retry.log 2>&1 &
+            "$ANDROID_HOME/emulator/emulator" -avd CourtQuest_PremiumQA -port 5562 -no-window -no-audio -no-snapshot -no-boot-anim -wipe-data -gpu swiftshader_indirect -accel on -cores 2 -memory 3072 > evidence/emulator-retry.log 2>&1 &
             echo $! > evidence/emulator.pid
             mkdir -p evidence/attempt-2
             "${verify[@]/evidence/evidence\/attempt-2}" 2>&1 | tee evidence/verification-attempt-2.log

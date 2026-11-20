@@ -206,7 +206,7 @@ def main():
     games.main()
     census=json.loads((args.out/"normal"/"avatar-rendered-differences.json").read_text())
     dimensions={key.split("-",1)[1]:len(value) for key,value in census.items() if key.startswith("STANDING-")}
-    assert len(dimensions)==7 and sum(dimensions.values())==43
+    assert len(dimensions)==7 and sum(dimensions.values())==45
     assert len(census)==5*len(dimensions)
     assert all(len(hashes)==len(set(hashes.values())) for hashes in census.values())
     for pose in {key.split("-",1)[0] for key in census}:
@@ -215,8 +215,8 @@ def main():
         baseline_sha256=hashlib.sha256(args.baseline.read_bytes()).hexdigest(),
         combinations_per_configuration=80,configurations=4,real_android_captures=True,
         original_jersey_journey=True,restart_and_live_uniform_sync=True,upgrade_preserved_preferences=True,
-        avatar_dimensions=7,avatar_options=43,avatar_all_poses=True,avatar_restart_and_discard=True,
-        total_choices_including_card_pose_face=56,physical_footwear_models=3,
+        avatar_dimensions=7,avatar_options=45,avatar_all_poses=True,avatar_restart_and_discard=True,
+        total_choices_including_card_pose_face=58,physical_footwear_models=3,
         isolated_artwork_pixel_checks=True,landscape=True,deep_drill_receipt_progression_game_regressions=True)
     report["legacy_cosmetic_upgrade_and_cold_start"]=True
     report["avatar_option_counts"]=dimensions
