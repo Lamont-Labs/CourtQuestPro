@@ -59,6 +59,14 @@ def run(class_name, method, folder,baseline=False):
                 print(f"Diagnostic {diagnostic}: {len(lines)} lines, {len(matches)} relevant", flush=True)
                 for line in matches[-45:]:
                     print(line[:700], flush=True)
+        # Preserve runner exit details and a short logcat tail in the job output.
+        print(f"Instrumentation transport failure: {class_name}#{method}: {str(error)[:900]}", flush=True)
+        system_log = folder / "instrumentation-system-log.txt"
+        if system_log.exists():
+            tail = system_log.read_text(errors="replace").splitlines()[-100:]
+            print("Android logcat tail (last 100 lines):", flush=True)
+            for line in tail:
+                print(line[:500], flush=True)
         raise
     (folder / f"{class_name}-{method or 'suite'}.txt").write_text(output)
     if not re.search(r"OK \(\d+ tests?\)", output) or "FAILURES" in output:
