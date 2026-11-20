@@ -1,7 +1,7 @@
 name: Jersey Studio candidate and emulator evidence
 on:
   push:
-    branches: [dev/jersey-material-studio, dev/jersey-reference-studio, dev/player-card-profile-v2]
+    branches: [dev/jersey-material-studio, dev/jersey-reference-studio]
     paths:
       - '.github/workflows/jersey-material-candidate.yml'
       - 'app/build.gradle.kts'
@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 100
     env:
       ANDROID_AVD_HOME: /tmp/courtquest-jersey-avd
-      CANDIDATE_APK: ${{ github.ref_name == 'dev/player-card-profile-v2' && 'CourtQuestPro-PlayerCard-V2-v57-RC.apk' || 'CourtQuestPro-JerseyStudio-v57-RC.apk' }}
+      CANDIDATE_APK: ${{ github.ref_name == 'dev/player-card-profile-v2' && 'CourtQuestPro-PlayerCard-V2-v58-RC.apk' || 'CourtQuestPro-JerseyStudio-v58-RC.apk' }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -54,7 +54,7 @@ jobs:
           (cd previous && sha256sum -c CourtQuestPro-Update-v56.apk.sha256)
           cp app/build/outputs/apk/debug/app-debug.apk "candidate/$CANDIDATE_APK"
           python3 scripts/verify_apk.py --apk "candidate/$CANDIDATE_APK" --build-tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
-          python3 scripts/verify_phone_update.py identity --previous previous/CourtQuestPro-Update-v56.apk --candidate "candidate/$CANDIDATE_APK" --previous-version 56 --candidate-version 57 --tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
+          python3 scripts/verify_phone_update.py identity --previous previous/CourtQuestPro-Update-v56.apk --candidate "candidate/$CANDIDATE_APK" --previous-version 56 --candidate-version 58 --tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
           # The shared verifier also stages phone-release files. Keep candidate transport separate from evidence.
           rm evidence/CourtQuestPro-1.0.apk evidence/SHA256SUMS.txt evidence/RELEASE_NOTES.md
           git rev-parse HEAD > evidence/commit.txt
@@ -65,7 +65,7 @@ jobs:
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'system-images;android-35;default;x86_64' emulator
           mkdir -p "$ANDROID_AVD_HOME"
           echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd --name CourtQuest_PremiumQA --package 'system-images;android-35;default;x86_64' --device pixel_2 --path "$ANDROID_AVD_HOME/CourtQuest_PremiumQA.avd"
-          "$ANDROID_HOME/emulator/emulator" -avd CourtQuest_PremiumQA -port 5562 -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect -accel on -cores 2 -memory 3072 > evidence/emulator.log 2>&1 &
+          "$ANDROID_HOME/emulator/emulator" -avd CourtQuest_PremiumQA -port 5562 -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect -feature -Vulkan -accel on -cores 2 -memory 2048 > evidence/emulator.log 2>&1 &
           echo $! > evidence/emulator.pid
       - name: Download the exact verified original card baseline
         if: github.ref_name == 'dev/player-card-profile-v2'
@@ -107,7 +107,7 @@ jobs:
               kill "$(cat evidence/emulator.pid)" || true
             fi
             sleep 5
-            "$ANDROID_HOME/emulator/emulator" -avd CourtQuest_PremiumQA -port 5562 -no-window -no-audio -no-snapshot -no-boot-anim -wipe-data -gpu swiftshader_indirect -accel on -cores 2 -memory 3072 > evidence/emulator-retry.log 2>&1 &
+            "$ANDROID_HOME/emulator/emulator" -avd CourtQuest_PremiumQA -port 5562 -no-window -no-audio -no-snapshot -no-boot-anim -wipe-data -gpu swiftshader_indirect -feature -Vulkan -accel on -cores 2 -memory 2048 > evidence/emulator-retry.log 2>&1 &
             echo $! > evidence/emulator.pid
             mkdir -p evidence/attempt-2
             "${verify[@]/evidence/evidence\/attempt-2}" 2>&1 | tee evidence/verification-attempt-2.log
@@ -141,6 +141,6 @@ jobs:
           retention-days: 30
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ${{ github.ref_name == 'dev/player-card-profile-v2' && 'CourtQuestPro-PlayerCard-V2-v57-RC' || 'CourtQuestPro-JerseyStudio-v57-RC' }}
+          name: ${{ github.ref_name == 'dev/player-card-profile-v2' && 'CourtQuestPro-PlayerCard-V2-v58-RC' || 'CourtQuestPro-JerseyStudio-v58-RC' }}
           path: candidate/
           retention-days: 30

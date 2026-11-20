@@ -86,13 +86,14 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                 if (section == "Profile") {
                     val context = androidx.compose.ui.platform.LocalContext.current
                     val identity = PlayerCardSelection.identity(context)
+                    val record = remember(save) { PlayerCardRecord.from(save) }
                     Column(Modifier.fillMaxWidth().testTag("me-player-card"),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             if(wide)Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(18.dp),
                                 verticalAlignment=Alignment.Top) {
                                 CourtPlayerCard(save.playerJersey,save.playerName,identity.style,
-                                    Modifier.width(cardWidth),identity.pose,identity.face,appearance=identity.avatar)
+                                    Modifier.width(cardWidth),identity.pose,identity.face,appearance=identity.avatar,record=record)
                                 Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(10.dp)) {
                                     // Accessible counterpart, not a second avatar/profile presentation.
                                     Text(save.playerName.ifBlank{"Your player"},color=CourtQuestDesign.textPrimary,
@@ -105,7 +106,7 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                             } else {
                                 CourtPlayerCard(save.playerJersey, save.playerName, identity.style,
                                     Modifier.widthIn(max = cardWidth).fillMaxWidth(), identity.pose, identity.face,
-                                    appearance = identity.avatar)
+                                    appearance = identity.avatar,record=record)
                                 CourtQuestPrimaryButton(onPlayerCard, Modifier.fillMaxWidth().testTag("me-player-card-studio")) {
                                     Text("Customize player card")
                                 }

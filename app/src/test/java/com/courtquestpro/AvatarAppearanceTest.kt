@@ -17,11 +17,11 @@ class AvatarAppearanceTest {
             AvatarHeadwear.entries.map{base.copy(headwear=it)}+
             AvatarBuild.entries.map{base.copy(build=it)}+
             AvatarSkin.entries.map{base.copy(skin=it)}+
-            AvatarShoes.entries.map{base.copy(shoes=it)}+
+            AvatarShoes.entries.map{base.copy(shoes=it)}+HairInk.entries.map{base.copy(hairInk=it)}+
             AvatarGear.entries.map{base.copy(gear=it)}+
             AvatarFootwear.entries.map{base.copy(footwear=it)}
         variants.forEach{assertEquals(it,AvatarAppearance.restore(it.values))}
-        assertEquals(7,AvatarAppearance.keys.distinct().size)
+        assertEquals(8,AvatarAppearance.keys.distinct().size)
     }
     @Test fun proportionsKeepHeadFeetAndDistantHandsStable() {
         for(pose in PlayerCardPose.entries)for(build in AvatarBuild.entries) {
@@ -81,10 +81,10 @@ class AvatarAppearanceTest {
         val cleanBases=manifest.getAsJsonObject("cleanBases")
         assertEquals(PlayerCardPose.entries.size,cleanBases.size())
         assertTrue(entries.has("standing/straight"))
-        assertEquals(PlayerCardPose.entries.size*AvatarHair.entries.count{it!=AvatarHair.ORIGINAL},entries.size())
+        assertEquals(PlayerCardPose.entries.size*(manifest.getAsJsonArray("styles").size()),entries.size())
         for(pose in PlayerCardPose.entries) {
             val bounds=pose.headPlateBounds
-            for(hair in AvatarHair.entries.filter{it!=AvatarHair.ORIGINAL}) {
+            for(hair in manifest.getAsJsonArray("styles").map { AvatarHair.valueOf(it.asString.uppercase()) }) {
                 val item=entries.getAsJsonObject("${pose.name.lowercase()}/${hair.name.lowercase()}")
                 assertNotNull("$pose/$hair head plate",item)
                 val size=item.getAsJsonArray("dimensions").map{it.asInt}

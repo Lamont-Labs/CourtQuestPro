@@ -35,7 +35,15 @@ class JerseyStudioTest {
     private fun edit(tag: String, value: String) { panel(tag).performTextReplacement(value) }
     private fun tool(name: String) { tap("segment-jersey-editor-$name") }
     private fun ready(style: JerseyTemplate, side: JerseyView) {
-        wait("material-${style.name.lowercase()}-${side.name.lowercase()}"); compose.waitForIdle()
+        // Artwork decoding and emulator software rendering may exceed the
+        // generic navigation timeout. Report the exact missing material tag.
+        val tag = "material-${style.name.lowercase()}-${side.name.lowercase()}"
+        try {
+            compose.waitUntil(45_000) { has(tag) }
+        } catch (e: androidx.compose.ui.test.ComposeTimeoutException) {
+            throw AssertionError("Jersey material never became ready: $tag", e)
+        }
+        compose.waitForIdle()
     }
     private fun enter() {
         assertTrue("Use the disposable Android emulator", Build.HARDWARE.contains("ranchu"))
