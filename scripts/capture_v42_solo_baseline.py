@@ -207,6 +207,9 @@ def verify_candidate(config):
         assert len({b[1] for b in rail}) == 1, 'Train selector unexpectedly stacked'
     ui.tap(ui.wait_tagged('segment-library'))
     ui.wait_tagged('library-search')
+    # Library categories start collapsed; expand Shooting before asserting
+    # the first drill row. The previous script assumed all rows were mounted.
+    ui.tap(scroll_to_tag('library-category-Shooting'))
     if config == 'normal':
         first = bounds(ui.wait_tagged('library-drill-s1'))
         dock = bounds(ui.wait_tagged('player-bottom-dock'))
