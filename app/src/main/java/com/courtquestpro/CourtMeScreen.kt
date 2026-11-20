@@ -29,14 +29,24 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
     val earnedAchievements = achievements.filter { it.earned }
     val validResults = resultsInProgressRange(save.drillResults.orEmpty(), today, ProgressRange.ALL_TIME)
     val trainingDays = validResults.map { it.date }.distinct().size
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+    val wide=maxWidth>=480.dp && maxWidth>maxHeight
+    val enlarged=LocalDensity.current.fontScale>1.5f
+    val chromeReserve=when {wide&&enlarged->150.dp;wide->90.dp;enlarged->368.dp;else->224.dp}
+    val cardHeight=(maxHeight-chromeReserve)
+        .coerceIn(96.dp,if(wide)260.dp else 424.dp)
+    val cardWidth=(cardHeight*.69f).coerceAtMost(292.dp)
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp)) {
         item {
             Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 14.dp, bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
+                Column(if(wide)Modifier.widthIn(min=72.dp,max=110.dp)else Modifier.weight(1f)) {
                     CourtEyebrow("PLAYER ROOM")
-                    Text("Me", color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.displaySmall)
+                    Text("Me", color = CourtQuestDesign.textPrimary, style = if(wide)MaterialTheme.typography.headlineSmall
+                        else if(LocalDensity.current.fontScale>1.3f)MaterialTheme.typography.headlineLarge else MaterialTheme.typography.displaySmall)
                 }
+                if(wide)CourtQuestSegmentRail(listOf("Profile","Settings"),section,{section=it},
+                    Modifier.weight(1f).padding(horizontal=12.dp),reflowAtLargeText=false)
                 Box {
                     IconButton(onClick = { settingsMenu = true }, modifier = Modifier.size(52.dp).testTag("me-settings-menu")) {
                         Icon(Icons.Default.MoreVert, contentDescription = "Player settings menu",
@@ -62,12 +72,13 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                 }
             }
         }
-        item {
+        if(!wide)item {
             CourtQuestSegmentRail(
                 labels = listOf("Profile", "Settings"),
                 selected = section,
                 onSelect = { section = it },
-                modifier = Modifier.padding(horizontal = 20.dp)
+                modifier = Modifier.padding(horizontal = 20.dp),
+                reflowAtLargeText=false
             )
         }
         item {
@@ -78,11 +89,26 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                     Column(Modifier.fillMaxWidth().testTag("me-player-card"),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            CourtPlayerCard(save.playerJersey, save.playerName, identity.style,
-                                Modifier.widthIn(max = 292.dp).fillMaxWidth(), identity.pose, identity.face,
-                                appearance = identity.avatar)
-                            CourtQuestPrimaryButton(onPlayerCard, Modifier.fillMaxWidth().testTag("me-player-card-studio")) {
-                                Text("Customize player card")
+                            if(wide)Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(18.dp),
+                                verticalAlignment=Alignment.Top) {
+                                CourtPlayerCard(save.playerJersey,save.playerName,identity.style,
+                                    Modifier.width(cardWidth),identity.pose,identity.face,appearance=identity.avatar)
+                                Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+                                    // Accessible counterpart, not a second avatar/profile presentation.
+                                    Text(save.playerName.ifBlank{"Your player"},color=CourtQuestDesign.textPrimary,
+                                        style=MaterialTheme.typography.titleMedium)
+                                    if(!enlarged)Text(identity.style.label,color=CourtQuestDesign.textSecondary,style=MaterialTheme.typography.bodyMedium)
+                                    CourtQuestPrimaryButton(onPlayerCard,Modifier.fillMaxWidth().testTag("me-player-card-studio")){
+                                        Text("Customize player card")
+                                    }
+                                }
+                            } else {
+                                CourtPlayerCard(save.playerJersey, save.playerName, identity.style,
+                                    Modifier.widthIn(max = cardWidth).fillMaxWidth(), identity.pose, identity.face,
+                                    appearance = identity.avatar)
+                                CourtQuestPrimaryButton(onPlayerCard, Modifier.fillMaxWidth().testTag("me-player-card-studio")) {
+                                    Text("Customize player card")
+                                }
                             }
                     }
                 }
@@ -91,7 +117,7 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                         verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         CourtEyebrow("YOUR DEVELOPMENT")
                         // A readable text counterpart to the collectible artwork at enlarged font scales.
-                        if (LocalDensity.current.fontScale > 1.3f) Text(save.playerName.ifBlank { "Your player" },
+                        if (!wide && LocalDensity.current.fontScale > 1.3f) Text(save.playerName.ifBlank { "Your player" },
                             color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleLarge)
                         Text("${rankFor(save.totalXp)}  ·  ${save.totalXp} XP",
                             color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineSmall)
@@ -160,5 +186,6 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                 }
             }
         }
+    }
     }
 }

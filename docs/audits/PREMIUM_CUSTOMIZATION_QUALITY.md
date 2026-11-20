@@ -31,6 +31,10 @@ separately queued readiness work; this document is not a compliance approval.
   returns to All settings. The Quests hero no longer fixes enlarged content to
   112dp. Custom jersey copy describes chest text rather than a team experience,
   without renaming or dropping the saved field.
+* Me sizes the collectible to the actual available viewport. Compact/enlarged
+  layouts keep its Studio action reachable initially; landscape places the
+  compact identity card beside its readable label/action and folds tabs into
+  the heading. No duplicate avatar or second profile identity is restored.
 * Authoring review found pre-existing shoe-dye bounds missed outer toes.
   Re-authored bounds cover the actual original feet; replacement plates clear
   the entire old shoe and anti-aliased collar, not merely part of it. Source

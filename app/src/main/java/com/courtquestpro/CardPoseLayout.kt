@@ -9,7 +9,7 @@ internal data class CardPoseLayout(
 internal val PlayerCardPose.layout:CardPoseLayout get()=when(this) {
     PlayerCardPose.STANDING->CardPoseLayout(560f,507f,104f,listOf(469f,24f,544f,93f),0f,
         listOf(447f,224f,577f,228f,575f,358f,443f,354f),listOf(405f,235f,359f,404f,340f,442f),
-        listOf(441f,719f,588f,719f),listOf(325f,775f,710f,1024f))
+        listOf(441f,719f,588f,719f),listOf(300f,775f,720f,1024f))
     PlayerCardPose.DRIBBLING->CardPoseLayout(780f,538f,119f,listOf(489f,23f,584f,105f),12f,
         listOf(440f,233f,580f,262f,540f,390f,402f,359f),listOf(407f,235f,352f,445f,340f,553f),
         listOf(389f,690f,646f,715f),listOf(150f,760f,810f,1024f))

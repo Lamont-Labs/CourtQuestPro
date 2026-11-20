@@ -61,6 +61,13 @@ class PremiumJourneyAuditTest {
             if(route=="me"){
                 click("segment-profile",true)
                 wait("card-athlete-${PlayerCardSelection.identity(compose.activity).pose.name.lowercase()}-ready")
+                if(!baseline) {
+                    val dock=node("player-bottom-dock").getUnclippedBoundsInRoot()
+                    val card=node("player-card-preview").getUnclippedBoundsInRoot()
+                    val action=node("me-player-card-studio").getUnclippedBoundsInRoot()
+                    assertTrue("Entire primary profile card fits before the dock",card.top.value>=0&&card.bottom<=dock.top)
+                    assertTrue("Card Studio action fits in the first viewport",action.bottom<=dock.top)
+                }
             }
             capture(route)
         }
