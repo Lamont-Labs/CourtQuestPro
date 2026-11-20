@@ -27,10 +27,17 @@ internal object AvatarDetailPainter {
         canvas.save()
         canvas.rotate(layout.rotation,cx,cy)
         if(avatar.hair!=AvatarHair.ORIGINAL) {
-            // Cover the previous crown using a lit scalp, never paint a flat rectangle on the head.
-            p.shader=LinearGradient(head.left,head.top,head.right,head.bottom,
-                intArrayOf(skinColor,Color.rgb(Color.red(skinColor)/2,Color.green(skinColor)/2,Color.blue(skinColor)/2)),null,Shader.TileMode.CLAMP)
-            canvas.drawOval(head,p);p.shader=null
+            // The pose's head bounds include the upper face. Never cover the
+            // entire head with a flat skin-colored oval: that erases facial
+            // lighting and produces the detached mannequin-mask appearance.
+            // Only replace the crown where the original hair is visible.
+            val crown=RectF(head.left+w*.06f,head.top,head.right-w*.06f,head.top+h*.52f)
+            p.shader=LinearGradient(crown.left,crown.top,crown.right,crown.bottom,
+                intArrayOf(skinColor,Color.rgb(
+                    (Color.red(skinColor)*.72f).toInt(),
+                    (Color.green(skinColor)*.72f).toInt(),
+                    (Color.blue(skinColor)*.72f).toInt())),null,Shader.TileMode.CLAMP)
+            canvas.drawOval(crown,p);p.shader=null
             val material=when(avatar.hair) {
                 AvatarHair.CURLS->0;AvatarHair.AFRO->1;AvatarHair.LOCS->2;AvatarHair.BRAIDS->3;AvatarHair.TOPKNOT->3;else->null
             }
