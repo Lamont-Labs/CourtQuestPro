@@ -14,7 +14,6 @@ sys.path.insert(0,str(ROOT/"scripts"))
 import verify_android_daily_flow as ui
 from verify_android_library_flow import state,seed_state
 from verify_phone_update import saved_values_preserved
-from check_card_pixels import check
 
 def native(folder,method,cls="CardStudioRebuildTest",pose=None):
     folder.mkdir(parents=True,exist_ok=True)
@@ -113,9 +112,8 @@ def main():
     ui.shell("am","force-stop",ui.PACKAGE)
     native(out/"normal","restoredCardUniformAndDiscard")
     native(out/"uniforms","savedUniformTemplatesRenderAcrossEveryAthletePoseWithoutChangingTraining","PlayerCardStudioTest")
-    for pose in ("standing","dribbling","action","ready","followthrough"):
-        native(out/"matrix"/pose,"everyOptionAtEachPose",pose=pose)
-    check(out/"matrix")
+    # The layered-avatar pose/option pixel matrix was retired with the jersey-first card.
+    # Keep upgrade, card-flip, persistence, uniform, accessibility and navigation tests.
     for mode,size,font in [("compact","640x1280","1.3"),("large-text","640x1280","2.0"),("landscape","1280x720","1.0")]:
         ui.shell("wm","size",size);ui.shell("settings","put","system","font_scale",font)
         ui.shell("settings","put","global","animator_duration_scale","0")
@@ -124,6 +122,5 @@ def main():
     ui.seed("visual-review")
     native(out/"navigation","everyGuideActionFitsAboveTheDockAndContinuesToTheCorrectTab","NavigationTourTest")
     (out/"result.json").write_text(json.dumps({"commit":os.environ["GITHUB_SHA"],"candidate_sha256":digest(args.candidate.read_bytes()),
-        "version_code":60,"poses":5,"editions":4,"face_treatments":4,"avatar_options":56,
-        "real_android_option_captures":300,"direct_upgrades":[56,58,59],"status":"passed"},indent=2))
+        "version_code":60,"card_design":"jersey-first","legacy_avatar_pixel_matrix":"retired","direct_upgrades":[56,58,59],"status":"passed"},indent=2))
 if __name__=="__main__":main()
