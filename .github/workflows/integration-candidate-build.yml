@@ -1,0 +1,68 @@
+name: CourtQuest integration candidate compile (no publish)
+on:
+  push:
+    branches:
+      - integration/verified-no-avatars
+    paths:
+      - '.github/workflows/integration-candidate-build.yml'
+      - 'app/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout integration branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Fetch development branch
+        run: git fetch origin '+refs/heads/dev/player-card-profile-v2:refs/remotes/origin/dev/player-card-profile-v2'
+      - name: Build disposable merged worktree
+        id: merge
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "CourtQuest CI Integration"
+          git config user.email "courtquest-ci@users.noreply.github.com"
+          git checkout -b ci/disposable-integration
+          git merge --no-commit --no-ff -X theirs origin/dev/player-card-profile-v2 || true
+          if git ls-files -u | grep -q .; then
+            echo "Unresolved merge entries:" | tee merge-status.txt
+            git ls-files -u | tee -a merge-status.txt
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Conflict strategy: development-side changes for overlapping hunks" | tee merge-status.txt
+            git diff --cached --name-status | tee -a merge-status.txt
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Avatar-related source references (candidate only):" >> merge-status.txt
+          git grep -n -i 'avatar' -- app/src/main/java/com/courtquestpro || true
+      - name: Setup JDK
+        if: steps.merge.outputs.ready == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Setup Android SDK
+        if: steps.merge.outputs.ready == 'true'
+        uses: android-actions/setup-android@v3
+      - name: Compile disposable candidate
+        if: steps.merge.outputs.ready == 'true'
+        shell: bash
+        run: |
+          chmod +x ./gradlew
+          ./gradlew :app:compileDebugKotlin --stacktrace --no-daemon 2>&1 | tee candidate-build.log
+      - name: Upload merge and compilation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: courtquest-disposable-integration-candidate
+          path: |
+            merge-status.txt
+            candidate-build.log
+          if-no-files-found: warn
+          retention-days: 14
