@@ -47,6 +47,8 @@ jobs:
           echo "Merge-tree exit status: $MERGE_STATUS" >> integration-audit/summary.md
           git diff --name-status "$MAIN" "$DEV" > integration-audit/changed-paths.txt
           git grep -n -E 'CourtCardAthlete|avatar' "$DEV" -- 'app/src/main/**' > integration-audit/avatar-references.txt || true
+          { echo "## Merge conflict preview"; echo "\`\`\`text"; sed -n '1,180p' integration-audit/merge-tree.txt; echo "\`\`\`"; } >> integration-audit/summary.md
+          cat integration-audit/summary.md >> "$GITHUB_STEP_SUMMARY"
           if [ "$MERGE_STATUS" -ne 0 ]; then
             echo "Unresolved merge conflicts: integration is NOT approved." >> integration-audit/summary.md
             echo "Conflict audit completed; this workflow reports conflicts but does not authorize a merge." >> integration-audit/summary.md
