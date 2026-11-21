@@ -1,6 +1,7 @@
 package com.courtquestpro
 
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.os.Build
 import android.animation.ValueAnimator
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -52,10 +53,32 @@ class WelcomeAnimationVisualTest {
         compose.onNodeWithTag("welcome-shot-ball", useUnmergedTree = true)
             .fetchSemanticsNode().config[SemanticsProperties.StateDescription]
 
+    private fun restingBallIsVisible(): Boolean {
+        val bitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot() ?: return false
+        try {
+            var orangeSamples = 0
+            for (y in bitmap.height / 3 until bitmap.height * 3 / 4 step 4) {
+                for (x in bitmap.width / 3 until bitmap.width * 2 / 3 step 4) {
+                    val pixel = bitmap.getPixel(x, y)
+                    val red = Color.red(pixel)
+                    val green = Color.green(pixel)
+                    val blue = Color.blue(pixel)
+                    if (red > 115 && green in 20..150 && blue < 80 && red > green * 1.25) {
+                        orangeSamples++
+                    }
+                }
+            }
+            return orangeSamples > 100
+        } finally {
+            bitmap.recycle()
+        }
+    }
+
     @Test
     fun swipeShotCapturesLaunchApexRimNetAndExitOnAndroid() {
         assertTrue("Run on the disposable Android emulator", Build.HARDWARE.contains("ranchu"))
         compose.waitUntil(20_000) { has("welcome-swipe-ball") }
+        compose.waitUntil(10_000) { restingBallIsVisible() }
         val frames = linkedMapOf<String, String>()
         compose.mainClock.autoAdvance = false
         try {
