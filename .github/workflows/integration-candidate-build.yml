@@ -47,9 +47,13 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Setup Android SDK
+      - name: Verify runner Android SDK
         if: steps.merge.outputs.ready == 'true'
-        uses: android-actions/setup-android@v3
+        shell: bash
+        run: |
+          test -n "${ANDROID_HOME:-}"
+          test -d "$ANDROID_HOME/platforms"
+          echo "Using preinstalled Android SDK at $ANDROID_HOME"
       - name: Compile disposable candidate
         if: steps.merge.outputs.ready == 'true'
         shell: bash
