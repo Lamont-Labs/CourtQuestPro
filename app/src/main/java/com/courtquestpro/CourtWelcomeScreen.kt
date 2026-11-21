@@ -115,7 +115,7 @@ internal fun CourtWelcomeScreen(
             var stageSize by remember { mutableStateOf(IntSize.Zero) }
             var measuredBoard by remember { mutableStateOf(WelcomeShotRect(0f, 0f, 0f, 0f)) }
             val density = LocalDensity.current
-            val boardArt = remember { ImageBitmap.imageResource(R.drawable.cq_welcome_backboard_rim) }
+            val boardArt = ImageBitmap.imageResource(R.drawable.cq_welcome_backboard_rim)
             BoxWithConstraints(
                 Modifier.fillMaxWidth().weight(if (landscape) 3.2f else 2.5f)
                     .onSizeChanged { stageSize = it }
