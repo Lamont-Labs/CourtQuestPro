@@ -266,3 +266,17 @@ mtime_ms = 1795129395900
 storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/18946ed9-93ea-4e2d-b17d-1659a18571d2/7b894404-b394-48b1-bfa3-7cc7c60fd253"
 storage_version_token = "1795129444582822"
 content_type = "image/png"
+
+[[outputs]]
+id = "ICytuokVYJQqQ-opiLPtY"
+uri = "file://generated-artifacts/courtquest-run-44938352084/courtquest-visual-verification.html"
+type = "html"
+title = "CourtQuest Pro emulator visual verification"
+description = "Actual Android screenshots: four card fronts and backs, five poses across four editions, portrait/landscape welcome shot frames, and compact, large-text, and landscape layouts. QA screenshots use a seeded test fixture."
+logical_id = "1ea3c470-7b4a-41d3-92cc-0e800671070f"
+content_hash = "sha256:ad555826282ffb1b2b8aa2daa7a7f4843d006fb1ee4c9297f2772b2896b4f911"
+size = 1529697
+mtime_ms = 1795288181952
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/1ea3c470-7b4a-41d3-92cc-0e800671070f/006988ad-ca87-4e2c-b2bf-8147ba6ce991"
+storage_version_token = "1795288225928376"
+content_type = "text/html"
