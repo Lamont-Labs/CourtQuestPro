@@ -13,6 +13,8 @@ import org.junit.Rule
 import org.junit.Test
 import java.io.File
 import java.security.MessageDigest
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 /** Runs through the shipping Me route and editor. Output files contain real Android pixels. */
 class CardStudioRebuildTest {
@@ -94,6 +96,20 @@ class CardStudioRebuildTest {
     }
     private fun screen(name:String) {
         ui.waitForIdle()
+        if(name=="after-studio") {
+            node("player-card-studio-screen").assertIsDisplayed()
+            assertFalse("Me profile is still visible",has("me-player-card-studio"))
+            assertFalse("Player navigation dock is still visible",has("dock-me"))
+        }
+        val presented=CountDownLatch(1)
+        ui.runOnUiThread {
+            val root=ui.activity.window.decorView
+            if(Build.VERSION.SDK_INT>=29 && root.isHardwareAccelerated) {
+                root.viewTreeObserver.registerFrameCommitCallback { presented.countDown() }
+                root.invalidate()
+            } else root.postOnAnimation { root.postOnAnimation { presented.countDown() } }
+        }
+        assertTrue("Android must present $name before capture",presented.await(5,TimeUnit.SECONDS))
         val bmp=checkNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
         try {write(name,bmp)} finally {bmp.recycle()}
     }
