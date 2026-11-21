@@ -49,11 +49,16 @@ jobs:
           git grep -n -E 'CourtCardAthlete|avatar' "$DEV" -- 'app/src/main/**' > integration-audit/avatar-references.txt || true
           { echo "## Merge conflict preview"; echo "\`\`\`text"; sed -n '1,180p' integration-audit/merge-tree.txt; echo "\`\`\`"; } >> integration-audit/summary.md
           cat integration-audit/summary.md >> "$GITHUB_STEP_SUMMARY"
+          echo "::group::Integration conflict report"
+          cat integration-audit/summary.md
+          echo "::endgroup::"
           if [ "$MERGE_STATUS" -ne 0 ]; then
             echo "Unresolved merge conflicts: integration is NOT approved." >> integration-audit/summary.md
             echo "Conflict audit completed; this workflow reports conflicts but does not authorize a merge." >> integration-audit/summary.md
           fi
-          echo "Merge-tree completed without conflicts. Tests and avatar removal still required." >> integration-audit/summary.md
+          if [ "$MERGE_STATUS" -eq 0 ]; then
+            echo "Merge-tree completed without conflicts. Tests and avatar removal still required." >> integration-audit/summary.md
+          fi
       - name: Upload reconciliation evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
