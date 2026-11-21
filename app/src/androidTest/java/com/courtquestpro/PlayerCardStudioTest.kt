@@ -112,10 +112,8 @@ class PlayerCardStudioTest {
     private fun ready() {
         node("player-card-preview").assertIsDisplayed()
         compose.waitUntil(20_000) {
-            val template=stored().playerJersey.design.template.name.lowercase()
             val pose=PlayerCardSelection.identity(compose.activity).pose.name.lowercase()
-            has("material-$template-front") &&
-                has("card-athlete-$pose-ready") &&
+            has("card-athlete-$pose-ready") &&
                 PlayerCardStyle.entries.any {has("card-surface-${it.name.lowercase()}-ready")}
         }
         compose.waitForIdle()

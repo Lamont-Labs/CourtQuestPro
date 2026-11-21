@@ -19,9 +19,11 @@ class PremiumJourneyAuditTest {
     private fun node(tag:String)=compose.onNodeWithTag(tag,useUnmergedTree=true)
     private fun has(tag:String)=compose.onAllNodesWithTag(tag,useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()
     private fun wait(tag:String)=compose.waitUntil(20_000){has(tag)}
-    private fun waitCardJersey() {
+    private fun waitCardArtwork() {
         compose.waitUntil(20_000) {
-            JerseyTemplate.entries.any {has("material-${it.name.lowercase()}-front")}
+            val pose=PlayerCardSelection.identity(compose.activity).pose.name.lowercase()
+            has("card-athlete-$pose-ready") &&
+                PlayerCardStyle.entries.any {has("card-surface-${it.name.lowercase()}-ready")}
         }
     }
     private fun reach(tag:String) {
@@ -81,7 +83,7 @@ class PremiumJourneyAuditTest {
             if(route=="me"){
                 click("segment-profile",true)
                 if(baseline)wait("card-athlete-${PlayerCardSelection.identity(compose.activity).pose.name.lowercase()}-ready")
-                else waitCardJersey()
+                else waitCardArtwork()
                 if(!baseline) {
                     val dock=node("player-bottom-dock").getUnclippedBoundsInRoot()
                     val card=node("player-card-preview").getUnclippedBoundsInRoot()
@@ -102,7 +104,7 @@ class PremiumJourneyAuditTest {
         capture("me-milestones")
         click("me-player-card-studio",true);wait("player-card-studio-screen")
         if(baseline)wait("card-athlete-${PlayerCardSelection.identity(compose.activity).pose.name.lowercase()}-ready")
-        else waitCardJersey()
+        else waitCardArtwork()
         node("player-card-save").assertIsDisplayed().assertIsEnabled()
         capture("card-studio");click("player-card-close");wait("me-player-card-studio")
         click("me-jersey-studio",true);wait("jersey-studio");capture("jersey-studio")
