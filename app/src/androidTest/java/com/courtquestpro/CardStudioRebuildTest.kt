@@ -235,13 +235,19 @@ class CardStudioRebuildTest {
     }
 
     @Test fun accessibleLayoutAndNoMotionRecord() {
+        android.util.Log.i("CQ_ACCESS_STAGE","start")
         studio()
+        android.util.Log.i("CQ_ACCESS_STAGE","studio-ready")
         val choice=PlayerCardSelection.identity(ui.activity)
         ready()
+        android.util.Log.i("CQ_ACCESS_STAGE","artwork-ready")
         screen("layout-front")
+        android.util.Log.i("CQ_ACCESS_STAGE","front-captured")
         click("player-card-preview");wait("player-card-back");screen("layout-back")
+        android.util.Log.i("CQ_ACCESS_STAGE","back-captured")
         click("card-menu");ui.onNodeWithText("Read player statistics").performClick()
         ui.onNodeWithText("Training").assertExists();screen("readable-record")
+        android.util.Log.i("CQ_ACCESS_STAGE","record-captured")
         ui.onNodeWithText("Done").performClick()
         node("player-card-save").assertIsDisplayed().assertHasClickAction()
         node("player-card-avatar").assertDoesNotExist()
@@ -250,6 +256,7 @@ class CardStudioRebuildTest {
         wait("card-unsaved")
         click("player-card-close");if(has("player-card-discard"))click("player-card-discard")
         wait("me-player-card-studio")
+        android.util.Log.i("CQ_ACCESS_STAGE","completed")
         assertEquals(choice,PlayerCardSelection.identity(ui.activity))
     }
 }
