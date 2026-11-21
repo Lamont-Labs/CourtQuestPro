@@ -7,7 +7,10 @@ import org.junit.Test
 class PlayerCardIdentityTest {
     @Test fun previousEditionIsPreservedWithoutInventingNewPlayerData() {
         assertEquals(PlayerCardStyle.CLASSIC, PlayerCardIdentity.restore("CLASSIC",null,null).style)
-        assertEquals("Court Legends",PlayerCardStyle.CLASSIC.label)
+        assertEquals("CourtQuest Rookie",PlayerCardStyle.CLASSIC.label)
+        assertEquals("CourtQuest Chrome",PlayerCardStyle.HOLOGRAPHIC.label)
+        assertEquals("CourtQuest Signature",PlayerCardStyle.BATTLE.label)
+        assertEquals("Obsidian Chrome",PlayerCardStyle.OBSIDIAN.label)
         assertEquals(PlayerCardPose.STANDING,PlayerCardIdentity.restore("CLASSIC",null,null).pose)
         assertEquals(PlayerCardFace.SHADOW,PlayerCardIdentity.restore("CLASSIC",null,null).face)
     }
