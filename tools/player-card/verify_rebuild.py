@@ -131,8 +131,14 @@ def main():
         assert before=={k:pref(k) for k in files}
         ui.open_app();ui.wait_tagged("welcome-swipe-ball",attempts=12)
         now=state()
-        for key in ("playerName","jerseyNumber","jerseyNumberText","matches","drillResults","totalXp","longestStreak"):
+        for key in ("playerName","jerseyNumber","matches","drillResults","totalXp","longestStreak"):
+            assert key in saved and key in now, f"Missing required upgrade state: {key}"
             assert saved_values_preserved(saved[key],now[key]),key
+        # Legacy releases may not serialize the optional formatted jersey number.
+        # Verify it when present, without indexing a key absent in the source APK.
+        if "jerseyNumberText" in saved:
+            assert "jerseyNumberText" in now, "Formatted jersey number lost during upgrade"
+            assert saved_values_preserved(saved["jerseyNumberText"],now["jerseyNumberText"]),"jerseyNumberText"
         assert pref("courtquest_player_card")==before["courtquest_player_card"]
         upgrades[str(code)]={"input_apk_sha256":digest(apk.read_bytes()),"candidate_sha256":digest(args.candidate.read_bytes()),
             "previous_version":code,"installed_version":60,"preferences_byte_identical":True,
