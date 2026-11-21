@@ -113,14 +113,32 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
             }
             val inspector:@Composable (Modifier)->Unit={ mod ->
                 Column(mod) {
-                    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-                        Text("CARD EDITION", color=CourtQuestDesign.textPrimary, style=MaterialTheme.typography.titleSmall)
-                        Spacer(Modifier.weight(1f))
-                        TextButton({editingUniform=true},Modifier.heightIn(min=48.dp).testTag("card-live-jersey")) {
-                            Text("Customize jersey")
+                    if (large) {
+                        // At 200% font scale the three controls cannot fit in one horizontal row.
+                        // Keep the Jersey Studio action accessible rather than compressing text.
+                        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+                            Text("CARD EDITION",modifier=Modifier.weight(1f),
+                                color=CourtQuestDesign.textPrimary,style=MaterialTheme.typography.titleSmall,
+                                maxLines=2,overflow=TextOverflow.Ellipsis)
+                            TextButton({editingUniform=true},
+                                Modifier.heightIn(min=48.dp).testTag("card-live-jersey")) {
+                                Text("Customize jersey",maxLines=2)
+                            }
                         }
-                        Text("Tap card to flip", color=CourtQuestDesign.textSecondary,
+                        Text("Tap card to flip",color=CourtQuestDesign.textSecondary,
                             style=MaterialTheme.typography.labelSmall)
+                    } else {
+                        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+                            Text("CARD EDITION",color=CourtQuestDesign.textPrimary,
+                                style=MaterialTheme.typography.titleSmall)
+                            Spacer(Modifier.weight(1f))
+                            TextButton({editingUniform=true},
+                                Modifier.heightIn(min=48.dp).testTag("card-live-jersey")) {
+                                Text("Customize jersey")
+                            }
+                            Text("Tap card to flip",color=CourtQuestDesign.textSecondary,
+                                style=MaterialTheme.typography.labelSmall)
+                        }
                     }
                     key(style) {
                         Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()).testTag("player-card-inspector")
