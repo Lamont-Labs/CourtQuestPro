@@ -98,7 +98,7 @@ internal fun CourtWelcomeScreen(
                 contentScale = ContentScale.Fit
             )
             Spacer(Modifier.weight(if (landscape) .15f else .5f))
-            Box(
+            BoxWithConstraints(
                 Modifier.fillMaxWidth().weight(if (landscape) 3.2f else 2.5f)
                     .semantics {
                         contentDescription = "Photorealistic basketball. Swipe upward or activate to shoot and enter CourtQuest."
