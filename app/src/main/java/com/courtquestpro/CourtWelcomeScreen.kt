@@ -27,7 +27,9 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalAccessibilityManager
+import android.content.Context
+import android.view.accessibility.AccessibilityManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
@@ -53,8 +55,8 @@ internal fun CourtWelcomeScreen(
     val scope = rememberCoroutineScope()
     val progress = remember { Animatable(0f) }
     var entering by remember { mutableStateOf(false) }
-    val accessibility = LocalAccessibilityManager.current
-    val reducedMotion = accessibility?.isEnabled == true
+    val context = LocalContext.current
+    val reducedMotion = remember(context) { (context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager)?.isTouchExplorationEnabled == true }
     val spin = rememberInfiniteTransition(label = "Basketball idle")
     val idleRotation by spin.animateFloat(
         initialValue = 0f, targetValue = 360f,
