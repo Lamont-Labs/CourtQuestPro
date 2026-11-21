@@ -60,8 +60,29 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
         }
     }
     if(editingUniform) {
+        // Uniform editing stays inside the unified Player Card Studio flow.
+        // Keep the existing Jersey Studio renderer and save contract intact.
         BackHandler { editingUniform=false }
-        CourtJerseyStudio(jersey,onSave=onSaveJersey,onBack={editingUniform=false})
+        Column(Modifier.fillMaxSize().background(CourtQuestDesign.background)
+            .testTag("unified-player-card-studio")) {
+            Row(Modifier.fillMaxWidth().heightIn(min=48.dp).padding(horizontal=8.dp),
+                verticalAlignment=Alignment.CenterVertically) {
+                TextButton(onClick={editingUniform=false},
+                    modifier=Modifier.testTag("unified-card-tab")) {
+                    Text("CARD",color=CourtQuestDesign.textSecondary)
+                }
+                Text(" / ",color=CourtQuestDesign.textSecondary)
+                Text("UNIFORM",color=CourtQuestDesign.accentVivid,
+                    style=MaterialTheme.typography.titleSmall,
+                    modifier=Modifier.testTag("unified-uniform-tab"))
+                Spacer(Modifier.weight(1f))
+                Text("PLAYER CARD STUDIO",color=CourtQuestDesign.textPrimary,
+                    style=MaterialTheme.typography.labelSmall,maxLines=1)
+            }
+            Box(Modifier.weight(1f)) {
+                CourtJerseyStudio(jersey,onSave=onSaveJersey,onBack={editingUniform=false})
+            }
+        }
         return
     }
     BackHandler { close() }
@@ -83,7 +104,7 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
                     Icon(Icons.AutoMirrored.Filled.ArrowBack,"Close Card Studio",tint=CourtQuestDesign.textPrimary)
                 }
                 Column(Modifier.weight(1f)) {
-                    Text(if(large)"Studio" else "Card Studio",style=MaterialTheme.typography.titleLarge,
+                    Text(if(large)"Studio" else "Player Card Studio",style=MaterialTheme.typography.titleLarge,
                         color=CourtQuestDesign.textPrimary,maxLines=1,overflow=TextOverflow.Ellipsis,
                         modifier=Modifier.semantics{heading()})
                     if(dirty) Text("Unsaved",style=MaterialTheme.typography.labelSmall,color=CourtQuestDesign.accent,
