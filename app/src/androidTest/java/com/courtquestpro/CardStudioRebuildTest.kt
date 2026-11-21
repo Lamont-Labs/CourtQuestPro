@@ -42,7 +42,11 @@ class CardStudioRebuildTest {
         assertFalse("Me profile is still visible",has("me-player-card-studio"))
         assertFalse("Player navigation dock is still visible",has("dock-me"))
     }
-    private fun click(tag:String) { node(tag).assertIsDisplayed().performClick() }
+    private fun click(tag:String) {
+        ui.waitForIdle()
+        node(tag).assertIsDisplayed().performClick()
+        ui.waitForIdle()
+    }
     private fun pick(tag:String) {
         ui.waitForIdle()
         // Choices live in horizontal LazyRows, so an off-screen option has no

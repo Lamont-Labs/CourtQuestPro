@@ -23,7 +23,9 @@ class PlayerCardStudioTest {
         try { compose.waitUntil(20_000){has(tag)} }
         catch (timeout:androidx.compose.ui.test.ComposeTimeoutException) {
             val tags=listOf("me-player-card-studio","player-card-studio-screen","dock-me","player-card-saving",
-                "player-card-save-error","welcome-get-started").filter { runCatching{has(it)}.getOrDefault(false) }
+                "player-card-save-error","player-card-save-state-idle","player-card-save-state-saving",
+                "player-card-save-state-saved","player-card-save-state-failed","welcome-get-started")
+                .filter { runCatching{has(it)}.getOrDefault(false) }
             val dir=File(compose.activity.filesDir,"player-card-proof").apply{mkdirs()}
             File(dir,"wait-timeout-$tag.txt").writeText("expected=$tag\nvisibleTags=$tags")
             runCatching {
@@ -51,7 +53,11 @@ class PlayerCardStudioTest {
         assertFalse("Me profile is still visible",has("me-player-card-studio"))
         assertFalse("Player navigation dock is still visible",has("dock-me"))
     }
-    private fun tap(tag:String) {node(tag).assertIsDisplayed().performClick()}
+    private fun tap(tag:String) {
+        compose.waitForIdle()
+        node(tag).assertIsDisplayed().performClick()
+        compose.waitForIdle()
+    }
     private fun choose(tag:String) {
         compose.waitForIdle()
         val rail="${tag.substringBeforeLast('-')}-rail"

@@ -46,6 +46,7 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
     var reading by rememberSaveable { mutableStateOf(false) }
     var editingUniform by rememberSaveable { mutableStateOf(false) }
     var saving by remember { mutableStateOf(false) }
+    var saveStatus by remember { mutableStateOf("idle") }
     var error by remember { mutableStateOf(false) }
     val identity = PlayerCardIdentity(style,pose,face,avatar)
     val jersey = save.playerJersey
@@ -55,11 +56,19 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
     fun close() { if (!saving) { if (dirty) discard=true else onBack() } }
     fun commit() {
         if (saving) return
-        saving=true
+        saving=true;saveStatus="saving"
         scope.launch {
-            val success=withContext(Dispatchers.IO) { PlayerCardSelection.persist(context,identity) }
-            saving=false
-            if (success) { PlayerCardSelection.notifySaved();onBack() } else error=true
+            try {
+                val success=withContext(Dispatchers.IO) { PlayerCardSelection.persist(context,identity) }
+                if (success) {
+                    PlayerCardSelection.notifySaved()
+                    saveStatus="saved";saving=false;onBack()
+                } else {saveStatus="failed";saving=false;error=true}
+            } catch (cancelled:kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (_:Exception) {
+                saveStatus="failed";saving=false;error=true
+            }
         }
     }
     fun resetCategory() {
@@ -88,6 +97,7 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
             TextButton({discard=false}){Text("Keep editing")}
         }})
     BoxWithConstraints(Modifier.fillMaxSize().background(CourtQuestDesign.background).testTag("player-card-studio-screen")) {
+        Spacer(Modifier.size(1.dp).testTag("player-card-save-state-$saveStatus"))
         val wide=maxWidth>maxHeight && maxWidth>=540.dp
         val large=LocalDensity.current.fontScale>1.4f
         val stageHeight=(maxHeight*(if(large) .42f else .55f)).coerceIn(120.dp,540.dp)
