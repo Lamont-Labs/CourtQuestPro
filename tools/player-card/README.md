@@ -1,12 +1,11 @@
-# Avatar and collector-material revision
+# Player artwork and collector-material revision
 
-The avatar inspector offers ten hair choices, five headwear choices, four
-illustrated builds, ten skin choices, seven shoe colorways, six accessory
-combinations and four footwear constructions (46 choices). Original choices retain the shipped art. These are cosmetic
-illustration settings, not body measurements or performance claims.
-Pinned Hair/Body/Gear tools keep categories reachable while scrolling. Hair and
-shoe colorways have pose-aware detail views beside the full live collectible;
-body and accessory choices retain the full-body view.
+The persisted avatar model retains ten hair choices, five headwear choices,
+four illustrated builds, ten skin tones, seven shoe colorways, six accessory
+combinations and four footwear constructions. They remain cosmetic
+illustration preferences, not body measurements or performance claims. Card
+Studio now renders the saved appearance on the collectible rather than
+duplicating the avatar editor; appearance values and artwork are preserved.
 
 `build_avatar_assets.py` derives transparent skin and shoe mattes from the
 approved athlete plates. Garment alpha is explicitly subtracted from skin.
@@ -30,9 +29,9 @@ manifest records pose mattes and hashes. All production plates work offline.
 Run `python3 tools/player-card/build_head_styles.py --check`,
 `python3 tools/player-card/build_footwear_styles.py --check`, and
 `python3 -m unittest scripts.test_player_card_artwork -v` in addition to
-the original plate check. Native tests exercise every cosmetic option on every
-pose at normal size, plus reachable selections at compact/200% text, save,
-restart, draft recreation, discard, and unchanged training state.
+the original plate check. Native tests capture all four editions across the
+saved athlete poses, actual card fronts and backs, uniform synchronization,
+save/restart, compact/large text, landscape, and unchanged training state.
 
 # CourtQuest Player Card V2 assets
 
@@ -90,13 +89,26 @@ The finite rail-light response follows system animation scaling. Card graphics e
 retain scalable native text and 48dp targets.
 
 The emulator verifier reuses the guarded CourtQuest QA AVD and records actual
-Android screenshots for all 80 edition/pose/face combinations at normal,
-compact, landscape and 200% text. Isolated character/card pixel hashes prove
-each avatar choice changes the artwork rather than only its option controls.
-It additionally exercises save/exit, legacy six-dimension preferences, cold-start
-persistence, recreation, discard, Jersey Studio synchronization, existing
-jersey customization, navigation/walkthrough and training-entry tests.
-Screenshots use disposable synthetic QA data, never a user's phone.
+Android screenshots of the four card fronts and backs, the five-pose/edition
+front gallery, and welcome-animation frames. It exercises APK upgrades,
+save/exit, cold-start persistence, recreation, discard, Jersey Studio
+synchronization, existing jersey customization, navigation/walkthrough and
+training-entry tests. Screenshots use disposable synthetic QA data, never a
+user's phone.
+
+## Athlete-first card and welcome shot
+
+The card front composites the saved anonymous athlete with the actual live
+Jersey Studio uniform. CourtQuest Rookie, CourtQuest Chrome, CourtQuest
+Signature, and Obsidian Chrome keep separate offline material surfaces and
+native frames. The persisted edition keys do not change. The reverse remains
+populated only by saved player statistics.
+
+The welcome shot measures the stage and rendered backboard rectangle, then maps
+the rim plane and opening from the original 1024 × 637 art. Native visual tests
+capture resting, launch, apex, rim entry, net passage, exit, and completed states
+in portrait and landscape before app transition. A reduced-motion test verifies
+entry without flight; swipe, accessible tap, and first-run guest entry remain.
 
 ## New original layered artwork
 

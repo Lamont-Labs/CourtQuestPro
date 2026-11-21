@@ -70,7 +70,8 @@ class CardStudioRebuildTest {
         try {
             ui.waitUntil(20_000) {
                 has("material-$template-front") &&
-                    PlayerCardStyle.entries.any {has("card-surface-${it.name.lowercase()}-ready")}
+                    PlayerCardStyle.entries.any {has("card-surface-${it.name.lowercase()}-ready")} &&
+                    PlayerCardPose.entries.any {has("card-athlete-${it.name.lowercase()}-ready")}
             }
         } catch (timeout:androidx.compose.ui.test.ComposeTimeoutException) {
             val state=listOf("player-card-studio-screen","me-player-card-studio","dock-me",
@@ -143,6 +144,8 @@ class CardStudioRebuildTest {
             pick("player-card-style-${style.name.lowercase()}")
             wait("card-surface-${style.name.lowercase()}-ready");ready()
             assertTrue(description(),description().contains("jersey collectible card"))
+            assertTrue("Card exposes the athlete-first identity: ${description()}",
+                description().contains("basketball athlete"))
             assertTrue(description(),description().contains(player.playerName.ifBlank{"Your player"}))
             val front=crop("edition-${style.name.lowercase()}-front","player-card-preview")
             assertTrue("${style.label} front should have its own composition",frontHashes.add(front))
@@ -193,7 +196,15 @@ class CardStudioRebuildTest {
         click("player-card-close");click("player-card-discard");wait("me-player-card-studio")
         assertEquals(expected,PlayerCardSelection.identity(ui.activity));assertEquals(before,prefs())
         pick("me-player-card-studio")
-        stage("before-jersey-navigation");waitStudio();click("card-live-jersey");wait("jersey-studio");click("segment-jersey-editor-identity")
+        stage("before-jersey-navigation");waitStudio()
+        val jerseyBefore=prefs()
+        click("segment-player-card-tab-uniform")
+        wait("jersey-studio");click("segment-jersey-editor-identity")
+        node("jersey-name").performScrollTo().performTextReplacement("Discard this")
+        click("segment-player-card-tab-card");wait("jersey-save-exit");click("jersey-discard")
+        waitStudio();ready();assertEquals("Leaving Uniform discards only after confirmation",jerseyBefore,prefs())
+        click("segment-player-card-tab-uniform")
+        wait("jersey-studio");click("segment-jersey-editor-identity")
         node("jersey-number").performScrollTo().performTextReplacement("00")
         node("jersey-name").performScrollTo().performTextReplacement("Avery West")
         click("jersey-close");wait("jersey-save-exit");click("jersey-save-exit")
@@ -207,17 +218,17 @@ class CardStudioRebuildTest {
     }
 
     @Test fun everyOptionAtEachPose() {
-        studio()
-        // Keep the existing workflow's pose parameter: saved legacy pose and avatar
-        // preferences must remain untouched even though those controls are no longer active.
         val requestedPose=InstrumentationRegistry.getArguments().getString("pose")
             ?.let { PlayerCardPose.valueOf(it) }
         val saved=PlayerCardSelection.identity(ui.activity)
+        if (requestedPose != null) {
+            assertTrue("Pose fixture must persist",PlayerCardSelection.write(ui.activity,saved.copy(pose=requestedPose)))
+        }
+        studio()
         val before=prefs()
         ready();screen("jersey-card-${requestedPose?.name?.lowercase() ?: "saved"}")
-        node("player-card-avatar").assertDoesNotExist()
-        node("segment-card-pose").assertDoesNotExist()
-        node("segment-card-face").assertDoesNotExist()
+        assertTrue("Saved athlete pose is rendered on card",
+            has("card-athlete-${(requestedPose ?: saved.pose).name.lowercase()}-ready"))
         val editions=mutableSetOf<String>()
         for(style in PlayerCardStyle.entries) {
             pick("player-card-style-${style.name.lowercase()}")
@@ -230,8 +241,9 @@ class CardStudioRebuildTest {
         val selected=PlayerCardStyle.entries.first{it!=saved.style}
         pick("player-card-style-${selected.name.lowercase()}")
         click("player-card-save");wait("me-player-card-studio");ready()
-        assertEquals(saved.copy(style=selected),PlayerCardSelection.identity(ui.activity))
+        assertEquals(saved.copy(style=selected,pose=requestedPose ?: saved.pose),PlayerCardSelection.identity(ui.activity))
         assertEquals(before,prefs())
+        assertTrue("Original saved card preferences are restored",PlayerCardSelection.write(ui.activity,saved))
     }
 
     @Test fun accessibleLayoutAndNoMotionRecord() {

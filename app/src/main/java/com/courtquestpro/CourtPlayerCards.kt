@@ -47,6 +47,7 @@ internal fun CourtPlayerCard(
     val context = LocalContext.current
     val display = remember(context) { ResourcesCompat.getFont(context, R.font.barlow_condensed_extra_bold) }
     val body = remember(context) { ResourcesCompat.getFont(context, R.font.barlow_semibold) }
+    val identity = PlayerCardSelection.identity(context)
     val name = playerName.ifBlank { "Your player" }
     var back by rememberSaveable { mutableStateOf(false) }
     var reading by rememberSaveable { mutableStateOf(false) }
@@ -57,7 +58,7 @@ internal fun CourtPlayerCard(
     val frame = RoundedCornerShape(if (style == PlayerCardStyle.CLASSIC) 5.dp else 10.dp)
     val flipLabel = if (targetBack) "Show card front" else "Show player record"
     val description = if (reverse && record != null) "${style.label}. $name. Player record. ${record.description}"
-        else "${style.label} jersey collectible card. $name. " +
+        else "${style.label} basketball athlete jersey collectible card. $name. " +
             "${jersey.design.template.label} saved uniform. " +
             (jersey.number?.let { "Jersey number $it." } ?: "Jersey number not set.")
     val interaction = if (flipEnabled) Modifier.clickable(onClickLabel = flipLabel, role = Role.Button) { back = !back } else Modifier
@@ -119,14 +120,13 @@ internal fun CourtPlayerCard(
                     }
                 }
                 val placement=style.heroPlacement
-                CourtJerseyArtwork(
-                    jersey,
-                    Modifier.width(maxWidth * placement.width).height(maxHeight * placement.height)
+                CourtCardAthlete(
+                    jersey = jersey,
+                    identity = identity,
+                    modifier = Modifier.width(maxWidth * placement.width).height(maxHeight * placement.height)
                         .align(Alignment.TopCenter)
                         .offset(x = maxWidth * placement.x, y = maxHeight * placement.top),
-                    view = JerseyView.FRONT,
-                    describe = true,
-                    compactMark = false
+                    showTestTags = !thumbnail
                 )
                 Canvas(Modifier.fillMaxSize()) {
                     drawEditionNameplate(style,name,jersey.number,display,body)
@@ -248,10 +248,10 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawEditionNameplat
     drawContext.canvas.nativeCanvas.apply {
         printLine(name.uppercase(Locale.ROOT),x,h*.921f,w*.090f,maxName,nameColor,display,align)
         val info=when(style) {
-            PlayerCardStyle.CLASSIC -> number?.let{"COURT LEGENDS  ·  #$it"} ?: "COURT LEGENDS"
-            PlayerCardStyle.BATTLE -> number?.let{"#$it  /  BATTLE SERIES"} ?: "BATTLE SERIES"
+            PlayerCardStyle.CLASSIC -> number?.let{"ROOKIE  ·  #$it"} ?: "COURTQUEST ROOKIE"
+            PlayerCardStyle.BATTLE -> number?.let{"#$it  /  SIGNATURE"} ?: "COURTQUEST SIGNATURE"
             PlayerCardStyle.OBSIDIAN -> number?.let{"NO. $it  ·  OBSIDIAN CHROME"} ?: "OBSIDIAN CHROME"
-            PlayerCardStyle.HOLOGRAPHIC -> number?.let{"Nº $it   /   HOLOGRAPHIC ELITE"} ?: "HOLOGRAPHIC ELITE"
+            PlayerCardStyle.HOLOGRAPHIC -> number?.let{"NO. $it  ·  COURTQUEST CHROME"} ?: "COURTQUEST CHROME"
         }
         val infoAlign=if(style==PlayerCardStyle.OBSIDIAN) Paint.Align.LEFT else Paint.Align.CENTER
         val infoX=if(style==PlayerCardStyle.OBSIDIAN) w*.15f else w*.5f

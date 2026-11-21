@@ -60,29 +60,10 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
         }
     }
     if(editingUniform) {
-        // Uniform editing stays inside the unified Player Card Studio flow.
-        // Keep the existing Jersey Studio renderer and save contract intact.
         BackHandler { editingUniform=false }
-        Column(Modifier.fillMaxSize().background(CourtQuestDesign.background)
-            .testTag("unified-player-card-studio")) {
-            Row(Modifier.fillMaxWidth().heightIn(min=48.dp).padding(horizontal=8.dp),
-                verticalAlignment=Alignment.CenterVertically) {
-                TextButton(onClick={editingUniform=false},
-                    modifier=Modifier.testTag("unified-card-tab")) {
-                    Text("CARD",color=CourtQuestDesign.textSecondary)
-                }
-                Text(" / ",color=CourtQuestDesign.textSecondary)
-                Text("UNIFORM",color=CourtQuestDesign.accentVivid,
-                    style=MaterialTheme.typography.titleSmall,
-                    modifier=Modifier.testTag("unified-uniform-tab"))
-                Spacer(Modifier.weight(1f))
-                Text("PLAYER CARD STUDIO",color=CourtQuestDesign.textPrimary,
-                    style=MaterialTheme.typography.labelSmall,maxLines=1)
-            }
-            Box(Modifier.weight(1f)) {
-                CourtJerseyStudio(jersey,onSave=onSaveJersey,onBack={editingUniform=false})
-            }
-        }
+        CourtJerseyStudio(
+            jersey, onSave=onSaveJersey, onBack={editingUniform=false}, showCardStudioTabs=true
+        )
         return
     }
     BackHandler { close() }
@@ -119,26 +100,17 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
                     }
                     DropdownMenu(menu,{menu=false}) {
                         DropdownMenuItem(text={Text("Read player statistics")},onClick={menu=false;reading=true})
-                        DropdownMenuItem(text={Text("Open Jersey Studio")},onClick={menu=false;editingUniform=true})
                         DropdownMenuItem(text={Text("Restore default edition")},onClick={
                             menu=false;style=PlayerCardIdentity().style
                         },modifier=Modifier.testTag("card-reset-all"))
                     }
                 }
             }
-            // Keep both editors discoverable without hiding Uniform behind an overflow menu.
-            Row(Modifier.fillMaxWidth().padding(bottom=4.dp),
-                horizontalArrangement=Arrangement.spacedBy(8.dp),
-                verticalAlignment=Alignment.CenterVertically) {
-                Button(onClick={},enabled=false,modifier=Modifier.weight(1f)
-                    .heightIn(min=44.dp).testTag("unified-card-selected")) {
-                    Text("CARD")
-                }
-                OutlinedButton(onClick={editingUniform=true},modifier=Modifier.weight(1f)
-                    .heightIn(min=44.dp).testTag("unified-uniform-open")) {
-                    Text("UNIFORM")
-                }
-            }
+            CardStudioWorkflowTabs(
+                selected="CARD",
+                onSelect={ selected -> if(selected=="UNIFORM") editingUniform=true },
+                modifier=Modifier.fillMaxWidth().padding(bottom=8.dp)
+            )
             val preview:@Composable (Modifier)->Unit={ mod ->
                 BoxWithConstraints(mod,contentAlignment=Alignment.Center) {
                     val width=minOf(maxWidth,maxHeight*.69f)
@@ -148,28 +120,15 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
             val inspector:@Composable (Modifier)->Unit={ mod ->
                 Column(mod) {
                     if (large) {
-                        // At 200% font scale the three controls cannot fit in one horizontal row.
-                        // Keep the Jersey Studio action accessible rather than compressing text.
-                        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-                            Text("CARD EDITION",modifier=Modifier.weight(1f),
-                                color=CourtQuestDesign.textPrimary,style=MaterialTheme.typography.titleSmall,
-                                maxLines=2,overflow=TextOverflow.Ellipsis)
-                            TextButton({editingUniform=true},
-                                Modifier.heightIn(min=48.dp).testTag("card-live-jersey")) {
-                                Text("Customize jersey",maxLines=2)
-                            }
-                        }
+                        Text("CARD CONCEPT",color=CourtQuestDesign.textPrimary,
+                            style=MaterialTheme.typography.titleSmall,maxLines=2,overflow=TextOverflow.Ellipsis)
                         Text("Tap card to flip",color=CourtQuestDesign.textSecondary,
                             style=MaterialTheme.typography.labelSmall)
                     } else {
                         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-                            Text("CARD EDITION",color=CourtQuestDesign.textPrimary,
+                            Text("CARD CONCEPT",color=CourtQuestDesign.textPrimary,
                                 style=MaterialTheme.typography.titleSmall)
                             Spacer(Modifier.weight(1f))
-                            TextButton({editingUniform=true},
-                                Modifier.heightIn(min=48.dp).testTag("card-live-jersey")) {
-                                Text("Customize jersey")
-                            }
                             Text("Tap card to flip",color=CourtQuestDesign.textSecondary,
                                 style=MaterialTheme.typography.labelSmall)
                         }
@@ -177,7 +136,7 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
                     key(style) {
                         Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()).testTag("player-card-inspector")
                             .padding(vertical=6.dp),verticalArrangement=Arrangement.spacedBy(5.dp)) {
-                            Choices("Card material",PlayerCardStyle.entries,style,{it.label},{"player-card-style-${it.name.lowercase()}"},
+                            Choices("Card concept",PlayerCardStyle.entries,style,{it.label},{"player-card-style-${it.name.lowercase()}"},
                                 swatch={it.metal.toArgb()},preview={CardStyleOptionPreview(jersey,save.playerName,it)}) { style=it }
                         }
                     }
@@ -193,4 +152,16 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
                 modifier=Modifier.semantics{liveRegion=LiveRegionMode.Polite}.testTag("player-card-save-error"))
         }
     }
+}
+
+@Composable
+internal fun CardStudioWorkflowTabs(selected: String, onSelect: (String) -> Unit, modifier: Modifier = Modifier) {
+    CourtQuestSegmentRail(
+        labels=listOf("CARD","UNIFORM"),
+        selected=selected,
+        onSelect=onSelect,
+        modifier=modifier,
+        tagKeys=listOf("player-card-tab-card","player-card-tab-uniform"),
+        reflowAtLargeText=false
+    )
 }

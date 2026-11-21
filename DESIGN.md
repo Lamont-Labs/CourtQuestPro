@@ -733,3 +733,32 @@ The welcome entrance uses three original, bundled transparent WebP assets: a det
 The active Card Studio now centers the player's live saved Jersey Studio garment. Its four collectible editions retain separate materials, frames, and edition-specific jersey placement; tapping the card still flips to the saved player record. The editor exposes edition selection and the existing Jersey Studio entry point, not the layered avatar controls. Legacy card appearance preferences remain in the saved identity model and are carried forward unchanged when the edition is saved; avatar assets and source history are retained.
 
 The welcome artwork is bundled under `app/src/main/res/drawable-nodpi/` for offline use. Source and resource integrity were checked during implementation, but this source-only handoff did not run an Android emulator or produce visual screenshots; the local environment has no Android SDK. A rendered device review remains required before claiming visual verification.
+
+## Athlete-first card and measured welcome-shot verification
+
+This implementation supersedes the early jersey-first card description above.
+The card front now composites the approved anonymous full-body athlete and live
+saved uniform through the existing native athlete renderer. The four persisted
+edition identifiers remain unchanged but are presented as CourtQuest Rookie,
+CourtQuest Chrome, CourtQuest Signature, and Obsidian Chrome. Existing metallic
+frames, material finishes, edition mastheads, issue marker, card flip, and
+real-statistics reverse are retained. CARD / UNIFORM is a compact selectable
+rail; leaving a changed jersey through CARD invokes Jersey Studio's existing
+save/discard confirmation.
+
+Card research used official Topps Chrome Basketball and Panini Prizm product
+pages as high-level references for dominant athlete art, vertical nameplates,
+reflective materials, and distinct edition identities. The implementation uses
+original CourtQuest composition and assets only; it does not reproduce licensed
+frames, logos, players, or protected typography. No local UI/UX Pro Max package
+was available, so no output from it is claimed.
+
+The welcome shot maps rim center and opening dimensions from the bundled
+1024 × 637 backboard art into the measured Compose image and stage bounds. It
+scales the ball to the opening, layers it in front of the net until rim entry,
+then behind net strands and the foreground rim before it fades below the stage.
+The route transition follows a short post-shot clear frame; Android reduced
+motion still bypasses flight. Unit tests cover portrait and landscape-sized
+geometry. Android instrumentation captures the full shot sequence in portrait
+and landscape, separately verifies reduced-motion entry, and captures all four
+card fronts and backs. Emulator results remain pending the GitHub Actions run.

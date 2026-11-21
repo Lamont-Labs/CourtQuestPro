@@ -113,7 +113,9 @@ class PlayerCardStudioTest {
         node("player-card-preview").assertIsDisplayed()
         compose.waitUntil(20_000) {
             val template=stored().playerJersey.design.template.name.lowercase()
+            val pose=PlayerCardSelection.identity(compose.activity).pose.name.lowercase()
             has("material-$template-front") &&
+                has("card-athlete-$pose-ready") &&
                 PlayerCardStyle.entries.any {has("card-surface-${it.name.lowercase()}-ready")}
         }
         compose.waitForIdle()
@@ -281,9 +283,7 @@ class PlayerCardStudioTest {
         val identity=PlayerCardSelection.identity(compose.activity)
         val jersey=stored().playerJersey
         choose("me-player-card-studio");waitStudio()
-        tap("card-menu")
-        compose.onNodeWithText("Open Jersey Studio",useUnmergedTree=true).performClick()
-        wait("jersey-studio")
+        tap("segment-player-card-tab-uniform");wait("jersey-studio")
         assertEquals(jersey,stored().playerJersey)
         compose.activity.onBackPressedDispatcher.onBackPressed()
         waitStudio();ready()

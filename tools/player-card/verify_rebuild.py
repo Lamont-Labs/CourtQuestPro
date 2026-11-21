@@ -71,6 +71,29 @@ def install(file,code,replace=False):
     assert "Success" in ui.adb("install",*(["-r"] if replace else []),str(file.resolve()),timeout=180).decode()
     if code:assert re.search(rf"versionCode={code}\b",ui.shell("dumpsys","package",ui.PACKAGE))
 
+def enter_welcome_if_present():
+    """Handle the current swipe-ball welcome and older released welcome buttons."""
+    for attempt in range(12):
+        items=ui.nodes()
+        for tag in ("welcome-swipe-ball","welcome-get-started"):
+            target=ui.tagged(items,tag)
+            if target is not None:
+                ui.tap(target)
+                return tag
+        if attempt<11:time.sleep(.2)
+    return None
+
+def dismiss_tour_if_present():
+    for attempt in range(10):
+        items=ui.nodes()
+        skip=ui.tagged(items,"tour-skip")
+        if skip is not None:
+            ui.tap(skip)
+            return
+        if attempt>=3 and ui.tagged(items,"dock-me") is not None:
+            return
+        if attempt<9:time.sleep(.2)
+
 def ready():
     for _ in range(100):
         if ui.shell("getprop","sys.boot_completed",timeout=10)=="1":break
@@ -96,8 +119,7 @@ def seed():
     seed_state(val)
     # Allow the old version to normalize and persist its own state before hashing.
     ui.open_app()
-    if ui.tagged(ui.nodes(),"welcome-swipe-ball") is not None:ui.tap(ui.wait_tagged("welcome-swipe-ball"))
-    elif ui.tagged(ui.nodes(),"welcome-get-started") is not None:ui.tap(ui.wait_tagged("welcome-get-started"))
+    enter_welcome_if_present()
     ui.wait_tagged("dock-me",attempts=12)
     ui.shell("am","force-stop",ui.PACKAGE)
     root=ET.Element("map")
@@ -109,9 +131,9 @@ def seed():
 
 def before_screen(out):
     ui.OUT=out;ui.open_app()
-    if ui.tagged(ui.nodes(),"welcome-get-started") is not None:ui.tap(ui.wait_tagged("welcome-get-started"))
-    if ui.tagged(ui.nodes(),"tour-skip") is not None:ui.tap(ui.wait_tagged("tour-skip"))
-    ui.tap(ui.wait_tagged("dock-me"));ui.tap(ui.wait_tagged("me-player-card-studio",attempts=12))
+    enter_welcome_if_present()
+    dismiss_tour_if_present()
+    ui.tap(ui.wait_tagged("dock-me",attempts=12));ui.tap(ui.wait_tagged("me-player-card-studio",attempts=12))
     ui.wait_tagged("player-card-studio-screen",attempts=12);time.sleep(1)
     ui.screenshot("before-studio")
 
@@ -145,19 +167,33 @@ def main():
             "after_cold_launch":True,"preference_hashes":{k:digest(v) for k,v in before.items()}}
     (out/"upgrades.json").write_text(json.dumps(upgrades,indent=2))
     install(args.instrumentation,None,True)
-    native(out/"normal","twoSidesFlipStatsRestorationAndEditor")
+    native(out/"normal","twoSidesShowLiveJerseyRealStatsAndPersistSelectedEdition")
     ui.shell("am","force-stop",ui.PACKAGE)
     native(out/"normal","restoredCardUniformAndDiscard")
-    native(out/"uniforms","savedUniformTemplatesRenderAcrossEveryAthletePoseWithoutChangingTraining","PlayerCardStudioTest")
-    # The layered-avatar pose/option pixel matrix was retired with the jersey-first card.
-    # Keep upgrade, card-flip, persistence, uniform, accessibility and navigation tests.
+    native(out/"uniforms","savedUniformTemplatesUpdateCollectibleArtworkWithoutChangingTraining","PlayerCardStudioTest")
+    for pose in ("standing","dribbling","action","ready","followthrough"):
+        native(out/"poses"/pose,"everyOptionAtEachPose",pose=pose)
+    native(out/"welcome","swipeShotCapturesLaunchApexRimNetAndExitOnAndroid","WelcomeAnimationVisualTest")
+    # Saved avatar preferences remain intact; the card editor only changes edition and uniform.
     for mode,size,font in [("compact","640x1280","1.3"),("large-text","640x1280","2.0"),("landscape","1280x720","1.0")]:
         ui.shell("wm","size",size);ui.shell("settings","put","system","font_scale",font)
         ui.shell("settings","put","global","animator_duration_scale","0")
         native(out/mode,"accessibleLayoutAndNoMotionRecord")
+        if mode=="large-text":
+            ui.shell("am","force-stop",ui.PACKAGE)
+            native(out/"reduced-motion","reducedMotionTapSkipsFlightAndStillEntersTheApp","WelcomeAnimationVisualTest")
+        if mode=="landscape":
+            ui.shell("settings","put","global","animator_duration_scale","1")
+            ui.shell("am","force-stop",ui.PACKAGE)
+            native(out/"welcome-landscape","swipeShotCapturesLaunchApexRimNetAndExitOnAndroid","WelcomeAnimationVisualTest")
+            ui.shell("settings","put","global","animator_duration_scale","0")
     ui.shell("wm","size","720x1600");ui.shell("settings","put","system","font_scale","1.0")
+    ui.shell("settings","put","global","animator_duration_scale","1")
     ui.seed("visual-review")
     native(out/"navigation","everyGuideActionFitsAboveTheDockAndContinuesToTheCorrectTab","NavigationTourTest")
     (out/"result.json").write_text(json.dumps({"commit":os.environ["GITHUB_SHA"],"candidate_sha256":digest(args.candidate.read_bytes()),
-        "version_code":60,"card_design":"jersey-first","legacy_avatar_pixel_matrix":"retired","direct_upgrades":[56,58,59],"status":"passed"},indent=2))
+        "version_code":60,"card_design":"athlete-first","card_front_back_screenshots":8,
+        "pose_edition_front_screenshots":20,"welcome_animation_frames_portrait":8,
+        "welcome_animation_frames_landscape":8,
+        "reduced_motion_entry":True,"direct_upgrades":[56,58,59],"status":"passed"},indent=2))
 if __name__=="__main__":main()

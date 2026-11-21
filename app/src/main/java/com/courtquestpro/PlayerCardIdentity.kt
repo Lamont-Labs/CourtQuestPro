@@ -7,10 +7,10 @@ import androidx.compose.runtime.setValue
 
 /** Cosmetic identity only; deliberately independent of training and award state. */
 internal enum class PlayerCardStyle(val label: String, val edition: String) {
-    HOLOGRAPHIC("Holographic Elite", "PRISM / ELITE"),
-    CLASSIC("Court Legends", "HERITAGE COLLECTION"),
-    BATTLE("Battle Series", "BUILT FOR THE COURT"),
-    OBSIDIAN("Obsidian Chrome","PRECISION / CHROME")
+    HOLOGRAPHIC("CourtQuest Chrome", "CHROME REFRACTOR"),
+    CLASSIC("CourtQuest Rookie", "ROOKIE COLLECTION"),
+    BATTLE("CourtQuest Signature", "SIGNATURE SERIES"),
+    OBSIDIAN("Obsidian Chrome", "OBSIDIAN CHROME")
 }
 
 internal enum class PlayerCardPose(val label: String) {
@@ -39,7 +39,7 @@ internal data class PlayerCardIdentity(
 
 internal object PlayerCardSelection {
     private const val PREFS = "courtquest_player_card"
-    // Keep the existing edition key: previously saved Court Classic becomes Court Legends.
+    // Keep the existing persisted enum key so saved editions map to the new names.
     private const val STYLE = "selected_style_v1"
     private const val POSE = "selected_pose_v2"
     private const val FACE = "selected_face_v2"

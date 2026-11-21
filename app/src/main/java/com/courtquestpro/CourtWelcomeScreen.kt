@@ -18,26 +18,37 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.math.PI
-import kotlin.math.sin
+import kotlin.math.roundToInt
 
 /**
  * The welcome shot is deliberately a deterministic animation rather than a physics game.
@@ -75,7 +86,10 @@ internal fun CourtWelcomeScreen(
         if (entering) return
         entering = true
         scope.launch {
-            if (!reducedMotion) progress.animateTo(1f, tween(1320, easing = LinearEasing))
+            if (!reducedMotion) {
+                progress.animateTo(1f, tween(1320, easing = LinearEasing))
+                delay(100)
+            }
             onGetStarted()
         }
     }
@@ -98,8 +112,13 @@ internal fun CourtWelcomeScreen(
                 contentScale = ContentScale.Fit
             )
             Spacer(Modifier.weight(if (landscape) .15f else .5f))
+            var stageSize by remember { mutableStateOf(IntSize.Zero) }
+            var measuredBoard by remember { mutableStateOf(WelcomeShotRect(0f, 0f, 0f, 0f)) }
+            val density = LocalDensity.current
+            val boardArt = remember { ImageBitmap.imageResource(R.drawable.cq_welcome_backboard_rim) }
             BoxWithConstraints(
                 Modifier.fillMaxWidth().weight(if (landscape) 3.2f else 2.5f)
+                    .onSizeChanged { stageSize = it }
                     .semantics {
                         contentDescription = "Photorealistic basketball. Swipe upward or activate to shoot and enter CourtQuest."
                         role = Role.Button
@@ -125,109 +144,117 @@ internal fun CourtWelcomeScreen(
                 contentAlignment = Alignment.Center
             ) {
                 val p = progress.value
-                // Coordinate the shot with the actual backboard geometry. The ball
-                // first rises above the rim, then drops through the hoop opening.
-                val approach = (p / .58f).coerceIn(0f, 1f)
-                val descent = ((p - .58f) / .42f).coerceIn(0f, 1f)
                 val hoopWidth = minOf(maxWidth * .96f, maxHeight * .56f * 1.607f)
                 val boardHeight = hoopWidth / 1.607f
                 val boardTop = maxHeight * .035f
-                val rimY = boardTop + boardHeight * .69f
-                val rimFraction = rimY / maxHeight
-                val peakY = rimFraction - .16f
-                val ballY = if (p < .58f) {
-                    .73f + (peakY - .73f) * (1f - (1f - approach) * (1f - approach))
-                } else {
-                    peakY + (rimFraction + .25f - peakY) * (descent * descent)
-                }
-                val ballScale = if (p < .58f) 1f - .74f * approach
-                    else .26f - .08f * descent
-                val hoopReveal = ((p - .04f) / .42f).coerceIn(0f, 1f)
-                val netProgress = ((p - .64f) / .36f).coerceIn(0f, 1f)
-                val netPulse = if (netProgress > 0f) {
-                    sin(netProgress.toDouble() * PI * 4.0).toFloat() * (1f - netProgress)
-                } else 0f
-                val density = androidx.compose.ui.platform.LocalDensity.current
-                val stageHeightPx = with(density) { maxHeight.toPx() }
-                val stageWidthPx = with(density) { maxWidth.toPx() }
+                val stageHeightPx = stageSize.height.takeIf { it > 0 }?.toFloat()
+                    ?: with(density) { maxHeight.toPx() }
+                val stageWidthPx = stageSize.width.takeIf { it > 0 }?.toFloat()
+                    ?: with(density) { maxWidth.toPx() }
+                val boardWidthPx = with(density) { hoopWidth.toPx() }
+                val boardHeightPx = with(density) { boardHeight.toPx() }
+                val boardTopPx = with(density) { boardTop.toPx() }
+                val board = measuredBoard.takeIf { it.width > 0f && it.height > 0f }
+                    ?: WelcomeShotRect((stageWidthPx - boardWidthPx) * .5f, boardTopPx, boardWidthPx, boardHeightPx)
                 val ballSize = minOf(maxWidth * .63f, maxHeight * .54f)
+                val ballSizePx = with(density) { ballSize.toPx() }
+                val netWidth = hoopWidth * .31f
+                val netHeight = netWidth * 1.10f
+                val netHeightPx = with(density) { netHeight.toPx() }
+                val frame = WelcomeShotGeometry.frame(
+                    p, WelcomeShotLayout(stageWidthPx, stageHeightPx, board, ballSizePx, netHeightPx)
+                )
                 Canvas(Modifier.fillMaxSize()) {
                     val w = size.width
-                    val h = size.height
-                    val stageLight = .18f + hoopReveal * .5f
+                    val stageLight = .14f + frame.hoopReveal * .48f
                     drawCircle(
                         Brush.radialGradient(
                             listOf(Color(0xFFFF6A18).copy(alpha = stageLight), Color.Transparent),
-                            center = Offset(w * .5f, h * .34f),
+                            center = Offset(frame.rimCenterX, frame.rimCenterY),
                             radius = w * .72f
                         ),
                         radius = w * .72f,
-                        center = Offset(w * .5f, h * .34f)
+                        center = Offset(frame.rimCenterX, frame.rimCenterY)
                     )
-                    val floorY = h * .82f
                     drawLine(
-                        Color(0xFFFF6A18).copy(alpha = .14f + hoopReveal * .16f),
-                        Offset(w * .04f, floorY), Offset(w * .96f, floorY), 1.5.dp.toPx()
+                        Color(0xFFFF6A18).copy(alpha = .14f + frame.hoopReveal * .16f),
+                        Offset(w * .04f, frame.floorY), Offset(w * .96f, frame.floorY), 1.5.dp.toPx()
                     )
                     drawOval(
-                        Brush.radialGradient(listOf(Color.Black.copy(alpha = .72f), Color.Transparent)),
-                        topLeft = Offset(w * (.5f - .24f * ballScale), floorY - h * .025f),
-                        size = Size(w * .48f * ballScale, h * .045f)
+                        Brush.radialGradient(listOf(Color.Black.copy(alpha = frame.shadowAlpha), Color.Transparent)),
+                        topLeft = Offset(frame.ballCenterX - ballSizePx * .27f * frame.shadowScale,
+                            frame.floorY - ballSizePx * .035f),
+                        size = Size(ballSizePx * .54f * frame.shadowScale, ballSizePx * .07f)
                     )
-                    if (hoopReveal > 0f) {
-                        drawCircle(
-                            Color(0xFFFF5B0A).copy(alpha = hoopReveal * .32f),
-                            radius = w * (.17f + hoopReveal * .08f),
-                            center = Offset(w * .5f, h * .29f),
-                            style = Stroke(w * .006f)
-                        )
-                    }
+                    drawCircle(Color(0xFFFF5B0A).copy(alpha = frame.hoopReveal * .28f),
+                        radius = frame.rimOpeningWidthPx * .72f,
+                        center = Offset(frame.rimCenterX, frame.rimCenterY), style = Stroke(w * .006f))
                 }
                 Image(
                     painter = painterResource(R.drawable.cq_welcome_backboard_rim),
                     contentDescription = null,
                     modifier = Modifier.align(Alignment.TopCenter).width(hoopWidth).height(boardHeight)
                         .offset(y = boardTop)
-                        .graphicsLayer {
-                            alpha = hoopReveal
-                            translationY = (1f - hoopReveal) * -24.dp.toPx()
-                        },
+                        .onGloballyPositioned { coordinates ->
+                            val position = coordinates.positionInParent()
+                            measuredBoard = WelcomeShotRect(
+                                position.x, position.y,
+                                coordinates.size.width.toFloat(), coordinates.size.height.toFloat()
+                            )
+                        }
+                        .graphicsLayer { alpha = frame.hoopReveal },
                     contentScale = ContentScale.FillBounds
                 )
-                val netWidth = hoopWidth * .33f
-                // The ball must travel behind the foreground net, then disappear below
-                // the rim. The previous draw order left it visibly sitting on the net.
-                val ballExit = ((p - .91f) / .09f).coerceIn(0f, 1f)
-                Image(
-                    painter = painterResource(R.drawable.cq_welcome_ball),
-                    contentDescription = null,
-                    modifier = Modifier.align(Alignment.Center).size(ballSize)
-                        .graphicsLayer {
-                            translationY = (ballY - .5f) * stageHeightPx
-                            translationX = sin(p.toDouble() * PI * 1.15).toFloat() * stageWidthPx * .035f
-                            scaleX = ballScale
-                            scaleY = ballScale
-                            alpha = 1f - ballExit
-                            rotationZ = idleRotation + p * 630f
-                        },
-                    contentScale = ContentScale.Fit
-                )
-                // Draw the net in front only during the scoring phase; this supplies
-                // correct occlusion without covering the ball while it approaches.
+                if (frame.behindNet) {
+                    WelcomeShotBall(frame, p, idleRotation, ballSize, stageWidthPx, stageHeightPx)
+                }
+                val netTopPx = frame.rimCenterY - netHeightPx * .02f
+                val netProgress = ((p - .67f) / .20f).coerceIn(0f, 1f)
                 Image(
                     painter = painterResource(R.drawable.cq_welcome_net),
                     contentDescription = null,
                     modifier = Modifier.align(Alignment.TopCenter)
-                        .width(netWidth).height(netWidth * 1.10f)
-                        .offset(y = boardTop + boardHeight * .67f)
+                        .width(netWidth).height(netHeight)
+                        .offset(y = with(density) { netTopPx.toDp() })
                         .graphicsLayer {
-                            alpha = hoopReveal * ((p - .60f) / .18f).coerceIn(0f, 1f)
-                            scaleY = 1f + netPulse * .20f
-                            translationY = netProgress * stageHeightPx * .012f
+                            alpha = frame.hoopReveal * if (frame.behindNet) 1f else ((p - .50f) / .17f).coerceIn(0f, 1f)
+                            scaleY = frame.netScaleY
+                            translationY = frame.netTranslationY
                             transformOrigin = TransformOrigin(.5f, 0f)
                         },
                     contentScale = ContentScale.FillBounds
                 )
+                if (!frame.behindNet) {
+                    WelcomeShotBall(frame, p, idleRotation, ballSize, stageWidthPx, stageHeightPx)
+                }
+                Canvas(
+                    Modifier.align(Alignment.TopCenter).width(hoopWidth).height(boardHeight)
+                        .offset(y = boardTop).graphicsLayer { alpha = frame.hoopReveal }
+                        .testTag("welcome-front-rim-overlay")
+                ) {
+                    val frontArc = Path().apply {
+                        moveTo(size.width * .342f, size.height * .709f)
+                        cubicTo(size.width * .355f, size.height * .744f, size.width * .420f, size.height * .771f,
+                            size.width * .500f, size.height * .782f)
+                        cubicTo(size.width * .580f, size.height * .771f, size.width * .645f, size.height * .744f,
+                            size.width * .660f, size.height * .709f)
+                        lineTo(size.width * .661f, size.height * .750f)
+                        cubicTo(size.width * .635f, size.height * .778f, size.width * .575f, size.height * .797f,
+                            size.width * .500f, size.height * .802f)
+                        cubicTo(size.width * .425f, size.height * .797f, size.width * .365f, size.height * .778f,
+                            size.width * .341f, size.height * .750f)
+                        close()
+                    }
+                    clipPath(frontArc) {
+                        drawImage(
+                            image = boardArt,
+                            srcOffset = IntOffset.Zero,
+                            srcSize = IntSize(boardArt.width, boardArt.height),
+                            dstOffset = IntOffset.Zero,
+                            dstSize = IntSize(size.width.roundToInt(), size.height.roundToInt())
+                        )
+                    }
+                }
                 if (!entering) {
                     Text(
                         if (touchExploration) "TAP THE BALL TO ENTER" else "SWIPE TO ENTER",
@@ -249,4 +276,30 @@ internal fun CourtWelcomeScreen(
             }
         }
     }
+}
+
+@Composable
+private fun BoxScope.WelcomeShotBall(
+    frame: WelcomeShotFrame,
+    progress: Float,
+    idleRotation: Float,
+    ballSize: androidx.compose.ui.unit.Dp,
+    stageWidthPx: Float,
+    stageHeightPx: Float
+) {
+    Image(
+        painter = painterResource(R.drawable.cq_welcome_ball),
+        contentDescription = null,
+        modifier = Modifier.align(Alignment.Center).size(ballSize)
+            .semantics { stateDescription = "Shot progress ${(progress * 100).roundToInt()} percent" }
+            .graphicsLayer {
+                translationX = frame.ballCenterX - stageWidthPx * .5f
+                translationY = frame.ballCenterY - stageHeightPx * .5f
+                scaleX = frame.ballScale
+                scaleY = frame.ballScale
+                alpha = frame.ballAlpha
+                rotationZ = idleRotation + progress * 720f
+            }.testTag("welcome-shot-ball"),
+        contentScale = ContentScale.Fit
+    )
 }
