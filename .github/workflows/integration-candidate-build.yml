@@ -40,7 +40,11 @@ jobs:
             echo "ready=true" >> "$GITHUB_OUTPUT"
           fi
           echo "Avatar-related source references (candidate only):" >> merge-status.txt
-          git grep -n -i 'avatar' -- app/src/main/java/com/courtquestpro || true
+          git grep -n -i 'avatar' -- app/src/main/java/com/courtquestpro >> merge-status.txt || true
+          echo "Avatar-specific Kotlin files:" >> merge-status.txt
+          git ls-files 'app/src/main/java/com/courtquestpro/*Avatar*.kt' >> merge-status.txt
+          echo "Merged candidate source counts:" >> merge-status.txt
+          git ls-files 'app/src/main/java/com/courtquestpro/*.kt' | wc -l >> merge-status.txt
       - name: Setup JDK
         if: steps.merge.outputs.ready == 'true'
         uses: actions/setup-java@v4
@@ -59,7 +63,12 @@ jobs:
         shell: bash
         run: |
           chmod +x ./gradlew
-          ./gradlew :app:compileDebugKotlin --stacktrace --no-daemon 2>&1 | tee candidate-build.log
+          set -o pipefail
+          ./gradlew :app:testDebugUnitTest :app:assembleDebug --stacktrace --no-daemon 2>&1 | tee candidate-build.log
+          echo "APK output metadata:" | tee -a merge-status.txt
+          find app/build/outputs/apk/debug -maxdepth 2 -type f -name '*.json' -exec cat {} \\; >> merge-status.txt
+          echo "APK SHA-256:" | tee -a merge-status.txt
+          sha256sum app/build/outputs/apk/debug/*.apk | tee -a merge-status.txt
       - name: Upload merge and compilation evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -68,5 +77,6 @@ jobs:
           path: |
             merge-status.txt
             candidate-build.log
+            app/build/outputs/apk/debug/*.apk
           if-no-files-found: warn
           retention-days: 14
