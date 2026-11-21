@@ -57,9 +57,9 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
         if (saving) return
         saving=true
         scope.launch {
-            val success=withContext(Dispatchers.IO) { PlayerCardSelection.write(context,identity) }
+            val success=withContext(Dispatchers.IO) { PlayerCardSelection.persist(context,identity) }
             saving=false
-            if (success) onBack() else error=true
+            if (success) { PlayerCardSelection.notifySaved();onBack() } else error=true
         }
     }
     fun resetCategory() {
@@ -104,7 +104,7 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
                         modifier=Modifier.testTag("card-unsaved"))
                 }
                 TextButton({commit()},enabled=!saving,modifier=Modifier.heightIn(min=48.dp).testTag("player-card-save")) {
-                    Text(if(saving)"Saving…" else "Save")
+                    Text(if(saving)"Saving…" else "Save",modifier=Modifier.testTag(if(saving)"player-card-saving" else "player-card-save-label"))
                 }
                 Box {
                     IconButton({menu=true},Modifier.testTag("card-menu")) {
@@ -183,7 +183,7 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
                 inspector(Modifier.fillMaxWidth().weight(1f))
             }
             if(error) Text("Save failed. Your edits are still here.",color=MaterialTheme.colorScheme.error,
-                modifier=Modifier.semantics{liveRegion=LiveRegionMode.Polite})
+                modifier=Modifier.semantics{liveRegion=LiveRegionMode.Polite}.testTag("player-card-save-error"))
         }
     }
 }

@@ -60,12 +60,20 @@ internal object PlayerCardSelection {
 
     /** One atomic synchronous transaction; callers exit only after disk confirms the save. */
     fun write(context: Context, identity: PlayerCardIdentity): Boolean {
+        val persisted = persist(context, identity)
+        if (persisted) notifySaved()
+        return persisted
+    }
+
+    /** Disk-only transaction for callers already moving work off the main thread. */
+    fun persist(context: Context, identity: PlayerCardIdentity): Boolean {
         val edit = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
             .putString(STYLE, identity.style.name).putString(POSE, identity.pose.name)
             .putString(FACE, identity.face.name)
         AvatarAppearance.keys.zip(identity.avatar.values).forEach { (key,value) -> edit.putString("avatar_${key}_v3",value) }
-        val persisted = edit.commit()
-        if (persisted) revision++
-        return persisted
+        return edit.commit()
     }
+
+    /** Refresh Compose readers on their main-thread caller after a successful disk write. */
+    fun notifySaved() { revision++ }
 }

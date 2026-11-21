@@ -19,7 +19,21 @@ class PlayerCardStudioTest {
     @get:Rule val compose=createAndroidComposeRule<MainActivity>()
     private fun node(tag:String)=compose.onNodeWithTag(tag,useUnmergedTree=true)
     private fun has(tag:String)=compose.onAllNodesWithTag(tag,useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()
-    private fun wait(tag:String)=compose.waitUntil(20_000){has(tag)}
+    private fun wait(tag:String) {
+        try { compose.waitUntil(20_000){has(tag)} }
+        catch (timeout:androidx.compose.ui.test.ComposeTimeoutException) {
+            val tags=listOf("me-player-card-studio","player-card-studio-screen","dock-me","player-card-saving",
+                "player-card-save-error","welcome-get-started").filter { runCatching{has(it)}.getOrDefault(false) }
+            val dir=File(compose.activity.filesDir,"player-card-proof").apply{mkdirs()}
+            File(dir,"wait-timeout-$tag.txt").writeText("expected=$tag\nvisibleTags=$tags")
+            runCatching {
+                val image=InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
+                File(dir,"wait-timeout-$tag.png").outputStream().use{image.compress(Bitmap.CompressFormat.PNG,100,it)}
+                image.recycle()
+            }
+            throw AssertionError("Timed out waiting for $tag; visible tags: $tags",timeout)
+        }
+    }
     private fun studioTitleDisplayed() = listOf("Card Studio","Studio").any { title ->
         try { compose.onNodeWithText(title,useUnmergedTree=true).assertIsDisplayed(); true }
         catch (_:AssertionError) { false }
@@ -256,7 +270,9 @@ class PlayerCardStudioTest {
         val before=Gson().toJson(stored())
         assertFalse(compose.activity.getSharedPreferences("courtquest_player_card",0).contains("avatar_footwear_v3"))
         assertEquals(legacyIdentity,PlayerCardSelection.identity(compose.activity))
-        assertTrue(PlayerCardSelection.write(compose.activity,legacyIdentity))
+        var persisted=false
+        compose.runOnUiThread { persisted=PlayerCardSelection.write(compose.activity,legacyIdentity) }
+        assertTrue(persisted)
         assertEquals(before,Gson().toJson(stored()))
         compose.activityRule.scenario.recreate()
         assertEquals(legacyIdentity,PlayerCardSelection.identity(compose.activity))
