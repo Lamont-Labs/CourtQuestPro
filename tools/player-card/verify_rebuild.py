@@ -45,6 +45,13 @@ def native(folder,method,cls="CardStudioRebuildTest",pose=None):
             (folder/"timeout-screen.png").write_bytes(ui.adb("exec-out","screencap","-p",timeout=12))
         except Exception as screenshot_error:
             (folder/"timeout-screen.error.txt").write_text(str(screenshot_error))
+        # Surface the last test checkpoint in the Actions console, not only in ZIP evidence.
+        log_file=folder/"logcat.txt"
+        if log_file.exists():
+            checkpoints=[line for line in log_file.read_text(errors="replace").splitlines()
+                         if "CQ_ACCESS_STAGE" in line or "CQ_CARD_RESTORE_STAGE" in line]
+            print("Last Android test checkpoints:",flush=True)
+            print("\\n".join(checkpoints[-25:]) or "(none recorded)",flush=True)
         raise AssertionError(f"Android instrumentation stalled: {cls}#{method}; diagnostics in {folder}") from exc
     (folder/f"{method}.txt").write_text(output)
     from tarfile import open as taropen
