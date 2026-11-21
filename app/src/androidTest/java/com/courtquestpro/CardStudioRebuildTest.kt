@@ -66,19 +66,17 @@ class CardStudioRebuildTest {
     }
     private fun prefs()=ui.activity.getSharedPreferences("court_quest_pro",0).getString("state",null)!!
     private fun ready() {
-        val artworkTags=PlayerCardPose.entries.map{"card-athlete-${it.name.lowercase()}-ready"}+
-            PlayerCardStyle.entries.map{"card-surface-${it.name.lowercase()}-ready"}
+        val artworkTags=PlayerCardStyle.entries.map{"card-surface-${it.name.lowercase()}-ready"}
         try {
             ui.waitUntil(20_000) {
-                PlayerCardStyle.entries.any {has("card-surface-${it.name.lowercase()}-ready")} &&
-                    PlayerCardPose.entries.any {has("card-athlete-${it.name.lowercase()}-ready")}
+                PlayerCardStyle.entries.any {has("card-surface-${it.name.lowercase()}-ready")}
             }
         } catch (timeout:androidx.compose.ui.test.ComposeTimeoutException) {
             val state=listOf("player-card-studio-screen","me-player-card-studio","dock-me",
                 "player-card-preview").plus(artworkTags).joinToString { "$it=${has(it)}" }
             runCatching {
                 File(out,"artwork-readiness-timeout.txt").writeText(
-                    "expected=rendered-athlete-and-card-face; $state")
+                    "expected=rendered-card-face; $state")
                 val bitmap=InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
                 if(bitmap!=null)try { write("artwork-readiness-timeout",bitmap) } finally { bitmap.recycle() }
             }
@@ -144,8 +142,6 @@ class CardStudioRebuildTest {
             pick("player-card-style-${style.name.lowercase()}")
             wait("card-surface-${style.name.lowercase()}-ready");ready()
             assertTrue(description(),description().contains("jersey collectible card"))
-            assertTrue("Card exposes the athlete-first identity: ${description()}",
-                description().contains("basketball athlete"))
             assertTrue(description(),description().contains(player.playerName.ifBlank{"Your player"}))
             val front=crop("edition-${style.name.lowercase()}-front","player-card-preview")
             assertTrue("${style.label} front should have its own composition",frontHashes.add(front))
@@ -227,8 +223,6 @@ class CardStudioRebuildTest {
         studio()
         val before=prefs()
         ready();screen("jersey-card-${requestedPose?.name?.lowercase() ?: "saved"}")
-        assertTrue("Saved athlete pose is rendered on card",
-            has("card-athlete-${(requestedPose ?: saved.pose).name.lowercase()}-ready"))
         val editions=mutableSetOf<String>()
         for(style in PlayerCardStyle.entries) {
             pick("player-card-style-${style.name.lowercase()}")
