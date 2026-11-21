@@ -126,6 +126,19 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
                     }
                 }
             }
+            // Keep both editors discoverable without hiding Uniform behind an overflow menu.
+            Row(Modifier.fillMaxWidth().padding(bottom=4.dp),
+                horizontalArrangement=Arrangement.spacedBy(8.dp),
+                verticalAlignment=Alignment.CenterVertically) {
+                Button(onClick={},enabled=false,modifier=Modifier.weight(1f)
+                    .heightIn(min=44.dp).testTag("unified-card-selected")) {
+                    Text("CARD")
+                }
+                OutlinedButton(onClick={editingUniform=true},modifier=Modifier.weight(1f)
+                    .heightIn(min=44.dp).testTag("unified-uniform-open")) {
+                    Text("UNIFORM")
+                }
+            }
             val preview:@Composable (Modifier)->Unit={ mod ->
                 BoxWithConstraints(mod,contentAlignment=Alignment.Center) {
                     val width=minOf(maxWidth,maxHeight*.69f)
