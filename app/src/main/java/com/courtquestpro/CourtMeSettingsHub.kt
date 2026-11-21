@@ -1,4 +1,5 @@
 package com.courtquestpro
+import androidx.activity.compose.BackHandler
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -30,6 +31,7 @@ internal fun CourtMeSettingsHub(
 ) {
     var pageName by rememberSaveable { mutableStateOf(MeSettingsPage.HOME.name) }
     val page = MeSettingsPage.entries.firstOrNull { it.name == pageName } ?: MeSettingsPage.HOME
+    BackHandler(enabled=page!=MeSettingsPage.HOME) {pageName=MeSettingsPage.HOME.name}
     CourtQuestPremiumSurface(Modifier.fillMaxWidth().testTag("me-settings-hub"), PaddingValues(18.dp), highlighted = true) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (page != MeSettingsPage.HOME) {

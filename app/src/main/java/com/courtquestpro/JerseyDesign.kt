@@ -11,7 +11,7 @@ enum class JerseyTemplate(val label: String, val detail: String) {
 }
 
 enum class ChestBrand(val label: String) {
-    COURTQUEST("COURTQUEST"), CUSTOM("Custom team name"), NONE("No text")
+    COURTQUEST("COURTQUEST"), CUSTOM("Custom chest text"), NONE("No text")
 }
 
 enum class JerseyPart(val label: String) {

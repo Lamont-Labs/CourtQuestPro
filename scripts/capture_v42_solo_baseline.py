@@ -19,17 +19,16 @@ def bounds(node):
     return list(map(int, re.findall(r'-?\d+', node.get('bounds', ''))))
 
 def enter_court():
-    # v41 opens a welcome on every cold launch, even after fixture seeding.
-    # The released APK predates the separate guest CTA in canonical source.
-    target = ui.tagged(ui.nodes(), 'welcome-get-started')
-    ui.tap(target if target is not None else ui.scroll_to('ENTER COURT', 18))
+    # The current welcome uses the basketball itself as the accessible entry action.
+    target = ui.tagged(ui.nodes(), 'welcome-swipe-ball')
+    ui.tap(target if target is not None else ui.scroll_to('SWIPE TO ENTER', 18))
     try:
         return ui.wait_tagged('player-bottom-dock', attempts=4)
     except AssertionError:
         items = ui.nodes()
         if ui.tagged(items, 'player-bottom-dock') is not None:
             return ui.tagged(items, 'player-bottom-dock')
-        retry = ui.tagged(items, 'welcome-get-started')
+        retry = ui.tagged(items, 'welcome-swipe-ball')
         assert retry is not None and retry.get('clickable') == 'true' and retry.get('enabled') == 'true', (
             'Welcome changed without opening the player dock; refusing to replay navigation'
         )
@@ -207,6 +206,9 @@ def verify_candidate(config):
         assert len({b[1] for b in rail}) == 1, 'Train selector unexpectedly stacked'
     ui.tap(ui.wait_tagged('segment-library'))
     ui.wait_tagged('library-search')
+    # Library categories start collapsed; expand Shooting before asserting
+    # the first drill row. The previous script assumed all rows were mounted.
+    ui.tap(scroll_to_tag('library-category-Shooting'))
     if config == 'normal':
         first = bounds(ui.wait_tagged('library-drill-s1'))
         dock = bounds(ui.wait_tagged('player-bottom-dock'))
@@ -236,7 +238,9 @@ def verify_candidate(config):
     capture('resumed-drill')
     ui.shell('input','keyevent','KEYCODE_BACK')
     ui.navigate('Train')
-    ui.tap(ui.wait_tagged('segment-custom'))
+    # On compact screens the Custom tab can be outside the initial viewport.
+    # Locate it through the same scroll-aware helper used for drill rows.
+    ui.tap(scroll_to_tag('segment-custom'))
     ui.tap(ui.scroll_to('Create custom drill', 18))
     ui.wait_tagged('custom-title')
     capture('custom-drill-editor')

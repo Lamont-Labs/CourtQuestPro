@@ -57,7 +57,12 @@ private val swatches = listOf("Onyx" to 0xFF141519, "White" to 0xFFFFFFFF, "Stee
     "Forest" to 0xFF176B46, "Teal" to 0xFF14A898, "Purple" to 0xFF794CCB)
 
 @Composable
-internal fun CourtJerseyStudio(saved: PlayerJersey, onSave: (String, String, JerseyDesign) -> Boolean, onBack: () -> Unit) {
+internal fun CourtJerseyStudio(
+    saved: PlayerJersey,
+    onSave: (String, String, JerseyDesign) -> Boolean,
+    onBack: () -> Unit,
+    showCardStudioTabs: Boolean = false
+) {
     val context = LocalContext.current
     // The Studio owns its scrollable inspector. Let the keyboard resize it without panning the entire window.
     DisposableEffect(context) {
@@ -141,6 +146,13 @@ internal fun CourtJerseyStudio(saved: PlayerJersey, onSave: (String, String, Jer
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = CourtQuestDesign.accentVivid, contentColor = Color.Black)) { Text(saveLabel) }
             }
+            if (showCardStudioTabs) {
+                CardStudioWorkflowTabs(
+                    selected="UNIFORM",
+                    onSelect={ tab -> if(tab=="CARD") close() },
+                    modifier=Modifier.fillMaxWidth().padding(bottom=8.dp)
+                )
+            }
             val stage: @Composable (Modifier) -> Unit = { mod ->
                 StudioStage(preview, view, zoom, mod, onView = { view = it }, onZoom = { zoom = !zoom })
             }
@@ -180,7 +192,7 @@ internal fun CourtJerseyStudio(saved: PlayerJersey, onSave: (String, String, Jer
                                         })
                                     if (design.branding == ChestBrand.CUSTOM) OutlinedTextField(design.teamName.orEmpty(), {
                                         design = design.copy(teamName = it.take(32)); view = JerseyView.FRONT; savedNotice = false
-                                    }, Modifier.fillMaxWidth().testTag("jersey-team"), label = { Text("Team name") }, singleLine = true,
+                                    }, Modifier.fillMaxWidth().testTag("jersey-team"), label = { Text("Custom chest text") }, singleLine = true,
                                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Done))
                                 }
                                 StudioTool.COLORS -> {

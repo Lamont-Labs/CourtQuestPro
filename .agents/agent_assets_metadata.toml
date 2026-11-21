@@ -210,3 +210,59 @@ mtime_ms = 1794954753914
 storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/64d0f645-372a-4977-9565-e58b78ff4646/733dd2d2-80f4-4855-b216-9f7190e0031e"
 storage_version_token = "1794954787905666"
 content_type = "image/png"
+
+[[outputs]]
+id = "fqMOw6fgByb9Ffkw-Zhep"
+uri = "file://generated-artifacts/player-card-v2/native-before-after.png"
+type = "image"
+title = "Native profile: before and after"
+description = "Actual Android emulator captures from the verified baseline and final pushed Player Card V2 build. QA fixture data; screenshots only resized and arranged."
+logical_id = "68d261a7-34a5-4a29-9ea6-9af6b9749bda"
+content_hash = "sha256:f2227409b63c5a20d7789af86fe27430a24c28de9c4d81612690d74c9a97bc2b"
+size = 342223
+mtime_ms = 1795125188203
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/68d261a7-34a5-4a29-9ea6-9af6b9749bda/7506fe44-7784-4a1c-9e90-b3368475297a"
+storage_version_token = "1795125213682419"
+content_type = "image/png"
+
+[[outputs]]
+id = "6A38bYYDXvpe-b_9C_ZvX"
+uri = "file://generated-artifacts/player-card-v2/native-card-editions.png"
+type = "image"
+title = "Three verified native card editions"
+description = "Holographic Elite, Court Legends and Battle Series from the final Android emulator run, showing the three athlete poses and anonymous face treatments."
+logical_id = "a0364700-beb5-444e-9ebf-da5a3dd8fd78"
+content_hash = "sha256:69f169aee81dc75f2bf460e226368ba65db6cc12bd521bbc464911488df33234"
+size = 353188
+mtime_ms = 1795125189075
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/a0364700-beb5-444e-9ebf-da5a3dd8fd78/e2aa3745-18b4-4dea-b047-1086ee508a0b"
+storage_version_token = "1795125214210759"
+content_type = "image/png"
+
+[[outputs]]
+id = "cixGgfq90TJZH6qbQ_3F3"
+uri = "file://generated-artifacts/player-card-v3/cards-before-after.png"
+type = "image"
+title = "Cards: previous versus rebuilt"
+description = "Actual Android emulator captures comparing the previous V2 frames with the rebuilt foil, heritage basketball and black/orange metal cards. Identical QA identity; images only resized and arranged."
+logical_id = "be4189c2-6d5c-45e6-aca8-1e3d39d5e888"
+content_hash = "sha256:f25b00228e5ce1a3a4a09ffaa96ea95d197978e8d2574436cd79b39ffb3aefed"
+size = 900721
+mtime_ms = 1795129395372
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/be4189c2-6d5c-45e6-aca8-1e3d39d5e888/cb607fb7-7ce8-4efd-bf79-c62dced0867a"
+storage_version_token = "1795129444076362"
+content_type = "image/png"
+
+[[outputs]]
+id = "Bk3irOF8PgmncvAVwLOg2"
+uri = "file://generated-artifacts/player-card-v3/avatar-customization.png"
+type = "image"
+title = "Native avatar customization"
+description = "Final verified Android captures showing hair/headwear, build/skin controls, shoe detail inspection and pinned controls at 200% text. Synthetic QA player data."
+logical_id = "18946ed9-93ea-4e2d-b17d-1659a18571d2"
+content_hash = "sha256:42608226ccb4a2733e57d645757cba81ce67e3d685605989c5047ec3c1780c87"
+size = 570465
+mtime_ms = 1795129395900
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:7ce023b6-dc8e-4694-b6d1-39cc4505ed11/18946ed9-93ea-4e2d-b17d-1659a18571d2/7b894404-b394-48b1-bfa3-7cc7c60fd253"
+storage_version_token = "1795129444582822"
+content_type = "image/png"
