@@ -104,6 +104,19 @@ internal fun CourtPlayerCard(
                     }
                     drawLine(metal.copy(alpha=.76f),Offset(w*.075f,h*.116f),
                         Offset(w*.925f,h*.116f),w*.0025f)
+                    // Trading-card issue marker, set apart from the athlete's jersey number.
+                    val issueFill=Color(0xD9081018)
+                    drawRoundRect(issueFill,topLeft=Offset(w*.073f,h*.746f),
+                        size=Size(w*.255f,h*.067f),
+                        cornerRadius=androidx.compose.ui.geometry.CornerRadius(w*.013f))
+                    drawRoundRect(metal.copy(alpha=.78f),topLeft=Offset(w*.073f,h*.746f),
+                        size=Size(w*.255f,h*.067f),
+                        cornerRadius=androidx.compose.ui.geometry.CornerRadius(w*.013f),
+                        style=Stroke(width=w*.0025f))
+                    drawContext.canvas.nativeCanvas.apply {
+                        printLine("CQ  /  PLAYER",w*.201f,h*.789f,w*.027f,w*.22f,
+                            metal,body,Paint.Align.CENTER)
+                    }
                 }
                 val placement=style.heroPlacement
                 CourtJerseyArtwork(
