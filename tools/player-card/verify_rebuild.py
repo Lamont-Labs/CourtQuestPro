@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import re
 import sys
+import subprocess
 import time
 from xml.etree import ElementTree as ET
 
@@ -21,7 +22,30 @@ def native(folder,method,cls="CardStudioRebuildTest",pose=None):
     args=["am","instrument","-w","-r","-e","class",f"{ui.PACKAGE}.{cls}#{method}"]
     if pose:args.extend(["-e","pose",pose.upper()])
     print(f"Android: {cls}#{method}" + (f" ({pose})" if pose else ""),flush=True)
-    output=ui.shell(*args,f"{ui.PACKAGE}.test/androidx.test.runner.AndroidJUnitRunner",timeout=700)
+    try:
+        output=ui.shell(*args,f"{ui.PACKAGE}.test/androidx.test.runner.AndroidJUnitRunner",timeout=120)
+    except subprocess.TimeoutExpired as exc:
+        # Preserve failure evidence instead of burning 700 seconds and losing the hang context.
+        (folder/"instrumentation-timeout.txt").write_text(
+            f"test={cls}#{method} pose={pose} timeout=120s\\n"
+            f"stdout={exc.stdout!r}\\nstderr={exc.stderr!r}\\n")
+        diagnostics=[
+            ("window.txt",("shell","dumpsys","window")),
+            ("activity.txt",("shell","dumpsys","activity","activities")),
+            ("processes.txt",("shell","ps","-A")),
+            ("logcat.txt",("logcat","-d","-t","1800")),
+            ("hierarchy.xml",("shell","uiautomator","dump","/dev/tty")),
+        ]
+        for filename,command in diagnostics:
+            try:
+                (folder/filename).write_bytes(ui.adb(*command,timeout=12))
+            except Exception as diagnostic_error:
+                (folder/(filename+".error.txt")).write_text(str(diagnostic_error))
+        try:
+            (folder/"timeout-screen.png").write_bytes(ui.adb("exec-out","screencap","-p",timeout=12))
+        except Exception as screenshot_error:
+            (folder/"timeout-screen.error.txt").write_text(str(screenshot_error))
+        raise AssertionError(f"Android instrumentation stalled: {cls}#{method}; diagnostics in {folder}") from exc
     (folder/f"{method}.txt").write_text(output)
     from tarfile import open as taropen
     import io
