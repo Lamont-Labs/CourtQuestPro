@@ -93,7 +93,7 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                             if(wide)Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(18.dp),
                                 verticalAlignment=Alignment.Top) {
                                 CourtPlayerCard(save.playerJersey,save.playerName,identity.style,
-                                    Modifier.width(cardWidth),identity.pose,identity.face,appearance=identity.avatar,record=record)
+                                    Modifier.width(cardWidth),record=record)
                                 Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(10.dp)) {
                                     // Accessible counterpart, not a second avatar/profile presentation.
                                     Text(save.playerName.ifBlank{"Your player"},color=CourtQuestDesign.textPrimary,
@@ -105,8 +105,7 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                                 }
                             } else {
                                 CourtPlayerCard(save.playerJersey, save.playerName, identity.style,
-                                    Modifier.widthIn(max = cardWidth).fillMaxWidth(), identity.pose, identity.face,
-                                    appearance = identity.avatar,record=record)
+                                    Modifier.widthIn(max = cardWidth).fillMaxWidth(),record=record)
                                 CourtQuestPrimaryButton(onPlayerCard, Modifier.fillMaxWidth().testTag("me-player-card-studio")) {
                                     Text("Customize player card")
                                 }

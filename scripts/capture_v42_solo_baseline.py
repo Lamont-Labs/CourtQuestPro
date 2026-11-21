@@ -19,17 +19,16 @@ def bounds(node):
     return list(map(int, re.findall(r'-?\d+', node.get('bounds', ''))))
 
 def enter_court():
-    # v41 opens a welcome on every cold launch, even after fixture seeding.
-    # The released APK predates the separate guest CTA in canonical source.
-    target = ui.tagged(ui.nodes(), 'welcome-get-started')
-    ui.tap(target if target is not None else ui.scroll_to('ENTER COURT', 18))
+    # The current welcome uses the basketball itself as the accessible entry action.
+    target = ui.tagged(ui.nodes(), 'welcome-swipe-ball')
+    ui.tap(target if target is not None else ui.scroll_to('SWIPE TO ENTER', 18))
     try:
         return ui.wait_tagged('player-bottom-dock', attempts=4)
     except AssertionError:
         items = ui.nodes()
         if ui.tagged(items, 'player-bottom-dock') is not None:
             return ui.tagged(items, 'player-bottom-dock')
-        retry = ui.tagged(items, 'welcome-get-started')
+        retry = ui.tagged(items, 'welcome-swipe-ball')
         assert retry is not None and retry.get('clickable') == 'true' and retry.get('enabled') == 'true', (
             'Welcome changed without opening the player dock; refusing to replay navigation'
         )

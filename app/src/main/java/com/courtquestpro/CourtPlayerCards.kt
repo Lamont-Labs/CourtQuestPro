@@ -42,8 +42,7 @@ internal val PlayerCardStyle.metal: Color get() = when (this) {
 @Composable
 internal fun CourtPlayerCard(
     jersey: PlayerJersey, playerName: String, style: PlayerCardStyle, modifier: Modifier = Modifier,
-    pose: PlayerCardPose = PlayerCardPose.STANDING, face: PlayerCardFace = PlayerCardFace.SHADOW,
-    thumbnail: Boolean = false, appearance: AvatarAppearance = AvatarAppearance(), record: PlayerCardRecord? = null
+    thumbnail: Boolean = false, record: PlayerCardRecord? = null
 ) {
     val context = LocalContext.current
     val display = remember(context) { ResourcesCompat.getFont(context, R.font.barlow_condensed_extra_bold) }
@@ -75,7 +74,7 @@ internal fun CourtPlayerCard(
             cameraDistance = 24 * density
         }.clip(frame).background(Color(0xFF090C11)).border(1.dp,style.metal.copy(alpha=.8f),frame)) {
             CardSurface(style)
-            // Keep both faces registered on one plane. Decoded athlete art stays warm through a turn.
+            // Keep both faces registered on one plane and the live saved jersey aligned across editions.
             BoxWithConstraints(Modifier.fillMaxSize().drawWithContent { if (!reverse) drawContent() }) {
                 Canvas(Modifier.fillMaxSize()) {
                     val w=size.width; val h=size.height
@@ -86,7 +85,15 @@ internal fun CourtPlayerCard(
                     drawEditionSpotlight(style)
                 }
                 val placement=style.heroPlacement
-                CourtJerseyArtwork(jersey, Modifier.fillMaxWidth(.94f).fillMaxHeight(.78f).align(Alignment.TopCenter).offset(y=maxHeight*.065f), view=JerseyView.FRONT, compactMark=false)
+                CourtJerseyArtwork(
+                    jersey,
+                    Modifier.width(maxWidth * placement.width).height(maxHeight * placement.height)
+                        .align(Alignment.TopCenter)
+                        .offset(x = maxWidth * placement.x, y = maxHeight * placement.top),
+                    view = JerseyView.FRONT,
+                    describe = true,
+                    compactMark = false
+                )
                 Canvas(Modifier.fillMaxSize()) {
                     drawEditionNameplate(style,name,jersey.number,display,body)
                 }
@@ -105,7 +112,7 @@ private val PlayerCardStyle.heroPlacement:HeroPlacement get()=when(this) {
     PlayerCardStyle.OBSIDIAN->HeroPlacement(.885f,.770f,.030f,.073f)
 }
 
-/** Edition-specific light and framing preserve the same approved athlete while changing composition. */
+/** Edition-specific lighting and framing give the saved jersey distinct collectible compositions. */
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawEditionSpotlight(style:PlayerCardStyle) {
     val w=size.width;val h=size.height
     val center=Offset(w*when(style){PlayerCardStyle.OBSIDIAN->.56f;else->.5f},h*.43f)

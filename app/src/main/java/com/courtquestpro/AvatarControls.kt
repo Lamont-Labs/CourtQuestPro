@@ -159,11 +159,9 @@ private fun AthleteOptionPreview(jersey:PlayerJersey,identity:PlayerCardIdentity
 internal fun CardStyleOptionPreview(
     jersey:PlayerJersey,
     playerName:String,
-    style:PlayerCardStyle,
-    identity:PlayerCardIdentity
+    style:PlayerCardStyle
 ) {
-    CourtPlayerCard(jersey,playerName,style,Modifier.height(60.dp),identity.pose,identity.face,
-        thumbnail=true,appearance=identity.avatar)
+    CourtPlayerCard(jersey,playerName,style,Modifier.height(60.dp),thumbnail=true)
 }
 
 @Composable

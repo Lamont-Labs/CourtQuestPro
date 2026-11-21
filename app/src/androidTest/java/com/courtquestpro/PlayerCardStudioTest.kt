@@ -26,7 +26,7 @@ class PlayerCardStudioTest {
                 "player-card-save-error","player-card-save-state-idle","player-card-save-state-saving",
                 "player-card-save-state-saved","player-card-save-state-back-requested",
                 "player-card-save-state-failed","navigation-route-me","navigation-route-playerCardStudio",
-                "navigation-route-jerseyStudio","navigation-route-home","welcome-get-started")
+                "navigation-route-jerseyStudio","navigation-route-home","welcome-swipe-ball")
                 .filter { runCatching{has(it)}.getOrDefault(false) }
             val dir=File(compose.activity.filesDir,"player-card-proof").apply{mkdirs()}
             File(dir,"wait-timeout-$tag.txt").writeText("expected=$tag\nvisibleTags=$tags")
@@ -85,8 +85,8 @@ class PlayerCardStudioTest {
     }
     private fun enter() {
         assertTrue("Only the disposable emulator",Build.HARDWARE.contains("ranchu"))
-        compose.waitUntil(20_000){has("welcome-get-started")||has("dock-me")}
-        if(has("welcome-get-started")) tap("welcome-get-started")
+        compose.waitUntil(20_000){has("welcome-swipe-ball")||has("dock-me")}
+        if(has("welcome-swipe-ball")) tap("welcome-swipe-ball")
         wait("dock-me");if(has("tour-skip"))tap("tour-skip")
         tap("dock-me");if(has("tour-skip"))tap("tour-skip")
         wait("me-player-card")
@@ -109,57 +109,54 @@ class PlayerCardStudioTest {
             File(out,"$name.png").outputStream().use{assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG,100,it))}
         } finally {bitmap.recycle()}
     }
-    private fun ready(pose:PlayerCardPose) {
-        wait("card-athlete-${pose.name.lowercase()}-ready")
+    private fun ready() {
+        node("player-card-preview").assertIsDisplayed()
         compose.waitUntil(20_000) {
-            PlayerCardStyle.entries.any {has("card-surface-${it.name.lowercase()}-ready")}
+            val template=stored().playerJersey.design.template.name.lowercase()
+            has("material-$template-front") &&
+                PlayerCardStyle.entries.any {has("card-surface-${it.name.lowercase()}-ready")}
         }
         compose.waitForIdle()
-        node("card-artwork-error").assertDoesNotExist()
-        if(has("avatar-inspection"))wait("avatar-inspection-ready")
     }
-    @Test fun allEditionsPosesAndFacesAreRealAndSaveAsProfile() {
-        val preservedAvatar=PlayerCardSelection.identity(compose.activity).avatar
-        enter();ready(PlayerCardSelection.identity(compose.activity).pose)
+    @Test fun allEditionsUseSavedJerseyAndFlipToPersistedPlayerRecord() {
+        enter();ready()
         capture("me-before-edit")
-        // The old separate jersey/profile hero must not coexist with the selected card.
         node("me-jersey-hero").assertDoesNotExist()
         val before=stored()
+        val beforeIdentity=PlayerCardSelection.identity(compose.activity)
         choose("me-player-card-studio");waitStudio()
         for(style in PlayerCardStyle.entries) {
-            tap("segment-card-edition");choose("player-card-style-${style.name.lowercase()}")
-            for(pose in PlayerCardPose.entries) {
-                tap("segment-card-pose");choose("player-card-pose-${pose.name.lowercase()}");ready(pose)
-                for(face in PlayerCardFace.entries) {
-                    tap("segment-card-face");choose("player-card-face-${face.name.lowercase()}");ready(pose)
-                    node("player-card-preview").assertContentDescriptionContains(style.label,substring=true)
-                    capture("${style.name.lowercase()}-${pose.name.lowercase()}-${face.name.lowercase()}")
-                }
-            }
+            choose("player-card-style-${style.name.lowercase()}")
+            ready()
+            node("player-card-preview").assertContentDescriptionContains(style.label,substring=true)
+            node("player-card-preview").assertContentDescriptionContains("jersey collectible card",substring=true)
+            node("player-card-preview").assertContentDescriptionContains(stored().playerJersey.design.template.label,substring=true)
+            capture("edition-${style.name.lowercase()}")
         }
-        // Preserve the established cold-start contract explicitly, not by enum ordering.
-        tap("segment-card-edition");choose("player-card-style-battle")
-        tap("segment-card-pose");choose("player-card-pose-action")
-        tap("segment-card-face");choose("player-card-face-question");ready(PlayerCardPose.ACTION)
+        node("player-card-avatar").assertDoesNotExist()
+        node("segment-card-pose").assertDoesNotExist()
+        node("segment-card-face").assertDoesNotExist()
+        val record=PlayerCardRecord.from(stored())
+        node("player-card-preview").performClick()
+        node("player-card-back").assertExists()
+        node("player-card-preview").assertContentDescriptionContains(record.description,substring=true)
+        capture("player-record-back")
+        choose("player-card-style-battle");ready()
         val save=node("player-card-save")
         save.assertIsDisplayed().assertIsEnabled()
         val bounds=save.fetchSemanticsNode().boundsInRoot
         assertTrue("48dp save touch target",bounds.height>=48*compose.activity.resources.displayMetrics.density)
         save.performClick();wait("me-player-card-studio")
-        assertEquals(PlayerCardIdentity(PlayerCardStyle.BATTLE,PlayerCardPose.ACTION,PlayerCardFace.QUESTION,preservedAvatar),
-            PlayerCardSelection.identity(compose.activity))
-        ready(PlayerCardPose.ACTION);capture("me-selected-card")
-        val after=stored()
-        assertEquals(Gson().toJson(before),Gson().toJson(after))
+        assertEquals(beforeIdentity.copy(style=PlayerCardStyle.BATTLE),PlayerCardSelection.identity(compose.activity))
+        ready();capture("me-selected-card")
+        assertEquals(Gson().toJson(before),Gson().toJson(stored()))
         compose.activityRule.scenario.recreate()
-        assertEquals(PlayerCardIdentity(PlayerCardStyle.BATTLE,PlayerCardPose.ACTION,PlayerCardFace.QUESTION,preservedAvatar),
-            PlayerCardSelection.identity(compose.activity))
-        val gallery=PlayerCardStyle.entries.flatMap { s->PlayerCardPose.entries.flatMap { p->
-            PlayerCardFace.entries.map { f->"${s.name.lowercase()}-${p.name.lowercase()}-${f.name.lowercase()}.png" }}}
+        assertEquals(beforeIdentity.copy(style=PlayerCardStyle.BATTLE),PlayerCardSelection.identity(compose.activity))
+        ready();capture("me-selected-card-cold-start")
         File(compose.activity.filesDir,"player-card-proof/verified.json").writeText(Gson().toJson(mapOf(
-            "editions" to PlayerCardStyle.entries.size,"poses" to PlayerCardPose.entries.size,
-            "faces" to PlayerCardFace.entries.size,"combinations" to gallery.size,"gallery_files" to gallery,
-            "profile_replaced" to true,"training_state_unchanged" to true,"preferences_persisted" to true)))
+            "editions" to PlayerCardStyle.entries.map{it.name},"live_jersey" to true,
+            "flip_record" to record.description,"avatar_editor_hidden" to true,
+            "training_state_unchanged" to true,"preferences_persisted" to true)))
     }
     @Test fun coldStartUsesSavedCardAndJerseyEditsSynchronizeWithoutCardResave() {
         enter()
@@ -167,7 +164,7 @@ class PlayerCardStudioTest {
         assertEquals(PlayerCardStyle.BATTLE,persisted.style)
         assertEquals(PlayerCardPose.ACTION,persisted.pose)
         assertEquals(PlayerCardFace.QUESTION,persisted.face)
-        ready(PlayerCardPose.ACTION)
+        ready()
         val expectedNumber=if(stored().playerJersey.number=="08") "09" else "08"
         val expectedName=if(stored().playerName=="RIVER") "BLAKE" else "RIVER"
         choose("me-jersey-studio");wait("jersey-studio")
@@ -177,30 +174,26 @@ class PlayerCardStudioTest {
         node("jersey-save").assertIsEnabled()
         node("jersey-close").performClick()
         wait("jersey-save-exit");node("jersey-save-exit").assertIsEnabled().performClick()
-        wait("me-player-card-studio");ready(PlayerCardPose.ACTION)
+        wait("me-player-card-studio");ready()
         node("player-card-preview").assertContentDescriptionContains("Jersey number $expectedNumber",substring=true)
         node("player-card-preview").assertContentDescriptionContains(expectedName,substring=true)
         assertEquals(expectedNumber,stored().playerJersey.number)
         capture("me-live-jersey-updated")
-        // Unsaved card drafts may restore during recreation, but leaving with Discard never changes disk.
+        // Unsaved edition drafts may restore during recreation, but Discard never changes saved identity.
         choose("me-player-card-studio");waitStudio()
-        tap("segment-card-pose");choose("player-card-pose-standing")
-        compose.activityRule.scenario.recreate();waitStudio();ready(PlayerCardPose.STANDING)
+        choose("player-card-style-classic")
+        compose.activityRule.scenario.recreate();waitStudio();ready()
         node("player-card-close").performClick();node("player-card-discard").performClick()
         wait("me-player-card-studio")
-        assertEquals(PlayerCardPose.ACTION,PlayerCardSelection.identity(compose.activity).pose)
-        ready(PlayerCardPose.ACTION)
+        assertEquals(persisted,PlayerCardSelection.identity(compose.activity))
+        ready()
         node("me-jersey-hero").assertDoesNotExist()
     }
 
-    private val customizedAvatar get()=AvatarAppearance(AvatarHair.TOPKNOT,AvatarHeadwear.WRAP,
-        AvatarBuild.SHOULDERS,AvatarSkin.COOL,AvatarShoes.CRIMSON,AvatarGear.FULL,AvatarFootwear.STRAP)
-
-    /** Isolate only rendered athlete/card pixels; option controls and labels cannot make this pass. */
+    /** Hash the rendered collectible itself so jersey-template differences are not UI-label changes. */
     private fun renderedSignature():String {
         compose.waitForIdle()
-        val bitmap=node(if(has("avatar-inspection"))"avatar-inspection" else "player-card-preview")
-            .captureToImage().asAndroidBitmap()
+        val bitmap=node("player-card-preview").captureToImage().asAndroidBitmap()
         val pixels=IntArray(bitmap.width*bitmap.height)
         bitmap.getPixels(pixels,0,bitmap.width,0,0,bitmap.width,bitmap.height)
         val digest=MessageDigest.getInstance("SHA-256")
@@ -209,72 +202,38 @@ class PlayerCardStudioTest {
         return digest.digest().joinToString(""){"%02x".format(it)}
     }
 
-    @Test fun avatarOptionsRenderOnEveryPoseAndPersistWithoutTouchingTraining() {
-        enter()
+    @Test fun activeStudioHidesAvatarControlsAndPreservesLegacyAppearancePreferences() {
+        enter();ready()
         val before=Gson().toJson(stored())
+        val beforeIdentity=PlayerCardSelection.identity(compose.activity)
         choose("me-player-card-studio");waitStudio()
-        val allOptions=compose.activity.resources.configuration.fontScale<=1.05f &&
-            compose.activity.resources.configuration.orientation!=android.content.res.Configuration.ORIENTATION_LANDSCAPE
-        val pixelEvidence=linkedMapOf<String,Map<String,String>>()
-        fun options(prefix:String,values:List<String>) {
-            val hashes=linkedMapOf<String,String>()
-            (if(allOptions)values else values.takeLast(1)).forEach { option ->
-                choose("avatar-$prefix-${option.lowercase()}")
-                if(prefix=="hair") {
-                    wait("card-athlete-${currentPose.name.lowercase()}-${option.lowercase()}-ready")
-                    wait("avatar-inspection-ready")
-                    compose.waitForIdle()
-                } else ready(currentPose)
-                hashes[option]=renderedSignature()
-                capture("avatar-${currentPose.name.lowercase()}-$prefix-${option.lowercase()}")
-            }
-            assertEquals("Each $prefix choice must change actual rendered artwork for $currentPose",hashes.size,hashes.values.toSet().size)
-            pixelEvidence["${currentPose.name}-$prefix"]=hashes
-        }
-        for(pose in PlayerCardPose.entries) {
-            currentPose=pose
-            if(has("segment-avatar-hair"))tap("player-card-avatar")
-            tap("segment-card-pose");choose("player-card-pose-${pose.name.lowercase()}");ready(pose)
-            tap("player-card-avatar")
-            ready(pose);capture("avatar-${pose.name.lowercase()}-studio-entry")
-            tap("segment-avatar-hair")
-            options("hair",AvatarHair.entries.map{it.name})
-            options("ink",HairInk.entries.map{it.name})
-            options("headwear",AvatarHeadwear.entries.map{it.name})
-            tap("segment-avatar-body")
-            options("build",AvatarBuild.entries.map{it.name})
-            options("skin",AvatarSkin.entries.map{it.name})
-            tap("segment-avatar-gear")
-            options("footwear",AvatarFootwear.entries.map{it.name})
-            options("shoes",AvatarShoes.entries.map{it.name})
-            options("gear",AvatarGear.entries.map{it.name})
-        }
-        tap("segment-avatar-hair");choose("avatar-hair-topknot");choose("avatar-ink-original")
-        tap("segment-avatar-body");choose("avatar-skin-cool")
-        tap("player-card-avatar");tap("segment-card-pose");choose("player-card-pose-action");ready(PlayerCardPose.ACTION)
-        tap("player-card-save");wait("me-player-card-studio");ready(PlayerCardPose.ACTION)
-        assertEquals(customizedAvatar,PlayerCardSelection.identity(compose.activity).avatar)
-        node("player-card-preview").assertContentDescriptionContains(customizedAvatar.description,substring=true)
+        node("player-card-avatar").assertDoesNotExist()
+        node("segment-card-pose").assertDoesNotExist()
+        node("segment-card-face").assertDoesNotExist()
+        node("segment-avatar-hair").assertDoesNotExist()
+        node("avatar-hair-topknot").assertDoesNotExist()
+        val selectedStyle=PlayerCardStyle.entries.first{it!=beforeIdentity.style}
+        choose("player-card-style-${selectedStyle.name.lowercase()}")
+        ready()
+        tap("player-card-save");wait("me-player-card-studio");ready()
+        assertEquals(beforeIdentity.copy(style=selectedStyle),PlayerCardSelection.identity(compose.activity))
         assertEquals(before,Gson().toJson(stored()))
-        capture("me-custom-avatar")
+        capture("legacy-avatar-preferences-preserved")
         compose.activityRule.scenario.recreate()
-        assertEquals(customizedAvatar,PlayerCardSelection.identity(compose.activity).avatar)
-        File(compose.activity.filesDir,"player-card-proof/avatar-rendered-differences.json").writeText(Gson().toJson(pixelEvidence))
-        assertTrue("Bounded decoded cache",PlayerCardMaterials.cacheBytes<=48*1024*1024)
-        File(compose.activity.filesDir,"player-card-proof/avatar-memory.json").writeText(Gson().toJson(mapOf(
-            "cache_bytes" to PlayerCardMaterials.cacheBytes,"largest_decoded_plate_bytes" to PlayerCardMaterials.largestPlateBytes,
-            "registered_patch_bytes" to PlayerCardMaterials.patchCacheBytes,
-            "heap_limit_bytes" to Runtime.getRuntime().maxMemory(),
-            "device_is_emulator" to true,"physical_phone_performance_verified" to false)))
+        assertEquals(beforeIdentity.copy(style=selectedStyle),PlayerCardSelection.identity(compose.activity))
+        ready()
+        assertEquals(before,Gson().toJson(stored()))
+        File(compose.activity.filesDir,"player-card-proof/legacy-appearance-preserved.json").writeText(
+            Gson().toJson(mapOf("active_avatar_editor" to false,"legacy_identity" to beforeIdentity,
+                "selected_edition" to selectedStyle.name,"training_state_unchanged" to true)))
     }
-    private var currentPose=PlayerCardPose.STANDING
 
     private val legacyIdentity get()=PlayerCardIdentity(PlayerCardStyle.CLASSIC,PlayerCardPose.DRIBBLING,
         PlayerCardFace.BLANK,AvatarAppearance(AvatarHair.BRAIDS,AvatarHeadwear.WHITE,AvatarBuild.LEAN,
             AvatarSkin.DEEP,AvatarShoes.ORANGE,AvatarGear.BOTH))
 
     @Test fun legacyV3CosmeticsUpgradeWithoutChangingTraining() {
-        enter();ready(PlayerCardPose.DRIBBLING)
+        enter();ready()
         val before=Gson().toJson(stored())
         assertFalse(compose.activity.getSharedPreferences("courtquest_player_card",0).contains("avatar_footwear_v3"))
         assertEquals(legacyIdentity,PlayerCardSelection.identity(compose.activity))
@@ -284,52 +243,53 @@ class PlayerCardStudioTest {
         assertEquals(before,Gson().toJson(stored()))
         compose.activityRule.scenario.recreate()
         assertEquals(legacyIdentity,PlayerCardSelection.identity(compose.activity))
-        enter();ready(PlayerCardPose.DRIBBLING)
+        enter();ready()
         assertEquals(before,Gson().toJson(stored()))
         capture("legacy-v3-preserved")
     }
     @Test fun legacyV3CosmeticsSurviveColdStart() {
-        enter();ready(PlayerCardPose.DRIBBLING)
+        enter();ready()
         assertEquals(legacyIdentity,PlayerCardSelection.identity(compose.activity))
-        node("player-card-preview").assertContentDescriptionContains(legacyIdentity.avatar.description,substring=true)
+        node("player-card-preview").assertContentDescriptionContains(
+            "Jersey number ${stored().playerJersey.number}",substring=true)
     }
-    @Test fun savedUniformTemplatesRenderAcrossEveryAthletePoseWithoutChangingTraining() {
-        enter()
+    @Test fun savedUniformTemplatesUpdateCollectibleArtworkWithoutChangingTraining() {
+        enter();ready()
         val before=Gson().toJson(stored().copy(jerseyDesign=null))
         val identity=PlayerCardSelection.identity(compose.activity)
-        val hashes=linkedMapOf<String,MutableSet<String>>()
+        val hashes=linkedMapOf<String,String>()
         for(template in JerseyTemplate.entries) {
             choose("me-jersey-studio");wait("jersey-studio")
             tap("segment-jersey-editor-style");choose("segment-${template.name.lowercase()}")
             tap("jersey-close");wait("jersey-save-exit");tap("jersey-save-exit")
             wait("me-player-card-studio")
             assertEquals(template,stored().playerJersey.design.template)
-            ready(identity.pose)
+            ready()
             node("player-card-preview").assertContentDescriptionContains("${template.label} saved uniform",substring=true)
-            choose("me-player-card-studio");waitStudio();tap("segment-card-pose")
-            for(pose in PlayerCardPose.entries) {
-                choose("player-card-pose-${pose.name.lowercase()}");ready(pose)
-                hashes.getOrPut(pose.name){linkedSetOf()}.add(renderedSignature())
-                capture("uniform-${template.name.lowercase()}-${pose.name.lowercase()}")
-            }
-            choose("player-card-pose-${identity.pose.name.lowercase()}");ready(identity.pose)
-            tap("player-card-save");wait("me-player-card-studio")
+            hashes[template.name]=renderedSignature()
+            capture("uniform-${template.name.lowercase()}")
             assertEquals(identity,PlayerCardSelection.identity(compose.activity))
         }
-        hashes.forEach{(pose,values)->assertEquals("Real worn template differences for $pose",JerseyTemplate.entries.size,values.size)}
+        assertEquals("Each saved template changes the collectible artwork",JerseyTemplate.entries.size,hashes.values.toSet().size)
         assertEquals(before,Gson().toJson(stored().copy(jerseyDesign=null)))
         File(compose.activity.filesDir,"player-card-proof/uniform-matrix.json").writeText(Gson().toJson(hashes))
     }
 
-    @Test fun customizedAvatarSurvivesColdStartAndUnsavedAvatarDraftCanBeDiscarded() {
-        enter();ready(PlayerCardPose.ACTION)
-        assertEquals(customizedAvatar,PlayerCardSelection.identity(compose.activity).avatar)
+    @Test fun cardStudioOpensExistingJerseyStudioAndReturnsWithoutDataLoss() {
+        enter();ready()
+        val before=Gson().toJson(stored())
+        val identity=PlayerCardSelection.identity(compose.activity)
+        val jersey=stored().playerJersey
         choose("me-player-card-studio");waitStudio()
-        tap("player-card-avatar");tap("segment-avatar-body");choose("avatar-skin-deep")
-        compose.activityRule.scenario.recreate();waitStudio()
-        node("avatar-skin-deep").performScrollTo().assertIsSelected()
-        tap("player-card-close");tap("player-card-discard");wait("me-player-card-studio")
-        assertEquals(customizedAvatar,PlayerCardSelection.identity(compose.activity).avatar)
-        capture("me-custom-avatar-cold-start")
+        tap("card-menu")
+        compose.onNodeWithText("Open Jersey Studio",useUnmergedTree=true).performClick()
+        wait("jersey-studio")
+        assertEquals(jersey,stored().playerJersey)
+        compose.activity.onBackPressedDispatcher.onBackPressed()
+        waitStudio();ready()
+        assertEquals(identity,PlayerCardSelection.identity(compose.activity))
+        assertEquals(before,Gson().toJson(stored()))
+        node("player-card-preview").assertContentDescriptionContains(
+            "${jersey.design.template.label} saved uniform",substring=true)
     }
 }

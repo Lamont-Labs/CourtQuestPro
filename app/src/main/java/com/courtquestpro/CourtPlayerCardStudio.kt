@@ -2,13 +2,8 @@ package com.courtquestpro
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -18,7 +13,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -35,12 +29,6 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
     val context = LocalContext.current
     val initial = remember { PlayerCardSelection.identity(context) }
     var style by rememberSaveable { mutableStateOf(initial.style) }
-    var pose by rememberSaveable { mutableStateOf(initial.pose) }
-    var face by rememberSaveable { mutableStateOf(initial.face) }
-    var avatar by rememberSaveable(stateSaver=AvatarAppearance.Saver) { mutableStateOf(initial.avatar) }
-    var tool by rememberSaveable { mutableStateOf("Edition") }
-    var avatarPart by rememberSaveable { mutableStateOf("Hair") }
-    var inspection by rememberSaveable { mutableStateOf(AvatarInspection.NONE) }
     var discard by rememberSaveable { mutableStateOf(false) }
     var menu by remember { mutableStateOf(false) }
     var reading by rememberSaveable { mutableStateOf(false) }
@@ -48,7 +36,7 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
     var saving by remember { mutableStateOf(false) }
     var saveStatus by remember { mutableStateOf("idle") }
     var error by remember { mutableStateOf(false) }
-    val identity = PlayerCardIdentity(style,pose,face,avatar)
+    val identity = initial.copy(style = style)
     val jersey = save.playerJersey
     val record = remember(save) { PlayerCardRecord.from(save) }
     val dirty = style != initial.style
@@ -68,18 +56,6 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
                 throw cancelled
             } catch (_:Exception) {
                 saveStatus="failed";saving=false;error=true
-            }
-        }
-    }
-    fun resetCategory() {
-        when(tool) {
-            "Edition" -> style=PlayerCardStyle.HOLOGRAPHIC
-            "Pose" -> pose=PlayerCardPose.STANDING
-            "Face" -> face=PlayerCardFace.SHADOW
-            "Avatar" -> avatar=when(avatarPart) {
-                "Hair" -> avatar.copy(hair=AvatarHair.ORIGINAL,hairInk=HairInk.ORIGINAL,headwear=AvatarHeadwear.NONE)
-                "Body" -> avatar.copy(build=AvatarBuild.ORIGINAL,skin=AvatarSkin.ORIGINAL)
-                else -> avatar.copy(shoes=AvatarShoes.ORIGINAL,footwear=AvatarFootwear.ORIGINAL,gear=AvatarGear.NONE)
             }
         }
     }
@@ -123,12 +99,8 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
                     DropdownMenu(menu,{menu=false}) {
                         DropdownMenuItem(text={Text("Read player statistics")},onClick={menu=false;reading=true})
                         DropdownMenuItem(text={Text("Open Jersey Studio")},onClick={menu=false;editingUniform=true})
-                        DropdownMenuItem(text={Text("Reset ${if(tool=="Avatar") avatarPart.lowercase() else tool.lowercase()}")},onClick={
-                            menu=false;resetCategory()
-                        },modifier=Modifier.testTag("card-reset-category"))
-                        DropdownMenuItem(text={Text("Restore card defaults")},onClick={
-                            menu=false;val defaults=PlayerCardIdentity()
-                            style=defaults.style;pose=defaults.pose;face=defaults.face;avatar=defaults.avatar
+                        DropdownMenuItem(text={Text("Restore default edition")},onClick={
+                            menu=false;style=PlayerCardIdentity().style
                         },modifier=Modifier.testTag("card-reset-all"))
                     }
                 }
@@ -150,11 +122,11 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
                         Text("Tap card to flip", color=CourtQuestDesign.textSecondary,
                             style=MaterialTheme.typography.labelSmall)
                     }
-                    key(tool,avatarPart) {
+                    key(style) {
                         Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()).testTag("player-card-inspector")
                             .padding(vertical=6.dp),verticalArrangement=Arrangement.spacedBy(5.dp)) {
                             Choices("Card material",PlayerCardStyle.entries,style,{it.label},{"player-card-style-${it.name.lowercase()}"},
-                                swatch={it.metal.toArgb()},preview={CardStyleOptionPreview(jersey,save.playerName,it,identity)}) { style=it }
+                                swatch={it.metal.toArgb()},preview={CardStyleOptionPreview(jersey,save.playerName,it)}) { style=it }
                         }
                     }
                 }

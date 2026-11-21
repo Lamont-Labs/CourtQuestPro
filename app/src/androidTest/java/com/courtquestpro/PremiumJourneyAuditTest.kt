@@ -19,6 +19,11 @@ class PremiumJourneyAuditTest {
     private fun node(tag:String)=compose.onNodeWithTag(tag,useUnmergedTree=true)
     private fun has(tag:String)=compose.onAllNodesWithTag(tag,useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()
     private fun wait(tag:String)=compose.waitUntil(20_000){has(tag)}
+    private fun waitCardJersey() {
+        compose.waitUntil(20_000) {
+            JerseyTemplate.entries.any {has("material-${it.name.lowercase()}-front")}
+        }
+    }
     private fun reach(tag:String) {
         // Lazy items may retain semantics while unplaced. A child scroll-to
         // cannot position such a cached item; ask the owning list to find it.
@@ -65,8 +70,9 @@ class PremiumJourneyAuditTest {
     private fun audit() {
         assertTrue("Disposable emulator only",Build.HARDWARE.contains("ranchu"))
         val baseline=InstrumentationRegistry.getArguments().getString("courtquestBaseline")=="true"
-        compose.waitUntil(20_000){has("welcome-get-started")||has("dock-home")}
-        if(has("welcome-get-started")){capture("welcome");click("welcome-get-started")}
+        compose.waitUntil(20_000){has("welcome-swipe-ball")||has("welcome-get-started")||has("dock-home")}
+        val welcomeTag=if(has("welcome-swipe-ball"))"welcome-swipe-ball" else "welcome-get-started"
+        if(has(welcomeTag)){capture("welcome");click(welcomeTag)}
         wait("dock-home")
         if(has("tour-skip")){capture("walkthrough");click("tour-skip")}
         for(route in listOf("home","library","quests","career","me")) {
@@ -74,7 +80,8 @@ class PremiumJourneyAuditTest {
             if(route=="library")click("segment-today")
             if(route=="me"){
                 click("segment-profile",true)
-                wait("card-athlete-${PlayerCardSelection.identity(compose.activity).pose.name.lowercase()}-ready")
+                if(baseline)wait("card-athlete-${PlayerCardSelection.identity(compose.activity).pose.name.lowercase()}-ready")
+                else waitCardJersey()
                 if(!baseline) {
                     val dock=node("player-bottom-dock").getUnclippedBoundsInRoot()
                     val card=node("player-card-preview").getUnclippedBoundsInRoot()
@@ -94,7 +101,8 @@ class PremiumJourneyAuditTest {
         }
         capture("me-milestones")
         click("me-player-card-studio",true);wait("player-card-studio-screen")
-        wait("card-athlete-${PlayerCardSelection.identity(compose.activity).pose.name.lowercase()}-ready")
+        if(baseline)wait("card-athlete-${PlayerCardSelection.identity(compose.activity).pose.name.lowercase()}-ready")
+        else waitCardJersey()
         node("player-card-save").assertIsDisplayed().assertIsEnabled()
         capture("card-studio");click("player-card-close");wait("me-player-card-studio")
         click("me-jersey-studio",true);wait("jersey-studio");capture("jersey-studio")

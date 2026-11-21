@@ -65,28 +65,30 @@ class CardStudioRebuildTest {
         ui.waitForIdle()
     }
     private fun prefs()=ui.activity.getSharedPreferences("court_quest_pro",0).getString("state",null)!!
-    private fun ready(pose:PlayerCardPose,hair:AvatarHair) {
-        val expected="card-athlete-${pose.name.lowercase()}-${hair.name.lowercase()}-ready"
+    private fun ready() {
+        val template=Gson().fromJson(prefs(),SaveState::class.java).playerJersey.design.template.name.lowercase()
         try {
-            ui.waitUntil(20_000){has(expected)||has("card-artwork-error")}
+            ui.waitUntil(20_000) {
+                has("material-$template-front") &&
+                    PlayerCardStyle.entries.any {has("card-surface-${it.name.lowercase()}-ready")}
+            }
         } catch (timeout:androidx.compose.ui.test.ComposeTimeoutException) {
             val state=listOf("player-card-studio-screen","me-player-card-studio","dock-me",
-                "card-artwork-loading","card-artwork-error").joinToString { "$it=${has(it)}" }
+                "player-card-preview","material-$template-front").joinToString { "$it=${has(it)}" }
             runCatching {
                 File(out,"artwork-readiness-timeout.txt").writeText(
-                    "expected=$expected; $state; cacheBytes=${PlayerCardMaterials.cacheBytes}; patchCacheBytes=${PlayerCardMaterials.patchCacheBytes}")
+                    "expected=live-jersey/$template; $state")
                 val bitmap=InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
                 if(bitmap!=null)try { write("artwork-readiness-timeout",bitmap) } finally { bitmap.recycle() }
             }
-            throw AssertionError("Timed out waiting for $expected; $state",timeout)
+            throw AssertionError("Timed out waiting for live jersey artwork; $state",timeout)
         }
         ui.waitForIdle()
-        node("card-artwork-error").assertDoesNotExist()
     }
     private fun studio() {
         assertTrue(Build.HARDWARE.contains("ranchu"))
-        ui.waitUntil(20_000){has("welcome-get-started")||has("dock-me")}
-        if(has("welcome-get-started"))click("welcome-get-started")
+        ui.waitUntil(20_000){has("welcome-swipe-ball")||has("dock-me")}
+        if(has("welcome-swipe-ball"))click("welcome-swipe-ball")
         wait("dock-me")
         if(has("tour-skip"))click("tour-skip")
         click("dock-me")
@@ -127,18 +129,21 @@ class CardStudioRebuildTest {
         if(has("player-card-back")) {click("player-card-preview");ui.waitUntil(5_000){!has("player-card-back")}}
     }
 
-    @Test fun twoSidesFlipStatsRestorationAndEditor() {
+    @Test fun twoSidesShowLiveJerseyRealStatsAndPersistSelectedEdition() {
         studio()
         val saved=PlayerCardSelection.identity(ui.activity)
         val state=prefs()
-        val record=PlayerCardRecord.from(Gson().fromJson(state,SaveState::class.java))
-        ready(saved.pose,saved.avatar.hair)
+        val player=Gson().fromJson(state,SaveState::class.java)
+        val record=PlayerCardRecord.from(player)
+        ready()
         screen("after-studio");crop("after-front","player-card-preview")
         val frontHashes=mutableSetOf<String>()
         val backHashes=mutableSetOf<String>()
         for(style in PlayerCardStyle.entries) {
             pick("player-card-style-${style.name.lowercase()}")
-            wait("card-surface-${style.name.lowercase()}-ready");ready(saved.pose,saved.avatar.hair)
+            wait("card-surface-${style.name.lowercase()}-ready");ready()
+            assertTrue(description(),description().contains("jersey collectible card"))
+            assertTrue(description(),description().contains(player.playerName.ifBlank{"Your player"}))
             val front=crop("edition-${style.name.lowercase()}-front","player-card-preview")
             assertTrue("${style.label} front should have its own composition",frontHashes.add(front))
             click("player-card-preview");wait("player-card-back");ui.waitForIdle()
@@ -165,38 +170,33 @@ class CardStudioRebuildTest {
             ui.mainClock.advanceTimeBy(440)
         } finally {ui.mainClock.autoAdvance=true}
         wait("player-card-back");showFront()
-        menu("card-reset-all")
-        click("segment-card-pose");pick("player-card-pose-action");wait("card-unsaved")
-        menu("card-reset-category");ready(PlayerCardPose.STANDING,AvatarHair.ORIGINAL)
-        click("segment-card-edition");pick("player-card-style-battle")
-        click("segment-card-pose");pick("player-card-pose-action")
-        click("segment-card-face");pick("player-card-face-question")
-        click("player-card-avatar");pick("avatar-hair-straight");pick("avatar-ink-chestnut")
-        click("segment-avatar-body");pick("avatar-skin-light")
-        click("segment-avatar-gear");pick("avatar-footwear-high")
-        ready(PlayerCardPose.ACTION,AvatarHair.STRAIGHT)
-        click("player-card-save");wait("me-player-card-studio");ready(PlayerCardPose.ACTION,AvatarHair.STRAIGHT)
+        node("player-card-avatar").assertDoesNotExist()
+        node("segment-card-pose").assertDoesNotExist()
+        node("segment-card-face").assertDoesNotExist()
+        val selected=PlayerCardStyle.entries.first{it!=saved.style}
+        pick("player-card-style-${selected.name.lowercase()}");wait("card-unsaved")
+        ready()
+        click("player-card-save");wait("me-player-card-studio");ready()
         screen("saved-profile")
+        assertEquals(saved.copy(style=selected),PlayerCardSelection.identity(ui.activity))
         assertEquals(state,prefs())
     }
 
     @Test fun restoredCardUniformAndDiscard() {
         val expected=PlayerCardSelection.identity(ui.activity)
-        assertEquals(PlayerCardStyle.BATTLE,expected.style);assertEquals(PlayerCardPose.ACTION,expected.pose)
-        assertEquals(AvatarSkin.LIGHT,expected.avatar.skin);assertEquals(AvatarHair.STRAIGHT,expected.avatar.hair)
-        assertEquals(HairInk.CHESTNUT,expected.avatar.hairInk);assertEquals(AvatarFootwear.HIGH,expected.avatar.footwear)
-        studio();ready(expected.pose,expected.avatar.hair);screen("cold-restored")
+        studio();ready();screen("cold-restored")
         val before=prefs()
-        click("player-card-avatar");pick("avatar-hair-afro");ready(expected.pose,AvatarHair.AFRO)
-        ui.activityRule.scenario.recreate();wait("card-unsaved");ready(expected.pose,AvatarHair.AFRO)
+        val changed=PlayerCardStyle.entries.first{it!=expected.style}
+        pick("player-card-style-${changed.name.lowercase()}")
+        ui.activityRule.scenario.recreate();waitStudio();wait("card-unsaved");ready()
         click("player-card-close");click("player-card-discard");wait("me-player-card-studio")
         assertEquals(expected,PlayerCardSelection.identity(ui.activity));assertEquals(before,prefs())
         pick("me-player-card-studio")
-        click("card-live-jersey");wait("jersey-studio");click("segment-jersey-editor-identity")
+        waitStudio();click("card-live-jersey");wait("jersey-studio");click("segment-jersey-editor-identity")
         node("jersey-number").performScrollTo().performTextReplacement("00")
         node("jersey-name").performScrollTo().performTextReplacement("Avery West")
         click("jersey-close");wait("jersey-save-exit");click("jersey-save-exit")
-        waitStudio();ready(expected.pose,expected.avatar.hair)
+        waitStudio();ready()
         assertTrue(description(),description().contains("Jersey number 00"))
         assertTrue(description().contains("Avery West"));screen("live-uniform")
         val old=Gson().fromJson(before,SaveState::class.java)
@@ -206,59 +206,49 @@ class CardStudioRebuildTest {
     }
 
     @Test fun everyOptionAtEachPose() {
-        studio();menu("card-reset-all")
-        val p=PlayerCardPose.valueOf(InstrumentationRegistry.getArguments().getString("pose")!!)
-        click("segment-card-pose");pick("player-card-pose-${p.name.lowercase()}")
-        click("segment-card-face");pick("player-card-face-blank");ready(p,AvatarHair.ORIGINAL)
-        val faceHashes=mutableSetOf<String>()
-        for(face in PlayerCardFace.entries) {
-            pick("player-card-face-${face.name.lowercase()}")
-            ready(p,AvatarHair.ORIGINAL)
-            val hash=crop("${p.name.lowercase()}-face-${face.name.lowercase()}","player-card-preview")
-            assertTrue("${p.name}/${face.label} face treatment must render differently",faceHashes.add(hash))
+        studio()
+        // Keep the existing workflow's pose parameter: saved legacy pose and avatar
+        // preferences must remain untouched even though those controls are no longer active.
+        val requestedPose=InstrumentationRegistry.getArguments().getString("pose")
+            ?.let { PlayerCardPose.valueOf(it) }
+        val saved=PlayerCardSelection.identity(ui.activity)
+        val before=prefs()
+        ready();screen("jersey-card-${requestedPose?.name?.lowercase() ?: "saved"}")
+        node("player-card-avatar").assertDoesNotExist()
+        node("segment-card-pose").assertDoesNotExist()
+        node("segment-card-face").assertDoesNotExist()
+        val editions=mutableSetOf<String>()
+        for(style in PlayerCardStyle.entries) {
+            pick("player-card-style-${style.name.lowercase()}")
+            wait("card-surface-${style.name.lowercase()}-ready");ready()
+            assertTrue(description(),description().contains(style.label))
+            assertTrue("${style.label} is a distinct card composition",editions.add(crop(
+                "${style.name.lowercase()}-jersey-front","player-card-preview")))
         }
-        // Use the featureless skin-matched face for appearance captures so
-        // complexion and hairline changes remain visible in every pose.
-        pick("player-card-face-blank");ready(p,AvatarHair.ORIGINAL)
-        screen("pose-${p.name.lowercase()}")
-        click("player-card-avatar")
-        fun options(group:String,names:List<String>,original:String) {
-            val hashes=mutableSetOf<String>()
-            for(value in names) {
-                pick("avatar-$group-${value.lowercase()}")
-                val hair=if(group=="hair")AvatarHair.valueOf(value) else AvatarHair.ORIGINAL
-                ready(p,hair)
-                val hash=crop("${p.name.lowercase()}-$group-${value.lowercase()}","card-athlete-${p.name.lowercase()}-ready")
-                assertTrue("${p.name}/$group/$value produced duplicate artwork",hashes.add(hash))
-            }
-            pick("avatar-$group-${original.lowercase()}")
-        }
-        options("hair",AvatarHair.entries.map{it.name},"ORIGINAL")
-        options("ink",HairInk.entries.map{it.name},"ORIGINAL")
-        options("headwear",AvatarHeadwear.entries.map{it.name},"NONE")
-        click("card-inspect");wait("avatar-inspection-ready");screen("head-detail-${p.name.lowercase()}");click("card-inspect")
-        click("segment-avatar-body")
-        options("skin",AvatarSkin.entries.map{it.name},"ORIGINAL")
-        options("build",AvatarBuild.entries.map{it.name},"ORIGINAL")
-        click("segment-avatar-gear")
-        options("footwear",AvatarFootwear.entries.map{it.name},"ORIGINAL")
-        options("shoes",AvatarShoes.entries.map{it.name},"ORIGINAL")
-        options("gear",AvatarGear.entries.map{it.name},"NONE")
-        click("card-inspect");wait("avatar-inspection-ready");screen("foot-detail-${p.name.lowercase()}")
+        assertEquals("All four card editions render distinctly",PlayerCardStyle.entries.size,editions.size)
+        val selected=PlayerCardStyle.entries.first{it!=saved.style}
+        pick("player-card-style-${selected.name.lowercase()}")
+        click("player-card-save");wait("me-player-card-studio");ready()
+        assertEquals(saved.copy(style=selected),PlayerCardSelection.identity(ui.activity))
+        assertEquals(before,prefs())
     }
 
     @Test fun accessibleLayoutAndNoMotionRecord() {
         studio()
         val choice=PlayerCardSelection.identity(ui.activity)
-        ready(choice.pose,choice.avatar.hair)
+        ready()
         screen("layout-front")
         click("player-card-preview");wait("player-card-back");screen("layout-back")
         click("card-menu");ui.onNodeWithText("Read player statistics").performClick()
         ui.onNodeWithText("Training").assertExists();screen("readable-record")
         ui.onNodeWithText("Done").performClick()
         node("player-card-save").assertIsDisplayed().assertHasClickAction()
-        click("segment-card-pose");pick("player-card-pose-ready")
+        node("player-card-avatar").assertDoesNotExist()
+        node("segment-card-pose").assertDoesNotExist()
+        pick("player-card-style-${PlayerCardStyle.entries.first{it!=choice.style}.name.lowercase()}")
+        wait("card-unsaved")
         click("player-card-close");if(has("player-card-discard"))click("player-card-discard")
         wait("me-player-card-studio")
+        assertEquals(choice,PlayerCardSelection.identity(ui.activity))
     }
 }
