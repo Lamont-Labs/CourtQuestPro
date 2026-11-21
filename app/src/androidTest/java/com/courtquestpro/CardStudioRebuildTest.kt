@@ -23,7 +23,7 @@ class CardStudioRebuildTest {
     private fun node(tag:String)=ui.onNodeWithTag(tag,useUnmergedTree=true)
     private fun has(tag:String)=ui.onAllNodesWithTag(tag,useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()
     private fun wait(tag:String)=ui.waitUntil(20_000){has(tag)}
-    private fun studioTitleDisplayed() = listOf("Card Studio","Studio").any { title ->
+    private fun studioTitleDisplayed() = listOf("Player Card Studio","Card Studio","Studio").any { title ->
         try { ui.onNodeWithText(title,useUnmergedTree=true).assertIsDisplayed(); true }
         catch (_:AssertionError) { false }
     }
