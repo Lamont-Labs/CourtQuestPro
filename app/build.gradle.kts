@@ -20,6 +20,7 @@ android {
             .orElse(1)
             .get()
         versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildFeatures { compose = true }
@@ -59,6 +60,12 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.webkit:webkit:1.12.1")
     implementation("com.google.code.gson:gson:2.11.0")
+    implementation("com.airbnb.android:lottie-compose:6.7.1")
+    implementation("com.canopas.intro-showcase-view:introshowcaseview:2.0.2")
+    implementation("dev.chrisbanes.haze:haze:1.1.1")
     testImplementation("junit:junit:4.13.2")
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.12.01"))
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    androidTestImplementation("androidx.test:runner:1.6.2")
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
