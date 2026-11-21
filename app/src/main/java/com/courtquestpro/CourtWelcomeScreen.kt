@@ -125,22 +125,28 @@ internal fun CourtWelcomeScreen(
                 contentAlignment = Alignment.Center
             ) {
                 val p = progress.value
-                val approach = (p / .66f).coerceIn(0f, 1f)
-                val descent = ((p - .66f) / .34f).coerceIn(0f, 1f)
-                val ballY = if (p < .66f) {
-                    .73f - .30f * (1f - (1f - approach) * (1f - approach))
+                // Coordinate the shot with the actual backboard geometry. The ball
+                // first rises above the rim, then drops through the hoop opening.
+                val approach = (p / .58f).coerceIn(0f, 1f)
+                val descent = ((p - .58f) / .42f).coerceIn(0f, 1f)
+                val hoopWidth = minOf(maxWidth * .96f, maxHeight * .56f * 1.607f)
+                val boardHeight = hoopWidth / 1.607f
+                val boardTop = maxHeight * .035f
+                val rimY = boardTop + boardHeight * .69f
+                val rimFraction = rimY / maxHeight
+                val peakY = rimFraction - .16f
+                val ballY = if (p < .58f) {
+                    .73f + (peakY - .73f) * (1f - (1f - approach) * (1f - approach))
                 } else {
-                    .43f + .23f * (descent * descent)
+                    peakY + (rimFraction + .25f - peakY) * (descent * descent)
                 }
-                val ballScale = if (p < .66f) 1f - .69f * approach else .31f - .07f * descent
+                val ballScale = if (p < .58f) 1f - .74f * approach
+                    else .26f - .08f * descent
                 val hoopReveal = ((p - .04f) / .42f).coerceIn(0f, 1f)
                 val netProgress = ((p - .64f) / .36f).coerceIn(0f, 1f)
                 val netPulse = if (netProgress > 0f) {
                     sin(netProgress.toDouble() * PI * 4.0).toFloat() * (1f - netProgress)
                 } else 0f
-                val hoopWidth = minOf(maxWidth * .96f, maxHeight * .56f * 1.607f)
-                val boardHeight = hoopWidth / 1.607f
-                val boardTop = maxHeight * .035f
                 val density = androidx.compose.ui.platform.LocalDensity.current
                 val stageHeightPx = with(density) { maxHeight.toPx() }
                 val stageWidthPx = with(density) { maxWidth.toPx() }
@@ -191,7 +197,7 @@ internal fun CourtWelcomeScreen(
                 val netWidth = hoopWidth * .33f
                 // The ball must travel behind the foreground net, then disappear below
                 // the rim. The previous draw order left it visibly sitting on the net.
-                val ballExit = ((p - .87f) / .13f).coerceIn(0f, 1f)
+                val ballExit = ((p - .91f) / .09f).coerceIn(0f, 1f)
                 Image(
                     painter = painterResource(R.drawable.cq_welcome_ball),
                     contentDescription = null,
