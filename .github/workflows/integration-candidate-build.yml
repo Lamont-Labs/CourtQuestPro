@@ -66,7 +66,7 @@ jobs:
           set -o pipefail
           ./gradlew :app:testDebugUnitTest :app:assembleDebug --stacktrace --no-daemon 2>&1 | tee candidate-build.log
           echo "APK output metadata:" | tee -a merge-status.txt
-          find app/build/outputs/apk/debug -maxdepth 2 -type f -name '*.json' -exec cat {} \\; >> merge-status.txt
+          for metadata in app/build/outputs/apk/debug/*.json; do if [ -f "$metadata" ]; then cat "$metadata" >> merge-status.txt; fi; done
           echo "APK SHA-256:" | tee -a merge-status.txt
           sha256sum app/build/outputs/apk/debug/*.apk | tee -a merge-status.txt
       - name: Upload merge and compilation evidence
