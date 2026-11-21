@@ -189,20 +189,9 @@ internal fun CourtWelcomeScreen(
                     contentScale = ContentScale.FillBounds
                 )
                 val netWidth = hoopWidth * .33f
-                Image(
-                    painter = painterResource(R.drawable.cq_welcome_net),
-                    contentDescription = null,
-                    modifier = Modifier.align(Alignment.TopCenter)
-                        .width(netWidth).height(netWidth * 1.10f)
-                        .offset(y = boardTop + boardHeight * .67f)
-                        .graphicsLayer {
-                            alpha = hoopReveal
-                            scaleY = 1f + netPulse * .20f
-                            translationY = netProgress * stageHeightPx * .012f
-                            transformOrigin = TransformOrigin(.5f, 0f)
-                        },
-                    contentScale = ContentScale.FillBounds
-                )
+                // The ball must travel behind the foreground net, then disappear below
+                // the rim. The previous draw order left it visibly sitting on the net.
+                val ballExit = ((p - .87f) / .13f).coerceIn(0f, 1f)
                 Image(
                     painter = painterResource(R.drawable.cq_welcome_ball),
                     contentDescription = null,
@@ -212,9 +201,26 @@ internal fun CourtWelcomeScreen(
                             translationX = sin(p.toDouble() * PI * 1.15).toFloat() * stageWidthPx * .035f
                             scaleX = ballScale
                             scaleY = ballScale
+                            alpha = 1f - ballExit
                             rotationZ = idleRotation + p * 630f
                         },
                     contentScale = ContentScale.Fit
+                )
+                // Draw the net in front only during the scoring phase; this supplies
+                // correct occlusion without covering the ball while it approaches.
+                Image(
+                    painter = painterResource(R.drawable.cq_welcome_net),
+                    contentDescription = null,
+                    modifier = Modifier.align(Alignment.TopCenter)
+                        .width(netWidth).height(netWidth * 1.10f)
+                        .offset(y = boardTop + boardHeight * .67f)
+                        .graphicsLayer {
+                            alpha = hoopReveal * ((p - .60f) / .18f).coerceIn(0f, 1f)
+                            scaleY = 1f + netPulse * .20f
+                            translationY = netProgress * stageHeightPx * .012f
+                            transformOrigin = TransformOrigin(.5f, 0f)
+                        },
+                    contentScale = ContentScale.FillBounds
                 )
                 if (!entering) {
                     Text(
