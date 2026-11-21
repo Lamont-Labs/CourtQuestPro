@@ -94,7 +94,7 @@ internal fun CourtWelcomeScreen(
                 contentScale = ContentScale.Fit
             )
             Spacer(Modifier.weight(.5f))
-            BoxWithConstraints(
+            Box(
                 Modifier.fillMaxWidth().weight(2.5f)
                     .semantics { contentDescription = "Basketball. Swipe upward or tap to enter CourtQuest." }
                     .pointerInput(entering) {
