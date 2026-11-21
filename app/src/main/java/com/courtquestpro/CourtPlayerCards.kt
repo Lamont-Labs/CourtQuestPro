@@ -58,9 +58,9 @@ internal fun CourtPlayerCard(
     val frame = RoundedCornerShape(if (style == PlayerCardStyle.CLASSIC) 5.dp else 10.dp)
     val flipLabel = if (targetBack) "Show card front" else "Show player record"
     val description = if (reverse && record != null) "${style.label}. $name. Player record. ${record.description}"
-        else "${style.label} player card. $name. ${pose.label} pose. ${face.label} identity. " +
+        else "${style.label} jersey collectible card. $name. " +
             "${jersey.design.template.label} saved uniform. " +
-            (jersey.number?.let { "Jersey number $it." } ?: "Jersey number not set.") + " ${appearance.description}."
+            (jersey.number?.let { "Jersey number $it." } ?: "Jersey number not set.")
     val interaction = if (flipEnabled) Modifier.clickable(onClickLabel = flipLabel, role = Role.Button) { back = !back } else Modifier
     if (reading && record != null) PlayerRecordDialog(name, record) { reading = false }
     Box(modifier.aspectRatio(.69f).then(interaction).semantics(mergeDescendants = true) {
@@ -86,10 +86,7 @@ internal fun CourtPlayerCard(
                     drawEditionSpotlight(style)
                 }
                 val placement=style.heroPlacement
-                CourtCardAthlete(jersey,PlayerCardIdentity(style,pose,face,appearance),
-                    Modifier.fillMaxWidth(placement.width).fillMaxHeight(placement.height).align(Alignment.TopCenter)
-                        .offset(x=maxWidth*placement.x,y=maxHeight*placement.top),
-                    showTestTags=!thumbnail)
+                CourtJerseyArtwork(jersey, Modifier.fillMaxWidth(.94f).fillMaxHeight(.78f).align(Alignment.TopCenter).offset(y=maxHeight*.065f), view=JerseyView.FRONT, compactMark=false)
                 Canvas(Modifier.fillMaxSize()) {
                     drawEditionNameplate(style,name,jersey.number,display,body)
                 }
