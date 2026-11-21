@@ -75,6 +75,15 @@ class WelcomeAnimationVisualTest {
             ).forEach { (name, target, expectedPercent) ->
                 compose.mainClock.advanceTimeBy(target - elapsed, ignoreFrameDuration = true)
                 elapsed = target
+                if (name == "complete-before-transition") {
+                    // The gesture starts the tween on the next Compose frame; wait
+                    // for its actual terminal value before capturing the last frame.
+                    var extraFrame = 0
+                    while (extraFrame < 12 && !progressDescription().contains("100 percent")) {
+                        compose.mainClock.advanceTimeBy(16, ignoreFrameDuration = true)
+                        extraFrame++
+                    }
+                }
                 frames[name] = capturePresented("welcome-shot-$name")
                 val percent = Regex("""(\d+) percent""").find(progressDescription())?.groupValues?.get(1)?.toInt()
                 assertTrue("$name should reach its shot phase (${progressDescription()})",
