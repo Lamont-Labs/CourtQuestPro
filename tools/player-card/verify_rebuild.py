@@ -66,7 +66,8 @@ def seed():
     seed_state(val)
     # Allow the old version to normalize and persist its own state before hashing.
     ui.open_app()
-    if ui.tagged(ui.nodes(),"welcome-get-started") is not None:ui.tap(ui.wait_tagged("welcome-get-started"))
+    if ui.tagged(ui.nodes(),"welcome-swipe-ball") is not None:ui.tap(ui.wait_tagged("welcome-swipe-ball"))
+    elif ui.tagged(ui.nodes(),"welcome-get-started") is not None:ui.tap(ui.wait_tagged("welcome-get-started"))
     ui.wait_tagged("dock-me",attempts=12)
     ui.shell("am","force-stop",ui.PACKAGE)
     root=ET.Element("map")
@@ -98,7 +99,7 @@ def main():
         ui.shell("am","force-stop",ui.PACKAGE);files=["court_quest_pro","courtquest_player_card"]
         before={k:pref(k) for k in files};install(args.candidate,60,True)
         assert before=={k:pref(k) for k in files}
-        ui.open_app();ui.wait_tagged("welcome-get-started",attempts=12)
+        ui.open_app();ui.wait_tagged("welcome-swipe-ball",attempts=12)
         now=state()
         for key in ("playerName","jerseyNumber","jerseyNumberText","matches","drillResults","totalXp","longestStreak"):
             assert saved_values_preserved(saved[key],now[key]),key
