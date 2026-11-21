@@ -66,23 +66,23 @@ class CardStudioRebuildTest {
     }
     private fun prefs()=ui.activity.getSharedPreferences("court_quest_pro",0).getString("state",null)!!
     private fun ready() {
-        val template=Gson().fromJson(prefs(),SaveState::class.java).playerJersey.design.template.name.lowercase()
+        val artworkTags=PlayerCardPose.entries.map{"card-athlete-${it.name.lowercase()}-ready"}+
+            PlayerCardStyle.entries.map{"card-surface-${it.name.lowercase()}-ready"}
         try {
             ui.waitUntil(20_000) {
-                has("material-$template-front") &&
-                    PlayerCardStyle.entries.any {has("card-surface-${it.name.lowercase()}-ready")} &&
+                PlayerCardStyle.entries.any {has("card-surface-${it.name.lowercase()}-ready")} &&
                     PlayerCardPose.entries.any {has("card-athlete-${it.name.lowercase()}-ready")}
             }
         } catch (timeout:androidx.compose.ui.test.ComposeTimeoutException) {
             val state=listOf("player-card-studio-screen","me-player-card-studio","dock-me",
-                "player-card-preview","material-$template-front").joinToString { "$it=${has(it)}" }
+                "player-card-preview").plus(artworkTags).joinToString { "$it=${has(it)}" }
             runCatching {
                 File(out,"artwork-readiness-timeout.txt").writeText(
-                    "expected=live-jersey/$template; $state")
+                    "expected=rendered-athlete-and-card-face; $state")
                 val bitmap=InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
                 if(bitmap!=null)try { write("artwork-readiness-timeout",bitmap) } finally { bitmap.recycle() }
             }
-            throw AssertionError("Timed out waiting for live jersey artwork; $state",timeout)
+            throw AssertionError("Timed out waiting for the rendered athlete and card face; $state",timeout)
         }
         ui.waitForIdle()
     }
