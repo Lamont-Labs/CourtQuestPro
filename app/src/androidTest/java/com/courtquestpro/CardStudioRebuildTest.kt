@@ -183,22 +183,23 @@ class CardStudioRebuildTest {
     }
 
     @Test fun restoredCardUniformAndDiscard() {
+        fun stage(label:String) { android.util.Log.i("CQ_CARD_RESTORE_STAGE",label); File(out,"restore-stage.txt").appendText(label+"\n") }
         val expected=PlayerCardSelection.identity(ui.activity)
-        studio();ready();screen("cold-restored")
+        stage("start");studio();ready();stage("before-cold-restored-capture");screen("cold-restored");stage("after-cold-restored-capture")
         val before=prefs()
         val changed=PlayerCardStyle.entries.first{it!=expected.style}
         pick("player-card-style-${changed.name.lowercase()}")
-        ui.activityRule.scenario.recreate();waitStudio();wait("card-unsaved");ready()
+        stage("before-activity-recreate");ui.activityRule.scenario.recreate();stage("after-activity-recreate");waitStudio();wait("card-unsaved");ready()
         click("player-card-close");click("player-card-discard");wait("me-player-card-studio")
         assertEquals(expected,PlayerCardSelection.identity(ui.activity));assertEquals(before,prefs())
         pick("me-player-card-studio")
-        waitStudio();click("card-live-jersey");wait("jersey-studio");click("segment-jersey-editor-identity")
+        stage("before-jersey-navigation");waitStudio();click("card-live-jersey");wait("jersey-studio");click("segment-jersey-editor-identity")
         node("jersey-number").performScrollTo().performTextReplacement("00")
         node("jersey-name").performScrollTo().performTextReplacement("Avery West")
         click("jersey-close");wait("jersey-save-exit");click("jersey-save-exit")
         waitStudio();ready()
         assertTrue(description(),description().contains("Jersey number 00"))
-        assertTrue(description().contains("Avery West"));screen("live-uniform")
+        assertTrue(description().contains("Avery West"));stage("before-live-uniform-capture");screen("live-uniform");stage("after-live-uniform-capture")
         val old=Gson().fromJson(before,SaveState::class.java)
         val new=Gson().fromJson(prefs(),SaveState::class.java)
         assertEquals(old.drillResults,new.drillResults);assertEquals(old.matches,new.matches);assertEquals(old.totalXp,new.totalXp)
