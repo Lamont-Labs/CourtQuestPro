@@ -43,6 +43,8 @@ jobs:
           git grep -n -i 'avatar' -- app/src/main/java/com/courtquestpro >> merge-status.txt || true
           echo "Avatar-specific Kotlin files:" >> merge-status.txt
           git ls-files 'app/src/main/java/com/courtquestpro/*Avatar*.kt' >> merge-status.txt
+          echo "Avatar symbol consumers outside avatar-specific source:" >> merge-status.txt
+          git grep -n -E 'AvatarAppearance|AvatarControls|AvatarInspection|CourtCardAthlete|AvatarGeometry|AvatarToneTransform|AvatarDetailPainter|AvatarHairThumbnail' -- 'app/src/main/java/com/courtquestpro/*.kt' | grep -v -E '/Avatar[A-Za-z]*\\.kt:|/CourtCardAthlete\\.kt:' >> merge-status.txt || true
           echo "Merged candidate source counts:" >> merge-status.txt
           git ls-files 'app/src/main/java/com/courtquestpro/*.kt' | wc -l >> merge-status.txt
       - name: Setup JDK
