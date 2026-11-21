@@ -1,6 +1,7 @@
 package com.courtquestpro
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -53,7 +54,7 @@ internal fun CourtWelcomeScreen(
     val progress = remember { Animatable(0f) }
     var entering by remember { mutableStateOf(false) }
     val accessibility = LocalAccessibilityManager.current
-    val reducedMotion = accessibility?.isTouchExplorationEnabled == true
+    val reducedMotion = accessibility?.isEnabled == true
     val spin = rememberInfiniteTransition(label = "Basketball idle")
     val idleRotation by spin.animateFloat(
         initialValue = 0f, targetValue = 360f,
