@@ -6,6 +6,7 @@ import android.os.Build
 import android.animation.ValueAnimator
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.*
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.gson.Gson
@@ -79,6 +80,9 @@ class WelcomeAnimationVisualTest {
         assertTrue("Run on the disposable Android emulator", Build.HARDWARE.contains("ranchu"))
         compose.waitUntil(20_000) { has("welcome-swipe-ball") }
         compose.waitUntil(10_000) { restingBallIsVisible() }
+        val ballBounds = compose.onNodeWithTag("welcome-shot-ball", useUnmergedTree = true).getUnclippedBoundsInRoot()
+        val promptBounds = compose.onNodeWithTag("welcome-swipe-prompt", useUnmergedTree = true).getUnclippedBoundsInRoot()
+        assertTrue("The swipe instruction sits below the resting basketball", promptBounds.top >= ballBounds.bottom)
         val frames = linkedMapOf<String, String>()
         compose.mainClock.autoAdvance = false
         try {

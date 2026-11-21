@@ -255,17 +255,16 @@ internal fun CourtWelcomeScreen(
                         )
                     }
                 }
-                if (!entering) {
-                    Text(
-                        if (touchExploration) "TAP THE BALL TO ENTER" else "SWIPE TO ENTER",
-                        modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp)
-                            .testTag("welcome-swipe-prompt"),
-                        color = CourtQuestDesign.accentVivid.copy(alpha = pulse),
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 2.sp,
-                        fontSize = 16.sp
-                    )
-                }
+            }
+            if (!entering) {
+                Text(
+                    if (touchExploration) "TAP THE BALL TO ENTER" else "SWIPE TO ENTER",
+                    modifier = Modifier.padding(vertical = 8.dp).testTag("welcome-swipe-prompt"),
+                    color = CourtQuestDesign.accentVivid.copy(alpha = pulse),
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 2.sp,
+                    fontSize = 16.sp
+                )
             }
             Spacer(Modifier.weight(if (landscape) .08f else .25f))
             if (!returningPlayer) {
