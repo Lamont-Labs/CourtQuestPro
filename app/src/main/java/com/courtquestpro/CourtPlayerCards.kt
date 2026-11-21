@@ -83,6 +83,27 @@ internal fun CourtPlayerCard(
                         center=Offset(w*.5f,h*.846f),radius=w*.29f),
                         topLeft=Offset(w*.18f,h*.815f),size=Size(w*.64f,h*.065f))
                     drawEditionSpotlight(style)
+                    // Sports-card framing: double metallic keyline, edition masthead,
+                    // and lower corner numbering remain legible at thumbnail size.
+                    val metal=style.metal
+                    drawRoundRect(metal.copy(alpha=.92f),
+                        topLeft=Offset(w*.026f,h*.018f),size=Size(w*.948f,h*.964f),
+                        cornerRadius=androidx.compose.ui.geometry.CornerRadius(w*.028f),
+                        style=Stroke(width=w*.007f))
+                    drawRoundRect(metal.copy(alpha=.42f),
+                        topLeft=Offset(w*.043f,h*.032f),size=Size(w*.914f,h*.936f),
+                        cornerRadius=androidx.compose.ui.geometry.CornerRadius(w*.018f),
+                        style=Stroke(width=w*.0025f))
+                    drawRect(Brush.verticalGradient(listOf(Color(0xF00A1019),Color(0xB0091019),Color.Transparent),
+                        startY=h*.025f,endY=h*.17f),topLeft=Offset(w*.052f,h*.048f),size=Size(w*.896f,h*.13f))
+                    drawContext.canvas.nativeCanvas.apply {
+                        printLine("COURTQUEST  /  BASKETBALL",w*.085f,h*.093f,w*.036f,w*.62f,
+                            Color.White,body,Paint.Align.LEFT)
+                        printLine(style.label.uppercase(Locale.ROOT),w*.915f,h*.094f,w*.032f,w*.30f,
+                            metal,display,Paint.Align.RIGHT)
+                    }
+                    drawLine(metal.copy(alpha=.76f),Offset(w*.075f,h*.116f),
+                        Offset(w*.925f,h*.116f),w*.0025f)
                 }
                 val placement=style.heroPlacement
                 CourtJerseyArtwork(
