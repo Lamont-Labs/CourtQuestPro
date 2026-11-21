@@ -17,7 +17,7 @@ android {
         // Set only by the release workflow, never from an untrusted PR.
         versionCode = providers.environmentVariable("COURTQUEST_VERSION_CODE")
             .map { it.toInt() }
-            .orElse(1)
+            .orElse(60)
             .get()
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
