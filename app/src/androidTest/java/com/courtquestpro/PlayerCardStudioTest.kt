@@ -24,7 +24,9 @@ class PlayerCardStudioTest {
         catch (timeout:androidx.compose.ui.test.ComposeTimeoutException) {
             val tags=listOf("me-player-card-studio","player-card-studio-screen","dock-me","player-card-saving",
                 "player-card-save-error","player-card-save-state-idle","player-card-save-state-saving",
-                "player-card-save-state-saved","player-card-save-state-failed","welcome-get-started")
+                "player-card-save-state-saved","player-card-save-state-back-requested",
+                "player-card-save-state-failed","navigation-route-me","navigation-route-playerCardStudio",
+                "navigation-route-jerseyStudio","navigation-route-home","welcome-get-started")
                 .filter { runCatching{has(it)}.getOrDefault(false) }
             val dir=File(compose.activity.filesDir,"player-card-proof").apply{mkdirs()}
             File(dir,"wait-timeout-$tag.txt").writeText("expected=$tag\nvisibleTags=$tags")

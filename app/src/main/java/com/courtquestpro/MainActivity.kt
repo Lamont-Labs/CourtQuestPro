@@ -456,7 +456,8 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     onGetStarted = { if (!onboardingComplete) finishOnboarding(); showWelcome = false },
                     onGuest = { if (!onboardingComplete) finishOnboarding(); showWelcome = false }
                 )
-            } else AnimatedContent(targetState = screen, label = "screen-transition", modifier = Modifier.padding(padding).consumeWindowInsets(padding)) { target ->
+            } else AnimatedContent(targetState = screen, label = "screen-transition",
+                modifier = Modifier.padding(padding).consumeWindowInsets(padding).testTag("navigation-route-$screen")) { target ->
                 @Composable fun DestinationContent() {
                 when (target) {
                     "home" -> HomeContent()

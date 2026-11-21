@@ -62,7 +62,7 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
                 val success=withContext(Dispatchers.IO) { PlayerCardSelection.persist(context,identity) }
                 if (success) {
                     PlayerCardSelection.notifySaved()
-                    saveStatus="saved";saving=false;onBack()
+                    saveStatus="saved";saving=false;onBack();saveStatus="back-requested"
                 } else {saveStatus="failed";saving=false;error=true}
             } catch (cancelled:kotlinx.coroutines.CancellationException) {
                 throw cancelled
