@@ -141,6 +141,25 @@ class CardStudioRebuildTest {
         assertFalse("Uniform Studio should close when returning to Card",has("jersey-studio"))
     }
 
+    @Test fun cardEditionDraftSurvivesUniformTabRoundTrip() {
+        studio()
+        val original=PlayerCardSelection.identity(ui.activity).style
+        val changed=PlayerCardStyle.entries.first { it!=original }
+        pick("player-card-style-${changed.name.lowercase()}")
+        wait("card-unsaved")
+        click("player-card-tab-uniform")
+        wait("jersey-studio")
+        click("player-card-tab-card")
+        waitStudio()
+        wait("card-unsaved")
+        // Switching editor tabs must not silently commit a draft card edition.
+        assertEquals(original,PlayerCardSelection.identity(ui.activity).style)
+        click("player-card-close")
+        click("player-card-discard")
+        wait("me-player-card-studio")
+        assertEquals(original,PlayerCardSelection.identity(ui.activity).style)
+    }
+
     @Test fun twoSidesShowLiveJerseyRealStatsAndPersistSelectedEdition() {
         studio()
         val saved=PlayerCardSelection.identity(ui.activity)
