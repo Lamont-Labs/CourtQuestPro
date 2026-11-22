@@ -81,6 +81,16 @@ class ReleaseContractTests(unittest.TestCase):
         self.assertIn("APK signing identity changed", VERIFIER)
         self.assertIn("APK package or version does not match source", VERIFIER)
 
+    def test_visible_release_number_tracks_historical_publications(self):
+        self.assertIn("Determine historical CourtQuest release sequence", WORKFLOW)
+        self.assertIn("courtquest-phone-update-v", WORKFLOW)
+        self.assertIn("android-v1", WORKFLOW)
+        self.assertIn("courtquest-update-v", WORKFLOW)
+        self.assertIn("next_number = max(max(historical) + len(modern), *numbered) + 1", WORKFLOW)
+        self.assertIn('tag="courtquest-update-v${COURTQUEST_RELEASE_NUMBER}"', WORKFLOW)
+        self.assertIn('title="CourtQuest Pro v${COURTQUEST_RELEASE_NUMBER}"', WORKFLOW)
+        self.assertIn("Release history requires pagination; refusing ambiguous numbering", WORKFLOW)
+
     def test_version_code_is_propagated(self):
         self.assertIn('environmentVariable("COURTQUEST_VERSION_CODE")', GRADLE)
         self.assertIn('COURTQUEST_VERSION_CODE=$version_code', WORKFLOW)
