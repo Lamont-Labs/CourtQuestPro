@@ -13,6 +13,12 @@ internal object DrillTargets {
         "p1" to 20, "p2" to 10, "p3" to 8
     )
     fun minimum(drillId: String): Int? = minimums[drillId]
+    fun minimum(drill: Drill): Int? = minimums[drill.id]
+        ?: drill.minimumSuccesses.takeIf { drill.id.startsWith("custom_") && it in 1..500 }
+    fun eligible(drill: Drill, successful: Int, attempted: Int): Boolean {
+        val minimum = minimum(drill) ?: return false
+        return successful >= minimum && attempted >= successful
+    }
     fun eligible(drillId: String, successful: Int, attempted: Int): Boolean {
         val minimum = minimum(drillId) ?: return false
         return attempted >= successful && successful >= minimum

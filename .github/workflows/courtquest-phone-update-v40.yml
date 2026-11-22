@@ -1,0 +1,123 @@
+name: CourtQuest Pro fast phone-test APK v40
+on:
+  push:
+    branches: [dev/premium-flow-toolkit]
+    paths:
+      - '.github/workflows/courtquest-phone-update-v40.yml'
+      - 'scripts/verify_phone_update.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: courtquest-phone-update-v40-fast
+  cancel-in-progress: false
+jobs:
+  release:
+    if: github.repository == 'Lamont-Labs/CourtQuestPro' && github.ref == 'refs/heads/dev/premium-flow-toolkit'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      ANDROID_AVD_HOME: /tmp/courtquest-avd
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Enforce source identity and immutable release
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import os,subprocess
+          assert os.environ['GITHUB_REF']=='refs/heads/dev/premium-flow-toolkit'
+          assert 'versionCode = 40' in Path('app/build.gradle.kts').read_text()
+          assert 'applicationId = "com.courtquestpro"' in Path('app/build.gradle.kts').read_text()
+          assert subprocess.run(['git','merge-base','--is-ancestor','74e6fd2793ca6c1e71a919962cddbbcc6c79caae','HEAD']).returncode==0
+          PY
+          python3 -m unittest discover -s scripts -p 'test_android_flow_*.py'
+      - name: Compile, test and lint candidate
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon --console=plain :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
+      - name: Verify previous release and exact APK identity
+        run: |
+          set -euo pipefail
+          mkdir -p previous dist
+          gh release download courtquest-phone-update-v24 --pattern 'CourtQuestPro-Update-v24.apk' --pattern 'CourtQuestPro-Update-v24.apk.sha256' --dir previous
+          (cd previous && sha256sum --check CourtQuestPro-Update-v24.apk.sha256)
+          python3 scripts/verify_apk.py --apk app/build/outputs/apk/debug/app-debug.apk --build-tools "${ANDROID_HOME}/build-tools/35.0.1" --output dist
+          python3 scripts/verify_phone_update.py identity --previous previous/CourtQuestPro-Update-v24.apk --candidate app/build/outputs/apk/debug/app-debug.apk --previous-version 24 --candidate-version 40 --tools "${ANDROID_HOME}/build-tools/35.0.1" --output dist
+      - name: Prepare one disposable upgrade emulator
+        run: |
+          set -euo pipefail
+          test -e /dev/kvm
+          sudo chmod 666 /dev/kvm
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" 'system-images;android-35;default;x86_64' emulator
+          mkdir -p "$ANDROID_AVD_HOME"
+          printf 'no\n' | "${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager" create avd --name CourtQuest_PremiumQA --package 'system-images;android-35;default;x86_64' --device pixel_2 --path "$ANDROID_AVD_HOME/CourtQuest_PremiumQA.avd"
+          "${ANDROID_HOME}/emulator/emulator" -avd CourtQuest_PremiumQA -port 5562 -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect -accel on -cores 2 -memory 2048 > dist/emulator.log 2>&1 &
+          python3 - <<'PY'
+          import subprocess,sys,time
+          sys.path.insert(0,'scripts')
+          import verify_android_daily_flow as ui
+          for _ in range(120):
+              try:
+                  if ui.shell('getprop','sys.boot_completed',timeout=8)=='1':break
+              except (RuntimeError,subprocess.TimeoutExpired):pass
+              time.sleep(3)
+          else:raise RuntimeError('Disposable QA emulator did not boot')
+          ui.shell('input','keyevent','KEYCODE_WAKEUP')
+          ui.shell('wm','dismiss-keyguard')
+          PY
+      - name: Verify v24-to-v40 upgrade preserves saved player data
+        run: |
+          python3 scripts/verify_phone_update.py upgrade --previous previous/CourtQuestPro-Update-v24.apk --candidate app/build/outputs/apk/debug/app-debug.apk --previous-version 24 --candidate-version 40 --output dist
+      - name: Seal exact binary and publish immutable prerelease
+        run: |
+          set -euo pipefail
+          cp app/build/outputs/apk/debug/app-debug.apk dist/CourtQuestPro-Update-v40.apk
+          (cd dist && sha256sum CourtQuestPro-Update-v40.apk > CourtQuestPro-Update-v40.apk.sha256 && sha256sum --check CourtQuestPro-Update-v40.apk.sha256)
+          python3 - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          root=Path('dist')
+          apk=root/'CourtQuestPro-Update-v40.apk'
+          manifest=json.loads((root/'apk-manifest.json').read_text())
+          identity=json.loads((root/'upgrade-identity.json').read_text())
+          upgrade=json.loads((root/'install-upgrade.json').read_text())
+          digest=hashlib.sha256(apk.read_bytes()).hexdigest()
+          assert manifest['package_id']=='com.courtquestpro' and manifest['version_code']==40
+          assert manifest['apk_sha256']==digest
+          assert identity['candidate']['apk_sha256']==digest
+          assert identity['previous']['certificate_sha256']==identity['candidate']['certificate_sha256']
+          assert upgrade['versions']==[24,40] and upgrade['input_apk_sha256']==digest
+          assert upgrade['android_install_replace'] and upgrade['preferences_byte_identical_after_install']
+          assert upgrade['saved_values_preserved_after_launch'] and upgrade['saved_values_preserved_after_relaunch']
+          assert upgrade['destructive_phone_operations']=='NONE'
+          manifest.update(source_commit=os.environ['GITHUB_SHA'],release_tag='courtquest-phone-update-v40',upgrade_identity=identity,install_upgrade=upgrade)
+          (root/'apk-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          (root/'RELEASE_NOTES.md').write_text('# CourtQuest Pro v40 phone-test APK\n\nTen improvements since v39: walkthrough coaching tips, clearer screen-reader descriptions and controls, streamlined progress announcements, compact walkthrough overlay, responsive header, and a faster Training Library with the large hero restricted to My Plan and a smaller fixed hero height. All earlier player and drill improvements remain included. Install over your existing CourtQuest app; do not uninstall or clear app data. Same package and signing identity; v24-to-v40 upgrade and saved-data preservation verified on a disposable Android emulator. Full native-flow and Maestro suites run separately and are not claimed as release gates.\n')
+          PY
+          if gh api "repos/${GH_REPO}/releases/tags/courtquest-phone-update-v40" >/dev/null 2>&1; then echo 'v40 already published; refusing overwrite'; exit 1; fi
+          gh release create courtquest-phone-update-v40 dist/CourtQuestPro-Update-v40.apk dist/CourtQuestPro-Update-v40.apk.sha256 dist/apk-manifest.json dist/upgrade-identity.json dist/install-upgrade.json dist/RELEASE_NOTES.md --target "$GITHUB_SHA" --prerelease --latest=false --title 'CourtQuest Pro v40 — fast verified phone update' --notes-file dist/RELEASE_NOTES.md
+          mkdir -p /tmp/courtquest-published
+          gh release download courtquest-phone-update-v40 --pattern 'CourtQuestPro-Update-v40.apk' --dir /tmp/courtquest-published
+          cmp dist/CourtQuestPro-Update-v40.apk /tmp/courtquest-published/CourtQuestPro-Update-v40.apk
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: courtquest-v40-fast-release-evidence
+          path: dist/
+          retention-days: 30
+          if-no-files-found: warn
+
+# Ten-improvement batch release; preserve app identity and player data.

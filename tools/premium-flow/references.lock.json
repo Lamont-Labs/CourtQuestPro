@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "verified_on": "2026-11-11",
+  "source_baseline": "b397805f5e328f1b7dd9a2ba66e5447a3b80fcea",
+  "plugins": [
+    {
+      "name": "Product Design",
+      "state": "installed",
+      "checked_on": "2026-11-11"
+    },
+    {
+      "name": "Figma",
+      "state": "installed",
+      "checked_on": "2026-11-11"
+    },
+    {
+      "name": "Context7",
+      "state": "installed",
+      "checked_on": "2026-11-11"
+    },
+    {
+      "name": "GitHub",
+      "state": "installed",
+      "checked_on": "2026-11-11"
+    }
+  ],
+  "references": [
+    {
+      "id": "compose-samples",
+      "repository": "android/compose-samples",
+      "url": "https://github.com/android/compose-samples/tree/25631e8f544a9a1e3f01e296eaf1b4c28428196c",
+      "role": "reference",
+      "purpose": "Custom native design system, layouts and motion; Jetsnack, Jetcaster and Reply.",
+      "commit": "25631e8f544a9a1e3f01e296eaf1b4c28428196c"
+    },
+    {
+      "id": "now-in-android",
+      "repository": "android/nowinandroid",
+      "url": "https://github.com/android/nowinandroid/tree/2982e63cb691ad49cd009aab43dc206fee6699c2",
+      "role": "reference",
+      "purpose": "Native screen organization, state/navigation patterns and screenshot testing.",
+      "commit": "2982e63cb691ad49cd009aab43dc206fee6699c2"
+    },
+    {
+      "id": "impeccable",
+      "repository": "pbakaus/impeccable",
+      "url": "https://github.com/pbakaus/impeccable/tree/c1e0e5492fbb524f5df84d635ecfae7dc438ec45",
+      "role": "review-guidance",
+      "purpose": "Pinned critique, clarify, onboard and shape reference documents; adapt to Android.",
+      "commit": "c1e0e5492fbb524f5df84d635ecfae7dc438ec45"
+    },
+    {
+      "id": "maestro",
+      "repository": "mobile-dev-inc/Maestro",
+      "url": "https://github.com/mobile-dev-inc/Maestro/tree/67d8a677029261fa424a45a10d08eacd6aa0deed",
+      "role": "test-tool",
+      "purpose": "CLI 2.12.1, dedicated-emulator flow checks; not bundled in the APK.",
+      "commit": "67d8a677029261fa424a45a10d08eacd6aa0deed",
+      "tag": "cli-2.12.1"
+    },
+    {
+      "id": "intro-showcase",
+      "repository": "canopas/compose-intro-showcase",
+      "url": "https://github.com/canopas/compose-intro-showcase/tree/60877db836569fad7b6d63ce6278af180d59728e",
+      "role": "android-library",
+      "purpose": "Contextual first-use guidance; com.canopas.intro-showcase-view:introshowcaseview:2.0.2.",
+      "commit": "60877db836569fad7b6d63ce6278af180d59728e",
+      "tag": "2.0.2"
+    },
+    {
+      "id": "lottie",
+      "repository": "airbnb/lottie-android",
+      "url": "https://github.com/airbnb/lottie-android/tree/c8addcb776f6cd940abaf55ae6b471e55b626eb9",
+      "role": "android-library",
+      "purpose": "Purposeful completion and feedback animation; com.airbnb.android:lottie-compose:6.7.1.",
+      "commit": "c8addcb776f6cd940abaf55ae6b471e55b626eb9",
+      "tag": "v6.7.1"
+    },
+    {
+      "id": "haze",
+      "repository": "chrisbanes/haze",
+      "url": "https://github.com/chrisbanes/haze/tree/0cd75baaeb728f45a97abbb4e134a96905066528",
+      "role": "android-library",
+      "purpose": "Compatible backdrop-blur foundation; dev.chrisbanes.haze:haze:1.1.1.",
+      "commit": "0cd75baaeb728f45a97abbb4e134a96905066528",
+      "tag": "1.1.1"
+    }
+  ],
+  "maestro": {
+    "version": "2.12.1",
+    "release_tag": "cli-2.12.1",
+    "url": "https://github.com/mobile-dev-inc/Maestro/releases/download/cli-2.12.1/maestro.zip",
+    "sha256": "54dbb0716425626604973cbb374c585ca30272375d9ce15177a1152765ddd9d7"
+  },
+  "android": {
+    "kotlin": "2.0.21",
+    "compose_bom": "2024.12.01",
+    "agp": "8.7.3",
+    "min_sdk": 26,
+    "compile_sdk": 35,
+    "libraries": {
+      "lottie_compose": "6.7.1",
+      "intro_showcase": "2.0.2",
+      "haze": "1.1.1"
+    }
+  },
+  "status": "toolkit added; local Android verification passed; Maestro device smoke pending CI runner",
+  "verification": {
+    "android_unit_tests": {
+      "passed": 42,
+      "failed": 0
+    },
+    "apk_build": "passed",
+    "lint": {
+      "errors": 0,
+      "warnings": 6
+    },
+    "apk_identity_and_signing": "passed",
+    "maestro_cli": "2.12.1 verified",
+    "maestro_device_smoke": "pending; GitHub run 43096106238 queued",
+    "evidence": "docs/tooling/PREMIUM_FLOW_VERIFICATION.md"
+  }
+}

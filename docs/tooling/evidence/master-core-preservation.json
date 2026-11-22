@@ -1,0 +1,10 @@
+{
+  "TrainingLibrary.kt": "441ffd012d4570dd0cf0323161e71b12d29bd7147fa5e5dec42a6da73fd7b88e",
+  "Scorekeeper.kt": "bdb1f752da05ccd94f050a3a80e5e8bd3bd9f20aaa6ad0e96c75394db707bfbf",
+  "MatchSession.kt": "fbfa36394189b524d00be46c1b5a679145628c452152a22aa6fa17333d7d7132",
+  "DrillDraft.kt": "5127bb82919b71fbd50ba4610d73c2b5b06e08378837dd99981c5edaf2a4086b",
+  "DrillDraftRecovery.kt": "8934ebb985db4d71e6ce797484cd86e2b3545b323939a9f9c34c945a8912791d",
+  "DrillTargets.kt": "3d6f23b66cd5eb19512a68cb5b2dada974bec3873fb46e826932f4e4be732a32",
+  "DrillTrends.kt": "ff79e31590a729a28ef7dda038b45411981d952daf39eac7457570010b3dba27",
+  "save_state_schema_unchanged": true
+}

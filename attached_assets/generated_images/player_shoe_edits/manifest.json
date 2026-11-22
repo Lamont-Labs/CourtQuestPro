@@ -1,0 +1,415 @@
+{
+  "standing/low": {
+    "file": "standing-low.png",
+    "sha256": "ec5d908af7ec3079bced5cbb1f486930f93f14c72382358f58b2b6ff0f2519d7",
+    "origin": [
+      325,
+      871
+    ],
+    "dimensions": [
+      373,
+      125
+    ],
+    "source_pose": "standing",
+    "model": "low",
+    "high_collar_polygons": [],
+    "attachment": "authored pose coordinate cutout; no per-user scale or rotation"
+  },
+  "standing/high": {
+    "file": "standing-high.png",
+    "sha256": "0059f6f77459b953f0d752c96d31f05cb3cf46c4c7e3c0cf58e37aa67fbcaf99",
+    "origin": [
+      325,
+      860
+    ],
+    "dimensions": [
+      373,
+      136
+    ],
+    "source_pose": "standing",
+    "model": "high",
+    "high_collar_polygons": [
+      [
+        [
+          350,
+          885
+        ],
+        [
+          352,
+          873
+        ],
+        [
+          360,
+          861
+        ],
+        [
+          394,
+          859
+        ],
+        [
+          410,
+          867
+        ],
+        [
+          414,
+          879
+        ],
+        [
+          398,
+          886
+        ],
+        [
+          374,
+          886
+        ]
+      ]
+    ],
+    "attachment": "authored pose coordinate cutout; no per-user scale or rotation"
+  },
+  "standing/strap": {
+    "file": "standing-strap.png",
+    "sha256": "1106ad51f00a478e88f79a839a0cb04c258599a0e8af94f89fa4dc524ae2425a",
+    "origin": [
+      325,
+      871
+    ],
+    "dimensions": [
+      373,
+      125
+    ],
+    "source_pose": "standing",
+    "model": "strap",
+    "high_collar_polygons": [],
+    "attachment": "authored pose coordinate cutout; no per-user scale or rotation"
+  },
+  "dribbling/low": {
+    "file": "dribbling-low.png",
+    "sha256": "24970d640da7d7b61ea56e4920cb03c273b4a8494303649452ea02c123882586",
+    "origin": [
+      167,
+      832
+    ],
+    "dimensions": [
+      627,
+      168
+    ],
+    "source_pose": "dribbling",
+    "model": "low",
+    "high_collar_polygons": [],
+    "attachment": "authored pose coordinate cutout; no per-user scale or rotation"
+  },
+  "dribbling/high": {
+    "file": "dribbling-high.png",
+    "sha256": "9d97c646a829a16897e87297926fba391c36d4f8217261b7e0cbcf40987e74e2",
+    "origin": [
+      167,
+      815
+    ],
+    "dimensions": [
+      627,
+      185
+    ],
+    "source_pose": "dribbling",
+    "model": "high",
+    "high_collar_polygons": [
+      [
+        [
+          228,
+          850
+        ],
+        [
+          236,
+          832
+        ],
+        [
+          250,
+          816
+        ],
+        [
+          275,
+          814
+        ],
+        [
+          289,
+          826
+        ],
+        [
+          290,
+          840
+        ],
+        [
+          274,
+          849
+        ],
+        [
+          251,
+          853
+        ]
+      ],
+      [
+        [
+          658,
+          857
+        ],
+        [
+          663,
+          841
+        ],
+        [
+          675,
+          827
+        ],
+        [
+          696,
+          827
+        ],
+        [
+          706,
+          838
+        ],
+        [
+          704,
+          850
+        ],
+        [
+          690,
+          858
+        ],
+        [
+          672,
+          860
+        ]
+      ]
+    ],
+    "attachment": "authored pose coordinate cutout; no per-user scale or rotation"
+  },
+  "dribbling/strap": {
+    "file": "dribbling-strap.png",
+    "sha256": "802d2a8ccf202c0b845624bde183ed78f9c2e14dbb515ab7d6a4f544b3a22767",
+    "origin": [
+      167,
+      832
+    ],
+    "dimensions": [
+      627,
+      168
+    ],
+    "source_pose": "dribbling",
+    "model": "strap",
+    "high_collar_polygons": [],
+    "attachment": "authored pose coordinate cutout; no per-user scale or rotation"
+  },
+  "action/low": {
+    "file": "action-low.png",
+    "sha256": "0524eb0fbc44f743b6928c54e574c3c6697faa0c1ba8e5d12dde5f4d642b3302",
+    "origin": [
+      310,
+      592
+    ],
+    "dimensions": [
+      416,
+      418
+    ],
+    "source_pose": "action",
+    "model": "low",
+    "high_collar_polygons": [],
+    "attachment": "authored pose coordinate cutout; no per-user scale or rotation"
+  },
+  "action/high": {
+    "file": "action-high.png",
+    "sha256": "3a86cf23091571009b9de4b8ff6df46ef208cbd7cc24d77b53e5b72cebc16408",
+    "origin": [
+      310,
+      592
+    ],
+    "dimensions": [
+      416,
+      418
+    ],
+    "source_pose": "action",
+    "model": "high",
+    "high_collar_polygons": [
+      [
+        [
+          323,
+          876
+        ],
+        [
+          327,
+          861
+        ],
+        [
+          339,
+          849
+        ],
+        [
+          371,
+          848
+        ],
+        [
+          386,
+          858
+        ],
+        [
+          390,
+          871
+        ],
+        [
+          375,
+          878
+        ],
+        [
+          347,
+          879
+        ]
+      ],
+      [
+        [
+          594,
+          653
+        ],
+        [
+          599,
+          635
+        ],
+        [
+          613,
+          620
+        ],
+        [
+          643,
+          618
+        ],
+        [
+          661,
+          630
+        ],
+        [
+          666,
+          646
+        ],
+        [
+          649,
+          654
+        ],
+        [
+          620,
+          656
+        ]
+      ]
+    ],
+    "attachment": "authored pose coordinate cutout; no per-user scale or rotation"
+  },
+  "action/strap": {
+    "file": "action-strap.png",
+    "sha256": "72e9bcac003571948a9ef21af3a5c057de5961b360f6c8757afe1bef23f50da6",
+    "origin": [
+      310,
+      592
+    ],
+    "dimensions": [
+      416,
+      418
+    ],
+    "source_pose": "action",
+    "model": "strap",
+    "high_collar_polygons": [],
+    "attachment": "authored pose coordinate cutout; no per-user scale or rotation"
+  },
+  "ready/low": {
+    "file": "ready-low.png",
+    "sha256": "37d5b8508ed4b649f132cfd7fbaabf87a31f16d0af80cbf524492ca636082b4b",
+    "origin": [
+      333,
+      844
+    ],
+    "dimensions": [
+      344,
+      113
+    ],
+    "source_pose": "ready",
+    "model": "low",
+    "high_collar_polygons": [],
+    "attachment": "authored pose coordinate cutout; no per-user scale or rotation"
+  },
+  "ready/high": {
+    "file": "ready-high.png",
+    "sha256": "d229236d871450f2a2fe85bc337c04018eff3595f298cffa2098f813839cba51",
+    "origin": [
+      333,
+      844
+    ],
+    "dimensions": [
+      344,
+      113
+    ],
+    "source_pose": "ready",
+    "model": "high",
+    "high_collar_polygons": [],
+    "attachment": "authored pose coordinate cutout; no per-user scale or rotation"
+  },
+  "ready/strap": {
+    "file": "ready-strap.png",
+    "sha256": "a13c6a76131aa709e9cf7d96c8a9d7ce62ef1a95b1d86f963cd42922f899d19c",
+    "origin": [
+      333,
+      844
+    ],
+    "dimensions": [
+      344,
+      113
+    ],
+    "source_pose": "ready",
+    "model": "strap",
+    "high_collar_polygons": [],
+    "attachment": "authored pose coordinate cutout; no per-user scale or rotation"
+  },
+  "followthrough/low": {
+    "file": "followthrough-low.png",
+    "sha256": "71e3a29995f0ececa49dd8c27c6c55f42fc174e86a179bacb4889c143acbef9d",
+    "origin": [
+      371,
+      863
+    ],
+    "dimensions": [
+      271,
+      106
+    ],
+    "source_pose": "followthrough",
+    "model": "low",
+    "high_collar_polygons": [],
+    "attachment": "authored pose coordinate cutout; no per-user scale or rotation"
+  },
+  "followthrough/high": {
+    "file": "followthrough-high.png",
+    "sha256": "cd229cea659df44b8780c4cc15567656c06343c7f83e5aecdef11e082e667d69",
+    "origin": [
+      371,
+      863
+    ],
+    "dimensions": [
+      271,
+      106
+    ],
+    "source_pose": "followthrough",
+    "model": "high",
+    "high_collar_polygons": [],
+    "attachment": "authored pose coordinate cutout; no per-user scale or rotation"
+  },
+  "followthrough/strap": {
+    "file": "followthrough-strap.png",
+    "sha256": "310d70fb29f96a14aa01ce3d4e3ad3dc7af59a067a3fbbc05c07368224817ef6",
+    "origin": [
+      371,
+      863
+    ],
+    "dimensions": [
+      271,
+      106
+    ],
+    "source_pose": "followthrough",
+    "model": "strap",
+    "high_collar_polygons": [],
+    "attachment": "authored pose coordinate cutout; no per-user scale or rotation"
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "format": 1,
+  "source": "approved standing athlete artwork; shadowed anonymous face",
+  "styles": {
+    "original": {
+      "file": "appearance-thumbnails/hair-original.webp",
+      "sha256": "a4ac30155942a80b230527ee6837e08a78a4782f4ca2ff421c30f235222d6b80",
+      "dimensions": [
+        128,
+        128
+      ]
+    },
+    "bald": {
+      "file": "appearance-thumbnails/hair-bald.webp",
+      "sha256": "ba175b4fdb5a13799f2299371c0a9c58e9d2a3677fb17c736d9e04240822aea0",
+      "dimensions": [
+        128,
+        128
+      ]
+    },
+    "fade": {
+      "file": "appearance-thumbnails/hair-fade.webp",
+      "sha256": "cf58ded2170da41e8add682a3da2bbefb3a3e170eecc1cf6f7b90cf50e7d909d",
+      "dimensions": [
+        128,
+        128
+      ]
+    },
+    "curls": {
+      "file": "appearance-thumbnails/hair-curls.webp",
+      "sha256": "2f79eb70c57b8bc3ccfae9cfc603b7846dee5002cb2e26551feffd27462ddc4d",
+      "dimensions": [
+        128,
+        128
+      ]
+    },
+    "locs": {
+      "file": "appearance-thumbnails/hair-locs.webp",
+      "sha256": "88df3e9be06cdb52f164ec421f1ec8a8b226ceeaeab56051a5d84de50724ef3a",
+      "dimensions": [
+        128,
+        128
+      ]
+    },
+    "braids": {
+      "file": "appearance-thumbnails/hair-braids.webp",
+      "sha256": "3b9a6d39b54dfdee1eb1d2f0723c7975aca800ae9a3b8a662566e7e5405faa0f",
+      "dimensions": [
+        128,
+        128
+      ]
+    },
+    "afro": {
+      "file": "appearance-thumbnails/hair-afro.webp",
+      "sha256": "517e4c3ee3100a8394b9bafcc8c670d95997963933c2a87d23c6ba0b02dd4593",
+      "dimensions": [
+        128,
+        128
+      ]
+    },
+    "topknot": {
+      "file": "appearance-thumbnails/hair-topknot.webp",
+      "sha256": "57ffdd326c2719a565d133c8ffc66edbdd0cd2dd516087518b2db2c2bc809d59",
+      "dimensions": [
+        128,
+        128
+      ]
+    },
+    "waves": {
+      "file": "appearance-thumbnails/hair-waves.webp",
+      "sha256": "adcfb4f31ab29820168e95c11aba97e46087b569795a3c5f39ab31e25a609857",
+      "dimensions": [
+        128,
+        128
+      ]
+    },
+    "straight": {
+      "file": "appearance-thumbnails/hair-straight.webp",
+      "sha256": "1df7535fdcb6fc0411b4ea67ecd22bc40148a84442bdf91cc49c17cba8c7d8fd",
+      "dimensions": [
+        128,
+        128
+      ]
+    },
+    "brush": {
+      "file": "appearance-thumbnails/hair-brush.webp",
+      "sha256": "57592eca4f06e4312ce125e3b6907e7245e8ce9c4cfcd7c9217e40124733b6f8",
+      "dimensions": [
+        128,
+        128
+      ]
+    },
+    "boxbun": {
+      "file": "appearance-thumbnails/hair-boxbun.webp",
+      "sha256": "688ffdfc6bb7fa11f8d7f544baf4e308aae80741c00f3ae1e242a769a603f041",
+      "dimensions": [
+        128,
+        128
+      ]
+    },
+    "twistknot": {
+      "file": "appearance-thumbnails/hair-twistknot.webp",
+      "sha256": "61dedeff429f6948ab64ee743c41d2e670da49d7c12aafa6d4ec97449ceeb4da",
+      "dimensions": [
+        128,
+        128
+      ]
+    },
+    "sculpted": {
+      "file": "appearance-thumbnails/hair-sculpted.webp",
+      "sha256": "041f089d5af50329cb15ece61b8d17dfe51bc7281870ae55d41fb595565b35fd",
+      "dimensions": [
+        128,
+        128
+      ]
+    }
+  }
+}

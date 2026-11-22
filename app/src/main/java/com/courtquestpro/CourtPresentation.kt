@@ -1,0 +1,87 @@
+package com.courtquestpro
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+
+@Composable
+internal fun CourtEyebrow(text: String, modifier: Modifier = Modifier, color: Color = CourtQuestDesign.accent) {
+    Text(text, modifier, color = color, style = MaterialTheme.typography.labelSmall)
+}
+
+@Composable
+internal fun CourtHeading(title: String, detail: String? = null, onDetail: (() -> Unit)? = null) {
+    val enlarged=LocalConfiguration.current.fontScale>1.3f
+    @Composable fun Title(modifier:Modifier=Modifier) {
+        Text(title,modifier.semantics{heading()},color=CourtQuestDesign.textPrimary,style=MaterialTheme.typography.headlineSmall)
+    }
+    @Composable fun Detail() {
+        if(detail!=null) {
+            if(onDetail!=null)TextButton(onClick=onDetail){Text(detail)}
+            else Text(detail,color=CourtQuestDesign.textSecondary,style=MaterialTheme.typography.labelLarge)
+        }
+    }
+    if(enlarged)Column(Modifier.fillMaxWidth().padding(top=8.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
+        Title();Detail()
+    } else Row(Modifier.fillMaxWidth().padding(top=8.dp),verticalAlignment=Alignment.CenterVertically,
+        horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+        Title(Modifier.weight(1f));Detail()
+    }
+}
+
+@Composable
+internal fun CourtMetric(label: String, value: String, modifier: Modifier = Modifier, accent: Boolean = false) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Text(value, color = if (accent) CourtQuestDesign.accent else CourtQuestDesign.textPrimary,
+            style = MaterialTheme.typography.headlineMedium)
+        Text(label, color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.labelMedium)
+    }
+}
+
+/** Reflow data instead of shrinking system-scaled numbers on compact/enlarged layouts. */
+@Composable
+internal fun CourtMetricStrip(metrics: List<Pair<String, String>>, modifier: Modifier = Modifier) {
+    val fontScale = LocalConfiguration.current.fontScale
+    BoxWithConstraints(modifier.fillMaxWidth()) {
+        val reflowThreshold = if (metrics.size > 2) 235f else 160f
+        if ((maxWidth.value / fontScale) < reflowThreshold) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                metrics.forEachIndexed { index, (label, value) ->
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(label, color = CourtQuestDesign.textSecondary,
+                            style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                        Text(value, color = if (index == 0) CourtQuestDesign.accent else CourtQuestDesign.textPrimary,
+                            style = MaterialTheme.typography.headlineSmall)
+                    }
+                }
+            }
+        } else Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            metrics.forEachIndexed { index, (label, value) -> CourtMetric(label, value, Modifier.weight(1f), index == 0) }
+        }
+    }
+}
+
+@Composable
+internal fun StatCard(label: String, value: String, modifier: Modifier = Modifier) {
+    CourtQuestPremiumSurface(modifier, PaddingValues(16.dp)) { CourtMetric(label, value) }
+}
+
+@Composable
+internal fun CourtRule() { HorizontalDivider(color = CourtQuestDesign.border) }
+
+@Composable
+internal fun CourtStatus(text: String) {
+    Text(text, Modifier.background(CourtQuestDesign.warmSurface, RoundedCornerShape(8.dp))
+        .padding(horizontal = 10.dp, vertical = 6.dp),
+        color = CourtQuestDesign.accent, style = MaterialTheme.typography.labelMedium)
+}
