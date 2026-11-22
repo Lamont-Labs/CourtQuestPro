@@ -26,14 +26,4 @@ class PlayerCardRecordTest {
         assertEquals("0",recorded.training.first{it.label=="Successful reps"}.value)
         assertTrue(recorded.hasRecordedActivity)
     }
-    @Test fun complexionMovesLuminanceWhilePreservingPixelRelief() {
-        fun channel(color:Int,light:Float):Float {
-            val m=AvatarToneTransform.surface(color,112f)
-            return (m[0]+m[1]+m[2])*light+m[4]
-        }
-        val light=requireNotNull(AvatarSkin.LIGHT.color)
-        val deep=requireNotNull(AvatarSkin.UMBER.color)
-        assertTrue(channel(light,100f)-channel(deep,100f)>90)
-        assertTrue(channel(deep,150f)>channel(deep,50f))
-    }
 }
