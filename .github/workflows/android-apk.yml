@@ -103,7 +103,7 @@ jobs:
           modern = [r for r in releases if re.fullmatch(r"android-v1\.0-build\d+", r["tag_name"])]
           numbered = [int(m.group(1)) for r in releases
                       if (m := re.fullmatch(r"courtquest-update-v(\d+)", r["tag_name"]))]
-          next_number = max(max(historical) + len(modern), *numbered) + 1
+          # v60 candidate APKs were distributed outside GitHub Releases.\n          # Never publish a lower or duplicate visible release number.\n          candidate_floor = 60\n          next_number = max(candidate_floor, max(historical) + len(modern), *numbered) + 1
           with open(os.environ["GITHUB_OUTPUT"], "a") as output:
               print(f"number={next_number}", file=output)
           print(f"Next CourtQuest update: v{next_number}")
