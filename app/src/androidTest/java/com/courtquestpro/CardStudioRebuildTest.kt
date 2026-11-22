@@ -128,6 +128,19 @@ class CardStudioRebuildTest {
         if(has("player-card-back")) {click("player-card-preview");ui.waitUntil(5_000){!has("player-card-back")}}
     }
 
+    @Test fun cardAndUniformStudioTabsNavigateWithoutLeavingEditor() {
+        studio()
+        node("player-card-tab-card").assertIsDisplayed()
+        click("player-card-tab-uniform")
+        wait("jersey-studio")
+        node("jersey-studio").assertIsDisplayed()
+        assertFalse("Card preview should not remain behind Uniform Studio",has("player-card-studio-screen"))
+        click("player-card-tab-card")
+        waitStudio()
+        node("player-card-tab-card").assertIsDisplayed()
+        assertFalse("Uniform Studio should close when returning to Card",has("jersey-studio"))
+    }
+
     @Test fun twoSidesShowLiveJerseyRealStatsAndPersistSelectedEdition() {
         studio()
         val saved=PlayerCardSelection.identity(ui.activity)
