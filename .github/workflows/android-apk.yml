@@ -4,6 +4,9 @@ name: Android APK
 # Source changes must not automatically publish replacement Android packages.
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['release-request/approved-main-apk.json']
 
 permissions:
   contents: write
