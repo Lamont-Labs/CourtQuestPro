@@ -45,6 +45,9 @@ jobs:
           git ls-files 'app/src/main/java/com/courtquestpro/*Avatar*.kt' >> merge-status.txt
           echo "Avatar symbol consumers outside avatar-specific source:" >> merge-status.txt
           git grep -n -E 'AvatarAppearance|AvatarControls|AvatarInspection|CourtCardAthlete|AvatarGeometry|AvatarToneTransform|AvatarDetailPainter|AvatarHairThumbnail' -- 'app/src/main/java/com/courtquestpro/*.kt' | grep -v -E '/Avatar[A-Za-z]*\\.kt:|/CourtCardAthlete\\.kt:' >> merge-status.txt || true
+          echo "::group::Avatar dependency report"
+          sed -n '/Avatar symbol consumers outside avatar-specific source:/,/Merged candidate source counts:/p' merge-status.txt | head -n 160
+          echo "::endgroup::"
           echo "Merged candidate source counts:" >> merge-status.txt
           git ls-files 'app/src/main/java/com/courtquestpro/*.kt' | wc -l >> merge-status.txt
       - name: Setup JDK
