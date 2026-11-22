@@ -19,7 +19,9 @@ android {
             .map { it.toInt() }
             .orElse(1)
             .get()
-        versionName = "1.0"
+        versionName = providers.environmentVariable("COURTQUEST_VERSION_NAME")
+            .orElse("1.0")
+            .get()
     }
 
     buildFeatures { compose = true }
