@@ -121,6 +121,7 @@ jobs:
             exit 1
           fi
           echo "COURTQUEST_VERSION_CODE=$version_code" >> "$GITHUB_ENV"
+          echo "COURTQUEST_VERSION_NAME=${{ steps.sequence.outputs.number }}.0" >> "$GITHUB_ENV"
 
       - name: Compile and run Android lint
         shell: bash
