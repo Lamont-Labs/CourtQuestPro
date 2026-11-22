@@ -691,7 +691,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         onWalkthrough = { startNavigationTour() }, onJersey = { navigate("jerseyStudio") },
                          onPlayerCard = { navigate("playerCardStudio") })
                     "playerCardStudio" -> PlayerCardStudio(save, ::saveUniform, onBack = { goBack() })
-                    "jerseyStudio" -> CourtJerseyStudio(save.playerJersey, onBack = { goBack() }, onSave = ::saveUniform)
+                    "jerseyStudio" -> PlayerCardStudio(save, ::saveUniform, onBack = { goBack() }, initialUniform = true)
                     "settings" -> SettingsScreen(save.playerName, save.difficulty, onBack = { goBack() },
                         onDifficulty = { save.difficulty = it; refresh() },
                         onJersey = { navigate("jerseyStudio") }, onSaveName = {
