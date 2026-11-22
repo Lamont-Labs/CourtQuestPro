@@ -1,11 +1,11 @@
 {
   "request": "publish-verified-main-apk",
-  "source_merge_commit": "5948a99cc6a1fc7f3c5670f73ad644422d21a564",
+  "source_merge_commit": "d09f5c95ded5b2b2a391d49fd89171c422233b47",
   "require_package": "com.courtquestpro",
   "require_existing_signing_certificate": true,
   "require_android_lint": true,
   "requested_by": "owner",
-  "reason": "Deliver unified Card and Uniform Studio entry points in update-compatible APK",
-  "feature": "unified-card-uniform-studio",
-  "feature_commit": "a12ed8482932eaa31f748998cbdffa5adf38b758"
+  "reason": "Publish next verified main APK after release-numbering fixes and green release-contract regression tests; preserve existing app installation and player data",
+  "feature": "verified-v61-update",
+  "feature_commit": "d09f5c95ded5b2b2a391d49fd89171c422233b47"
 }
