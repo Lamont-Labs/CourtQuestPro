@@ -1,0 +1,58 @@
+name: Prepare merge-ready CourtQuest main candidate
+on:
+  push:
+    branches: [integration/verified-no-avatars]
+    paths: ['.github/workflows/prepare-main-merge.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Resolve merge against main in candidate branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "CourtQuest Integration Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b release/avatar-free-main-candidate
+          git fetch origin '+refs/heads/integration/verified-no-avatars:refs/remotes/origin/integration/verified-no-avatars'
+          git merge --no-commit --no-ff -X theirs origin/integration/verified-no-avatars
+          test -z "$(git ls-files -u)"
+          git show HEAD:app/build.gradle.kts > app/build.gradle.kts
+          git add app/build.gradle.kts
+          test "$(grep -c 'applicationId = "com.courtquestpro"' app/build.gradle.kts)" -eq 1
+          test ! -f app/src/main/java/com/courtquestpro/AvatarAppearance.kt
+          test ! -f app/src/main/java/com/courtquestpro/CourtCardAthlete.kt
+          if git grep -n -E 'AvatarAppearance|CourtCardAthlete|AvatarToneTransform|AvatarGeometry' -- 'app/src/main/java/com/courtquestpro/*.kt'; then exit 1; fi
+          git diff --cached --stat > candidate-diff.txt
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Test merged main candidate
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew :app:testDebugUnitTest :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee candidate-build.log
+      - name: Commit and publish merge-ready branch
+        run: |
+          set -euo pipefail
+          git commit -m "Merge verified avatar-free CourtQuest studios onto main base"
+          git push --force-with-lease origin HEAD:release/avatar-free-main-candidate
+      - name: Upload verification
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: courtquest-main-merge-candidate
+          path: |
+            candidate-diff.txt
+            candidate-build.log
+            app/build/outputs/apk/debug/*.apk
+          if-no-files-found: warn
