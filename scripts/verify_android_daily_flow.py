@@ -1,0 +1,595 @@
+from pathlib import Path
+from datetime import date, timedelta
+from xml.etree import ElementTree as ET
+import argparse
+import hashlib
+import json
+import os
+import re
+import subprocess
+import time
+
+
+ROOT = Path(__file__).resolve().parents[1]
+SDK = Path(os.environ.get('ANDROID_HOME', str(ROOT.parent / 'courtquest-sdk')))
+ADB = SDK / 'platform-tools/adb'
+PACKAGE = 'com.courtquestpro'
+OUT = Path(os.environ.get('COURTQUEST_UI_EVIDENCE', str(ROOT / 'artifacts/android-daily-flow')))
+NAV_ROUTES = dict(Court='home', Train='library', Quests='quests', Progress='career', Me='me')
+
+
+def expected_version_code():
+    """Check the installed candidate against the build source, not an old CI override."""
+    source = (ROOT / 'app/build.gradle.kts').read_text()
+    versions = re.findall(r'^\s*versionCode\s*=\s*(\d+)\s*$', source, re.MULTILINE)
+    assert len(versions) == 1, 'Expected one explicit Android versionCode'
+    return int(versions[0])
+
+
+def tagged(items, tag):
+    for node in items:
+        resource = node.get('resource-id', '').split(':id/')[-1]
+        bounds = list(map(int, re.findall(r'-?\d+', node.get('bounds', ''))))
+        if resource == tag and len(bounds) == 4 and bounds[2] > bounds[0] and bounds[3] > bounds[1]:
+            return node
+    return None
+
+
+def wait_tagged(tag, attempts=4):
+    """Wait for the semantic state after an animated open/close, not a fixed delay."""
+    for attempt in range(attempts):
+        target = tagged(nodes(), tag)
+        if target is not None:
+            return target
+        if attempt + 1 < attempts:
+            time.sleep(0.2)
+    raise AssertionError(f'Visible Android resource {tag!r} did not become ready')
+
+
+def drawer_target(label, limit=12, minimum_px=1):
+    """Find each destination in the drawer, scrolling its list on short screens."""
+    route = NAV_ROUTES[label]
+    items = nodes()
+    opener = tagged(items, 'nav-open-handle')
+    # A cold-start hierarchy can precede the app's first navigation frame.
+    # Missing opener does not mean the drawer is already open.
+    if tagged(items, 'player-navigation-drawer') is None:
+        if opener is None:
+            opener = wait_tagged('nav-open-handle')
+        tap(opener)
+    for direction in ('up', 'down'):
+        for _ in range(limit):
+            drawer = wait_tagged('player-navigation-drawer')
+            regions = [n for n in drawer.iter('node') if n.get('scrollable') == 'true']
+            viewport = regions[0] if regions else drawer
+            vl, vt, vr, vb = map(int, re.findall(r'-?\d+', viewport.get('bounds', '')))
+            target = tagged(list(drawer.iter('node')), 'nav-' + route)
+            bounds = (list(map(int, re.findall(r'-?\d+', target.get('bounds', ''))))
+                      if target is not None else None)
+            if (bounds is not None and bounds[2] - bounds[0] >= minimum_px
+                    and bounds[3] - bounds[1] >= minimum_px
+                    and bounds[0] >= vl and bounds[1] >= vt
+                    and bounds[2] <= vr and bounds[3] <= vb):
+                # Android exports the active Role.Tab as selected/focusable but
+                # non-clickable. Still tap it and prove that the drawer closes.
+                actionable = (target.get('clickable') == 'true' or
+                              (target.get('selected') == 'true' and target.get('focusable') == 'true'))
+                assert actionable and target.get('enabled') == 'true', (
+                    label, 'destination must be actionable', target.attrib)
+                # Compose may expose the accessible name as text or a merged descendant,
+                # not necessarily content-desc on the test-tag wrapper itself.
+                require(list(target.iter('node')), label)
+                return target
+            assert regions, f'No drawer scroll region can reach {label!r}'
+            left, top, right, bottom = map(int, re.findall(r'-?\d+', regions[0].get('bounds', '')))
+            upper, lower = top + (bottom - top) // 4, top + (bottom - top) * 3 // 4
+            start, end = (lower, upper) if direction == 'up' else (upper, lower)
+            shell('input', 'swipe', str((left + right) // 2), str(start),
+                  str((left + right) // 2), str(end), '250')
+    raise AssertionError(f'Drawer destination {label!r} is unreachable')
+
+
+def dock_target(label, minimum_px=1):
+    """Find a real, accessible destination in the five-icon bottom dock."""
+    route = NAV_ROUTES[label]
+    items = nodes()
+    dock = wait_tagged('player-bottom-dock')
+    target = tagged(items, 'dock-' + route)
+    assert target is not None, f'Bottom destination {label!r} is missing'
+    bounds = list(map(int, re.findall(r'-?\d+', target.get('bounds', ''))))
+    assert len(bounds) == 4 and bounds[2] - bounds[0] >= minimum_px and bounds[3] - bounds[1] >= minimum_px, (label, bounds)
+    assert target.get('enabled') == 'true', (label, 'disabled destination')
+    assert target.get('clickable') == 'true' or target.get('selected') == 'true', (label, 'not actionable')
+    require(list(target.iter('node')), label)
+    return target
+
+
+def navigate(label):
+    # Published baseline APKs have the old drawer; redesigned candidates have
+    # the icon-only dock. Verify whichever navigation is actually installed.
+    if tagged(nodes(), 'player-bottom-dock') is not None:
+        tap(dock_target(label))
+        # The destination node can exist before Compose commits its selected
+        # semantics after a navigation animation. Wait for the state transition,
+        # not merely the node's presence; still fail if it never becomes selected.
+        tag = 'dock-' + NAV_ROUTES[label]
+        for attempt in range(15):
+            selected = tagged(nodes(), tag)
+            if selected is not None and selected.get('selected') == 'true':
+                break
+            if attempt < 14:
+                time.sleep(0.2)
+        else:
+            raise AssertionError((label, 'tab not selected after navigation settled'))
+    else:
+        tap(drawer_target(label))
+        wait_tagged('nav-open-handle')
+
+
+def adb(*args, data=None, timeout=120):
+    result = subprocess.run([str(ADB), '-s', 'emulator-5562', *args], input=data,
+                            capture_output=True, timeout=timeout)
+    if result.returncode:
+        stdout = result.stdout.decode(errors="replace")
+        stderr = result.stderr.decode(errors="replace")
+        print(f'ADB command failed: exit={result.returncode}; args={args}; stdout={stdout[-3000:]}; stderr={stderr[-3000:]}', flush=True)
+        if args[:3] == ('shell', 'am', 'instrument'):
+            for diagnostic in (('devices', '-l'), ('logcat', '-d', '-b', 'crash')):
+                try:
+                    evidence = subprocess.run([str(ADB), '-s', 'emulator-5562', *diagnostic],
+                        capture_output=True, timeout=20)
+                    print(f'ADB diagnostic {diagnostic}: exit={evidence.returncode}; '
+                          f'output={evidence.stdout.decode(errors="replace")[-5000:]} '
+                          f'error={evidence.stderr.decode(errors="replace")[-1000:]}', flush=True)
+                except (OSError, subprocess.TimeoutExpired) as error:
+                    print(f'ADB diagnostic {diagnostic} unavailable: {error}', flush=True)
+        raise RuntimeError(f'ADB exit={result.returncode}; {args}: {stdout} {stderr}')
+    return result.stdout
+
+
+def shell(*args, **kwargs):
+    return adb('shell', *args, **kwargs).decode(errors='replace').strip()
+
+
+def nodes(label=None):
+    last_error = None
+    for attempt in range(3):
+        try:
+            shell('uiautomator', 'dump', '--compressed', '/data/local/tmp/cq-visual.xml', timeout=90)
+            raw = adb('exec-out', 'cat', '/data/local/tmp/cq-visual.xml')
+            parsed = ET.fromstring(raw)
+            if label:
+                (OUT / f'{label}.xml').write_bytes(raw)
+            return list(parsed.iter('node'))
+        except (ET.ParseError, RuntimeError, subprocess.TimeoutExpired) as error:
+            last_error = error
+            time.sleep(2)
+    raise last_error
+
+
+def find(items, text):
+    for node in items:
+        bounds = list(map(int, re.findall(r'-?\d+', node.get('bounds', ''))))
+        if len(bounds) != 4 or bounds[2] <= bounds[0] or bounds[3] <= bounds[1]:
+            continue
+        if any(text.casefold() in [line.strip().casefold() for line in value.splitlines()]
+               for value in (node.get('text', ''), node.get('content-desc', ''))):
+            return node
+    return None
+
+
+def require(items, text):
+    node = find(items, text)
+    assert node is not None, (text, [node.get('text') or node.get('content-desc') for node in items])
+    return node
+
+
+def assert_empty_progress(items, read_tag=None):
+    xp_card = tagged(items, 'progress-lifetime-xp')
+    if xp_card is None and read_tag is not None:
+        xp_card = tagged(read_tag('progress-lifetime-xp'), 'progress-lifetime-xp')
+    assert xp_card is not None, 'Player level and lifetime XP card is missing'
+    require(list(xp_card.iter('node')), 'PLAYER LEVEL')
+    require(list(xp_card.iter('node')), 'TOTAL XP')
+    require(list(xp_card.iter('node')), '0')
+    record_items = items
+    record = tagged(record_items, 'progress-record-sessions')
+    if record is None and read_tag is not None:
+        record_items = read_tag('progress-record-sessions')
+        record = tagged(record_items, 'progress-record-sessions')
+    assert record is not None, 'Empty recorded-drills metric is missing'
+    require(list(record.iter('node')), 'RECORDED DRILLS')
+    require(list(record.iter('node')), '0')
+    days_items = items
+    days = tagged(days_items, 'progress-training-days')
+    if days is None and read_tag is not None:
+        days_items = read_tag('progress-training-days')
+        days = tagged(days_items, 'progress-training-days')
+    assert days is not None, 'Empty training-days metric is missing'
+    require(list(days.iter('node')), 'TRAINING DAYS')
+    require(list(days.iter('node')), '0')
+
+
+def tap(node):
+    left, top, right, bottom = map(int, re.findall(r'\d+', node.attrib['bounds']))
+    assert right > left and bottom > top, node.attrib
+    shell('input', 'tap', str((left + right) // 2), str((top + bottom) // 2))
+    time.sleep(0.5)
+
+
+def screenshot(name):
+    data = adb('exec-out', 'screencap', '-p')
+    assert data.startswith(bytes.fromhex('89504e470d0a1a0a')) and len(data) > 10000
+    (OUT / f'{name}.png').write_bytes(data)
+    print('Captured', name, flush=True)
+
+
+def open_app():
+    print(shell('am', 'start', '-n', f'{PACKAGE}/.MainActivity', timeout=180), flush=True)
+    time.sleep(3)
+
+
+def prefs():
+    root = ET.fromstring(adb('exec-out', 'run-as', PACKAGE, 'cat', 'shared_prefs/court_quest_pro.xml'))
+    return {node.attrib['name']: node for node in root}
+
+
+def seed(variant="normal"):
+    today = shell('date', '+%F')
+    ids = ['s1', 'b1', 'f1', 'd1', 'r1', 'p1']
+    state = dict(playerName='Jordan', difficulty='Intermediate', weeklyPlan='Balanced',
+                 trainingDays=[1, 3, 5], weeklyActivities=[], totalXp=100, currentStreak=1,
+                 longestStreak=2, lastStreakDate='', activeDate=today,
+                 slots=[dict(id=f'slot-{i}', drillId=drill, complete=False) for i, drill in enumerate(ids)],
+                 championshipDone=False, playerScore=0, opponentScore=0, pointHistory=[],
+                 matchPlayer='', matchOpponent='', matches=[], awardedKeys=[],
+                 drillResults=[dict(date=today, slotId='previous-1', drillId='s1', completed=15, attempted=20),
+                               dict(date=today, slotId='previous-2', drillId='s1', completed=18, attempted=20)],
+                 drillDrafts=[dict(date=today, slotId='slot-0', drillId='s1', successful=0,
+                                  attempted=0, targetConfirmed=False, remainingSeconds=360)], showWarmupDone=False)
+    if variant == 'empty':
+        state.update(totalXp=0, currentStreak=0, longestStreak=0, drillResults=[], drillDrafts=[])
+    elif variant == 'progression-empty':
+        # QA-only first-run fixture: no history or XP, but a resumable recorder draft.
+        state.update(playerName='CourtQuest QA', jerseyNumber=14, totalXp=0,
+                     currentStreak=0, longestStreak=0, drillResults=[], awardedKeys=[])
+    elif variant == 'visual-review':
+        # Clearly synthetic, identically persisted before/after screenshot data.
+        # These are fixture values, never runtime defaults or a real user's identity.
+        state.update(playerName='CourtQuest QA', jerseyNumber=14)
+    elif variant == 'blank':
+        state['playerName'] = ''
+    elif variant == 'long':
+        state['playerName'] = 'Alexandria Montgomery-Washington'
+    elif variant == 'history':
+        state['drillResults'] = [dict(date=today, slotId=f'history-{i}', drillId='s1', completed=10 + i % 3, attempted=20) for i in range(150)]
+    elif variant == 'complete':
+        for slot in state['slots']:
+            slot['complete'] = True
+        state['drillDrafts'] = []
+    if variant == 'game-history':
+        state['matches'] = [dict(date='2025-03-10', player='Jordan', opponent=f'Guest {i}',
+                                 playerScore=11, opponentScore=i, winner='Jordan', xp=0) for i in range(8)]
+    if variant in ('previous-unfinished-game', 'previous-completed-game'):
+        state.update(activeDate=(date.fromisoformat(today) - timedelta(days=1)).isoformat(),
+                     matchPlayer='Jordan', matchOpponent='Casey', playerScore=5, opponentScore=2,
+                     pointHistory=[True] * 5 + [False] * 2)
+        if variant == 'previous-completed-game':
+            state.update(championshipDone=True, playerScore=11, opponentScore=2)
+    root = ET.Element('map')
+    ET.SubElement(root, 'boolean', name='onboarding_complete', value='true')
+    ET.SubElement(root, 'string', name='state').text = json.dumps(state)
+    shell('am', 'force-stop', PACKAGE)
+    shell('run-as', PACKAGE, 'mkdir', '-p', 'shared_prefs')
+    shell(f'run-as {PACKAGE} sh -c "cat > shared_prefs/court_quest_pro.xml"',
+          data=ET.tostring(root, encoding='utf-8'))
+
+
+def scroll_to(text, limit=10):
+    for _ in range(limit):
+        items = nodes()
+        node = find(items, text)
+        if node is not None:
+            return node
+        scrollables = [node for node in items if node.get('scrollable') == 'true']
+        if not scrollables:
+            time.sleep(0.2)
+            continue
+        def bounds(node):
+            return list(map(int, re.findall(r'\d+', node.attrib['bounds'])))
+        scrollable = max(scrollables, key=lambda node: (bounds(node)[2] - bounds(node)[0]) * (bounds(node)[3] - bounds(node)[1]))
+        left, top, right, bottom = bounds(scrollable)
+        x = (left + right) // 2
+        height = bottom - top
+        shell('input', 'swipe', str(x), str(top + height * 4 // 5), str(x), str(top + height // 4), '350')
+        time.sleep(0.5)
+    raise AssertionError(f'Control {text!r} was not reachable by scrolling')
+
+
+def progress_metric_nodes(tag):
+    labels = {
+        'progress-record-sessions': 'RECORDED DRILLS',
+        'progress-training-days': 'TRAINING DAYS',
+    }
+    assert tag in labels, f'Unexpected empty-progress metric: {tag}'
+    scroll_to(labels[tag])
+    return nodes()
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('phase', choices=['baseline', 'candidate'])
+    parser.add_argument('apk')
+    args = parser.parse_args()
+    OUT.mkdir(exist_ok=True)
+    for attempt in range(100):
+        emulator_pid = os.environ.get('COURTQUEST_EMULATOR_PID')
+        if emulator_pid:
+            try:
+                os.kill(int(emulator_pid), 0)
+            except ProcessLookupError as error:
+                raise RuntimeError('Android Emulator exited before boot; inspect emulator.log') from error
+        try:
+            if shell('getprop', 'sys.boot_completed', timeout=8) == '1':
+                break
+        except (RuntimeError, subprocess.TimeoutExpired):
+            pass
+        if attempt % 6 == 0:
+            print('Waiting for Android', attempt + 1, flush=True)
+        time.sleep(5)
+    else:
+        raise RuntimeError('Android did not finish booting')
+    for key in ('window_animation_scale', 'transition_animation_scale', 'animator_duration_scale'):
+        shell('settings', 'put', 'global', key, '0')
+    shell('input', 'keyevent', 'KEYCODE_WAKEUP')
+    shell('wm', 'dismiss-keyguard')
+    shell('wm', 'size', '720x1600')
+    shell('wm', 'density', '320')
+    shell('settings', 'put', 'system', 'font_scale', '1.0')
+    before_update = prefs()['state'].text if args.phase == 'candidate' else None
+    assert 'Success' in adb('install', '-r', str(Path(args.apk).resolve()), timeout=180).decode()
+    if before_update is not None:
+        assert prefs()['state'].text == before_update, 'APK update must retain existing player data'
+        print('Update retained the existing profile and results.', flush=True)
+    packaged_version = int(re.search(r'versionCode=(\d+)', shell('dumpsys', 'package', PACKAGE)).group(1))
+    if args.phase == 'candidate':
+        assert packaged_version == expected_version_code(), (packaged_version, expected_version_code())
+    seed()
+    open_app()
+    home = nodes(f'{args.phase}-court')
+    screenshot(f'{args.phase}-court')
+    action_visible = find(home, 'Resume session') is not None
+    if args.phase == 'baseline':
+        tap(require(home, 'Progress'))
+    else:
+        navigate('Progress')
+    nodes(f'{args.phase}-progress')
+    screenshot(f'{args.phase}-progress')
+    if args.phase == 'baseline':
+        tap(require(nodes(), 'Setup'))
+    else:
+        navigate('Me')
+        tap(scroll_to('Edit profile'))
+    settings = nodes(f'{args.phase}-setup')
+    screenshot(f'{args.phase}-setup')
+    if args.phase == 'candidate':
+        assert any(node.get('class') == 'android.widget.EditText' and node.get('text') == 'Jordan' for node in settings)
+        tap(scroll_to('Beginner'))
+        changed_settings = nodes('candidate-preference-selected')
+        label = require(changed_settings, 'Beginner')
+        left, top, right, bottom = map(int, re.findall(r'\d+', label.attrib['bounds']))
+        selected = False
+        for node in changed_settings:
+            if node.get('checked') != 'true' and node.get('selected') != 'true':
+                continue
+            bounds = list(map(int, re.findall(r'\d+', node.attrib['bounds'])))
+            if bounds[0] <= left and bounds[1] <= top and bounds[2] >= right and bounds[3] >= bottom:
+                selected = True
+        assert selected, 'The chosen level must visibly select on the first tap'
+        assert json.loads(prefs()['state'].text)['difficulty'] == 'Beginner'
+    if args.phase == 'baseline':
+        tap(require(nodes(), 'Court'))
+    else:
+        navigate('Court')
+    tap(scroll_to('Resume session'))
+    drill_nodes = nodes(f'{args.phase}-drill')
+    screenshot(f'{args.phase}-drill')
+    if args.phase == 'baseline':
+        (OUT / 'baseline-result.json').write_text(json.dumps({'primary_on_first_viewport': action_visible}, indent=2))
+        print('Baseline recorded. Primary action initially visible:', action_visible, flush=True)
+        return
+
+    assert action_visible, 'Resume session must be in the first viewport'
+    success = scroll_to('Record successful attempt')
+    for _ in range(15):
+        tap(success)
+    tap(scroll_to('Record missed / other attempt'))
+    tap(scroll_to('− Miss'))
+    scroll_to('Full target completed safely.')
+    confirmation = next(node for node in nodes() if node.get('checkable') == 'true')
+    tap(confirmation)
+    screenshot('candidate-drill-target-met')
+    tap(scroll_to('Save results'))
+    receipt = nodes('candidate-result')
+    require(receipt, 'Session recorded.')
+    screenshot('candidate-result')
+    state = json.loads(prefs()['state'].text)
+    assert len(state['drillResults']) == 3
+    assert state['drillResults'][-1]['completed'] == state['drillResults'][-1]['attempted'] == 15
+    assert state['slots'][0]['complete'] and state['totalXp'] == 150
+    assert not state['drillDrafts']
+    require(receipt, 'Self-recorded · Saved on this device')
+    shell('wm', 'size', '640x1440')
+    shell('settings', 'put', 'system', 'font_scale', '2.0')
+    time.sleep(2)
+    require(nodes(), 'Continue training')
+    require(nodes(), 'View Progress')
+    screenshot('candidate-large-type-receipt')
+    shell('settings', 'put', 'system', 'font_scale', '1.0')
+    shell('wm', 'size', '720x1600')
+    time.sleep(2)
+    scroll_to('UP NEXT')
+    scroll_to('Stationary Crossover Control')
+    require(nodes(), 'Stationary Crossover Control')
+    screenshot('candidate-receipt-next')
+    tap(require(nodes(), 'Continue training'))
+    next_drill = nodes('candidate-next-drill')
+    require(next_drill, 'Stationary Crossover Control')
+    screenshot('candidate-next-drill')
+    shell('input', 'keyevent', 'KEYCODE_BACK')
+    navigate('Progress')
+    tap(scroll_to('History'))
+    nodes('candidate-progress-after-save')
+    screenshot('candidate-progress-after-save')
+    scroll_to('15 successful / 15 attempts')
+    nodes('candidate-progress-record')
+    screenshot('candidate-progress-record')
+    shell('am', 'force-stop', PACKAGE)
+    open_app()
+    require(nodes(), 'Court')
+    assert len(json.loads(prefs()['state'].text)['drillResults']) == 3
+    shell('wm', 'size', '640x1440')
+    shell('settings', 'put', 'system', 'font_scale', '1.3')
+    time.sleep(2)
+    nodes('candidate-compact-court')
+    screenshot('candidate-compact-court')
+    navigate('Me')
+    tap(scroll_to('Edit profile'))
+    nodes('candidate-compact-setup')
+    screenshot('candidate-compact-setup')
+    shell('settings', 'put', 'system', 'font_scale', '2.0')
+    time.sleep(2)
+    large_nodes = nodes('candidate-large-type-setup')
+    if not any(node.get('class') == 'android.widget.EditText' for node in large_nodes):
+        scroll_to('Jordan')
+        nodes('candidate-large-type-setup')
+    screenshot('candidate-large-type-setup')
+    scroll_to('Jordan')
+    nodes('candidate-large-type-profile')
+    screenshot('candidate-large-type-profile')
+    shell('wm', 'size', '720x1600')
+    shell('settings', 'put', 'system', 'font_scale', '1.0')
+    seed('empty')
+    open_app()
+    navigate('Progress')
+    assert_empty_progress(nodes('candidate-empty-progress'), progress_metric_nodes)
+    empty_state = json.loads(prefs()['state'].text)
+    assert empty_state['totalXp'] == 0 and empty_state['drillResults'] == [], \
+        'Viewing empty Progress changed the saved XP or recorded results'
+    screenshot('candidate-empty-progress')
+    seed('history')
+    open_app()
+    navigate('Progress')
+    tap(scroll_to('History'))
+    tap(scroll_to('View all 150 sessions'))
+    require(nodes('candidate-full-history'), 'Training history')
+    screenshot('candidate-full-history')
+    shell('input', 'keyevent', 'KEYCODE_BACK')
+    require(nodes(), 'Progress')
+    shell('input', 'keyevent', 'KEYCODE_BACK')
+    require(nodes(), 'Court')
+    shell('wm', 'size', '640x1440')
+    shell('settings', 'put', 'system', 'font_scale', '2.0')
+    seed()
+    open_app()
+    tap(scroll_to('Resume session'))
+    tap(scroll_to('Record successful attempt'))
+    tap(scroll_to('Record missed / other attempt'))
+    draft_state = json.loads(prefs()['state'].text)
+    assert draft_state['drillDrafts'][0]['successful'] == 1 and draft_state['drillDrafts'][0]['attempted'] == 2
+    scroll_to('Save results')
+    require(nodes('candidate-large-type-drill'), 'Save results')
+    screenshot('candidate-large-type-drill')
+    for _ in range(5):
+        shell('input', 'swipe', '360', '420', '360', '1200', '250')
+    scroll_to('Start')
+    scroll_to('Reset clock')
+    screenshot('candidate-large-type-clock')
+    shell('settings', 'put', 'system', 'font_scale', '1.0')
+    shell('wm', 'size', '720x1600')
+    seed('blank')
+    open_app()
+    require(nodes('candidate-blank-profile'), 'Court')
+    screenshot('candidate-blank-profile')
+    seed('long')
+    open_app()
+    require(nodes('candidate-long-profile'), 'Court')
+    scroll_to('Resume session')
+    screenshot('candidate-long-profile')
+    seed('complete')
+    open_app()
+    complete_home = nodes('candidate-complete-court')
+    require(complete_home, '6 of 6 drills completed')
+    assert all(slot['complete'] for slot in json.loads(prefs()['state'].text)['slots']), \
+        'Completed Court must reflect the actual saved six-drill completion'
+    screenshot('candidate-complete-court')
+    tap(require(complete_home, 'Play 1-on-1'))
+    fields = [node for node in nodes() if node.get('class') == 'android.widget.EditText']
+    assert len(fields) == 2
+    tap(fields[1])
+    shell('input', 'text', 'Casey')
+    shell('input', 'keyevent', 'KEYCODE_BACK')
+    tap(scroll_to('Start game'))
+    score_nodes = nodes('candidate-scorekeeper')
+    screenshot('candidate-scorekeeper')
+    tap(require(score_nodes, 'Record point for Jordan'))
+    assert json.loads(prefs()['state'].text)['playerScore'] == 1
+    require(nodes(), '1')
+    tap(require(nodes(), 'Record point for Casey'))
+    game = json.loads(prefs()['state'].text)
+    assert game['playerScore'] == game['opponentScore'] == 1
+    tap(require(nodes(), 'UNDO LAST POINT'))
+    game = json.loads(prefs()['state'].text)
+    assert game['playerScore'] == 1 and game['opponentScore'] == 0
+    require(nodes('candidate-scorekeeper-undo'), '0')
+    screenshot('candidate-scorekeeper-undo')
+    shell('input', 'keyevent', 'KEYCODE_BACK')
+    require(nodes(), 'Court')
+    shell('wm', 'size', '640x1440')
+    shell('settings', 'put', 'system', 'font_scale', '2.0')
+    seed('complete')
+    open_app()
+    tap(scroll_to('Play 1-on-1'))
+    tap(scroll_to("Opponent's name (required)"))
+    shell('input', 'text', 'Casey')
+    shell('input', 'keyevent', 'KEYCODE_BACK')
+    tap(scroll_to('Start game'))
+    tap(scroll_to('Record point for Jordan'))
+    assert json.loads(prefs()['state'].text)['playerScore'] == 1
+    tap(scroll_to('UNDO LAST POINT'))
+    assert json.loads(prefs()['state'].text)['playerScore'] == 0
+    nodes('candidate-large-type-scorekeeper')
+    screenshot('candidate-large-type-scorekeeper')
+    shell('settings', 'put', 'system', 'font_scale', '1.0')
+    shell('wm', 'size', '720x1600')
+    assert 'Success' in shell('pm', 'clear', PACKAGE)
+    open_app()
+    require(nodes('candidate-fresh-onboarding'), 'Get Started')
+    screenshot('candidate-fresh-onboarding')
+    tap(require(nodes(), 'Get Started'))
+    identity = next(node for node in nodes() if node.get('class') == 'android.widget.EditText')
+    tap(identity)
+    shell('input', 'text', 'Avery')
+    shell('input', 'keyevent', 'KEYCODE_BACK')
+    for _ in range(3):
+        tap(require(nodes(), 'CONTINUE'))
+    nodes('candidate-fresh-week-plan')
+    screenshot('candidate-fresh-week-plan')
+    tap(require(nodes(), 'ENTER MY COURT'))
+    require(nodes('candidate-fresh-court'), 'Court')
+    screenshot('candidate-fresh-court')
+    fresh_state = json.loads(prefs()['state'].text)
+    assert fresh_state['playerName'] == 'Avery' and len(fresh_state['slots']) == 6
+    report = dict(input_apk_sha256=hashlib.sha256(Path(args.apk).read_bytes()).hexdigest(),
+                  version_code=packaged_version, full_history_navigation=True, large_type_drill=True, large_type_scorekeeping=True, fresh_onboarding=True, empty_progress=True, blank_name=True, long_name=True,
+                  completed_workout=True, scorekeeping_and_undo=True, system_back=True,
+                  receipt_next_drill_matches_continue=True, large_type_receipt=True, large_type_clock=True,
+                  update_retains_saved_state=True, primary_on_first_viewport=True, saved_name_visible=True, immediate_preference_selection=True, result_recorded_once=True,
+                  successes=15, attempts=15, xp_awarded=50, relaunch_persistence=True,
+                  compact_capture=True, large_type_capture=True)
+    (OUT / 'candidate-result.json').write_text(json.dumps(report, indent=2))
+    print(json.dumps(report), flush=True)
+
+
+if __name__ == '__main__':
+    main()

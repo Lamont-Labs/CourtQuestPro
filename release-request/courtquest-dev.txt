@@ -1,9 +1,9 @@
-Authorized by project owner on 2026-11-05: publish a development Android APK as a GitHub prerelease with a direct installable APK asset. Build and test from the development branch; do not merge to main.
-
-CQ-018 release request: run repaired APK verification and publish the current development branch as a direct GitHub APK asset. Date: 2026-11-05.
-
-CQ-022 preview refresh authorized 2026-11-05: replace existing release APK assets in place, preserve package ID and signing identity. Source through 065f21e; Android CI run 42127949693 passed.
-
-CQ-023 verified preview refresh requested 2026-11-05: Android development checks run #160 passed at 52d33f5682061387136d9cee000f410db2e3b686. Rebuild the current development branch and replace the existing development APK and SHA-256 assets only after the release workflow tests and verifies package identity and signing. Preserve signing/debug.keystore, application ID, saved user data, and main branch.
-
-CQ-024 onboarding preview refresh authorized 2026-11-05: publish current development branch after Android checks #178 and #180 passed. Include five-step onboarding, resumable setup, compact-screen scrolling and drill UI stages. Preserve com.courtquestpro, existing debug signing identity, player data and main branch. Verify APK before replacing the existing prerelease asset.
+CourtQuest Pro Mission Builder build 8 / CQ-PLAYER-002
+Owner-authorized master-spec solo Mission foundation: ordered builder, immutable versions, seeded constrained generation, safe interruption/resume, exact-once results and Mission receipts in Progress.
+Native source: f6db205d3b8d7a10621acd3b39bc6fda0f576ecc
+Native app/src: 826dc7c4f6eecbd0147b04e2cbc50a107ed4d089
+Native run: 43147187632
+Native artifact: 13913082538
+APK SHA-256: 7bee93ac1870911008db5973c9a374f0d4eb8db6e05ed917ba0df0db144ca04d
+Verified: 61 Android unit tests, 7 Python verification regressions, lint 0 errors/11 warnings, same-binary library/daily/game/Mission/guarded Maestro PASS. Native normal/320dp-130%/critical200%/keyboard captures reviewed with limits recorded.
+Publish the exact tested APK. Preserve com.courtquestpro, version code 8, the original development signer, local saves and Signature art. Update the existing development release; keep main intact.

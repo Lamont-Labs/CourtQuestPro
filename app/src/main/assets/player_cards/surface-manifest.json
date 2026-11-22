@@ -1,0 +1,60 @@
+{
+  "holographic": {
+    "file": "surface-holographic.webp",
+    "size": [
+      828,
+      1200
+    ],
+    "bytes": 243868,
+    "sha256": "8daae54720d696bdef05795bffc1cd67253b77fcd23b6e0428efa5a2ea19ccd9",
+    "original_generated_source": "card_material_holographic_v3.png",
+    "crop": null,
+    "contains_player_or_text": false
+  },
+  "classic": {
+    "file": "surface-classic.webp",
+    "size": [
+      828,
+      1200
+    ],
+    "bytes": 272586,
+    "sha256": "fa27506e6f272b47375ce042ba753ae3245d26ae3a48d5d82df7cd9054a46834",
+    "original_generated_source": "card_material_classic_sports_v3.png",
+    "crop": null,
+    "contains_player_or_text": false
+  },
+  "battle": {
+    "file": "surface-battle.webp",
+    "size": [
+      828,
+      1200
+    ],
+    "bytes": 242158,
+    "sha256": "8592b8c341be89dbea50daa6d46a81a2f4e87cf8a28f8681ca700a2b082d0c68",
+    "original_generated_source": "card_material_battle_v3.png",
+    "crop": [
+      96,
+      0,
+      928,
+      1024
+    ],
+    "contains_player_or_text": false
+  },
+  "obsidian": {
+    "file": "surface-obsidian.webp",
+    "size": [
+      828,
+      1200
+    ],
+    "bytes": 75068,
+    "sha256": "217f9fc81e3ce3a34555f4603032185be52a966a3a3112aafd535eb70496ae01",
+    "original_generated_source": "card_material_obsidian.png",
+    "crop": [
+      174,
+      8,
+      850,
+      1016
+    ],
+    "contains_player_or_text": false
+  }
+}

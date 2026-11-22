@@ -1,0 +1,94 @@
+name: CourtQuest integration candidate compile (no publish)
+on:
+  push:
+    branches:
+      - integration/verified-no-avatars
+    paths:
+      - '.github/workflows/integration-candidate-build.yml'
+      - 'app/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout integration branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Fetch development branch
+        run: git fetch origin '+refs/heads/dev/player-card-profile-v2:refs/remotes/origin/dev/player-card-profile-v2'
+      - name: Build disposable merged worktree
+        id: merge
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "CourtQuest CI Integration"
+          git config user.email "courtquest-ci@users.noreply.github.com"
+          git checkout -b ci/disposable-integration
+          git merge --no-commit --no-ff -X theirs origin/dev/player-card-profile-v2 || true
+          if git ls-files -u | grep -q .; then
+            echo "Unresolved merge entries:" | tee merge-status.txt
+            git ls-files -u | tee -a merge-status.txt
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Conflict strategy: development-side changes for overlapping hunks" | tee merge-status.txt
+            git diff --cached --name-status | tee -a merge-status.txt
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Avatar-related source references (candidate only):" >> merge-status.txt
+          git grep -n -i 'avatar' -- app/src/main/java/com/courtquestpro >> merge-status.txt || true
+          echo "Avatar-specific Kotlin files:" >> merge-status.txt
+          git ls-files 'app/src/main/java/com/courtquestpro/*Avatar*.kt' >> merge-status.txt
+          echo "Avatar symbol consumers outside avatar-specific source:" >> merge-status.txt
+          git grep -n -E 'AvatarAppearance|AvatarControls|AvatarInspection|CourtCardAthlete|AvatarGeometry|AvatarToneTransform|AvatarDetailPainter|AvatarHairThumbnail' -- 'app/src/main/java/com/courtquestpro/*.kt' | grep -v -E '/Avatar[A-Za-z]*\\.kt:|/CourtCardAthlete\\.kt:' >> merge-status.txt || true
+          echo "::group::Avatar dependency report"
+          sed -n '/Avatar symbol consumers outside avatar-specific source:/,/Merged candidate source counts:/p' merge-status.txt | head -n 160
+          echo "::endgroup::"
+          echo "Merged candidate source counts:" >> merge-status.txt
+          git ls-files 'app/src/main/java/com/courtquestpro/*.kt' | wc -l >> merge-status.txt
+      - name: Setup JDK
+        if: steps.merge.outputs.ready == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Verify runner Android SDK
+        if: steps.merge.outputs.ready == 'true'
+        shell: bash
+        run: |
+          test -n "${ANDROID_HOME:-}"
+          test -d "$ANDROID_HOME/platforms"
+          echo "Using preinstalled Android SDK at $ANDROID_HOME"
+      - name: Compile disposable candidate
+        if: steps.merge.outputs.ready == 'true'
+        shell: bash
+        run: |
+          chmod +x ./gradlew
+          set -o pipefail
+          ./gradlew :app:testDebugUnitTest :app:assembleDebug --stacktrace --no-daemon 2>&1 | tee candidate-build.log
+          echo "APK output metadata:" | tee -a merge-status.txt
+          for metadata in app/build/outputs/apk/debug/*.json; do if [ -f "$metadata" ]; then cat "$metadata" >> merge-status.txt; fi; done
+          echo "APK SHA-256:" | tee -a merge-status.txt
+          sha256sum app/build/outputs/apk/debug/*.apk | tee -a merge-status.txt
+          echo "APK signing certificate and package metadata:" | tee -a merge-status.txt
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
+          test -n "$APKSIGNER"
+          for apk in app/build/outputs/apk/debug/*.apk; do
+            "$APKSIGNER" verify --verbose --print-certs "$apk" | tee -a merge-status.txt
+          done
+          echo "CAUTION: debug APK signing is not proof of update-in-place compatibility with an existing release." | tee -a merge-status.txt
+      - name: Upload merge and compilation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: courtquest-disposable-integration-candidate
+          path: |
+            merge-status.txt
+            candidate-build.log
+            app/build/outputs/apk/debug/*.apk
+          if-no-files-found: warn
+          retention-days: 14

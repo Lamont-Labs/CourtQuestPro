@@ -1,0 +1,25 @@
+{
+  "source": "CourtQuest_Signature_Approved_Reference.png",
+  "source_sha256": "3e887b9582c01b1132ebfcfdab521fb0c7d6864372f29dba14131bb7e9071be6",
+  "method": "Original-reference contour tracing to native VectorDrawable; no generative letterforms",
+  "rejected": "Transparent image-generation attempts with visible residue",
+  "wordmark_viewport": [
+    1254,
+    390
+  ],
+  "emblem_viewport": [
+    615,
+    615
+  ],
+  "adaptive_foreground_scale": 0.65,
+  "outputs": {
+    "courtquest_signature_wordmark.xml": "8b8ab83ed195697668d45c803f6cb2c26ea9dda9d689a47286d8c82fa57d775e",
+    "courtquest_signature_emblem.xml": "45ef1ea6cd5bd69efa1e0d777611af48a14c638394f8e9ad2d8ece5118feb67e",
+    "courtquest_signature_launcher.xml": "55e68e344aaa86a232b177bf75a15d3aca62a4299cbf23b60d1df3713da542db"
+  },
+  "android_xxxhdpi_renders": {
+    "courtquest_signature_wordmark.png": "95d5f903f111d74b895c4e22f876a0adad1ac73d8d5a6ac575565342b3349ca7",
+    "courtquest_signature_emblem.png": "46353e2aa8e1eb44414432604c2e99ed278a9f593b849b94ffc8c80b4dc42a81",
+    "courtquest_signature_launcher.png": "a7d527bf0c10233c3b9f45c09aeb3c849e1a722be7cd3c6b544f89a3942a692e"
+  }
+}

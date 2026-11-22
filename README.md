@@ -1,96 +1,66 @@
 # CourtQuest Pro
 
-Native Android basketball training prototype built with Kotlin and Jetpack Compose.
+Native Android basketball training and one-on-one scorekeeping, built with Kotlin and Jetpack Compose.
 
-## Download and install
+## Install the current development build
 
-Open [the latest Android release](https://github.com/Lamont-Labs/CourtQuestPro/releases/latest), expand **Assets**, and download **CourtQuestPro-1.0.apk**. Use your GitHub account with access to this private repository.
+[Download CourtQuestPro-Android-debug.apk — Signature build 7](https://github.com/Lamont-Labs/CourtQuestPro/releases/download/courtquest-dev-2026-11-05/CourtQuestPro-Android-debug.apk?build=7)
 
-On an Android 8.0 or newer phone, open the APK and choose **Install**. Android may ask you to allow installation from the app opening the file.
+Open the APK on Android 8.0 or newer and choose Install/Update over the existing app. Version **1.0 (7)**; 20,988,666 bytes. The original package `com.courtquestpro` and development signer are preserved. The in-place Android update test retained its profile and saved history.
 
-If a release is still building, open [Android APK builds](https://github.com/Lamont-Labs/CourtQuestPro/actions/workflows/android-apk.yml). The workflow publishes a release only after compilation, Android lint, and APK verification succeed. Each successful run also keeps the APK and its evidence as a workflow artifact for 90 days.
+## Signature training journey
 
-## Application
+Court → start/resume → record attempts/corrections → save once → receipt/actual next drill → Progress now shares the clean Signature identity, deep black canvas, vivid orange actions and smoked-glass surfaces. The header and native navigation are reusable. Foreground counters and controls remain sharp; a saved-result acknowledgement respects disabled system animation.
 
-- Dashboard with XP, rank, streak, and six daily drill slots.
-- Six basketball skill categories and drill detail screens.
-- YouTube search links for drill demonstrations.
-- Five difficulty choices saved locally.
-- Championship setup with player and opponent names.
-- Manual one-on-one scorekeeper, first to 11.
-- Sudden death at 10–10.
-- Match recaps and local career history.
-- Local progress storage through SharedPreferences.
+Receipts show actual successful/attempted counts, awarded XP, the named next drill and explicit self-recorded/local-save provenance. Continue uses the same deterministic recovery route as its preview. Existing saves, dynamic names, daily XP, one-on-one scoring, Undo and history remain intact.
 
-The basketball application logic is the original supplied prototype. This repository adds a reproducible Android build and GitHub download delivery.
+The **Drills** destination retains custom drills, search/skill filters, favorites, explained suggestions, protected swaps/shuffling and independent extra practice. Custom targets accept 1–500 successful actions; planned minutes accept 1–60 and remain the training clock. Editing creates a new definition; queued work and history preserve the original target/instructions. Archival removes future selection while retaining saved work. An unfinished practice must be resumed, finished or explicitly discarded before replacement.
 
-## Build
+## Verification
 
-| Setting | Value |
+| Check | Published build 7 |
 | --- | --- |
-| Package | `com.courtquestpro` |
-| App version | 1.0 / version code 1 |
-| Minimum Android | Android 8.0 / API 26 |
-| Target / compile SDK | API 35 |
-| Build tools | 35.0.1 |
-| Java | JDK 17 |
-| Gradle | 8.9, wrapper distribution SHA-256 pinned |
-| Android Gradle Plugin | 8.7.3 |
-| Kotlin | 2.0.21 |
+| Android unit tests | 48 passed; no failures/errors/skips |
+| Selector regression tests | 3 passed |
+| Compilation and lint | Passed; 0 lint errors/11 warnings |
+| Exact-binary native journeys | Library, daily training and game/Undo passed in [run 43136062719](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43136062719) |
+| Guarded Maestro | 1/1 passed on the dedicated QA emulator; [toolkit run](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43136062726) also passed |
+| Saved data/restoration | Build-5 in-place update, custom revisions, practice, same-day/expired Activity and process restart checked |
+| Actual rendered review | Normal 360 dp, 320 dp/130%, critical 200%, keyboard/insets and game captures reviewed |
+| Package/version/signature/signer/ZIP/16 KB alignment | Passed on the independently downloaded public APK |
+| Exact public bytes | Byte for byte identical to the native-tested artifact |
+| Release-branch checks | [Restored UI 43139207885](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43139207885) and [development 43139206837](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43139206837) passed |
 
-With JDK 17 and the Android SDK installed:
+Native checks use synthetic profiles. Physical-phone operation/performance, owner visual acceptance, full TalkBack, API 26–30 blur fallback and alternate launcher masks remain unverified. Enlarged controls/clock/receipt captures are scrolled viewports; they do not show every metric at once. [Rendered review](docs/tooling/SIGNATURE_RENDERED_REVIEW.md) records the actual scope.
+
+Native source: `375a607fd7be33bf30ad56c2337cf9acf3ae2253`; app/src tree: `839a30e17949d0b7d9dbe9284999637e2117aa34`. Release commit: `a431a69254b9d896d2a76640f5af363530f0dfa6`; [publication/download verification](https://github.com/Lamont-Labs/CourtQuestPro/actions/runs/43138905997) passed. [Native ledger](docs/tooling/evidence/signature-build7-native.json), [public-download ledger](docs/tooling/evidence/signature-build7-public-download.json), [implementation plan](docs/plans/2026-11-11-signature-training-journey.md).
+
+APK SHA-256:
+
+`1e0c5b24bc6f1087733014a1acaaba6b72e04435a758f9631b8f3e51b7b58767`
+
+## Master specification
+
+CQ-PREMIUM-001, the first native journey, is delivered. Next is the versioned Mission foundation/builder, followed by Player navigation, evidence-backed Quests and comparable Progress. Team/coach authorization and connected assignments are later phases. [Master specification](docs/specs/CourtQuest_Pro_Master_Product_UX_Engineering_Spec_v1.md), [implementation tracker](docs/MASTER_SPEC_IMPLEMENTATION.md), [next issue/migration contract](docs/plans/2026-11-11-player-mode-sequence.md).
+
+## Build and preservation
+
+JDK 17, SDK 35/build-tools 35.0.1, Gradle 8.9, AGP 8.7.3, Kotlin 2.0.21, Compose BOM 2024.12.01, minimum SDK 26. Haze 1.1.1, Lottie Compose 6.7.1 and Intro Showcase 2.0.2 remain pinned.
 
 ```bash
-chmod +x gradlew
-./gradlew --no-daemon :app:assembleDebug :app:lintDebug
+./gradlew --no-daemon --console=plain :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
 python3 scripts/verify_apk.py \
   --apk app/build/outputs/apk/debug/app-debug.apk \
   --build-tools "$ANDROID_HOME/build-tools/35.0.1" \
-  --output dist
+  --output artifacts/apk-verification
 ```
 
-Windows compilation:
+Active implementation: `dev/premium-flow-toolkit`. Authorized delivery: `dev/scorekeeper-undo-history`. Main remains separate. The publisher checks successful native provenance and matching app source, then uploads the exact tested artifact without rebuilding it.
 
-```powershell
-.\gradlew.bat :app:assembleDebug :app:lintDebug
-```
+Profiles, plans, XP, custom definitions/favorites, practice, drafts/results, matches and corrections are stored locally. No connected sync or independently verified skill is implied. Drill demonstrations open external YouTube searches. Barlow fonts retain their SIL Open Font License in `app/src/main/res/raw/barlow_ofl.txt`. Clean Signature contours/renders and their source hashes are in `tools/branding/`.
 
-Android Studio can open the repository root directly.
+The preserved development certificate SHA-256 is:
 
-## GitHub builds and downloads
+`25f8007f0a8503b01ded3f4856d02e830c64c823aa2c816da4d347ed5015f27b`
 
-The **Android APK** workflow runs after code is pushed to `main`. It can also be started from **Actions → Android APK → Run workflow**.
-
-Each successful build publishes:
-
-- The installable APK.
-- SHA-256 checksum and machine-readable package evidence.
-- Signature, ZIP alignment, and Android package inspection results.
-- Android lint reports and the Gradle build log.
-
-Release tags use `android-v1.0-buildN`. Releases are attached to the exact source commit. The workflow uses pinned GitHub Action commit SHAs and GitHub's temporary workflow token; no personal access token is needed.
-
-## Development signing
-
-`signing/debug.keystore` is the original **development-only** Android debug key. It is intentionally included in this private source repository so GitHub builds retain the original test APK's signing identity. It uses the standard debug alias `androiddebugkey` and standard debug passwords `android`.
-
-Certificate SHA-256:
-
-```text
-25f8007f0a8503b01ded3f4856d02e830c64c823aa2c816da4d347ed5015f27b
-```
-
-The ignore rules permit this exact test key and exclude other keystores. This is not a production signing setup. A production release must use a separate protected release key. Increase `versionCode` and `versionName` for future application versions.
-
-## Verification and remaining work
-
-`build-evidence/` preserves the original November 1, 2026 build records. New GitHub builds produce fresh evidence attached to their own releases.
-
-The original APK compiled, packaged, and signed successfully. GitHub repeats the build and packaging checks before publishing. Neither the original session nor this delivery has established successful emulator or physical-phone operation.
-
-Known prototype limitations retained from the supplied source:
-
-- Drill videos open external YouTube search pages.
-- Saved difficulty does not filter daily drill selection.
-- Undo removes a point based on the higher score instead of the actual last scorer.
-- Daily slot generation, match XP display, streak behavior, and navigation still need functional testing.
+Do not regenerate the existing development identity or change the package during an update. Production signing is a separate release task. [DESIGN.md](DESIGN.md) and [AGENTS.md](AGENTS.md) guide future work.

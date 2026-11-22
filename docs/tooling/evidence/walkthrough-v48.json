@@ -1,0 +1,72 @@
+{
+  "source_commit": "a055baa4d1ab85252d14cdc19813e77e69effa9d",
+  "rollback_commit": "cdeb75dbd064a6689173e52b8a969cf992824b60",
+  "github_run_id": 44372265881,
+  "github_artifact_id": 14460730816,
+  "artifact_sha256": "a8a984bfc6dd9e3d7df9081284b272407d933129580925a1b337171345969481",
+  "dev_check_run_id": 44372265786,
+  "unit_tests": {
+    "tests": 119,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "lint": {
+    "errors": 0,
+    "warnings": 8
+  },
+  "previous": {
+    "package_id": "com.courtquestpro",
+    "version_code": 47,
+    "certificate_sha256": "25f8007f0a8503b01ded3f4856d02e830c64c823aa2c816da4d347ed5015f27b",
+    "apk_sha256": "ee32c9e2f4c36b75e9e13752c9ff6cfbdb719155324a6f8dc0d6fe3ea9c2c668"
+  },
+  "candidate": {
+    "package_id": "com.courtquestpro",
+    "version_code": 48,
+    "certificate_sha256": "25f8007f0a8503b01ded3f4856d02e830c64c823aa2c816da4d347ed5015f27b",
+    "apk_sha256": "eb189d4689aa30ca41a4547a3d6950b4ceb062be65ce3ea1bde06b5be82390b9"
+  },
+  "interactions": {
+    "v47_next_overlap_reproduced": true,
+    "verified_configurations": [
+      "normal",
+      "compact",
+      "large-text"
+    ],
+    "actions": [
+      "Back",
+      "Next",
+      "Skip",
+      "Finish"
+    ],
+    "settings_replay": true,
+    "direct_dock_selection": true,
+    "system_back": true,
+    "compose_ui_test": "PASS",
+    "minimum_action_target_dp": 48,
+    "measured_dock_clearance_dp": 12,
+    "emulator_api": 35
+  },
+  "visual_review": {
+    "status": "REVIEWED",
+    "basis": "15 native Android screenshots",
+    "same_apk_as_first_capture_run": true,
+    "first_capture_run_id": 44370335831,
+    "physical_phone_review": "PENDING"
+  },
+  "upgrade": {
+    "input_apk_sha256": "eb189d4689aa30ca41a4547a3d6950b4ceb062be65ce3ea1bde06b5be82390b9",
+    "baseline_apk_sha256": "ee32c9e2f4c36b75e9e13752c9ff6cfbdb719155324a6f8dc0d6fe3ea9c2c668",
+    "versions": [
+      47,
+      48
+    ],
+    "android_install_replace": true,
+    "preferences_byte_identical_after_install": true,
+    "saved_values_preserved_after_launch": true,
+    "saved_values_preserved_after_relaunch": true,
+    "physical_device_test": "NOT_PERFORMED",
+    "destructive_phone_operations": "NONE"
+  }
+}

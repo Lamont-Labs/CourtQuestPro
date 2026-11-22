@@ -1,0 +1,140 @@
+name: CourtQuest Pro v60 Card Studio Android verification
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev/player-card-profile-v2]
+    paths:
+      - '.github/workflows/player-card-installable.yml'
+      - 'app/**'
+      - 'tools/player-card/**'
+      - 'gradle/**'
+      - '*.gradle.kts'
+      - 'scripts/verify_apk.py'
+      - 'scripts/verify_phone_update.py'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: card-studio-v60-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Build and check the production entry points and signed phone APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-35' 'build-tools;35.0.1'
+          python3 -m pip install 'Pillow==11.3.0'
+          python3 tools/player-card/build_assets.py --check
+          python3 tools/player-card/build_head_styles.py --check
+          python3 tools/player-card/build_footwear_styles.py --check
+          python3 tools/player-card/build_studio_thumbnails.py --check
+          python3 tools/player-card/build_face_blank_assets.py --check
+          python3 tools/player-card/verify_accessory_anchors.py
+          python3 -m unittest discover -s scripts -p 'test_*.py'
+          # Hosted runner egress to Maven Central returned HTTP 429 during plugin resolution.
+          # Prefer Google's Maven Central mirror for this CI job; Gradle retains the normal fallback repositories.
+          cat > "$RUNNER_TEMP/card-central.gradle" <<'GRADLE'
+          beforeSettings { settings ->
+              def centralMirror = 'https://maven-central.storage-download.googleapis.com/maven2'
+              settings.pluginManagement.repositories.maven { url = uri(centralMirror) }
+              settings.dependencyResolutionManagement.repositories.maven { url = uri(centralMirror) }
+          }
+          GRADLE
+          ./gradlew -I "$RUNNER_TEMP/card-central.gradle" --no-daemon --console=plain :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest
+          mkdir -p candidate tests evidence v56 v58 v59
+          cp app/build/outputs/apk/debug/app-debug.apk candidate/CourtQuestPro-Update-v60.apk
+          cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk tests/instrumentation.apk
+          curl --fail --location --retry 3 'https://github.com/Lamont-Labs/CourtQuestPro/releases/download/courtquest-phone-update-v56/CourtQuestPro-Update-v56.apk' --output v56/CourtQuestPro-Update-v56.apk
+          echo '788164fe1fd9e1e38557d16aedd5cb641e763e85017dd12fa7d0164c72858037  CourtQuestPro-Update-v56.apk' > v56/SHA256SUMS.txt
+          (cd v56 && sha256sum -c SHA256SUMS.txt)
+          gh run download 44797671170 -n CourtQuestPro-v58-Installable-RC -D v58
+          (cd v58 && sha256sum -c SHA256SUMS.txt)
+          gh run download 44809896559 -n CourtQuestPro-v59-candidate -D v59
+          (cd v59 && sha256sum -c *.apk.sha256)
+          for version in 56 58 59; do
+            prev=(v"$version"/*.apk)
+            python3 scripts/verify_phone_update.py identity --previous "${prev[0]}" --candidate candidate/CourtQuestPro-Update-v60.apk --previous-version "$version" --candidate-version 60 --tools "$ANDROID_HOME/build-tools/35.0.1" --output "evidence/v$version"
+          done
+          python3 scripts/verify_apk.py --apk candidate/CourtQuestPro-Update-v60.apk --build-tools "$ANDROID_HOME/build-tools/35.0.1" --output evidence
+          (cd candidate && sha256sum *.apk > CourtQuestPro-Update-v60.apk.sha256)
+          cp -r app/build/test-results/testDebugUnitTest evidence/unit-tests
+          cp app/build/reports/lint-results-debug.xml evidence/lint.xml
+          echo "$GITHUB_SHA" > candidate/source-commit.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: CourtQuestPro-v60-candidate
+          path: candidate/
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: card-studio-v60-build-inputs
+          path: |
+            tests/
+            v56/*.apk
+            v58/*.apk
+            v59/*.apk
+            evidence/
+          retention-days: 14
+  device:
+    needs: package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 65
+    env:
+      ANDROID_AVD_HOME: /tmp/card-studio-avd
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Retrieve the exact verified bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download "$GITHUB_RUN_ID" -n CourtQuestPro-v60-candidate -D candidate
+          gh run download "$GITHUB_RUN_ID" -n card-studio-v60-build-inputs -D inputs
+          (cd candidate && sha256sum -c *.apk.sha256)
+      - name: Start a dedicated Android emulator
+        run: |
+          set -euo pipefail
+          mkdir -p "$ANDROID_AVD_HOME" evidence
+          sudo chmod 666 /dev/kvm
+          # Hosted Ubuntu lacks the PulseAudio library required by Android emulator.
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libpulse0
+          sdk="$ANDROID_HOME/cmdline-tools/latest/bin"
+          "$sdk/sdkmanager" 'system-images;android-34;default;x86_64' 'emulator'
+          echo no | "$sdk/avdmanager" create avd -n CourtQuest_PremiumQA -k 'system-images;android-34;default;x86_64' --device pixel_2
+          "$ANDROID_HOME/emulator/emulator" -version | head -n 3 > evidence/emulator-version.txt
+          "$ANDROID_HOME/emulator/emulator" -avd CourtQuest_PremiumQA -port 5562 -no-window -no-audio -no-snapshot -no-boot-anim -gpu software -feature -Vulkan -accel on -cores 2 -memory 2048 -skin 720x1600 > evidence/emulator.log 2>&1 &
+          "$ANDROID_HOME/platform-tools/adb" -s emulator-5562 wait-for-device
+      - name: Prove native front, back, anatomy, cold restart and both direct upgrades
+        run: |
+          set -euo pipefail
+          python3 -m pip install 'Pillow==11.3.0' 'numpy>=1.26,<3'
+          python3 tools/player-card/verify_rebuild.py --v56 inputs/v56/*.apk --v58 inputs/v58/*.apk --v59 inputs/v59/*.apk --candidate candidate/CourtQuestPro-Update-v60.apk --instrumentation inputs/tests/instrumentation.apk --out evidence
+      - name: Retain app and emulator diagnostics
+        if: failure()
+        run: |
+          adb="$ANDROID_HOME/platform-tools/adb"
+          "$adb" devices -l
+          timeout 10 "$adb" -s emulator-5562 logcat -d -b crash > evidence/android-crash.txt || true
+          timeout 15 "$adb" -s emulator-5562 logcat -d -t 1200 > evidence/android-logcat.txt || true
+          timeout 10 "$adb" -s emulator-5562 exec-out screencap -p > evidence/device-at-failure.png || true
+          tail -60 evidence/emulator.log
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: CardStudio-v60-Android-evidence
+          path: evidence/
+          retention-days: 30

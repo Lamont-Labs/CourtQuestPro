@@ -1,0 +1,69 @@
+name: CourtQuest integration conflict audit
+
+on:
+  push:
+    branches:
+      - integration/verified-no-avatars
+    paths:
+      - '.github/workflows/integration-conflict-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  conflict-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Fetch exact integration inputs
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Generate non-destructive merge conflict report
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p integration-audit
+          git fetch origin main dev/player-card-profile-v2
+          MAIN=$(git rev-parse origin/main)
+          DEV=$(git rev-parse origin/dev/player-card-profile-v2)
+          BASE=$(git merge-base "$MAIN" "$DEV")
+          {
+            echo "# CourtQuest integration audit"
+            echo
+            echo "Main: $MAIN"
+            echo "Development: $DEV"
+            echo "Merge base: $BASE"
+            echo
+            echo "## Divergence"
+            git rev-list --left-right --count "$MAIN...$DEV"
+          } > integration-audit/summary.md
+          set +e
+          git merge-tree --write-tree "$MAIN" "$DEV" > integration-audit/merge-tree.txt 2>&1
+          MERGE_STATUS=$?
+          set -e
+          echo "Merge-tree exit status: $MERGE_STATUS" >> integration-audit/summary.md
+          git diff --name-status "$MAIN" "$DEV" > integration-audit/changed-paths.txt
+          git grep -n -E 'CourtCardAthlete|avatar' "$DEV" -- 'app/src/main/**' > integration-audit/avatar-references.txt || true
+          { echo "## Merge conflict preview"; echo "\`\`\`text"; sed -n '1,180p' integration-audit/merge-tree.txt; echo "\`\`\`"; } >> integration-audit/summary.md
+          cat integration-audit/summary.md >> "$GITHUB_STEP_SUMMARY"
+          echo "::group::Integration conflict report"
+          cat integration-audit/summary.md
+          echo "::endgroup::"
+          if [ "$MERGE_STATUS" -ne 0 ]; then
+            echo "Unresolved merge conflicts: integration is NOT approved." >> integration-audit/summary.md
+            echo "Conflict audit completed; this workflow reports conflicts but does not authorize a merge." >> integration-audit/summary.md
+          fi
+          if [ "$MERGE_STATUS" -eq 0 ]; then
+            echo "Merge-tree completed without conflicts. Tests and avatar removal still required." >> integration-audit/summary.md
+          fi
+      - name: Upload reconciliation evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: courtquest-integration-conflict-audit
+          path: integration-audit/
+          if-no-files-found: warn
+          retention-days: 14

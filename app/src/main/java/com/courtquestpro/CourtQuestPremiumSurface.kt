@@ -2,53 +2,60 @@ package com.courtquestpro
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.unit.dp
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeChild
 
-/**
- * Shared elevated surface for training and performance content.
- *
- * Pure presentation: no navigation, data writes, or implicit click behavior.
- * The caller supplies content and handles interaction explicitly.
- */
+internal val LocalCourtHaze = staticCompositionLocalOf<HazeState?> { null }
+
+/** Reflections and supported backdrop blur are behind the unfiltered foreground. */
 @Composable
 internal fun CourtQuestPremiumSurface(
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(18.dp),
+    contentPadding: PaddingValues = PaddingValues(16.dp),
+    highlighted: Boolean = false,
+    blurred: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val shape = RoundedCornerShape(20.dp)
-    Box(
-        modifier = modifier
-            .background(
-                Brush.linearGradient(
-                    listOf(
-                        androidx.compose.ui.graphics.Color(0xD9363033),
-                        androidx.compose.ui.graphics.Color(0xE91D1E23),
-                        androidx.compose.ui.graphics.Color(0xF015171B)
-                    )
-                ),
-                shape
-            )
-            .border(
-                1.dp,
-                Brush.linearGradient(
-                    listOf(
-                        androidx.compose.ui.graphics.Color(0x8CFFB080),
-                        androidx.compose.ui.graphics.Color(0x354D4345),
-                        androidx.compose.ui.graphics.Color(0x1F89858B)
-                    )
-                ),
-                shape
-            )
-            .padding(contentPadding)
-    ) {
-        content()
-    }
+    val shape = RoundedCornerShape(if (highlighted) 22.dp else 16.dp)
+    val state = LocalCourtHaze.current
+    val blur = if (blurred && state != null) Modifier.hazeChild(state) {
+        backgroundColor = CourtQuestDesign.background
+        tints = listOf(HazeTint(CourtQuestDesign.surface.copy(alpha = 0.86f)))
+        fallbackTint = HazeTint(CourtQuestDesign.surface.copy(alpha = 0.97f))
+        blurRadius = 18.dp
+        noiseFactor = 0.02f
+    } else Modifier
+    Box(modifier.shadow(if (highlighted) 18.dp else 8.dp, shape).clip(shape).then(blur)
+        .background(Brush.linearGradient(listOf(
+            Color(0xF01D1E20), Color(0xF0101112), Color(0xFA090A0B))))
+        .drawBehind {
+            val reflection = Path().apply {
+                moveTo(0f, 0f); lineTo(size.width, 0f)
+                lineTo(size.width, size.height * 0.018f)
+                lineTo(0f, size.height * 0.13f); close()
+            }
+            drawPath(reflection, Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.075f), Color.Transparent)))
+            if (highlighted) drawRect(Brush.radialGradient(
+                listOf(CourtQuestDesign.accentVivid.copy(alpha = 0.035f), Color.Transparent),
+                center = Offset(size.width, size.height), radius = size.width * 0.9f))
+        }
+        .border(1.dp, Brush.linearGradient(listOf(
+            Color.White.copy(alpha = 0.32f), Color.White.copy(alpha = 0.06f),
+            (if (highlighted) CourtQuestDesign.accentVivid else Color.White).copy(alpha = 0.23f),
+            Color.White.copy(alpha = 0.08f))), shape)
+        .padding(contentPadding)) { content() }
 }
