@@ -1,0 +1,58 @@
+name: Commit verified avatar-free integration
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: integration/verified-no-avatars
+          fetch-depth: 0
+      - name: Merge cleaned development branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "CourtQuest Integration Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin '+refs/heads/repair/avatar-free-card-studio:refs/remotes/origin/repair/avatar-free-card-studio'
+          git merge --no-commit --no-ff -X theirs origin/repair/avatar-free-card-studio
+          if test -n "$(git ls-files -u)"; then echo "Unresolved merge conflict"; exit 1; fi
+          # Restore the mainline integration Gradle config, including the signing and version overrides.
+          git show HEAD:app/build.gradle.kts > app/build.gradle.kts
+          git add app/build.gradle.kts
+          for name in AvatarAppearance AvatarControls AvatarDetailPainter AvatarGeometry AvatarHairThumbnail AvatarToneTransform CourtCardAthlete FootwearThumbnail PlayerCardMaterials; do
+            test ! -f "app/src/main/java/com/courtquestpro/$name.kt" || { echo "Avatar implementation survived: $name"; exit 1; }
+          done
+          if git grep -n -E 'AvatarAppearance|AvatarControls|AvatarInspection|CourtCardAthlete|AvatarGeometry|AvatarToneTransform|AvatarDetailPainter|AvatarHairThumbnail|AvatarFootwear|AvatarHair' -- 'app/src/main/java/com/courtquestpro/*.kt'; then
+            echo "Avatar source references remain"; exit 1
+          fi
+          git diff --cached --stat
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Build merged candidate before committing
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew :app:testDebugUnitTest :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee integration-build.log
+      - name: Commit and push only passing integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          git commit -m "Merge avatar-free CourtQuest Card Studio and Jersey Studio"
+          git push origin HEAD:integration/verified-no-avatars
+      - name: Upload integration evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: courtquest-avatar-free-integration
+          path: |
+            integration-build.log
+            app/build/outputs/apk/debug/*.apk
+          if-no-files-found: warn
