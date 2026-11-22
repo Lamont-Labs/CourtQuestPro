@@ -71,6 +71,13 @@ jobs:
           for metadata in app/build/outputs/apk/debug/*.json; do if [ -f "$metadata" ]; then cat "$metadata" >> merge-status.txt; fi; done
           echo "APK SHA-256:" | tee -a merge-status.txt
           sha256sum app/build/outputs/apk/debug/*.apk | tee -a merge-status.txt
+          echo "APK signing certificate and package metadata:" | tee -a merge-status.txt
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
+          test -n "$APKSIGNER"
+          for apk in app/build/outputs/apk/debug/*.apk; do
+            "$APKSIGNER" verify --verbose --print-certs "$apk" | tee -a merge-status.txt
+          done
+          echo "CAUTION: debug APK signing is not proof of update-in-place compatibility with an existing release." | tee -a merge-status.txt
       - name: Upload merge and compilation evidence
         if: always()
         uses: actions/upload-artifact@v4
