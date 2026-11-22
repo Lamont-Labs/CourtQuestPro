@@ -14,9 +14,10 @@ VERIFIER = (ROOT / "scripts/verify_apk.py").read_text()
 
 
 class ReleaseContractTests(unittest.TestCase):
-    def test_release_is_manual_only(self):
+    def test_release_automation_is_scoped_to_explicit_release_request(self):
         self.assertRegex(WORKFLOW, r"(?m)^on:\s*\n\s+workflow_dispatch:\s*$")
-        self.assertNotRegex(WORKFLOW, r"(?m)^\s{2}(push|pull_request|schedule):")
+        self.assertIn("  push:\n    branches: [main]\n    paths: ['release-request/approved-main-apk.json']", WORKFLOW)
+        self.assertNotRegex(WORKFLOW, r"(?m)^\s{2}(pull_request|schedule):")
 
     def test_release_cannot_overwrite_existing_assets(self):
         self.assertIn('gh api -i "repos/${GITHUB_REPOSITORY}/releases/tags/${tag}"', WORKFLOW)
