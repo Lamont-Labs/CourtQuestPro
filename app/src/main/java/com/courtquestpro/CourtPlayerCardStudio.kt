@@ -25,14 +25,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,JerseyDesign)->Boolean, onBack: () -> Unit) {
+internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,JerseyDesign)->Boolean, onBack: () -> Unit, initialUniform: Boolean = false) {
     val context = LocalContext.current
     val initial = remember { PlayerCardSelection.identity(context) }
     var style by rememberSaveable { mutableStateOf(initial.style) }
     var discard by rememberSaveable { mutableStateOf(false) }
     var menu by remember { mutableStateOf(false) }
     var reading by rememberSaveable { mutableStateOf(false) }
-    var editingUniform by rememberSaveable { mutableStateOf(false) }
+    var editingUniform by rememberSaveable { mutableStateOf(initialUniform) }
     var saving by remember { mutableStateOf(false) }
     var saveStatus by remember { mutableStateOf("idle") }
     var error by remember { mutableStateOf(false) }
@@ -85,7 +85,7 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
                     Icon(Icons.AutoMirrored.Filled.ArrowBack,"Close Card Studio",tint=CourtQuestDesign.textPrimary)
                 }
                 Column(Modifier.weight(1f)) {
-                    Text(if(large)"Studio" else "Player Card Studio",style=MaterialTheme.typography.titleLarge,
+                    Text(if(large)"Studio" else "Card & Uniform Studio",style=MaterialTheme.typography.titleLarge,
                         color=CourtQuestDesign.textPrimary,maxLines=1,overflow=TextOverflow.Ellipsis,
                         modifier=Modifier.semantics{heading()})
                     if(dirty) Text("Unsaved",style=MaterialTheme.typography.labelSmall,color=CourtQuestDesign.accent,
