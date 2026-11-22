@@ -1,0 +1,467 @@
+{
+  "schemaVersion": 1,
+  "fallback": {
+    "customDrills": "No drill-specific artwork is inferred; show the saved instructions and generic court geometry.",
+    "missingBuiltInArtwork": "Show the existing schematic court and written coaching cues with an explicit offline-artwork notice."
+  },
+  "drills": [
+    {
+      "id": "s1",
+      "category": "Shooting",
+      "title": "Five-Spot Form Shooting",
+      "level": "Beginner",
+      "instructions": "Shoot from five comfortable spots. Reset your feet and hold your follow-through after each shot.",
+      "target": "Make 3 shots from each spot.",
+      "videoQuery": "basketball five spot shooting drill",
+      "assetPath": "drill_art/s1.webp",
+      "sha256": "52166224b9de4d3f6f04a32573210d01c398809be932c4f18424382d0614a8cc",
+      "width": 1024,
+      "height": 1024,
+      "sizeBytes": 134414,
+      "visualSummary": "Five positions, balanced release, held follow-through",
+      "sequence": [
+        "Reset feet at a comfortable spot",
+        "Release under control",
+        "Hold the follow-through at the spot"
+      ],
+      "comparison": {
+        "included": true,
+        "leftLabel": "GOOD REP",
+        "rightLabel": "COMMON MISS",
+        "note": "Balanced finish versus drifting off the spot and dropping the follow-through."
+      }
+    },
+    {
+      "id": "s2",
+      "category": "Shooting",
+      "title": "Catch, Set, Shoot",
+      "level": "Intermediate",
+      "instructions": "Start balanced, receive a pass or self-toss, square to the hoop, and shoot. Retrieve the ball safely.",
+      "target": "Complete 15 controlled attempts.",
+      "videoQuery": "basketball catch and shoot shooting drill",
+      "assetPath": "drill_art/s2.webp",
+      "sha256": "62b729ac4a2efbf77ad98346afea89c4cfb8f983148186474cae24afb602552a",
+      "width": 1024,
+      "height": 1024,
+      "sizeBytes": 108732,
+      "visualSummary": "Receive, set, shoot, retrieve safely",
+      "sequence": [
+        "Prepare hands and receive",
+        "Set balance and square",
+        "Release, land balanced, then retrieve"
+      ],
+      "comparison": {
+        "included": true,
+        "leftLabel": "GOOD REP",
+        "rightLabel": "COMMON MISS",
+        "note": "Balanced catch-and-set versus a rushed, off-balance catch."
+      }
+    },
+    {
+      "id": "s3",
+      "category": "Shooting",
+      "title": "Move Into Midrange",
+      "level": "Advanced",
+      "instructions": "Start at a wing, make a controlled change of direction, stop under control, then shoot.",
+      "target": "Complete 10 balanced attempts from both sides.",
+      "videoQuery": "basketball midrange footwork drill",
+      "assetPath": "drill_art/s3.webp",
+      "sha256": "1b3a88f741ff0f5a195d64e1ceac7a5321f93793b8b43e60b1d5f1db282809c8",
+      "width": 1024,
+      "height": 1024,
+      "sizeBytes": 100166,
+      "visualSummary": "Wing change-of-direction into a balanced jumper",
+      "sequence": [
+        "Start at the wing",
+        "Change direction and stop",
+        "Shoot from a balanced base"
+      ],
+      "comparison": {
+        "included": true,
+        "leftLabel": "GOOD REP",
+        "rightLabel": "COMMON MISS",
+        "note": "Controlled stop versus sideways drift or crossed feet."
+      }
+    },
+    {
+      "id": "b1",
+      "category": "Ball Handling",
+      "title": "Stationary Crossover Control",
+      "level": "Beginner",
+      "instructions": "Stay in an athletic stance and cross the ball below your waist. Keep your eyes up and use a controlled pace.",
+      "target": "30 clean crossovers, then switch direction.",
+      "videoQuery": "basketball stationary crossover drill",
+      "assetPath": "drill_art/b1.webp",
+      "sha256": "db1be6c0bc6167f7281c213741eb845d086242ba76bbfad837121174f9456f09",
+      "width": 1024,
+      "height": 1024,
+      "sizeBytes": 130680,
+      "visualSummary": "Low stationary crossover with eyes up",
+      "sequence": [
+        "Set an athletic stance",
+        "Cross below the waist",
+        "Reset and switch direction"
+      ],
+      "comparison": {
+        "included": true,
+        "leftLabel": "GOOD REP",
+        "rightLabel": "COMMON MISS",
+        "note": "Low controlled dribble versus a high, exposed crossover with eyes down."
+      }
+    },
+    {
+      "id": "b2",
+      "category": "Ball Handling",
+      "title": "Change-of-Pace Lane",
+      "level": "Intermediate",
+      "instructions": "Dribble from baseline to half court slowly, accelerate for a few steps, then decelerate under control.",
+      "target": "Complete 6 trips without losing control.",
+      "videoQuery": "basketball change of pace dribbling drill",
+      "assetPath": "drill_art/b2.webp",
+      "sha256": "1ab19db07d26a44a8e49cffbe5441ae33a3ddec01c2bbace7518fb4ad7900420",
+      "width": 1024,
+      "height": 1024,
+      "sizeBytes": 114652,
+      "visualSummary": "Slow baseline dribble, short burst, controlled deceleration",
+      "sequence": [
+        "Start slowly at the baseline",
+        "Accelerate for a few steps",
+        "Decelerate without losing control"
+      ],
+      "comparison": {
+        "included": true,
+        "leftLabel": "GOOD REP",
+        "rightLabel": "COMMON MISS",
+        "note": "Eyes-up control versus an upright, high loose dribble."
+      }
+    },
+    {
+      "id": "b3",
+      "category": "Ball Handling",
+      "title": "Combo Into Drive",
+      "level": "Expert",
+      "instructions": "Combine two controlled moves, protect the ball, then accelerate toward an open lane. Keep the space clear.",
+      "target": "Complete 8 clean combinations on each hand.",
+      "videoQuery": "basketball combo dribble attack drill",
+      "assetPath": "drill_art/b3.webp",
+      "sha256": "404bcb9168bbdd34b68560c9a7468fccf13377e995d9a51befaff3444b9a966f",
+      "width": 1024,
+      "height": 1024,
+      "sizeBytes": 142656,
+      "visualSummary": "Two protected moves into an open driving lane",
+      "sequence": [
+        "Choose two controlled moves",
+        "Protect the ball through the combo",
+        "Accelerate into open space"
+      ],
+      "comparison": {
+        "included": true,
+        "leftLabel": "GOOD REP",
+        "rightLabel": "COMMON MISS",
+        "note": "Ball kept close versus unnecessarily exposed outside the body."
+      }
+    },
+    {
+      "id": "f1",
+      "category": "Finishing",
+      "title": "Right and Left Layups",
+      "level": "Beginner",
+      "instructions": "Approach at a comfortable speed, use the correct footwork, and finish gently off the backboard with each hand.",
+      "target": "Make 5 layups per side.",
+      "videoQuery": "basketball right left hand layup drill",
+      "assetPath": "drill_art/f1.webp",
+      "sha256": "290846c508032de02f7b947fd394dd13adf9c839b6154cb1be6adb78a0b1b8d1",
+      "width": 1024,
+      "height": 1024,
+      "sizeBytes": 115698,
+      "visualSummary": "Right-hand and left-hand layup approaches",
+      "sequence": [
+        "Approach at a comfortable speed",
+        "Use the matching hand-side footwork",
+        "Finish gently off the backboard"
+      ],
+      "comparison": {
+        "included": false,
+        "reason": "The plate contrasts right- and left-hand layup patterns; it does not show a reliable common-mistake comparison."
+      }
+    },
+    {
+      "id": "f2",
+      "category": "Finishing",
+      "title": "Change Direction Finish",
+      "level": "Intermediate",
+      "instructions": "Approach a cone or court line, change direction without slipping, and finish with the hand farthest from the imaginary defender.",
+      "target": "Complete 8 finishes on each side.",
+      "videoQuery": "basketball change direction finishing drill",
+      "assetPath": "drill_art/f2.webp",
+      "sha256": "9e7ee55a81fd6ee1a3fa8737318bf49371d0ae32df744e1f3e4aa6231485ae4f",
+      "width": 1024,
+      "height": 1024,
+      "sizeBytes": 132916,
+      "visualSummary": "Controlled direction change into a far-hand finish",
+      "sequence": [
+        "Approach the cone or line",
+        "Change direction without slipping",
+        "Finish with the hand farthest from the imaginary defender"
+      ],
+      "comparison": {
+        "included": true,
+        "leftLabel": "GOOD REP",
+        "rightLabel": "COMMON MISS",
+        "note": "Far-hand protection versus exposing the ball with the near hand."
+      }
+    },
+    {
+      "id": "f3",
+      "category": "Finishing",
+      "title": "Reverse Finish Footwork",
+      "level": "Advanced",
+      "instructions": "Practice the path under the basket at a controlled pace. Protect the ball and finish on the far side of the rim.",
+      "target": "Complete 6 controlled reverse layups per side.",
+      "videoQuery": "basketball reverse layup drill",
+      "assetPath": "drill_art/f3.webp",
+      "sha256": "e914a682f1b77c96cc002ca0f84f4bb41856bab010ece18af3992188beb5fe5e",
+      "width": 1024,
+      "height": 1024,
+      "sizeBytes": 100150,
+      "visualSummary": "Protected path under the basket to a far-side finish",
+      "sequence": [
+        "Choose the baseline path",
+        "Protect the ball under the hoop",
+        "Finish gently on the far side"
+      ],
+      "comparison": {
+        "included": true,
+        "leftLabel": "GOOD REP",
+        "rightLabel": "COMMON MISS",
+        "note": "Far-side finish versus stopping on the near side."
+      }
+    },
+    {
+      "id": "d1",
+      "category": "Defense",
+      "title": "Defensive Slide Intervals",
+      "level": "Beginner",
+      "instructions": "Stay balanced with knees bent. Slide without crossing your feet, then rest and reset. Use a dry, non-slippery surface.",
+      "target": "4 rounds of 20 seconds with 20 seconds rest.",
+      "videoQuery": "basketball defensive slide drill",
+      "assetPath": "drill_art/d1.webp",
+      "sha256": "e8eb06983bf6405ccc2cb35172b01f0457ade618db61c42125f8522fb902a3f3",
+      "width": 1024,
+      "height": 1024,
+      "sizeBytes": 96286,
+      "visualSummary": "Balanced lateral slides with reset intervals",
+      "sequence": [
+        "Set a balanced stance",
+        "Slide without crossing feet",
+        "Rest and reset before repeating"
+      ],
+      "comparison": {
+        "included": true,
+        "leftLabel": "GOOD REP",
+        "rightLabel": "COMMON MISS",
+        "note": "Feet apart during the slide versus crossed feet."
+      }
+    },
+    {
+      "id": "d2",
+      "category": "Defense",
+      "title": "Closeout and Contest",
+      "level": "Intermediate",
+      "instructions": "Approach under control, shorten your steps near the shooter, raise your hands, and avoid body contact or jumping into them.",
+      "target": "Complete 8 controlled closeouts each side.",
+      "videoQuery": "basketball closeout defense drill",
+      "assetPath": "drill_art/d2.webp",
+      "sha256": "58bcab9de5b58259d80384b62ad29972779ce6883884a96841c54a689525c9b2",
+      "width": 1024,
+      "height": 1024,
+      "sizeBytes": 100068,
+      "visualSummary": "Controlled closeout with a visible no-contact buffer",
+      "sequence": [
+        "Approach under control",
+        "Shorten steps near the shooter",
+        "Raise hands and stop without contact"
+      ],
+      "comparison": {
+        "included": false,
+        "reason": "A wrong closeout image could normalize contact or entering a shooter's landing space; the plate shows safe spacing instead."
+      }
+    },
+    {
+      "id": "d3",
+      "category": "Defense",
+      "title": "Mirror Footwork",
+      "level": "Expert",
+      "instructions": "With a partner, mirror lateral movements at a safe distance. Stay balanced and stop if either player loses footing.",
+      "target": "4 rounds of 30 seconds.",
+      "videoQuery": "basketball mirror defense footwork drill",
+      "assetPath": "drill_art/d3.webp",
+      "sha256": "0e5f12f7008c7326b5134a6a3da0905e308b98347719083530a4656b3a7d45ce",
+      "width": 1024,
+      "height": 1024,
+      "sizeBytes": 131118,
+      "visualSummary": "Partner mirror steps at safe distance",
+      "sequence": [
+        "Start with safe spacing",
+        "Mirror lateral movement",
+        "Stop and reset if balance is lost"
+      ],
+      "comparison": {
+        "included": true,
+        "leftLabel": "GOOD REP",
+        "rightLabel": "COMMON MISS",
+        "note": "Safe spacing versus crowding and crossing feet, without contact."
+      }
+    },
+    {
+      "id": "r1",
+      "category": "Rebounding",
+      "title": "Box-Out Footwork",
+      "level": "Beginner",
+      "instructions": "Find the ball, turn toward the opponent's path, establish legal position without pushing, then locate the rebound.",
+      "target": "Practice 10 controlled box-out reps.",
+      "videoQuery": "basketball box out rebounding drill",
+      "assetPath": "drill_art/r1.webp",
+      "sha256": "1019c667d8d790f85d22cc1e6cc9e1bbfa2800950a7b8eb2748ba85148d91229",
+      "width": 1024,
+      "height": 570,
+      "sizeBytes": 65512,
+      "visualSummary": "Find the ball, establish legal position, locate the rebound",
+      "sequence": [
+        "Locate the ball",
+        "Turn into legal position without pushing",
+        "Find the rebound after holding position"
+      ],
+      "comparison": {
+        "included": false,
+        "reason": "The generated lower inset depicted forearm contact and was cropped before bundling; the safe sequence remains."
+      }
+    },
+    {
+      "id": "r2",
+      "category": "Rebounding",
+      "title": "Secure and Outlet",
+      "level": "Intermediate",
+      "instructions": "Jump only when safe, secure the ball with two hands, land balanced, pivot, and make a controlled outlet pass.",
+      "target": "Complete 10 rebound-to-outlet reps.",
+      "videoQuery": "basketball rebound outlet pass drill",
+      "assetPath": "drill_art/r2.webp",
+      "sha256": "53fbfd4030024dfc2ac7512dc5b6f77885df06bfdee16012842db51051e86d51",
+      "width": 1024,
+      "height": 1024,
+      "sizeBytes": 129052,
+      "visualSummary": "Safe two-hand rebound, balanced landing, controlled outlet",
+      "sequence": [
+        "Jump only when space is safe",
+        "Secure with two hands and land balanced",
+        "Pivot, then make a controlled outlet"
+      ],
+      "comparison": {
+        "included": true,
+        "leftLabel": "GOOD REP",
+        "rightLabel": "COMMON MISS",
+        "note": "Balanced two-hand control versus an unstable one-hand recovery."
+      }
+    },
+    {
+      "id": "r3",
+      "category": "Rebounding",
+      "title": "Partner Shot and Rebound",
+      "level": "Advanced",
+      "instructions": "A partner takes a comfortable shot. Read the bounce, move into safe position, secure the ball, and reset.",
+      "target": "Complete 10 rebounds, alternating roles.",
+      "videoQuery": "basketball partner rebounding drill",
+      "assetPath": "drill_art/r3.webp",
+      "sha256": "09b3810221e4e1778e2269b4cda3e3afe75ce35488a8f4e7a628290d0fa69a7d",
+      "width": 1024,
+      "height": 1024,
+      "sizeBytes": 113654,
+      "visualSummary": "Read a partner shot and rebound outside the landing area",
+      "sequence": [
+        "Partner shoots comfortably",
+        "Read the bounce and move safely",
+        "Secure the rebound and alternate roles"
+      ],
+      "comparison": {
+        "included": false,
+        "reason": "A negative example could imply entering the shooter's landing area; the plate shows safe spacing only."
+      }
+    },
+    {
+      "id": "p1",
+      "category": "Passing",
+      "title": "Target Chest and Bounce Passes",
+      "level": "Beginner",
+      "instructions": "Aim at a partner's chest for a chest pass or the floor point that lets a bounce pass reach their waist.",
+      "target": "Complete 10 accurate passes of each type.",
+      "videoQuery": "basketball chest bounce pass drill",
+      "assetPath": "drill_art/p1.webp",
+      "sha256": "9b8f340311155940d698b3d9b9c3bbc39b4ed88664796a8c525f916658735f21",
+      "width": 1024,
+      "height": 1024,
+      "sizeBytes": 104602,
+      "visualSummary": "Chest-pass and bounce-pass target points",
+      "sequence": [
+        "Set a clear partner target",
+        "Use a chest or bounce pass",
+        "Send the bounce to the floor point that reaches waist height"
+      ],
+      "comparison": {
+        "included": false,
+        "reason": "The plate compares two valid pass types, not a common mistake."
+      }
+    },
+    {
+      "id": "p2",
+      "category": "Passing",
+      "title": "Pass and Cut",
+      "level": "Intermediate",
+      "instructions": "Pass to a partner, cut decisively into open space, show your hands, and receive under control.",
+      "target": "Complete 10 pass-and-cut sequences.",
+      "videoQuery": "basketball pass and cut drill",
+      "assetPath": "drill_art/p2.webp",
+      "sha256": "e9358c8079880ed48008873db2187bee628295860dda26e3c477d547911a96bd",
+      "width": 1024,
+      "height": 1024,
+      "sizeBytes": 134444,
+      "visualSummary": "Pass, cut into space, show hands, receive",
+      "sequence": [
+        "Pass to the partner",
+        "Cut decisively into open space",
+        "Show hands and receive under control"
+      ],
+      "comparison": {
+        "included": true,
+        "leftLabel": "GOOD REP",
+        "rightLabel": "COMMON MISS",
+        "note": "Cutting after the pass versus standing still."
+      }
+    },
+    {
+      "id": "p3",
+      "category": "Passing",
+      "title": "Rebound Outlet Decisions",
+      "level": "Advanced",
+      "instructions": "Secure a simulated rebound, scan for a partner, pivot without traveling, and choose a clear passing lane.",
+      "target": "Complete 8 accurate outlet passes.",
+      "videoQuery": "basketball outlet passing drill",
+      "assetPath": "drill_art/p3.webp",
+      "sha256": "558e73711f305886b6844c8715fe49f2f43cfb095504959c1b58fac88164efdf",
+      "width": 1024,
+      "height": 1024,
+      "sizeBytes": 122472,
+      "visualSummary": "Secure, scan, pivot legally, and outlet to an open lane",
+      "sequence": [
+        "Secure the simulated rebound",
+        "Scan and pivot without traveling",
+        "Choose a clear lane and pass"
+      ],
+      "comparison": {
+        "included": true,
+        "leftLabel": "GOOD REP",
+        "rightLabel": "COMMON MISS",
+        "note": "Planted pivot foot versus lifting the pivot foot."
+      }
+    }
+  ]
+}

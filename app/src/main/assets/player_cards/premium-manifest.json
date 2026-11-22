@@ -1,0 +1,576 @@
+{
+  "poses": {
+    "standing": {
+      "file": "standing-footwear.pcmat",
+      "sha256": "8c3d637fb939f165a4f8b36363b8c8e634a422b44ac24750479d999ccd27a58c",
+      "layers": 4,
+      "feet": [
+        [
+          322,
+          874,
+          432,
+          998
+        ],
+        [
+          591,
+          874,
+          701,
+          999
+        ]
+      ],
+      "attachment": "pose-matched source-coordinate cutout; no runtime scaling or rotation",
+      "shoe_art": {
+        "low": {
+          "file": "standing-low.png",
+          "sha256": "ec5d908af7ec3079bced5cbb1f486930f93f14c72382358f58b2b6ff0f2519d7",
+          "origin": [
+            325,
+            871
+          ],
+          "dimensions": [
+            373,
+            125
+          ],
+          "source_pose": "standing",
+          "model": "low",
+          "high_collar_polygons": [],
+          "attachment": "authored pose coordinate cutout; no per-user scale or rotation",
+          "source": "attached_assets/generated_images/player_shoe_edits/standing-low.png"
+        },
+        "high": {
+          "file": "standing-high.png",
+          "sha256": "0059f6f77459b953f0d752c96d31f05cb3cf46c4c7e3c0cf58e37aa67fbcaf99",
+          "origin": [
+            325,
+            860
+          ],
+          "dimensions": [
+            373,
+            136
+          ],
+          "source_pose": "standing",
+          "model": "high",
+          "high_collar_polygons": [
+            [
+              [
+                350,
+                885
+              ],
+              [
+                352,
+                873
+              ],
+              [
+                360,
+                861
+              ],
+              [
+                394,
+                859
+              ],
+              [
+                410,
+                867
+              ],
+              [
+                414,
+                879
+              ],
+              [
+                398,
+                886
+              ],
+              [
+                374,
+                886
+              ]
+            ]
+          ],
+          "attachment": "authored pose coordinate cutout; no per-user scale or rotation",
+          "source": "attached_assets/generated_images/player_shoe_edits/standing-high.png"
+        },
+        "strap": {
+          "file": "standing-strap.png",
+          "sha256": "1106ad51f00a478e88f79a839a0cb04c258599a0e8af94f89fa4dc524ae2425a",
+          "origin": [
+            325,
+            871
+          ],
+          "dimensions": [
+            373,
+            125
+          ],
+          "source_pose": "standing",
+          "model": "strap",
+          "high_collar_polygons": [],
+          "attachment": "authored pose coordinate cutout; no per-user scale or rotation",
+          "source": "attached_assets/generated_images/player_shoe_edits/standing-strap.png"
+        }
+      }
+    },
+    "dribbling": {
+      "file": "dribbling-footwear.pcmat",
+      "sha256": "39e156b134903502fc9317d09bd8bd78a1b27cf9575981e6389c154234a625d3",
+      "layers": 4,
+      "feet": [
+        [
+          165,
+          835,
+          301,
+          1003
+        ],
+        [
+          626,
+          835,
+          796,
+          959
+        ]
+      ],
+      "attachment": "pose-matched source-coordinate cutout; no runtime scaling or rotation",
+      "shoe_art": {
+        "low": {
+          "file": "dribbling-low.png",
+          "sha256": "24970d640da7d7b61ea56e4920cb03c273b4a8494303649452ea02c123882586",
+          "origin": [
+            167,
+            832
+          ],
+          "dimensions": [
+            627,
+            168
+          ],
+          "source_pose": "dribbling",
+          "model": "low",
+          "high_collar_polygons": [],
+          "attachment": "authored pose coordinate cutout; no per-user scale or rotation",
+          "source": "attached_assets/generated_images/player_shoe_edits/dribbling-low.png"
+        },
+        "high": {
+          "file": "dribbling-high.png",
+          "sha256": "9d97c646a829a16897e87297926fba391c36d4f8217261b7e0cbcf40987e74e2",
+          "origin": [
+            167,
+            815
+          ],
+          "dimensions": [
+            627,
+            185
+          ],
+          "source_pose": "dribbling",
+          "model": "high",
+          "high_collar_polygons": [
+            [
+              [
+                228,
+                850
+              ],
+              [
+                236,
+                832
+              ],
+              [
+                250,
+                816
+              ],
+              [
+                275,
+                814
+              ],
+              [
+                289,
+                826
+              ],
+              [
+                290,
+                840
+              ],
+              [
+                274,
+                849
+              ],
+              [
+                251,
+                853
+              ]
+            ],
+            [
+              [
+                658,
+                857
+              ],
+              [
+                663,
+                841
+              ],
+              [
+                675,
+                827
+              ],
+              [
+                696,
+                827
+              ],
+              [
+                706,
+                838
+              ],
+              [
+                704,
+                850
+              ],
+              [
+                690,
+                858
+              ],
+              [
+                672,
+                860
+              ]
+            ]
+          ],
+          "attachment": "authored pose coordinate cutout; no per-user scale or rotation",
+          "source": "attached_assets/generated_images/player_shoe_edits/dribbling-high.png"
+        },
+        "strap": {
+          "file": "dribbling-strap.png",
+          "sha256": "802d2a8ccf202c0b845624bde183ed78f9c2e14dbb515ab7d6a4f544b3a22767",
+          "origin": [
+            167,
+            832
+          ],
+          "dimensions": [
+            627,
+            168
+          ],
+          "source_pose": "dribbling",
+          "model": "strap",
+          "high_collar_polygons": [],
+          "attachment": "authored pose coordinate cutout; no per-user scale or rotation",
+          "source": "attached_assets/generated_images/player_shoe_edits/dribbling-strap.png"
+        }
+      }
+    },
+    "action": {
+      "file": "action-footwear.pcmat",
+      "sha256": "fc4aff5445524dd6f96347ec33ce17d7445d172f84fc3fae87f73add40c32841",
+      "layers": 4,
+      "feet": [
+        [
+          307,
+          862,
+          395,
+          1013
+        ],
+        [
+          585,
+          595,
+          729,
+          727
+        ]
+      ],
+      "attachment": "pose-matched source-coordinate cutout; no runtime scaling or rotation",
+      "shoe_art": {
+        "low": {
+          "file": "action-low.png",
+          "sha256": "0524eb0fbc44f743b6928c54e574c3c6697faa0c1ba8e5d12dde5f4d642b3302",
+          "origin": [
+            310,
+            592
+          ],
+          "dimensions": [
+            416,
+            418
+          ],
+          "source_pose": "action",
+          "model": "low",
+          "high_collar_polygons": [],
+          "attachment": "authored pose coordinate cutout; no per-user scale or rotation",
+          "source": "attached_assets/generated_images/player_shoe_edits/action-low.png"
+        },
+        "high": {
+          "file": "action-high.png",
+          "sha256": "3a86cf23091571009b9de4b8ff6df46ef208cbd7cc24d77b53e5b72cebc16408",
+          "origin": [
+            310,
+            592
+          ],
+          "dimensions": [
+            416,
+            418
+          ],
+          "source_pose": "action",
+          "model": "high",
+          "high_collar_polygons": [
+            [
+              [
+                323,
+                876
+              ],
+              [
+                327,
+                861
+              ],
+              [
+                339,
+                849
+              ],
+              [
+                371,
+                848
+              ],
+              [
+                386,
+                858
+              ],
+              [
+                390,
+                871
+              ],
+              [
+                375,
+                878
+              ],
+              [
+                347,
+                879
+              ]
+            ],
+            [
+              [
+                594,
+                653
+              ],
+              [
+                599,
+                635
+              ],
+              [
+                613,
+                620
+              ],
+              [
+                643,
+                618
+              ],
+              [
+                661,
+                630
+              ],
+              [
+                666,
+                646
+              ],
+              [
+                649,
+                654
+              ],
+              [
+                620,
+                656
+              ]
+            ]
+          ],
+          "attachment": "authored pose coordinate cutout; no per-user scale or rotation",
+          "source": "attached_assets/generated_images/player_shoe_edits/action-high.png"
+        },
+        "strap": {
+          "file": "action-strap.png",
+          "sha256": "72e9bcac003571948a9ef21af3a5c057de5961b360f6c8757afe1bef23f50da6",
+          "origin": [
+            310,
+            592
+          ],
+          "dimensions": [
+            416,
+            418
+          ],
+          "source_pose": "action",
+          "model": "strap",
+          "high_collar_polygons": [],
+          "attachment": "authored pose coordinate cutout; no per-user scale or rotation",
+          "source": "attached_assets/generated_images/player_shoe_edits/action-strap.png"
+        }
+      }
+    },
+    "ready": {
+      "file": "ready-footwear.pcmat",
+      "sha256": "e78cdc7b5ada3dec012fa1ac7ede4d80cb9c4ce086f98c8e65e5a5ca0b0a9841",
+      "layers": 4,
+      "feet": [
+        [
+          331,
+          847,
+          434,
+          958
+        ],
+        [
+          583,
+          847,
+          679,
+          959
+        ]
+      ],
+      "attachment": "pose-matched source-coordinate cutout; no runtime scaling or rotation",
+      "shoe_art": {
+        "low": {
+          "file": "ready-low.png",
+          "sha256": "37d5b8508ed4b649f132cfd7fbaabf87a31f16d0af80cbf524492ca636082b4b",
+          "origin": [
+            333,
+            844
+          ],
+          "dimensions": [
+            344,
+            113
+          ],
+          "source_pose": "ready",
+          "model": "low",
+          "high_collar_polygons": [],
+          "attachment": "authored pose coordinate cutout; no per-user scale or rotation",
+          "source": "attached_assets/generated_images/player_shoe_edits/ready-low.png"
+        },
+        "high": {
+          "file": "ready-high.png",
+          "sha256": "d229236d871450f2a2fe85bc337c04018eff3595f298cffa2098f813839cba51",
+          "origin": [
+            333,
+            844
+          ],
+          "dimensions": [
+            344,
+            113
+          ],
+          "source_pose": "ready",
+          "model": "high",
+          "high_collar_polygons": [],
+          "attachment": "authored pose coordinate cutout; no per-user scale or rotation",
+          "source": "attached_assets/generated_images/player_shoe_edits/ready-high.png"
+        },
+        "strap": {
+          "file": "ready-strap.png",
+          "sha256": "a13c6a76131aa709e9cf7d96c8a9d7ce62ef1a95b1d86f963cd42922f899d19c",
+          "origin": [
+            333,
+            844
+          ],
+          "dimensions": [
+            344,
+            113
+          ],
+          "source_pose": "ready",
+          "model": "strap",
+          "high_collar_polygons": [],
+          "attachment": "authored pose coordinate cutout; no per-user scale or rotation",
+          "source": "attached_assets/generated_images/player_shoe_edits/ready-strap.png"
+        }
+      }
+    },
+    "followthrough": {
+      "file": "followthrough-footwear.pcmat",
+      "sha256": "6c1a5b7d09de9a32eb6293ebe8f583f6a5dfd24a1f2e21a55b47cfdecc6ffffb",
+      "layers": 4,
+      "feet": [
+        [
+          368,
+          866,
+          445,
+          971
+        ],
+        [
+          557,
+          866,
+          645,
+          969
+        ]
+      ],
+      "attachment": "pose-matched source-coordinate cutout; no runtime scaling or rotation",
+      "shoe_art": {
+        "low": {
+          "file": "followthrough-low.png",
+          "sha256": "71e3a29995f0ececa49dd8c27c6c55f42fc174e86a179bacb4889c143acbef9d",
+          "origin": [
+            371,
+            863
+          ],
+          "dimensions": [
+            271,
+            106
+          ],
+          "source_pose": "followthrough",
+          "model": "low",
+          "high_collar_polygons": [],
+          "attachment": "authored pose coordinate cutout; no per-user scale or rotation",
+          "source": "attached_assets/generated_images/player_shoe_edits/followthrough-low.png"
+        },
+        "high": {
+          "file": "followthrough-high.png",
+          "sha256": "cd229cea659df44b8780c4cc15567656c06343c7f83e5aecdef11e082e667d69",
+          "origin": [
+            371,
+            863
+          ],
+          "dimensions": [
+            271,
+            106
+          ],
+          "source_pose": "followthrough",
+          "model": "high",
+          "high_collar_polygons": [],
+          "attachment": "authored pose coordinate cutout; no per-user scale or rotation",
+          "source": "attached_assets/generated_images/player_shoe_edits/followthrough-high.png"
+        },
+        "strap": {
+          "file": "followthrough-strap.png",
+          "sha256": "310d70fb29f96a14aa01ce3d4e3ad3dc7af59a067a3fbbc05c07368224817ef6",
+          "origin": [
+            371,
+            863
+          ],
+          "dimensions": [
+            271,
+            106
+          ],
+          "source_pose": "followthrough",
+          "model": "strap",
+          "high_collar_polygons": [],
+          "attachment": "authored pose coordinate cutout; no per-user scale or rotation",
+          "source": "attached_assets/generated_images/player_shoe_edits/followthrough-strap.png"
+        }
+      }
+    }
+  },
+  "parts": {
+    "hair-curls": {
+      "file": "hair-curls.webp",
+      "sha256": "f1d3bccd88b796fa08f8520ba2e689b5f6f5afd98ec8ba27e017322dbd4a75d9"
+    },
+    "hair-afro": {
+      "file": "hair-afro.webp",
+      "sha256": "93b6eb3d3d5d031cc147c409c5a76e506837064e67901a4a7f3051b986353394"
+    },
+    "hair-locs": {
+      "file": "hair-locs.webp",
+      "sha256": "757852c07411824b1f717ca228c4332f0231078c7bd9c6560d6dd269775709d6"
+    },
+    "hair-braids": {
+      "file": "hair-braids.webp",
+      "sha256": "a5158a5846edbe92a00670e0eec9acf4f84680ea0553329810526462d7ded1b3"
+    },
+    "footwear-original": {
+      "file": "footwear-original.webp",
+      "sha256": "0b08422345423ff6b668a3b5339c89bf8217d4e9a1e423b7a35c260e44da5a01"
+    },
+    "footwear-low": {
+      "file": "footwear-low.webp",
+      "sha256": "1155ec1f421e57ee8ae74bb59f76df8f26dda3fa7b427dbfdd4058eae4b8e953"
+    },
+    "footwear-high": {
+      "file": "footwear-high.webp",
+      "sha256": "d52902b7c36f34800415ba5ed49941c6e18475fdbe9b433ddde8cf36a5908525"
+    },
+    "footwear-strap": {
+      "file": "footwear-strap.webp",
+      "sha256": "a64893ea1f125e77f580a95c1221db109b24745bbce66f0054b5ceebbdef65ce"
+    }
+  }
+}

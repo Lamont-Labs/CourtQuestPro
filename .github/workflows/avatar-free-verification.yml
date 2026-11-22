@@ -1,0 +1,46 @@
+name: Verify avatar-free CourtQuest build
+on:
+  push:
+    branches: [repair/avatar-free-card-studio]
+    paths:
+      - 'app/**'
+      - '.github/workflows/avatar-free-verification.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Verify avatar classes removed
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in AvatarAppearance AvatarControls AvatarDetailPainter AvatarGeometry AvatarHairThumbnail AvatarToneTransform CourtCardAthlete; do
+            test ! -e "app/src/main/java/com/courtquestpro/$file.kt"
+          done
+          if git grep -n -E 'AvatarAppearance|AvatarControls|AvatarInspection|CourtCardAthlete|AvatarGeometry|AvatarToneTransform|AvatarDetailPainter|AvatarHairThumbnail' -- 'app/src/main/java/**/*.kt'; then
+            echo "ERROR: remaining avatar class references"
+            exit 1
+          fi
+      - name: Unit tests and APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew :app:testDebugUnitTest :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee avatar-free-build.log
+      - name: Upload build evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: courtquest-avatar-free-test
+          path: |
+            avatar-free-build.log
+            app/build/outputs/apk/debug/*.apk
+          if-no-files-found: warn

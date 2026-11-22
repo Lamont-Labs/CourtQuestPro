@@ -1,0 +1,132 @@
+{
+  "checked_on": "2026-11-11",
+  "configuration_source_commit": "41fde059c6a02efacb629f6da2bd7a48c3b589d0",
+  "host_java": "21.0.13",
+  "bytecode_target": 17,
+  "android_compile_sdk": 35,
+  "gradle": "8.9",
+  "unit_tests": {
+    "tests": 42,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "unit_suites": [
+    {
+      "name": "com.courtquestpro.DrillDraftPersistenceTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.courtquestpro.DrillDraftRecoveryTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.courtquestpro.DrillMeasurementTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.courtquestpro.DrillResultPersistenceTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.courtquestpro.DrillTargetsTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.courtquestpro.DrillTrendsTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.courtquestpro.MatchSessionTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.courtquestpro.ScorekeeperPersistenceTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.courtquestpro.ScorekeeperTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.courtquestpro.TrainingLibraryTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "lint": {
+    "errors": 0,
+    "warnings": 6,
+    "issues": [
+      {
+        "id": "VectorRaster",
+        "severity": "Warning",
+        "message": "Limit vector icons sizes to 200\u00d7200 to keep icon drawing fast; see https://developer.android.com/studio/write/vector-asset-studio#when for more"
+      },
+      {
+        "id": "GradleDependency",
+        "severity": "Warning",
+        "message": "A newer version of androidx.webkit:webkit than 1.12.1 is available: 1.18.0"
+      },
+      {
+        "id": "DataExtractionRules",
+        "severity": "Warning",
+        "message": "The attribute `android:allowBackup` is deprecated from Android 12 and higher and may be removed in future versions. Consider adding the attribute `android:dataExtractionRules` specifying an `@xml` resource which configures cloud backups and device transfers on Android 12 and higher."
+      },
+      {
+        "id": "ObsoleteSdkInt",
+        "severity": "Warning",
+        "message": "This folder configuration (`v26`) is unnecessary; `minSdkVersion` is 26. Merge all the resources in this folder into `mipmap-anydpi`."
+      },
+      {
+        "id": "UnusedResources",
+        "severity": "Warning",
+        "message": "The resource `R.raw.barlow_ofl` appears to be unused"
+      },
+      {
+        "id": "MonochromeLauncherIcon",
+        "severity": "Warning",
+        "message": "The application adaptive icon is missing a monochrome tag"
+      }
+    ]
+  },
+  "apk": {
+    "bytes": 20889746,
+    "sha256": "9499a9ac31485e0b2543299cc44e9483c7dab51fdc45069d060cad3b1d03090b",
+    "status": "local diagnostic build; not published"
+  },
+  "app_src_tree": "57fcba4679745dae0a1b85dff0bd93235b2bc757",
+  "maestro_device_smoke": "pending GitHub runner; no local accelerated emulator",
+  "app_build_gradle_sha256": "1164457f11ef9af591e8049e3127dc81c0698a534159f46a24b8ba65a7a9498a",
+  "maestro_flow_sha256": "5960ffdbb11f2e9f3d83cade2c54130c68fe0a9ef23ac08cfa58afdfdb1e84f0",
+  "apk_identity_and_signing": "PASS; diagnostic candidate, not published"
+}

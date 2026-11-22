@@ -1,0 +1,131 @@
+name: Finish frozen Player build 9 verification
+
+on:
+  push:
+    branches: [dev/premium-flow-toolkit]
+    paths:
+      - '.github/workflows/finish-player-build9-verification.yml'
+      - 'scripts/verify_player_keyboard.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  finish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      COURTQUEST_VERSION_CODE: '9'
+      COURTQUEST_UI_EVIDENCE: artifacts/android-daily-flow
+      ANDROID_AVD_HOME: /tmp/courtquest-avd
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Retrieve completed journeys and the frozen APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh api "repos/${GH_REPO}/actions/runs/43244651522" > retained-run.json
+          gh run download 43244651522 --name courtquest-native-library-flow --dir retained
+          python3 - <<'PY'
+          import hashlib,json,subprocess,xml.etree.ElementTree as E
+          from pathlib import Path
+          run=json.load(open('retained-run.json'))
+          assert run['head_sha']=='c08fd7996e654bc090fc52f477fb6d55a1b71a64'
+          assert run['conclusion']=='cancelled' and run['head_branch']=='dev/premium-flow-toolkit'
+          assert run['path']=='.github/workflows/verify-native-library-flow.yml'
+          assert subprocess.check_output(['git','rev-parse','HEAD:app/src'],text=True).strip()=='6edca69928e7ff9e66b53a6349f6ab1fcd6190a4'
+          root=Path('retained')
+          apk=root/'app/build/outputs/apk/debug/app-debug.apk'
+          sha=hashlib.sha256(apk.read_bytes()).hexdigest()
+          assert sha=='68b3b1d1f2cd08084b65973ae07544b74c2a795db27994f2b9a2b975a7785c5a'
+          for name in ['candidate-result','library-result','mission-result','navigation-result']:
+              report=json.load(open(root/f'artifacts/android-daily-flow/{name}.json'))
+              assert report['input_apk_sha256']==sha
+              assert all(v for v in report.values() if isinstance(v,bool)),name
+          suites=[E.parse(p).getroot() for p in (root/'app/build/test-results/testDebugUnitTest').glob('TEST-*.xml')]
+          assert sum(int(s.get('tests')) for s in suites)==72
+          assert not sum(int(s.get(k)) for s in suites for k in ['errors','failures','skipped'])
+          assert not any(i.get('severity')=='Error' for i in E.parse(root/'app/build/reports/lint-results-debug.xml').getroot().findall('issue'))
+          PY
+          cp -a retained/artifacts .
+          cp -a retained/app/build app/
+      - name: Prepare the dedicated emulator
+        run: |
+          test -e /dev/kvm
+          sudo chmod 666 /dev/kvm
+          export ANDROID_SDK_ROOT="$ANDROID_HOME"
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" 'platforms;android-35' 'build-tools;35.0.1' 'system-images;android-35;default;x86_64' 'emulator'
+          mkdir -p "$ANDROID_AVD_HOME"
+          printf 'no\n' | "${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager" create avd --name CourtQuest_PremiumQA --package 'system-images;android-35;default;x86_64' --device pixel_2 --path "$ANDROID_AVD_HOME/CourtQuest_PremiumQA.avd"
+          export PATH="${ANDROID_HOME}/platform-tools:${PATH}"
+          adb start-server
+          "${ANDROID_HOME}/emulator/emulator" -avd CourtQuest_PremiumQA -port 5562 -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect -accel on -cores 2 -memory 2048 > artifacts/android-daily-flow/completion-emulator.log 2>&1 &
+          python3 - <<'PY'
+          import time
+          import sys
+          sys.path.insert(0,'scripts')
+          import verify_android_daily_flow as ui
+          for attempt in range(90):
+              try:
+                  if ui.shell('getprop','sys.boot_completed')=='1':break
+              except Exception:pass
+              time.sleep(2)
+          else:raise AssertionError('Dedicated emulator did not boot')
+          assert 'CourtQuest_PremiumQA' in ui.adb('emu','avd','name').decode()
+          assert 'Success' in ui.adb('install','-r','app/build/outputs/apk/debug/app-debug.apk',timeout=180).decode()
+          ui.open_app()
+          PY
+      - name: Finish the complete game journey and enlarged keyboard interaction
+        run: |
+          export PATH="${ANDROID_HOME}/platform-tools:${PATH}"
+          python3 -u scripts/verify_android_game_flow.py candidate app/build/outputs/apk/debug/app-debug.apk
+          python3 -u scripts/verify_player_keyboard.py app/build/outputs/apk/debug/app-debug.apk
+          bash scripts/run_premium_flow_checks.sh emulator-5562 app/build/outputs/apk/debug/app-debug.apk
+      - name: Verify the complete evidence and original APK identity
+        run: |
+          python3 scripts/verify_apk.py --apk app/build/outputs/apk/debug/app-debug.apk --build-tools "${ANDROID_HOME}/build-tools/35.0.1" --output artifacts/apk-verified
+          git rev-parse HEAD HEAD:app/src > artifacts/source-revisions.txt
+          python3 - <<'PY'
+          import hashlib,json,xml.etree.ElementTree as E,subprocess
+          from pathlib import Path
+          sha=hashlib.sha256(Path('app/build/outputs/apk/debug/app-debug.apk').read_bytes()).hexdigest()
+          assert sha=='68b3b1d1f2cd08084b65973ae07544b74c2a795db27994f2b9a2b975a7785c5a'
+          for name in ['candidate-result','library-result','mission-result','navigation-result','game-result','keyboard-result']:
+              report=json.load(open(f'artifacts/android-daily-flow/{name}.json'))
+              assert report['input_apk_sha256']==sha,name
+              assert all(v for v in report.values() if isinstance(v,bool)),name
+          smoke=E.parse('artifacts/premium-flow-toolkit/report.xml').getroot()
+          suites=[smoke] if smoke.tag=='testsuite' else list(smoke.iter('testsuite'))
+          assert sum(int(s.get('tests',0)) for s in suites)>=1
+          assert not sum(int(s.get(k,0)) for s in suites for k in ['failures','errors','skipped'])
+          lineage=dict(original_run_id=43244651522,original_conclusion='cancelled',termination_reason='35-minute workflow limit',original_source='c08fd7996e654bc090fc52f477fb6d55a1b71a64',
+              retained_completed_journeys=['daily','library','mission','navigation'],completed_in_this_run=['game','keyboard','maestro','apk_identity'],
+              frozen_apk_sha256=sha,app_src_tree='6edca69928e7ff9e66b53a6349f6ab1fcd6190a4',
+              completion_source=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip())
+          Path('artifacts/completion-lineage.json').write_text(json.dumps(lineage,indent=2)+'\n')
+          print(json.dumps(lineage))
+          PY
+      - name: Capture diagnostics
+        if: always()
+        run: |
+          mkdir -p artifacts/android-daily-flow
+          timeout 30 "${ANDROID_HOME}/platform-tools/adb" -s emulator-5562 logcat -d > artifacts/android-daily-flow/completion-logcat.txt 2>&1 || true
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: courtquest-native-library-flow
+          path: |
+            artifacts/
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/test-results/testDebugUnitTest/
+            app/build/reports/lint-results-debug.*
+          retention-days: 14

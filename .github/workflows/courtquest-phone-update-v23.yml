@@ -1,0 +1,316 @@
+name: CourtQuest Pro phone-test APK v23
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: courtquest-phone-update-v23
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: github.repository == 'Lamont-Labs/CourtQuestPro' && github.ref == 'refs/heads/dev/premium-flow-toolkit' && false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      ANDROID_AVD_HOME: /tmp/courtquest-avd
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Require verified redesign ancestry and v23 app identity
+        run: |
+          set -euo pipefail
+          python3 scripts/phone_v23_release_gate.py source
+          python3 -m unittest discover -s scripts -p 'test_android_flow_*.py' -v
+          if gh api "repos/${GH_REPO}/releases/tags/courtquest-phone-update-v23" >/dev/null 2>&1; then
+            echo "The v23 release already exists; refusing to replace it."
+            exit 1
+          fi
+          if gh api "repos/${GH_REPO}/git/ref/tags/courtquest-phone-update-v23" >/dev/null 2>&1; then
+            echo "The v23 tag already exists; refusing to move or overwrite it."
+            exit 1
+          fi
+      - name: Install Android build tools and emulator image
+        run: |
+          set -euo pipefail
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" \
+            'platforms;android-35' 'build-tools;35.0.1' \
+            'system-images;android-35;default;x86_64' emulator
+      - name: Verify the actual released v22 APK and checksum
+        run: |
+          set -euo pipefail
+          mkdir -p previous dist
+          gh release download courtquest-phone-update-v22 \
+            --pattern 'CourtQuestPro-Update-v22.apk' \
+            --pattern 'CourtQuestPro-Update-v22.apk.sha256' \
+            --pattern 'apk-manifest.json' \
+            --dir previous
+          (cd previous && sha256sum --check CourtQuestPro-Update-v22.apk.sha256)
+          gh api "repos/${GH_REPO}/releases/tags/courtquest-phone-update-v22" > previous/release.json
+          python3 - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          release = json.loads(Path('previous/release.json').read_text())
+          manifest = json.loads(Path('previous/apk-manifest.json').read_text())
+          apk = Path('previous/CourtQuestPro-Update-v22.apk')
+          digest = hashlib.sha256(apk.read_bytes()).hexdigest()
+          asset = next(a for a in release['assets'] if a['name'] == apk.name)
+          assert release['tag_name'] == 'courtquest-phone-update-v22'
+          assert release['prerelease'] and not release['draft']
+          assert asset['digest'] == f'sha256:{digest}'
+          assert manifest['package_id'] == 'com.courtquestpro' and manifest['version_code'] == 22
+          assert manifest['apk_sha256'] == digest
+          assert manifest['certificate_sha256'] == '25f8007f0a8503b01ded3f4856d02e830c64c823aa2c816da4d347ed5015f27b'
+          print(json.dumps({
+              'release_url': release['html_url'],
+              'source_commit': manifest['git_commit'],
+              'package_id': manifest['package_id'],
+              'version_code': manifest['version_code'],
+              'apk_sha256': digest,
+              'certificate_sha256': manifest['certificate_sha256'],
+          }, indent=2))
+          PY
+      - name: Wait for all four passing workflows on this exact redesigned commit
+        run: |
+          set -euo pipefail
+          python3 scripts/phone_v23_release_gate.py ci --output dist/ci-gates.json
+          run_id=$(python3 -c "import json; print(json.load(open('dist/ci-gates.json'))['verify-native-library-flow.yml']['id'])")
+          gh api "repos/${GH_REPO}/actions/runs/${run_id}/artifacts" > /tmp/native-artifacts.json
+          artifact_id=$(python3 - <<'PY'
+          import json
+          matches = [a for a in json.load(open('/tmp/native-artifacts.json'))['artifacts']
+                     if a['name'] == 'courtquest-native-library-flow' and not a['expired']]
+          assert len(matches) == 1, f'Expected one native test artifact; found {len(matches)}'
+          print(matches[0]['id'])
+          PY
+          )
+          gh api "repos/${GH_REPO}/actions/artifacts/${artifact_id}/zip" > /tmp/native-evidence.zip
+          mkdir -p native-evidence
+          unzip -q /tmp/native-evidence.zip -d native-evidence
+          test -f native-evidence/app/build/outputs/apk/debug/app-debug.apk
+          test -f native-evidence/artifacts/source-revisions.txt
+      - name: Verify the v22 signer, v23 APK identity and exact tested binary
+        run: |
+          set -euo pipefail
+          candidate=native-evidence/app/build/outputs/apk/debug/app-debug.apk
+          python3 scripts/verify_apk.py \
+            --apk "$candidate" \
+            --build-tools "${ANDROID_HOME}/build-tools/35.0.1" \
+            --output dist
+          python3 scripts/verify_phone_update.py identity \
+            --previous previous/CourtQuestPro-Update-v22.apk \
+            --candidate "$candidate" \
+            --previous-version 22 \
+            --candidate-version 23 \
+            --tools "${ANDROID_HOME}/build-tools/35.0.1" \
+            --output dist
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Test in-place v22-to-v23 installation with player data on disposable Android
+        run: |
+          set -euo pipefail
+          test -e /dev/kvm
+          sudo chmod 666 /dev/kvm
+          mkdir -p "$ANDROID_AVD_HOME"
+          printf 'no\n' | "${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager" create avd \
+            --name CourtQuest_PremiumQA \
+            --package 'system-images;android-35;default;x86_64' \
+            --device pixel_2 \
+            --path "$ANDROID_AVD_HOME/CourtQuest_PremiumQA.avd"
+          "${ANDROID_HOME}/emulator/emulator" -avd CourtQuest_PremiumQA -port 5562 \
+            -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect \
+            -accel on -cores 2 -memory 2048 > dist/emulator.log 2>&1 &
+          emulator_pid=$!
+          trap 'kill "$emulator_pid" 2>/dev/null || true' EXIT
+          python3 - <<'PY'
+          import subprocess, sys, time
+          sys.path.insert(0, 'scripts')
+          import verify_android_daily_flow as ui
+          for _ in range(120):
+              try:
+                  if ui.shell('getprop', 'sys.boot_completed', timeout=8) == '1':
+                      break
+              except (RuntimeError, subprocess.TimeoutExpired):
+                  pass
+              time.sleep(3)
+          else:
+              raise RuntimeError('QA emulator did not boot')
+          ui.shell('input', 'keyevent', 'KEYCODE_WAKEUP')
+          ui.shell('wm', 'dismiss-keyguard')
+          PY
+          python3 scripts/verify_phone_update.py upgrade \
+            --previous previous/CourtQuestPro-Update-v22.apk \
+            --candidate native-evidence/app/build/outputs/apk/debug/app-debug.apk \
+            --previous-version 22 \
+            --candidate-version 23 \
+            --output dist
+      - name: Seal same-APK, data-preservation and exact-commit evidence
+        run: |
+          set -euo pipefail
+          candidate=native-evidence/app/build/outputs/apk/debug/app-debug.apk
+          python3 scripts/verify_phone_update.py finalize \
+            --previous previous/CourtQuestPro-Update-v22.apk \
+            --candidate "$candidate" \
+            --previous-version 22 \
+            --candidate-version 23 \
+            --output dist
+          cp "$candidate" dist/CourtQuestPro-Update-v23.apk
+          cmp "$candidate" dist/CourtQuestPro-Update-v23.apk
+          (cd dist && sha256sum CourtQuestPro-Update-v23.apk > CourtQuestPro-Update-v23.apk.sha256)
+          python3 - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          apk = Path('dist/CourtQuestPro-Update-v23.apk')
+          manifest_path = Path('dist/apk-manifest.json')
+          manifest = json.loads(manifest_path.read_text())
+          digest = hashlib.sha256(apk.read_bytes()).hexdigest()
+          assert manifest['apk_sha256'] == digest
+          manifest.update(
+              apk_filename=apk.name,
+              apk_size_bytes=apk.stat().st_size,
+              source_commit=os.environ['GITHUB_SHA'],
+              source_parent='3b019be2f608bd9705bac99053a2652eeae86f8d',
+              release_tag='courtquest-phone-update-v23',
+          )
+          manifest_path.write_text(json.dumps(manifest, indent=2) + '\n')
+          notes = f"""# CourtQuest Pro — phone-test Android update v23
+
+          Download **CourtQuestPro-Update-v23.apk** and install it over CourtQuest Pro v22. Do not uninstall the existing app or clear its data.
+
+          - Package: `{manifest['package_id']}`
+          - Version code: `{manifest['version_code']}` (v22 → v23)
+          - Signing certificate SHA-256: `{manifest['certificate_sha256']}`
+          - APK SHA-256: `{digest}`
+          - Verified redesign baseline: `3b019be2f608bd9705bac99053a2652eeae86f8d`
+          - Built/tested commit: `{os.environ['GITHUB_SHA']}`
+          - Emulator: v22 installed, player data seeded, v23 installed with `adb install -r`, preferences compared byte-for-byte, app launched and relaunched with saved values preserved.
+          - Exact-commit native library/training, compact dock, Android development, and premium-flow checks all passed.
+
+          This is a phone-test prerelease, not a Play Store release. Emulator data is synthetic; no physical phone was altered or tested. Existing app identity, original signing certificate, artwork, source UI, and player-data schema are unchanged.
+          """
+          Path('dist/RELEASE_NOTES.md').write_text(notes)
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: courtquest-v23-verification
+          path: dist/
+          retention-days: 30
+          if-no-files-found: warn
+
+  publish:
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: courtquest-v23-verification
+          path: dist
+      - name: Recheck all release gates before creating a new prerelease
+        run: |
+          set -euo pipefail
+          (cd dist && sha256sum --check CourtQuestPro-Update-v23.apk.sha256)
+          python3 - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          root = Path('dist')
+          manifest = json.loads((root / 'apk-manifest.json').read_text())
+          identity = json.loads((root / 'upgrade-identity.json').read_text())
+          install = json.loads((root / 'install-upgrade.json').read_text())
+          gates = json.loads((root / 'ci-gates.json').read_text())
+          apk = root / 'CourtQuestPro-Update-v23.apk'
+          digest = hashlib.sha256(apk.read_bytes()).hexdigest()
+          assert manifest['package_id'] == 'com.courtquestpro' and manifest['version_code'] == 23
+          assert manifest['source_commit'] == os.environ['GITHUB_SHA']
+          assert manifest['source_parent'] == '3b019be2f608bd9705bac99053a2652eeae86f8d'
+          assert manifest['checks']['emulator_test'] == 'PASS_V22_TO_V23_IN_PLACE_AND_FULL_NATIVE_SAME_APK'
+          assert manifest['apk_sha256'] == digest
+          assert identity['previous']['version_code'] == 22 and identity['candidate']['version_code'] == 23
+          assert identity['previous']['package_id'] == identity['candidate']['package_id'] == 'com.courtquestpro'
+          assert identity['previous']['certificate_sha256'] == identity['candidate']['certificate_sha256']
+          assert install['versions'] == [22, 23]
+          assert install['android_install_replace'] and install['preferences_byte_identical_after_install']
+          assert install['saved_values_preserved_after_launch'] and install['saved_values_preserved_after_relaunch']
+          assert install['destructive_phone_operations'] == 'NONE'
+          assert len(gates) == 4 and all(
+              run['head_sha'] == os.environ['GITHUB_SHA'] and
+              run['status'] == 'completed' and run['conclusion'] == 'success'
+              for run in gates.values()
+          )
+          PY
+          if gh api "repos/${GH_REPO}/releases/tags/courtquest-phone-update-v23" >/dev/null 2>&1; then
+            echo "The v23 release already exists; refusing to replace it."
+            exit 1
+          fi
+          if gh api "repos/${GH_REPO}/git/ref/tags/courtquest-phone-update-v23" >/dev/null 2>&1; then
+            echo "The v23 tag already exists; refusing to move or overwrite it."
+            exit 1
+          fi
+      - name: Publish the verified APK as a new GitHub prerelease
+        run: |
+          set -euo pipefail
+          gh release create courtquest-phone-update-v23 \
+            dist/CourtQuestPro-Update-v23.apk \
+            dist/CourtQuestPro-Update-v23.apk.sha256 \
+            dist/apk-manifest.json \
+            dist/upgrade-identity.json \
+            dist/install-upgrade.json \
+            dist/ci-gates.json \
+            dist/v22-signature.txt \
+            dist/v23-signature.txt \
+            dist/RELEASE_NOTES.md \
+            --target "$GITHUB_SHA" \
+            --prerelease --latest=false \
+            --title 'CourtQuest Pro — verified in-place Android update v23' \
+            --notes-file dist/RELEASE_NOTES.md
+          mkdir -p published
+          gh release download courtquest-phone-update-v23 \
+            --repo "$GH_REPO" \
+            --pattern 'CourtQuestPro-Update-v23.apk' \
+            --dir published
+          cmp dist/CourtQuestPro-Update-v23.apk published/CourtQuestPro-Update-v23.apk
+          (cd dist && sha256sum --check CourtQuestPro-Update-v23.apk.sha256)
+          gh api "repos/${GH_REPO}/releases/tags/courtquest-phone-update-v23" > dist/published-release.json
+          python3 - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          release = json.loads(Path('dist/published-release.json').read_text())
+          apk = Path('dist/CourtQuestPro-Update-v23.apk')
+          digest = hashlib.sha256(apk.read_bytes()).hexdigest()
+          asset = next(a for a in release['assets'] if a['name'] == apk.name)
+          assert release['tag_name'] == 'courtquest-phone-update-v23' and release['prerelease']
+          assert asset['digest'] == f'sha256:{digest}'
+          assert asset['url'].endswith('/releases/download/courtquest-phone-update-v23/CourtQuestPro-Update-v23.apk')
+          print(release['html_url'])
+          print(asset['url'])
+          print(f'SHA-256: {digest}')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: courtquest-v23-publication
+          path: dist/published-release.json
+          retention-days: 30
+          if-no-files-found: warn
