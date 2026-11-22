@@ -42,7 +42,8 @@ def main() -> None:
 
     source = (ROOT / "app/build.gradle.kts").read_text()
     package = build_setting(source, "applicationId", r'"([^"]+)"')
-    version = build_setting(source, "versionName", r'"([^"]+)"')
+    version = os.environ.get("COURTQUEST_VERSION_NAME", "1.0")
+    require(re.fullmatch(r"\d+(?:\.\d+)*", version) is not None, "Invalid Android version name")
     # CI supplies the actual packaged version code; local verification uses
     # the original static baseline when no release override is present.
     code = int(os.environ.get("COURTQUEST_VERSION_CODE", "1"))

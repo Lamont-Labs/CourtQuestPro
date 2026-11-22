@@ -91,6 +91,12 @@ class ReleaseContractTests(unittest.TestCase):
         self.assertIn('title="CourtQuest Pro v${COURTQUEST_RELEASE_NUMBER}"', WORKFLOW)
         self.assertIn("Release history requires pagination; refusing ambiguous numbering", WORKFLOW)
 
+    def test_release_version_name_matches_historical_number(self):
+        self.assertIn('environmentVariable("COURTQUEST_VERSION_NAME")', GRADLE)
+        self.assertIn('COURTQUEST_VERSION_NAME=${{ steps.sequence.outputs.number }}.0', WORKFLOW)
+        self.assertIn('os.environ.get("COURTQUEST_VERSION_NAME", "1.0")', VERIFIER)
+        self.assertIn("Invalid Android version name", VERIFIER)
+
     def test_version_code_is_propagated(self):
         self.assertIn('environmentVariable("COURTQUEST_VERSION_CODE")', GRADLE)
         self.assertIn('COURTQUEST_VERSION_CODE=$version_code', WORKFLOW)
