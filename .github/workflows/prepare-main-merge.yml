@@ -25,7 +25,18 @@ jobs:
           git fetch origin '+refs/heads/integration/verified-no-avatars:refs/remotes/origin/integration/verified-no-avatars'
           git merge --no-commit --no-ff -X theirs origin/integration/verified-no-avatars
           test -z "$(git ls-files -u)"
+          # Preserve main's signing/version configuration but restore required app dependencies.
           git show HEAD:app/build.gradle.kts > app/build.gradle.kts
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('app/build.gradle.kts')
+          source = p.read_text()
+          required = ['    implementation("com.airbnb.android:lottie-compose:6.7.1")', '    implementation("com.canopas.intro-showcase-view:introshowcaseview:2.0.2")', '    implementation("dev.chrisbanes.haze:haze:1.1.1")', '    androidTestImplementation(platform("androidx.compose:compose-bom:2024.12.01"))', '    androidTestImplementation("androidx.compose.ui:ui-test-junit4")', '    androidTestImplementation("androidx.test:runner:1.6.2")']
+          marker = '    testImplementation("junit:junit:4.13.2")'
+          assert source.count(marker) == 1
+          source = source.replace(marker, '\\n'.join(required) + '\\n' + marker)
+          p.write_text(source)
+          PY
           git add app/build.gradle.kts
           test "$(grep -c 'applicationId = "com.courtquestpro"' app/build.gradle.kts)" -eq 1
           test ! -f app/src/main/java/com/courtquestpro/AvatarAppearance.kt
