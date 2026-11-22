@@ -82,6 +82,33 @@ jobs:
           keytool -exportcert -keystore "${RUNNER_TEMP}/courtquest-preserved.keystore" -alias "$COURTQUEST_KEY_ALIAS_SECRET" -storepass "$COURTQUEST_STORE_PASSWORD_SECRET" -file "${RUNNER_TEMP}/courtquest-candidate.der" >/dev/null
           cmp -s "${RUNNER_TEMP}/courtquest-original.der" "${RUNNER_TEMP}/courtquest-candidate.der" || { echo "::error::Signing certificate mismatch; refusing to build."; exit 1; }
 
+      - name: Determine historical CourtQuest release sequence
+        id: sequence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=100" > "${RUNNER_TEMP}/courtquest-releases.json"
+          python3 - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          releases = json.loads((Path(os.environ["RUNNER_TEMP"]) / "courtquest-releases.json").read_text())
+          if len(releases) >= 100:
+              raise SystemExit("Release history requires pagination; refusing ambiguous numbering")
+          historical = [int(m.group(1)) for r in releases
+                        if (m := re.fullmatch(r"courtquest-phone-update-v(\d+)", r["tag_name"]))]
+          if not historical:
+              raise SystemExit("Historical CourtQuest release tags missing")
+          modern = [r for r in releases if re.fullmatch(r"android-v1\.0-build\d+", r["tag_name"])]
+          numbered = [int(m.group(1)) for r in releases
+                      if (m := re.fullmatch(r"courtquest-update-v(\d+)", r["tag_name"]))]
+          next_number = max(max(historical) + len(modern), *numbered) + 1
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              print(f"number={next_number}", file=output)
+          print(f"Next CourtQuest update: v{next_number}")
+          PY
+
       - name: Assign Android update version code
         shell: bash
         run: |
@@ -122,7 +149,7 @@ jobs:
       - name: Retain APK and verification evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: CourtQuestPro-${{ steps.package.outputs.version }}-build-${{ github.run_number }}
+          name: CourtQuestPro-v${{ steps.sequence.outputs.number }}-build-${{ github.run_number }}
           # Explicit allowlist: exclude Gradle logs and arbitrary build outputs.
           path: |
             dist/CourtQuestPro-*.apk
@@ -142,11 +169,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           APP_VERSION: ${{ steps.package.outputs.version }}
+          COURTQUEST_RELEASE_NUMBER: ${{ steps.sequence.outputs.number }}
         shell: bash
         run: |
           set -euo pipefail
-          tag="android-v${APP_VERSION}-build${GITHUB_RUN_NUMBER}"
-          title="CourtQuest Pro ${APP_VERSION} - Build ${GITHUB_RUN_NUMBER}"
+          tag="courtquest-update-v${COURTQUEST_RELEASE_NUMBER}"
+          title="CourtQuest Pro v${COURTQUEST_RELEASE_NUMBER}"
           # Never silently overwrite an existing signed APK release.
           # Distinguish an absent release from authentication/API failures.
           # A failed lookup must never authorize publication.
