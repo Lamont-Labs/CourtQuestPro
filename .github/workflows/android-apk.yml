@@ -1,7 +1,7 @@
 name: Android APK
 
-# APK publication is deliberately manual while hosted-runner capacity is constrained.
-# Source changes must not automatically publish replacement Android packages.
+# APK publication is limited to manual dispatch or an explicit, committed release request.
+# Ordinary source changes do not automatically publish replacement Android packages.
 on:
   workflow_dispatch:
   push:
