@@ -97,6 +97,14 @@ class ReleaseContractTests(unittest.TestCase):
         self.assertIn('os.environ.get("COURTQUEST_VERSION_NAME", "1.0")', VERIFIER)
         self.assertIn("Invalid Android version name", VERIFIER)
 
+    def test_release_version_code_exceeds_historical_v60_baseline(self):
+        # Commit b8cc735334c51586b2e48c036c411812d82bf4b1 set
+        # the distributed v60 candidate's default Android versionCode to 60.
+        # Keep the current CI release code above that known baseline.
+        self.assertIn("10000 + GITHUB_RUN_NUMBER", WORKFLOW)
+        self.assertIn("COURTQUEST_VERSION_CODE=$version_code", WORKFLOW)
+        self.assertIn('applicationId = "com.courtquestpro"', GRADLE)
+
     def test_version_code_is_propagated(self):
         self.assertIn('environmentVariable("COURTQUEST_VERSION_CODE")', GRADLE)
         self.assertIn('COURTQUEST_VERSION_CODE=$version_code', WORKFLOW)
