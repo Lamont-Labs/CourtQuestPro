@@ -5,5 +5,7 @@
   "require_existing_signing_certificate": true,
   "require_android_lint": true,
   "requested_by": "owner",
-  "reason": "Installable update after avatar-free main merge"
+  "reason": "Deliver unified Card and Uniform Studio entry points in update-compatible APK",
+  "feature": "unified-card-uniform-studio",
+  "feature_commit": "a12ed8482932eaa31f748998cbdffa5adf38b758"
 }
