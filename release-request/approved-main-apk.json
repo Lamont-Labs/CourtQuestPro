@@ -1,0 +1,9 @@
+{
+  "request": "publish-verified-main-apk",
+  "source_merge_commit": "5948a99cc6a1fc7f3c5670f73ad644422d21a564",
+  "require_package": "com.courtquestpro",
+  "require_existing_signing_certificate": true,
+  "require_android_lint": true,
+  "requested_by": "owner",
+  "reason": "Installable update after avatar-free main merge"
+}
