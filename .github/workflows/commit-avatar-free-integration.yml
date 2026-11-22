@@ -1,6 +1,9 @@
 name: Commit verified avatar-free integration
 on:
   workflow_dispatch:
+  push:
+    branches: [integration/verified-no-avatars]
+    paths: ['.github/workflows/commit-avatar-free-integration.yml']
 permissions:
   contents: write
 jobs:
