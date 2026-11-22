@@ -4,6 +4,7 @@ Run: python3 -m unittest discover -s tests -p 'test_*.py'
 These checks are not substitutes for a signed APK build or device installation.
 """
 from pathlib import Path
+import ast
 import re
 import unittest
 
@@ -91,6 +92,17 @@ class ReleaseContractTests(unittest.TestCase):
         self.assertIn('tag="courtquest-update-v${COURTQUEST_RELEASE_NUMBER}"', WORKFLOW)
         self.assertIn('title="CourtQuest Pro v${COURTQUEST_RELEASE_NUMBER}"', WORKFLOW)
         self.assertIn("Release history requires pagination; refusing ambiguous numbering", WORKFLOW)
+
+    def test_embedded_release_sequence_python_compiles(self):
+        # Static string assertions did not catch literal escaped newlines in
+        # the release workflow. Parse the actual embedded Python block.
+        step = WORKFLOW.split("- name: Determine historical CourtQuest release sequence", 1)[1]
+        block = step.split("          python3 - <<'PY'\n", 1)[1].split("\n          PY", 1)[0]
+        source = "\n".join(
+            line[10:] if line.startswith("          ") else line
+            for line in block.splitlines()
+        )
+        ast.parse(source, filename="android-apk.yml:release-sequence")
 
     def test_release_version_name_matches_historical_number(self):
         self.assertIn('environmentVariable("COURTQUEST_VERSION_NAME")', GRADLE)
