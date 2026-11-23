@@ -13,6 +13,7 @@ android {
         applicationId = "com.courtquestpro"
         minSdk = 26
         targetSdk = 35
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Monotonic for CI builds; local builds retain the original version.
         // Set only by the release workflow, never from an untrusted PR.
         versionCode = providers.environmentVariable("COURTQUEST_VERSION_CODE")
