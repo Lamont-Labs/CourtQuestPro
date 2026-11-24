@@ -277,10 +277,10 @@ internal fun DrillLibraryScreen(
                     Text(catalog.firstOrNull { it.id == save.practiceSession?.drillId }?.title ?: "Your saved practice",
                         style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)
                 }
-                if (section == "Library" && hasActiveFilters) {
+                if (hasActiveFilters) {
                     Row(Modifier.fillMaxWidth().testTag("library-active-filters"),
                         verticalAlignment = Alignment.CenterVertically) {
-                        Text("${shown.size} matching drills", modifier = Modifier.weight(1f),
+                        Text(if (shown.size == 1) "1 matching drill" else "${shown.size} matching drills", modifier = Modifier.weight(1f),
                             color = CourtQuestDesign.textSecondary,
                             style = MaterialTheme.typography.labelMedium)
                         TextButton(onClick = {
@@ -294,6 +294,23 @@ internal fun DrillLibraryScreen(
                             Icon(Icons.Default.Close, null, Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
                             Text("Clear filters")
+                        }
+                    }
+                }
+                if (section == "Library" && hasActiveFilters) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        val activeFilters = listOf(
+                            Triple(category, category != "All skills", { category = "All skills" }),
+                            Triple(levelFilter, levelFilter != "All levels", { levelFilter = "All levels" }),
+                            Triple(durationFilter, durationFilter != "Any length", { durationFilter = "Any length" }),
+                            Triple(filter, filter != "All", { filter = "All" })
+                        )
+                        activeFilters.filter { it.second }.forEach { (value, _, clear) ->
+                            InputChip(selected = true, onClick = clear,
+                                label = { Text(value) },
+                                trailingIcon = { Icon(Icons.Default.Close, "Remove $value filter", Modifier.size(16.dp)) },
+                                modifier = Modifier.heightIn(min = 48.dp))
                         }
                     }
                 }
