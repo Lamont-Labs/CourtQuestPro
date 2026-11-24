@@ -361,6 +361,7 @@ internal fun DrillLibraryScreen(
             }
         }
         if (section == "Library" && query.isBlank() && filter == "All" && category == "All skills" &&
+            levelFilter == "All levels" && durationFilter == "Any length" &&
             swapSlotId == null && suggestions.isNotEmpty()) {
             item {
                 val featured = suggestions.first()
