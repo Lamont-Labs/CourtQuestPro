@@ -4,10 +4,10 @@ package com.courtquestpro
 internal object SoloNavigationTour {
     val tabs = listOf(PlayerTab.COURT, PlayerTab.TRAIN, PlayerTab.QUESTS, PlayerTab.PROGRESS, PlayerTab.ME)
     val cues = listOf(
-        "Start today’s session or pick up where you left off.",
-        "Explore drills, learn techniques, and build your own practice.",
-        "See which challenges you can complete through training.",
-        "Review saved sessions and compare your results.",
-        "Customize your jersey, manage settings, and see achievements."
+        "Start or resume today’s training. Swap a drill or build a Mission for your own routine.",
+        "Open Library to search by skill or equipment, view technique guides, favorite drills or start practice. Custom lets you create your own drills.",
+        "Complete daily and weekly challenges through saved training results. Resume a Mission or review earned rewards.",
+        "Review saved attempts, compare results for the same drill and discover your next practice priority.",
+        "Customize your jersey and player card, edit your profile or restart this walkthrough from the Me menu."
     )
 }
