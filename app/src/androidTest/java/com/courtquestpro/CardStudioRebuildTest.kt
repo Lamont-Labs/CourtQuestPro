@@ -86,8 +86,8 @@ class CardStudioRebuildTest {
     }
     private fun studio() {
         assertTrue(Build.HARDWARE.contains("ranchu"))
-        ui.waitUntil(20_000){has("welcome-swipe-ball")||has("dock-me")}
-        if(has("welcome-swipe-ball"))click("welcome-swipe-ball")
+        ui.waitUntil(20_000){has("welcome-enter-ball")||has("dock-me")}
+        if(has("welcome-enter-ball"))click("welcome-enter-ball")
         wait("dock-me")
         if(has("tour-skip"))click("tour-skip")
         click("dock-me")
