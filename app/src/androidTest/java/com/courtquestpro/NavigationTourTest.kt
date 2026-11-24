@@ -38,9 +38,35 @@ class NavigationTourTest {
             assertActionAboveDock("tour-next")
             assertActionAboveDock("tour-skip")
             if (index > 0) assertActionAboveDock("tour-back")
+            assertStageControls(index)
+            if (index == 2 || index == 6) {
+                click("tour-back")
+                assertStageControls(index - 1)
+                click("tour-next")
+                assertStageControls(index)
+            }
             click("tour-next")
         }
         node("navigation-tour").assertDoesNotExist()
+        click("me-settings-menu")
+        click("me-start-walkthrough")
+        node("dock-home").assertIsSelected()
+        assertActionAboveDock("tour-skip")
+        click("tour-skip")
+        node("navigation-tour").assertDoesNotExist()
+    }
+
+    private fun assertStageControls(index: Int) {
+        when (index) {
+            1 -> node("segment-library").assertIsSelected()
+            2 -> node("segment-custom").assertIsSelected()
+            5 -> {
+                node("segment-profile").assertIsSelected()
+                node("tour-open-jersey").assertIsDisplayed().assertHasClickAction()
+                node("tour-open-card").assertIsDisplayed().assertHasClickAction()
+            }
+            6 -> node("segment-settings").assertIsSelected()
+        }
     }
 
     private fun node(tag: String) = compose.onNodeWithTag(tag, useUnmergedTree = true)
