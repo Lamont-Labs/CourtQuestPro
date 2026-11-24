@@ -131,7 +131,7 @@ internal val drills = listOf(
     Drill("r3","Rebounding","Solo Shot and Rebound","Advanced",6,"Take a comfortable shot on a clear court. Track the ball, move into a safe rebound position, secure it with both hands and reset.","Complete 10 secured rebounds.","basketball solo shooting rebounding drill"),
     Drill("p1","Passing","Target Chest and Bounce Passes","Beginner",6,"Choose a sturdy permitted wall with clear space. Aim chest passes at a chest-height mark; bounce passes at a floor point that sends the ball to a waist-height wall mark. Control the return and reset.","Complete 10 accurate passes of each type.","basketball chest bounce pass drill"),
     Drill("p2","Passing","Pass and Cut","Intermediate",6,"Use a sturdy permitted wall and a clear lateral lane. Make a gentle pass toward a wall target angled to return into the lane, take a short lateral cut, show your hands and control the return. Reset if the bounce is unpredictable.","Complete 10 pass-and-cut sequences.","basketball pass and cut drill"),
-    Drill("p3","Passing","Rebound Outlet Decisions","Advanced",6,"Secure a simulated rebound, scan for a partner, pivot without traveling, and choose a clear passing lane.","Complete 8 accurate outlet passes.","basketball outlet passing drill")
+    Drill("p3","Passing","Rebound Outlet Decisions","Advanced",6,"Choose two reachable targets on a sturdy permitted wall with clear passing lanes. Secure a gentle self-toss as a simulated rebound, scan both targets, pivot without traveling and pass to an open target. Control the return before resetting.","Complete 8 accurate outlet passes.","basketball outlet passing drill")
 )
 
 class MainActivity : ComponentActivity() {
