@@ -1,6 +1,11 @@
 package com.courtquestpro
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -36,7 +41,6 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun CourtNavigationTour(index: Int, onNext: () -> Unit, onSkip: () -> Unit, onBack: () -> Unit) {
     val shape = RoundedCornerShape(16.dp)
-    val tab = SoloNavigationTour.tabs[index]
     val last = index == SoloNavigationTour.tabs.lastIndex
 
     BoxWithConstraints(
@@ -62,7 +66,9 @@ internal fun CourtNavigationTour(index: Int, onNext: () -> Unit, onSkip: () -> U
                 )
                 .padding(start = 12.dp, end = 12.dp, top = 9.dp, bottom = 2.dp)
         ) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(Modifier.fillMaxWidth().semantics {
+                contentDescription = "Walkthrough step ${index + 1} of ${SoloNavigationTour.tabs.size}"
+            }, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 SoloNavigationTour.tabs.indices.forEach { position ->
                     val color by animateColorAsState(
                         targetValue = when {
@@ -73,14 +79,17 @@ internal fun CourtNavigationTour(index: Int, onNext: () -> Unit, onSkip: () -> U
                         animationSpec = tween(150),
                         label = "tour-progress"
                     )
-                    Box(Modifier.weight(1f).height(2.dp).background(color, CircleShape))
+                    Box(Modifier.weight(1f).height(3.dp).background(color, CircleShape))
                 }
             }
             key(index) {
+                val entered = remember { mutableStateOf(false) }
+                LaunchedEffect(Unit) { entered.value = true }
+                val copyAlpha by animateFloatAsState(if (entered.value) 1f else .65f, tween(160), label = "tour-copy")
                 // Only the copy scrolls when text or the viewport grows tight.
                 Column(
                     Modifier.fillMaxWidth().weight(1f, fill = false)
-                        .verticalScroll(rememberScrollState()).padding(top = 7.dp, bottom = 2.dp)
+                        .verticalScroll(rememberScrollState()).graphicsLayer { alpha = copyAlpha }.padding(top = 7.dp, bottom = 2.dp)
                         .testTag("tour-current-step").semantics { liveRegion = LiveRegionMode.Polite },
                     verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
@@ -90,7 +99,7 @@ internal fun CourtNavigationTour(index: Int, onNext: () -> Unit, onSkip: () -> U
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            tab.label,
+                            SoloNavigationTour.headings[index],
                             Modifier.weight(1f).semantics { heading() },
                             color = CourtQuestDesign.textPrimary,
                             style = MaterialTheme.typography.titleMedium,
