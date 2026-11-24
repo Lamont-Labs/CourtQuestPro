@@ -1,11 +1,11 @@
 {
   "request": "publish-verified-main-apk",
-  "source_merge_commit": "d09f5c95ded5b2b2a391d49fd89171c422233b47",
+  "source_merge_commit": "c6e090e7c65c94a4e9768fc46ef8dcb27e36d7f2",
   "require_package": "com.courtquestpro",
   "require_existing_signing_certificate": true,
   "require_android_lint": true,
   "requested_by": "owner",
-  "reason": "Publish next verified main APK after release-numbering fixes and green release-contract regression tests; preserve existing app installation and player data",
-  "feature": "verified-v61-update",
-  "feature_commit": "d09f5c95ded5b2b2a391d49fd89171c422233b47"
+  "reason": "Publish next main APK after ten CI-verified drill library improvements; preserve existing app installation and player data",
+  "feature": "premium-drill-library-v62",
+  "feature_commit": "c6e090e7c65c94a4e9768fc46ef8dcb27e36d7f2"
 }
