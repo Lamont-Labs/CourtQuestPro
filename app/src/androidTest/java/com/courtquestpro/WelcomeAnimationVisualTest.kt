@@ -26,7 +26,7 @@ class WelcomeAnimationVisualTest {
     private fun has(tag: String) =
         compose.onAllNodesWithTag(tag, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
 
-    private fun capturePresented(name: String): String {
+    private fun awaitPresentedFrame(name: String) {
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
         val presented = CountDownLatch(1)
         compose.runOnUiThread {
@@ -39,6 +39,10 @@ class WelcomeAnimationVisualTest {
             }
         }
         assertTrue("Android must present $name before capture", presented.await(5, TimeUnit.SECONDS))
+    }
+
+    private fun capturePresented(name: String): String {
+        awaitPresentedFrame(name)
         val bitmap = checkNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
         val file = File(compose.activity.filesDir, "player-card-proof/$name.png")
         file.parentFile?.mkdirs()
@@ -55,6 +59,7 @@ class WelcomeAnimationVisualTest {
             .fetchSemanticsNode().config[SemanticsProperties.StateDescription]
 
     private fun restingBallIsVisible(): Boolean {
+        awaitPresentedFrame("resting basketball sample")
         val bitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot() ?: return false
         try {
             val bounds = compose.onNodeWithTag("welcome-shot-ball", useUnmergedTree = true)
@@ -77,7 +82,9 @@ class WelcomeAnimationVisualTest {
             }
             val proof = File(compose.activity.filesDir, "player-card-proof/resting-ball-sampling.txt")
             proof.parentFile?.mkdirs()
-            proof.writeText("bitmap=${bitmap.width}x${bitmap.height}\nbounds=$bounds\norangeSamples=$orangeSamples\n")
+            val diagnostic = "bitmap=${bitmap.width}x${bitmap.height} bounds=$bounds orangeSamples=$orangeSamples"
+            proof.appendText("$diagnostic\n")
+            android.util.Log.i("CourtQuestWelcomeQA", diagnostic)
             return orangeSamples > 100
         } finally {
             bitmap.recycle()
