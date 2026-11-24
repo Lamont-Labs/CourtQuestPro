@@ -526,9 +526,8 @@ internal fun DrillLibraryScreen(
                 skill to shown.filter { it.category == skill }
             }.filter { it.second.isNotEmpty() } else listOf("Results" to shown)
             if (grouped) item(key = "library-browse-mode") {
-                Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween) {
+                Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text("Choose a skill to reveal its drills", color = CourtQuestDesign.textSecondary,
                         style = MaterialTheme.typography.labelMedium)
                     TextButton(
@@ -536,7 +535,7 @@ internal fun DrillLibraryScreen(
                             showAllCategories = !showAllCategories
                             if (showAllCategories) expandedCategory = null
                         },
-                        modifier = Modifier.testTag("library-toggle-all-categories")
+                        modifier = Modifier.align(Alignment.End).heightIn(min = 48.dp).testTag("library-toggle-all-categories")
                     ) {
                         Text(if (showAllCategories) "Collapse all" else "Show all drills")
                         Spacer(Modifier.width(4.dp))
