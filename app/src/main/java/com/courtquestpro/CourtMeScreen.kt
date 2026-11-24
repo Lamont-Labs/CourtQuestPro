@@ -23,6 +23,13 @@ import java.time.LocalDate
 internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Unit, onWalkthrough: () -> Unit, onJersey: () -> Unit, onPlayerCard: () -> Unit, tourStep: Int? = null) {
     var section by rememberSaveable { mutableStateOf("Profile") }
     var settingsMenu by remember { mutableStateOf(false) }
+    LaunchedEffect(tourStep) {
+        when (tourStep) {
+            5 -> section = "Profile"
+            6 -> section = "Settings"
+        }
+        if (tourStep == 5 || tourStep == 6) settingsMenu = false
+    }
     val days = save.trainingDays.orEmpty().filter { it in 1..7 }.distinct().sorted()
     val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
     val catalog = TrainingLibrary.catalog(save)
@@ -48,7 +55,8 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                         else if(LocalDensity.current.fontScale>1.3f)MaterialTheme.typography.headlineLarge else MaterialTheme.typography.displaySmall)
                 }
                 if(wide)CourtQuestSegmentRail(listOf("Profile","Settings"),section,{section=it},
-                    Modifier.weight(1f).padding(horizontal=12.dp),reflowAtLargeText=false)
+                    Modifier.weight(1f).padding(horizontal=12.dp),reflowAtLargeText=false,
+                    spotlightKeys = if (tourStep == 6) setOf("settings") else emptySet())
                 Box {
                     IconButton(onClick = { settingsMenu = true }, modifier = Modifier.size(52.dp).then(if (tourStep == 5 || tourStep == 6) Modifier.border(2.dp, CourtQuestDesign.accentVivid, androidx.compose.foundation.shape.CircleShape) else Modifier).testTag("me-settings-menu")) {
                         Icon(Icons.Default.MoreVert, contentDescription = "Player settings menu",
@@ -80,8 +88,20 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                 selected = section,
                 onSelect = { section = it },
                 modifier = Modifier.padding(horizontal = 20.dp),
-                reflowAtLargeText=false
+                reflowAtLargeText=false,
+                spotlightKeys = if (tourStep == 6) setOf("settings") else emptySet()
             )
+        }
+        if (tourStep == 5) item {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onJersey, Modifier.weight(1f).heightIn(min = 48.dp).testTag("tour-open-jersey")) {
+                    Text("Jersey Studio")
+                }
+                OutlinedButton(onPlayerCard, Modifier.weight(1f).heightIn(min = 48.dp).testTag("tour-open-card")) {
+                    Text("Player Card Studio")
+                }
+            }
         }
         item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
