@@ -31,7 +31,8 @@ internal fun DrillLibraryScreen(
     onUse: (String) -> Unit, onResume: () -> Unit, onHome: () -> Unit, selectedId: String?, onSelect: (String?) -> Unit, onMissionBuilder: () -> Unit,
     onStartTraining: () -> Unit = onHome,
     selectedSection: String = "Today",
-    onSectionChange: (String) -> Unit = {}
+    onSectionChange: (String) -> Unit = {},
+    tourStep: Int? = null
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var filter by rememberSaveable { mutableStateOf("All") }
@@ -130,6 +131,11 @@ internal fun DrillLibraryScreen(
             CourtQuestSegmentRail(
                 labels = listOf("My Plan", "Library", "Custom"),
                 tagKeys = listOf("today", "library", "custom"),
+                spotlightKeys = when (tourStep) {
+                    1 -> setOf("library")
+                    2 -> setOf("custom", "library")
+                    else -> emptySet()
+                },
                 selected = if (section == "Today") "My Plan" else section,
                 onSelect = { tab ->
                     val targetSection = if (tab == "My Plan") "Today" else tab

@@ -35,7 +35,8 @@ internal fun CourtQuestSegmentRail(
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier,
     tagKeys: List<String> = labels.map { it.lowercase().replace(' ', '-') },
-    reflowAtLargeText: Boolean = true
+    reflowAtLargeText: Boolean = true,
+    spotlightKeys: Set<String> = emptySet()
 ) {
     require(tagKeys.size == labels.size) { "Each segment needs one stable semantic key" }
     val railShape = RoundedCornerShape(13.dp)
@@ -56,6 +57,7 @@ internal fun CourtQuestSegmentRail(
                     .heightIn(min = 48.dp)
                     .testTag("segment-${tagKeys[index]}")
                     .clip(itemShape)
+                    .then(if (tagKeys[index] in spotlightKeys) Modifier.border(2.dp, CourtQuestDesign.accentVivid, itemShape) else Modifier)
                     .background(if (active) CourtQuestDesign.warmSurface else CourtQuestDesign.background.copy(alpha = 0.22f))
                     .selectable(selected = active, role = Role.Tab, onClick = { onSelect(label) }),
                 contentAlignment = Alignment.Center

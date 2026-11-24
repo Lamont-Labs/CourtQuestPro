@@ -1,5 +1,7 @@
 package com.courtquestpro
 
+import androidx.compose.foundation.border
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -18,7 +20,7 @@ import java.time.LocalDate
 
 @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
-internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Unit, onWalkthrough: () -> Unit, onJersey: () -> Unit, onPlayerCard: () -> Unit) {
+internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Unit, onWalkthrough: () -> Unit, onJersey: () -> Unit, onPlayerCard: () -> Unit, tourStep: Int? = null) {
     var section by rememberSaveable { mutableStateOf("Profile") }
     var settingsMenu by remember { mutableStateOf(false) }
     val days = save.trainingDays.orEmpty().filter { it in 1..7 }.distinct().sorted()
@@ -48,7 +50,7 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                 if(wide)CourtQuestSegmentRail(listOf("Profile","Settings"),section,{section=it},
                     Modifier.weight(1f).padding(horizontal=12.dp),reflowAtLargeText=false)
                 Box {
-                    IconButton(onClick = { settingsMenu = true }, modifier = Modifier.size(52.dp).testTag("me-settings-menu")) {
+                    IconButton(onClick = { settingsMenu = true }, modifier = Modifier.size(52.dp).then(if (tourStep == 5 || tourStep == 6) Modifier.border(2.dp, CourtQuestDesign.accentVivid, androidx.compose.foundation.shape.CircleShape) else Modifier).testTag("me-settings-menu")) {
                         Icon(Icons.Default.MoreVert, contentDescription = "Player settings menu",
                             tint = CourtQuestDesign.textPrimary)
                     }

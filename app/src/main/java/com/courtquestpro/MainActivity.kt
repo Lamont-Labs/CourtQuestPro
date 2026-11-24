@@ -470,6 +470,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     "home" -> HomeContent()
                     "library" -> DrillLibraryScreen(save, librarySlotId,
                         selectedSection = libraryInitialSection,
+                        tourStep = tourIndex,
                         onSectionChange = { libraryInitialSection = it },
                         onStartTraining = { openTraining() },
                         onNew = {
@@ -696,7 +697,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         onResumeMission = { openMission() }, onProgress = { navigate("career") })
                     "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") },
                         onWalkthrough = { startNavigationTour() }, onJersey = { navigate("jerseyStudio") },
-                         onPlayerCard = { navigate("playerCardStudio") })
+                         onPlayerCard = { navigate("playerCardStudio") }, tourStep = tourIndex)
                     "playerCardStudio" -> PlayerCardStudio(save, ::saveUniform, onBack = { goBack() })
                     "jerseyStudio" -> PlayerCardStudio(save, ::saveUniform, onBack = { goBack() }, initialUniform = true)
                     "settings" -> SettingsScreen(save.playerName, save.difficulty, onBack = { goBack() },
