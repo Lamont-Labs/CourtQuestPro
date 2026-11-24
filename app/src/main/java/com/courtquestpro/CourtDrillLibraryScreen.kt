@@ -555,14 +555,31 @@ internal fun DrillLibraryScreen(
                         if (drill.id in favorites) "Remove ${drill.title} from favorites"
                         else "Favorite ${drill.title}", tint = CourtQuestDesign.accent)
                 }
+                val activePractice = save.practiceSession
+                val samePractice = activePractice?.drillId == drill.id
+                val otherPractice = activePractice != null && !samePractice
                 IconButton(
-                    onClick = { if (swapSlotId != null) onUse(drill.id) else onPractice(drill.id) },
+                    onClick = {
+                        when {
+                            swapSlotId != null -> onUse(drill.id)
+                            otherPractice -> onSelect(drill.id)
+                            else -> onPractice(drill.id)
+                        }
+                    },
                     modifier = Modifier.testTag("library-quick-practice-${drill.id}")
                 ) {
                     Icon(
-                        if (swapSlotId != null) Icons.Default.SwapHoriz else Icons.Default.PlayArrow,
-                        if (swapSlotId != null) "Use ${drill.title} for this training slot"
-                        else "Practice ${drill.title} now",
+                        when {
+                            swapSlotId != null -> Icons.Default.SwapHoriz
+                            otherPractice -> Icons.Default.Info
+                            else -> Icons.Default.PlayArrow
+                        },
+                        when {
+                            swapSlotId != null -> "Use ${drill.title} for this training slot"
+                            samePractice -> "Resume ${drill.title}"
+                            otherPractice -> "View ${drill.title}; another practice is in progress"
+                            else -> "Practice ${drill.title} now"
+                        },
                         tint = CourtQuestDesign.accentVivid
                     )
                 }
