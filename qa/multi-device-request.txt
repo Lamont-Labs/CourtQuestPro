@@ -1,1 +1,1 @@
-Retry welcome visual sampling after campaign 45426124026; preserve original orange threshold and collect bounds diagnostics.
+v64 release candidate c597fc5ab21f838ab9e0400a2a6db2faf54652b0: execute existing multi-device matrix including seven-stage walkthrough at normal and 2.0 font scale. Preserve welcome visual thresholds and separate issue #55 diagnostics.
