@@ -25,7 +25,7 @@ internal object DrillCoachingLibrary {
         "r1" to DrillCoaching("Locate the ball and the opponent's path on a clear court.", "Turn toward the opponent's path and establish legal position without pushing; then locate the rebound.", "Hold position with arms close; do not push or extend elbows.", "If you lose the rebound line, pause and re-establish legal position without contact."),
         "r2" to DrillCoaching("Begin beneath a safe rebound path with a passing target available.", "Secure the rebound with both hands, land, pivot and deliver a controlled outlet.", "Keep the ball protected and eyes up before passing.", "If the outlet is rushed, pause in a stable pivot before releasing."),
         "r3" to DrillCoaching("Have a partner shoot from a comfortable distance with clear landing space.", "Read the shot, move to the rebound, secure it and alternate roles.", "Track the ball while staying aware of the other player's position.", "If you collide or overrun the bounce, reduce pace and widen spacing."),
-        "p1" to DrillCoaching("Face a partner or safe wall target with feet set and hands behind the ball.", "Step toward the target and extend arms; for a bounce pass aim at the floor before the receiver.", "Finish with thumbs rotating downward and the pass on target.", "If passes float or bounce too high, adjust the release angle and step."),
+        "p1" to DrillCoaching("Face a sturdy permitted wall with clear space, feet set and hands behind the ball. Choose chest- and waist-height targets.", "Step toward the target and extend arms; for a bounce pass aim at the floor before the wall. Control the return before repeating.", "Finish with thumbs rotating downward and the pass on target.", "If passes float or bounce too high, adjust the release angle and step."),
         "p2" to DrillCoaching("Use a safe passing lane and a clearly visible partner target.", "Pass to the partner, cut decisively into open space, show your hands and receive under control.", "Prioritize accurate timing and balanced footwork over throwing harder.", "If the cut or catch feels rushed, reduce distance and reset the pass-and-cut timing."),
         "p3" to DrillCoaching("Set a safe partner target and leave a clear outlet lane.", "Secure the simulated rebound, scan for a partner, pivot without traveling and choose a clear lane.", "Keep the pivot foot planted, head up and balance under control through the pass.", "If the outlet is late, scan earlier and keep the pivot foot planted before releasing.")
     )
@@ -49,7 +49,7 @@ internal object DrillCoachingLibrary {
         "r1" to "Count one controlled turn, legal position and rebound read. This drill does not require a jump or a caught ball.",
         "r2" to "Count one secure rebound, balanced landing and controlled outlet. Regain balance before pivoting.",
         "r3" to "Count each secured rebound and alternate shooter and rebounder. Wait until both players are clear before the next shot.",
-        "p1" to "Count accurate passes. Track ten chest passes and ten bounce passes separately.",
+        "p1" to "Count passes that hit the chosen wall target after the correct pass pattern. Track ten chest passes and ten bounce passes separately.",
         "p2" to "Count a full pass, cut and controlled return catch. A good first pass alone does not complete the sequence.",
         "p3" to "Count the outlet only after a secure gather, scan and accurate pass through a clear lane."
     )
