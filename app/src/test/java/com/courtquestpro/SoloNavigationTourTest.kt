@@ -7,8 +7,8 @@ class SoloNavigationTourTest {
     @Test fun introductionStartsAtCourtAndCoversExactlyTheFivePlayerTabs() {
         assertEquals(PlayerTab.COURT, SoloNavigationTour.tabs.first())
         assertEquals(PlayerTab.entries.toSet(), SoloNavigationTour.tabs.toSet())
-        assertEquals(5, SoloNavigationTour.tabs.size)
-        assertEquals(5, SoloNavigationTour.cues.size)
+        assertEquals(7, SoloNavigationTour.tabs.size)
+        assertEquals(SoloNavigationTour.tabs.size, SoloNavigationTour.cues.size)
         assertEquals(5, SoloNavigationTour.tabs.distinct().size)
         assertEquals(PlayerTab.ME, SoloNavigationTour.tabs.last())
     }
