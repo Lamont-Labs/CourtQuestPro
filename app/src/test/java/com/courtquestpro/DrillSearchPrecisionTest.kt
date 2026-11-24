@@ -18,6 +18,15 @@ class DrillSearchPrecisionTest {
         assertFalse(DrillDiscovery.matchesFields(fields, "beginner rebound"))
     }
 
+    @Test fun ranksExactTitleAbovePrefixAndCategory() {
+        val exact = DrillDiscovery.relevanceFields("Layup", "Shooting", "Beginner", "layup")
+        val prefix = DrillDiscovery.relevanceFields("Layups", "Shooting", "Beginner", "layup")
+        val category = DrillDiscovery.relevanceFields("Footwork", "Layup", "Beginner", "layup")
+        assertTrue(exact > prefix)
+        assertTrue(exact > category)
+        assertTrue(category > DrillDiscovery.relevanceFields("Footwork", "Shooting", "Beginner", "layup"))
+    }
+
     @Test fun blankAndPunctuationOnlyQueriesMatch() {
         assertTrue(DrillDiscovery.matchesFields(fields, " "))
         assertTrue(DrillDiscovery.matchesFields(fields, "---"))
