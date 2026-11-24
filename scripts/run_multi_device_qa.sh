@@ -36,5 +36,12 @@ runner=$(adb shell pm list instrumentation | tr -d '\r' | awk '/target=com.court
 test -n "$runner"
 # Each device starts with a fresh synthetic app installation.
 adb shell am instrument -w -r -e class "$pkg.$QA_SUITE" "$runner" | tee qa-evidence/instrumentation.txt
-grep -Eq '^OK \([1-9][0-9]* tests?\)' qa-evidence/instrumentation.txt
+case "$QA_SUITE" in
+  CardStudioRebuildTest) expected=5 ;;
+  *) expected=1 ;;
+esac
+grep -Eq "^OK \\(${expected} tests?\\)" qa-evidence/instrumentation.txt
+grep -Eq '^INSTRUMENTATION_CODE: -1[[:space:]]*
+! grep -Eq 'FAILURES!!!|INSTRUMENTATION_FAILED|INSTRUMENTATION_ABORTED' qa-evidence/instrumentation.txt
+ qa-evidence/instrumentation.txt
 ! grep -Eq 'FAILURES!!!|INSTRUMENTATION_FAILED|INSTRUMENTATION_ABORTED' qa-evidence/instrumentation.txt

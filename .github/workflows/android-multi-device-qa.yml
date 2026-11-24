@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/android-multi-device-qa.yml'
       - 'qa/multi-device-request.txt'
+      - 'scripts/run_multi_device_qa.sh'
       - 'app/src/androidTest/java/com/courtquestpro/PlayerCardStudioTest.kt'
   workflow_dispatch:
 permissions:
@@ -13,20 +14,9 @@ concurrency:
   group: android-multi-device-qa
   cancel-in-progress: false
 jobs:
-  device:
+  build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      max-parallel: 2
-      matrix:
-        include:
-          - {id: compact, profile: pixel_2, api: 30, scale: '1.0', suite: NavigationTourTest}
-          - {id: training, profile: pixel_6, api: 34, scale: '1.0', suite: TrainingEntryTest}
-          - {id: accessibility, profile: pixel_6, api: 34, scale: '2.0', suite: NavigationTourTest}
-          - {id: studio, profile: pixel_6, api: 34, scale: '1.0', suite: CardStudioRebuildTest}
-          - {id: welcome-motion, profile: pixel_6, api: 34, scale: '1.0', suite: 'WelcomeAnimationVisualTest#swipeShotCapturesLaunchApexRimNetAndExitOnAndroid'}
-          - {id: welcome-reduced, profile: pixel_6, api: 34, scale: '1.0', suite: 'WelcomeAnimationVisualTest#reducedMotionTapSkipsFlightAndStillEntersTheApp'}
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -45,6 +35,60 @@ jobs:
           keytool -genkeypair -keystore "$RUNNER_TEMP/qa.keystore" -storepass android -keypass android -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 30 -dname "CN=Disposable QA"
           echo "COURTQUEST_SIGNING_KEYSTORE_PATH=$RUNNER_TEMP/qa.keystore" >> "$GITHUB_ENV"
           COURTQUEST_SIGNING_KEYSTORE_PATH="$RUNNER_TEMP/qa.keystore" bash gradlew --no-daemon :app:assembleDebug :app:assembleDebugAndroidTest
+      - name: Record APK integrity
+        run: |
+          sha256sum app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk > qa-apk-sha256.txt
+          printf '%s\n' "$GITHUB_SHA" > qa-apk-commit.txt
+      - name: Upload shared test APKs
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qa-shared-apks
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+            qa-apk-sha256.txt
+            qa-apk-commit.txt
+          retention-days: 1
+          if-no-files-found: error
+      - name: Upload build evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qa-build-evidence
+          path: qa-evidence/
+          retention-days: 14
+          if-no-files-found: warn
+  device:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - {id: compact, profile: pixel_2, api: 30, scale: '1.0', suite: NavigationTourTest}
+          - {id: training, profile: pixel_6, api: 34, scale: '1.0', suite: TrainingEntryTest}
+          - {id: accessibility, profile: pixel_6, api: 34, scale: '2.0', suite: NavigationTourTest}
+          - {id: studio, profile: pixel_6, api: 34, scale: '1.0', suite: CardStudioRebuildTest}
+          - {id: welcome-motion, profile: pixel_6, api: 34, scale: '1.0', suite: 'WelcomeAnimationVisualTest#swipeShotCapturesLaunchApexRimNetAndExitOnAndroid'}
+          - {id: welcome-reduced, profile: pixel_6, api: 34, scale: '1.0', suite: 'WelcomeAnimationVisualTest#reducedMotionTapSkipsFlightAndStillEntersTheApp'}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Download shared test APKs
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: qa-shared-apks
+          path: .
+      - name: Verify shared APK integrity
+        run: |
+          set -eu
+          test "$(cat qa-apk-commit.txt)" = "$GITHUB_SHA"
+          sha256sum -c qa-apk-sha256.txt
+          mkdir -p qa-evidence
+          cp qa-apk-sha256.txt qa-apk-commit.txt qa-evidence/
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
