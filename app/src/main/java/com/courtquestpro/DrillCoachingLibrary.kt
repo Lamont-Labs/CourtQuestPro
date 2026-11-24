@@ -11,7 +11,7 @@ internal data class DrillCoaching(
 internal object DrillCoachingLibrary {
     private val guides = mapOf(
         "s1" to DrillCoaching("Stand close enough to shoot without straining; mark five comfortable spots.", "Set feet, align the shooting elbow, extend smoothly and hold the wrist follow-through.", "Finish balanced with the shooting hand pointing toward the rim.", "If shots drift, slow down and check foot alignment before adding range."),
-        "s2" to DrillCoaching("Face the passer with knees flexed and hands ready.", "Receive into the shooting pocket, set both feet and release without rushing.", "Land balanced after every catch-and-shoot attempt.", "If the ball dips too low, prepare hands earlier and shorten the catch-to-shot motion."),
+        "s2" to DrillCoaching("Choose a comfortable shooting spot with clear space; gently self-toss the ball in front of you.", "Catch your self-toss in the shooting pocket, set both feet, square to the rim and release without rushing.", "Land balanced after every catch-and-shoot attempt.", "If the ball dips too low, prepare hands earlier and shorten the catch-to-shot motion."),
         "s3" to DrillCoaching("Begin on the wing with a clear lane and a safe stopping area.", "Change direction, plant under control, square shoulders and rise into the jumper.", "Your final stop should be balanced before the ball leaves your hands.", "If momentum carries you sideways, reduce approach speed and rehearse the stop."),
         "b1" to DrillCoaching("Bend knees, widen stance and keep the ball below the waist.", "Push the ball across the body using the fingertips, alternating hands.", "Keep eyes forward and the off-hand ready to protect space.", "If the dribble rises high, lower your hips and reduce speed."),
         "b2" to DrillCoaching("Start at the baseline with an unobstructed path to half court.", "Dribble slowly, accelerate for several steps, then decelerate while retaining control.", "Change pace without losing the ball or leaning off balance.", "If you lose control at speed, shorten the acceleration phase."),
@@ -35,7 +35,7 @@ internal object DrillCoachingLibrary {
     /** What to log, not a claim that the app can verify form or time spent. */
     private val repChecks = mapOf(
         "s1" to "Count made shots. Keep separate track of the three makes at each of your five spots.",
-        "s2" to "Count a controlled catch, set and shot even if it misses. A rushed or off-balance release is an other attempt.",
+        "s2" to "Count a controlled self-toss, catch, set and shot even if it misses. A rushed or off-balance release is an other attempt.",
         "s3" to "Count a balanced stop and shot, not only a make. Track ten controlled attempts from each side.",
         "b1" to "Count a crossover once the receiving hand controls the bounce. Switch direction after thirty clean reps.",
         "b2" to "Count one full baseline-to-half-court trip with both speed changes and no loss of control.",
