@@ -279,7 +279,7 @@ class PlayerCardStudioTest {
         val identity=PlayerCardSelection.identity(compose.activity)
         val jersey=stored().playerJersey
         choose("me-player-card-studio");waitStudio()
-        tap("player-card-tab-uniform");wait("jersey-studio")
+        tap("segment-player-card-tab-uniform");wait("jersey-studio")
         assertEquals(jersey,stored().playerJersey)
         compose.activity.onBackPressedDispatcher.onBackPressed()
         waitStudio();ready()
