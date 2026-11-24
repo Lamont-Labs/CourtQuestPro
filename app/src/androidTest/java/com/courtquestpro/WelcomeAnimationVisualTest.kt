@@ -10,6 +10,7 @@ import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.gson.Gson
+import androidx.compose.ui.unit.dp
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -58,8 +59,8 @@ class WelcomeAnimationVisualTest {
         button.assertIsDisplayed().assertHasClickAction()
         val bounds = button.getUnclippedBoundsInRoot()
         val screen = compose.onNodeWithTag("court-welcome-screen").getUnclippedBoundsInRoot()
-        assertTrue("Basketball button is at least 48dp", bounds.width.value >= 48 && bounds.height.value >= 48)
-        assertTrue("Basketball is in lower half", bounds.top >= screen.top + screen.height / 2)
+        assertTrue("Basketball button is at least 48dp", bounds.right - bounds.left >= 48.dp && bounds.bottom - bounds.top >= 48.dp)
+        assertTrue("Basketball is in lower half", bounds.top >= screen.top + (screen.bottom - screen.top) / 2f)
         compose.onNodeWithTag("welcome-swipe-prompt").assertDoesNotExist()
         compose.onNodeWithText("ENTER", useUnmergedTree = true).assertIsDisplayed()
         capturePresented("welcome-enter-ready")
