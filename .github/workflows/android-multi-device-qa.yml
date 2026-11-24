@@ -25,6 +25,8 @@ jobs:
           - {id: training, profile: pixel_6, api: 34, scale: '1.0', suite: TrainingEntryTest}
           - {id: accessibility, profile: pixel_6, api: 34, scale: '2.0', suite: NavigationTourTest}
           - {id: studio, profile: pixel_6, api: 34, scale: '1.0', suite: CardStudioRebuildTest}
+          - {id: welcome-motion, profile: pixel_6, api: 34, scale: '1.0', suite: 'WelcomeAnimationVisualTest#swipeShotCapturesLaunchApexRimNetAndExitOnAndroid'}
+          - {id: welcome-reduced, profile: pixel_6, api: 34, scale: '1.0', suite: 'WelcomeAnimationVisualTest#reducedMotionTapSkipsFlightAndStillEntersTheApp'}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -59,7 +61,7 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: ${{ matrix.profile }}
-          disable-animations: true
+          disable-animations: ${{ matrix.id != 'welcome-motion' }}
           emulator-boot-timeout: 900
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           script: bash scripts/run_multi_device_qa.sh
