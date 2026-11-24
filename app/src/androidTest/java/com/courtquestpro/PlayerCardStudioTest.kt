@@ -228,8 +228,7 @@ class PlayerCardStudioTest {
     }
 
     private val legacyIdentity get()=PlayerCardIdentity(PlayerCardStyle.CLASSIC,PlayerCardPose.DRIBBLING,
-        PlayerCardFace.BLANK,AvatarAppearance(AvatarHair.BRAIDS,AvatarHeadwear.WHITE,AvatarBuild.LEAN,
-            AvatarSkin.DEEP,AvatarShoes.ORANGE,AvatarGear.BOTH))
+        PlayerCardFace.BLANK)
 
     @Test fun legacyV3CosmeticsUpgradeWithoutChangingTraining() {
         enter();ready()
