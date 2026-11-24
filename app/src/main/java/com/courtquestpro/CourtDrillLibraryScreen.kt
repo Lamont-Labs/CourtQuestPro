@@ -80,6 +80,8 @@ internal fun DrillLibraryScreen(
             (filter != "Mine" || drill.id.startsWith("custom_")) &&
             (filter != "Favorites" || drill.id in favorites) &&
         DrillDiscovery.matches(drill, query)
+    }.let { matches ->
+        if (query.isBlank()) matches else matches.sortedByDescending { DrillDiscovery.relevance(it, query) }
     }
     val validResults = save.drillResults.orEmpty().filter {
         it.attempted > 0 && it.completed in 0..it.attempted
