@@ -23,7 +23,7 @@ class CardStudioRebuildTest {
     private fun node(tag:String)=ui.onNodeWithTag(tag,useUnmergedTree=true)
     private fun has(tag:String)=ui.onAllNodesWithTag(tag,useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()
     private fun wait(tag:String)=ui.waitUntil(20_000){has(tag)}
-    private fun studioTitleDisplayed() = listOf("Player Card Studio","Card Studio","Studio").any { title ->
+    private fun studioTitleDisplayed() = listOf("Card & Uniform Studio","Studio").any { title ->
         try { ui.onNodeWithText(title,useUnmergedTree=true).assertIsDisplayed(); true }
         catch (_:AssertionError) { false }
     }
@@ -207,12 +207,12 @@ class CardStudioRebuildTest {
         pick("me-player-card-studio")
         stage("before-jersey-navigation");waitStudio()
         val jerseyBefore=prefs()
-        click("segment-player-card-tab-uniform")
+        click("player-card-tab-uniform")
         wait("jersey-studio");click("segment-jersey-editor-identity")
         node("jersey-name").performScrollTo().performTextReplacement("Discard this")
-        click("segment-player-card-tab-card");wait("jersey-save-exit");click("jersey-discard")
+        click("player-card-tab-card");wait("jersey-save-exit");click("jersey-discard")
         waitStudio();ready();assertEquals("Leaving Uniform discards only after confirmation",jerseyBefore,prefs())
-        click("segment-player-card-tab-uniform")
+        click("player-card-tab-uniform")
         wait("jersey-studio");click("segment-jersey-editor-identity")
         node("jersey-number").performScrollTo().performTextReplacement("00")
         node("jersey-name").performScrollTo().performTextReplacement("Avery West")

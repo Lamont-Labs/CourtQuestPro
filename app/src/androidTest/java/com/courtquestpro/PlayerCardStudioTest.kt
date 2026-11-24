@@ -38,7 +38,7 @@ class PlayerCardStudioTest {
             throw AssertionError("Timed out waiting for $tag; visible tags: $tags",timeout)
         }
     }
-    private fun studioTitleDisplayed() = listOf("Card Studio","Studio").any { title ->
+    private fun studioTitleDisplayed() = listOf("Card & Uniform Studio","Studio").any { title ->
         try { compose.onNodeWithText(title,useUnmergedTree=true).assertIsDisplayed(); true }
         catch (_:AssertionError) { false }
     }
@@ -279,7 +279,7 @@ class PlayerCardStudioTest {
         val identity=PlayerCardSelection.identity(compose.activity)
         val jersey=stored().playerJersey
         choose("me-player-card-studio");waitStudio()
-        tap("segment-player-card-tab-uniform");wait("jersey-studio")
+        tap("player-card-tab-uniform");wait("jersey-studio")
         assertEquals(jersey,stored().playerJersey)
         compose.activity.onBackPressedDispatcher.onBackPressed()
         waitStudio();ready()
