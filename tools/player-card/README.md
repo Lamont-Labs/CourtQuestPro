@@ -1,11 +1,11 @@
 # Player artwork and collector-material revision
 
-The persisted avatar model retains ten hair choices, five headwear choices,
-four illustrated builds, ten skin tones, seven shoe colorways, six accessory
-combinations and four footwear constructions. They remain cosmetic
-illustration preferences, not body measurements or performance claims. Card
-Studio now renders the saved appearance on the collectible rather than
-duplicating the avatar editor; appearance values and artwork are preserved.
+The persisted avatar model and its artwork remain in the repository for saved
+data compatibility. They are cosmetic illustration preferences, not body
+measurements or performance claims. The current active Card Studio does not
+expose the layered avatar editor: its supplied full-bleed card fronts feature
+the live saved Jersey Studio uniform plus player identity. Existing avatar
+preferences and artwork are retained unchanged.
 
 `build_avatar_assets.py` derives transparent skin and shoe mattes from the
 approved athlete plates. Garment alpha is explicitly subtracted from skin.
@@ -63,15 +63,13 @@ for Android compilation; all actual art is present inside the versioned plates.
 
 ## Usage and limits
 
-Athlete garment masks preserve the generated mesh lighting and folds while
-dying all five cloth zones at draw time. The two ink roles supply live chest
-branding and number, including `00` and leading zeros. Card names use the
-saved player name. No copy of the uniform is stored in card preferences, so
-Jersey Studio changes propagate immediately without saving the card again.
-Pose-specific panels adapt each named template to the worn garment; these are
-illustrated adaptations, not a 3D cloth simulation or an exact physical tailoring
-preview. Player names are printed on the collectible identity; the front-facing
-uniform retains front chest branding rather than inventing a back view.
+The retained athlete library's garment masks preserve generated mesh lighting
+and folds while dyeing five cloth zones at draw time. Its two ink roles supply
+live chest branding and number, including `00` and leading zeros. The active
+card uses the same live Jersey Studio renderer; no uniform copy is stored in
+card preferences, so Jersey Studio changes propagate without saving the card
+again. The front retains the actual chest branding rather than inventing a
+back view.
 
 The five active editions are Court Blueprint, Leather Legacy, Arena
 Championship, Shattered Chrome and Street Comic. Their supplied art is kept as
