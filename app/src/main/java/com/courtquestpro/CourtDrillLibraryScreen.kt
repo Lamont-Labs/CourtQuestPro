@@ -132,16 +132,20 @@ internal fun DrillLibraryScreen(
                 tagKeys = listOf("today", "library", "custom"),
                 selected = if (section == "Today") "My Plan" else section,
                 onSelect = { tab ->
-                    if (tab == "My Plan") onSectionChange("Today")
-                    else {
-                        onSectionChange(tab)
-                        filter = "All"
-                        category = "All skills"
-                        levelFilter = "All levels"
-                        durationFilter = "Any length"
-                        expandedCategory = null
-                        showAllCategories = true
-                        query = ""
+                    val targetSection = if (tab == "My Plan") "Today" else tab
+                    if (targetSection != section) {
+                        onSectionChange(targetSection)
+                        // Keep library filters when visiting the plan; Custom
+                        // starts clean so hidden library filters cannot exclude it.
+                        if (targetSection == "Custom" || section == "Custom") {
+                            filter = "All"
+                            category = "All skills"
+                            levelFilter = "All levels"
+                            durationFilter = "Any length"
+                            expandedCategory = null
+                            showAllCategories = true
+                            query = ""
+                        }
                     }
                 },
                 modifier = Modifier.padding(horizontal = 20.dp)
