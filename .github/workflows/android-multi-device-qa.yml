@@ -36,7 +36,9 @@ jobs:
       - name: Build disposable test APKs
         run: |
           set -eu
-          sdkmanager "platforms;android-35" "build-tools;35.0.1"
+          mkdir -p qa-evidence
+          exec > >(tee qa-evidence/build.log) 2>&1
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.1"
           keytool -genkeypair -keystore "$RUNNER_TEMP/qa.keystore" -storepass android -keypass android -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 30 -dname "CN=Disposable QA"
           echo "COURTQUEST_SIGNING_KEYSTORE_PATH=$RUNNER_TEMP/qa.keystore" >> "$GITHUB_ENV"
           COURTQUEST_SIGNING_KEYSTORE_PATH="$RUNNER_TEMP/qa.keystore" bash gradlew --no-daemon :app:assembleDebug :app:assembleDebugAndroidTest
