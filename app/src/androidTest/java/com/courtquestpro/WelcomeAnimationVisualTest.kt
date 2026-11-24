@@ -57,9 +57,15 @@ class WelcomeAnimationVisualTest {
     private fun restingBallIsVisible(): Boolean {
         val bitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot() ?: return false
         try {
+            val bounds = compose.onNodeWithTag("welcome-shot-ball", useUnmergedTree = true)
+                .fetchSemanticsNode().boundsInWindow
+            val left = bounds.left.toInt().coerceIn(0, bitmap.width)
+            val right = bounds.right.toInt().coerceIn(left, bitmap.width)
+            val top = bounds.top.toInt().coerceIn(0, bitmap.height)
+            val bottom = bounds.bottom.toInt().coerceIn(top, bitmap.height)
             var orangeSamples = 0
-            for (y in bitmap.height / 3 until bitmap.height * 3 / 4 step 4) {
-                for (x in bitmap.width / 3 until bitmap.width * 2 / 3 step 4) {
+            for (y in top until bottom step 4) {
+                for (x in left until right step 4) {
                     val pixel = bitmap.getPixel(x, y)
                     val red = Color.red(pixel)
                     val green = Color.green(pixel)
@@ -69,6 +75,9 @@ class WelcomeAnimationVisualTest {
                     }
                 }
             }
+            val proof = File(compose.activity.filesDir, "player-card-proof/resting-ball-sampling.txt")
+            proof.parentFile?.mkdirs()
+            proof.writeText("bitmap=${bitmap.width}x${bitmap.height}\nbounds=$bounds\norangeSamples=$orangeSamples\n")
             return orangeSamples > 100
         } finally {
             bitmap.recycle()
@@ -79,7 +88,13 @@ class WelcomeAnimationVisualTest {
     fun swipeShotCapturesLaunchApexRimNetAndExitOnAndroid() {
         assertTrue("Run on the disposable Android emulator", Build.HARDWARE.contains("ranchu"))
         compose.waitUntil(20_000) { has("welcome-swipe-ball") }
-        compose.waitUntil(10_000) { restingBallIsVisible() }
+        compose.waitUntil(20_000) { has("welcome-shot-ball") }
+        try {
+            compose.waitUntil(10_000) { restingBallIsVisible() }
+        } catch (failure: androidx.compose.ui.test.ComposeTimeoutException) {
+            capturePresented("welcome-resting-ball-failure")
+            throw failure
+        }
         val ballBounds = compose.onNodeWithTag("welcome-shot-ball", useUnmergedTree = true).getUnclippedBoundsInRoot()
         val promptBounds = compose.onNodeWithTag("welcome-swipe-prompt", useUnmergedTree = true).getUnclippedBoundsInRoot()
         assertTrue("The swipe instruction sits below the resting basketball", promptBounds.top >= ballBounds.bottom)
