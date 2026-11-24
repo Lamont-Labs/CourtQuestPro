@@ -13,6 +13,26 @@ internal object DrillDiscovery {
         return terms.all { term -> words.any { it.startsWith(term, ignoreCase = true) } }
     }
 
+    // Each query term earns its strongest match only; exact words beat prefixes.
+    internal fun relevanceFields(title: String, category: String, level: String, query: String): Int {
+        val terms = query.trim().split(separators).filter(String::isNotBlank)
+        val fields = listOf(title to 12, category to 6, level to 4).map { (field, weight) ->
+            field.split(separators).filter(String::isNotBlank) to weight
+        }
+        return terms.sumOf { term ->
+            fields.maxOf { (words, weight) ->
+                when {
+                    words.any { it.equals(term, ignoreCase = true) } -> weight * 2
+                    words.any { it.startsWith(term, ignoreCase = true) } -> weight
+                    else -> 0
+                }
+            }
+        }
+    }
+
+    fun relevance(drill: Drill, query: String): Int =
+        relevanceFields(drill.title, drill.category, drill.level, query)
+
     fun matches(drill: Drill, query: String): Boolean {
         val terms = query.trim().split(separators).filter(String::isNotBlank)
         if (terms.isEmpty()) return true
