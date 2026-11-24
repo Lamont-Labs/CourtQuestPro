@@ -23,7 +23,7 @@ Custom drills have no inferred drill-specific illustration. They retain their sa
 | `d3` | Mirror Footwork | `drill_art/d3.webp` | 1024 × 1024 (128 KiB) | 3 phases | Yes — GOOD REP / COMMON MISS | PASS |
 | `r1` | Box-Out Footwork | `drill_art/r1.webp` | 1024 × 570 (63 KiB) | 3 phases | Not shown — The generated lower inset depicted forearm contact and was cropped before bundling; the safe sequence remains. | PASS |
 | `r2` | Secure and Outlet | `drill_art/r2.webp` | 1024 × 1024 (126 KiB) | 3 phases | Yes — GOOD REP / COMMON MISS | PASS |
-| `r3` | Partner Shot and Rebound | `drill_art/r3.webp` | 1024 × 1024 (110 KiB) | 3 phases | Not shown — A negative example could imply entering the shooter's landing area; the plate shows safe spacing only. | PASS |
+| `r3` | Solo Shot and Rebound | `drill_art/r3.webp` | 1024 × 1024 (110 KiB) | 3 phases | Not shown — A negative example could imply entering the shooter's landing area; the plate shows safe spacing only. | PASS |
 | `p1` | Target Chest and Bounce Passes | `drill_art/p1.webp` | 1024 × 1024 (102 KiB) | 3 phases | Not shown — The plate compares two valid pass types, not a common mistake. | PASS |
 | `p2` | Pass and Cut | `drill_art/p2.webp` | 1024 × 1024 (131 KiB) | 3 phases | Yes — GOOD REP / COMMON MISS | PASS |
 | `p3` | Rebound Outlet Decisions | `drill_art/p3.webp` | 1024 × 1024 (119 KiB) | 3 phases | Yes — GOOD REP / COMMON MISS | PASS |
