@@ -6,6 +6,7 @@ on:
       - '.github/workflows/android-multi-device-qa.yml'
       - 'qa/multi-device-request.txt'
       - 'scripts/run_multi_device_qa.sh'
+      - 'app/src/androidTest/java/com/courtquestpro/WelcomeAnimationVisualTest.kt'
       - 'app/src/androidTest/java/com/courtquestpro/PlayerCardStudioTest.kt'
   workflow_dispatch:
 permissions:
