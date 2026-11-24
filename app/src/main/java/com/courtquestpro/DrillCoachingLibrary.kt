@@ -27,7 +27,7 @@ internal object DrillCoachingLibrary {
         "r3" to DrillCoaching("Choose a comfortable shooting spot with clear landing and rebound space.", "Take your own shot, read its flight and bounce, move under control and secure the ball with both hands.", "Track the ball, stay clear of other court users and regain balance before the next shot.", "If you overrun the bounce, slow your approach and take shorter adjustment steps."),
         "p1" to DrillCoaching("Face a sturdy permitted wall with clear space, feet set and hands behind the ball. Choose chest- and waist-height targets.", "Step toward the target and extend arms; for a bounce pass aim at the floor before the wall. Control the return before repeating.", "Finish with thumbs rotating downward and the pass on target.", "If passes float or bounce too high, adjust the release angle and step."),
         "p2" to DrillCoaching("Choose a sturdy permitted wall, a visible target and a clear lateral lane. Begin with a gentle test pass to check the return path.", "Pass gently toward the wall at an angle that returns into the clear lane, take a short lateral cut, show your hands and catch under control.", "Prioritize accurate timing and balanced footwork over throwing harder.", "If the return is unpredictable or the catch feels rushed, stop, reduce pass speed and shorten the cut."),
-        "p3" to DrillCoaching("Set a safe partner target and leave a clear outlet lane.", "Secure the simulated rebound, scan for a partner, pivot without traveling and choose a clear lane.", "Keep the pivot foot planted, head up and balance under control through the pass.", "If the outlet is late, scan earlier and keep the pivot foot planted before releasing.")
+        "p3" to DrillCoaching("Set two reachable targets on a sturdy permitted wall and check both outlet lanes for clear space.", "Gather a gentle self-toss with both hands, scan both targets, pivot without traveling and pass through a clear lane. Control the return.", "Keep the pivot foot planted, head up and balance under control through the pass.", "If the outlet is late, scan earlier and keep the pivot foot planted before releasing.")
     )
 
     fun forDrill(drill: Drill): DrillCoaching? = guides[drill.id]
@@ -51,7 +51,7 @@ internal object DrillCoachingLibrary {
         "r3" to "Count each controlled two-hand rebound after your own shot, whether the shot scores or misses. Reset before shooting again.",
         "p1" to "Count passes that hit the chosen wall target after the correct pass pattern. Track ten chest passes and ten bounce passes separately.",
         "p2" to "Count a full wall pass, lateral cut and controlled return catch. A good first pass alone does not complete the sequence.",
-        "p3" to "Count the outlet only after a secure gather, scan and accurate pass through a clear lane."
+        "p3" to "Count the outlet only after a secure gather, scan, legal pivot and accurate pass to the chosen wall target through a clear lane."
     )
 
     fun repCheck(drill: Drill): String? = repChecks[drill.id]
