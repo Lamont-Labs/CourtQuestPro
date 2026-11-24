@@ -155,10 +155,12 @@ private fun CardReverse(name:String,number:String?,style:PlayerCardStyle,record:
         Canvas(Modifier.fillMaxSize().testTag("player-card-back")) {
             val w=size.width;val h=size.height
             val ink=style.metal
+            val panelWidth=panel.right-panel.left
+            val panelHeight=panel.bottom-panel.top
             val panelRect=RectF(w*panel.left,h*panel.top,w*panel.right,h*panel.bottom)
             val nativeCanvas=drawContext.canvas.nativeCanvas
             nativeCanvas.drawRoundRect(panelRect,w*.018f,h*.012f,
-                Paint(Paint.ANTI_ALIAS_FLAG).apply { color=Color.Black.copy(alpha=.17f).toArgb() })
+                Paint(Paint.ANTI_ALIAS_FLAG).apply { color=Color(0xFF080A0D).copy(alpha=.84f).toArgb() })
             val panelStroke=Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color=ink.copy(alpha=.28f).toArgb()
                 this.style=Paint.Style.STROKE
@@ -166,12 +168,12 @@ private fun CardReverse(name:String,number:String?,style:PlayerCardStyle,record:
             }
             nativeCanvas.drawRoundRect(panelRect,w*.018f,h*.012f,panelStroke)
             with(drawContext.canvas.nativeCanvas) {
-                printLine("COURTQUEST  /  PLAYER RECORD",w*(panel.left+.035f),
-                    h*(panel.top+.055f),w*.034f,w*(panel.right-panel.left)*.90f,ink,body,Paint.Align.LEFT)
+                printLine("PLAYER RECORD",w*(panel.left+.035f),
+                    h*(panel.top+panelHeight*.08f),w*.034f,w*(panel.right-panel.left)*.90f,ink,body,Paint.Align.LEFT)
                 printLine(name.uppercase(Locale.ROOT),w*(panel.left+.035f),
-                    h*(panel.top+.135f),w*.074f,w*(panel.right-panel.left)*.72f,Color.White,display,Paint.Align.LEFT)
-                number?.let {
-                    printLine("#$it",w*(panel.right-.035f),h*(panel.top+.13f),w*.060f,
+                    h*(panel.top+panelHeight*.19f),w*.074f,w*panelWidth*(if(number.isNullOrBlank()) .90f else .65f),Color.White,display,Paint.Align.LEFT)
+                number?.takeIf { it.isNotBlank() }?.let {
+                    printLine("#$it",w*(panel.right-.035f),h*(panel.top+panelHeight*.19f),w*.060f,
                         w*(panel.right-panel.left)*.20f,ink,display,Paint.Align.RIGHT)
                 }
                 val sections=listOf(
@@ -180,28 +182,32 @@ private fun CardReverse(name:String,number:String?,style:PlayerCardStyle,record:
                     "PROGRESSION" to record.progress
                 )
                 val rowCount=sections.sumOf { it.second.size }.coerceAtLeast(1)
-                val bodyTop=panel.top+.205f
-                val bodyBottom=panel.bottom-.055f
+                val bodyTop=panel.top+panelHeight*.29f
+                val bodyBottom=panel.bottom-panelHeight*.10f
                 val step=(bodyBottom-bodyTop)/(rowCount+sections.size*1.25f)
+                val rulePaint=Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color=ink.copy(alpha=.24f).toArgb(); strokeWidth=w*.0015f
+                }
                 val rowFont=minOf(w*.043f,h*step*.72f)
                 val headingFont=minOf(w*.035f,h*step*.70f)
                 var y=bodyTop
                 sections.forEach { (heading,metrics) ->
+                    drawLine(w*(panel.left+.045f),h*(y-step*.78f),w*(panel.right-.04f),h*(y-step*.78f),rulePaint)
                     printLine(heading,w*(panel.left+.045f),h*y,headingFont,
                         w*(panel.right-panel.left)*.86f,ink,body,Paint.Align.LEFT)
                     y+=step
                     metrics.forEach { metric ->
                         printLine(metric.label,w*(panel.left+.045f),h*y,rowFont,
-                            w*(panel.right-panel.left)*.60f,Color(0xFFE8E8E8),body,Paint.Align.LEFT)
+                            w*panelWidth*.54f,Color(0xFFE8E8E8),body,Paint.Align.LEFT)
                         printLine(metric.value ?: "—",w*(panel.right-.04f),h*y,rowFont,
-                            w*(panel.right-panel.left)*.27f,Color.White,display,Paint.Align.RIGHT)
+                            w*panelWidth*.28f,Color.White,display,Paint.Align.RIGHT)
                         y+=step
                     }
                     y+=step*.25f
                 }
                 printLine(
                     if(record.hasRecordedActivity) "SAVED PLAYER RECORD" else "NO SAVED TRAINING OR GAME DATA",
-                    w*(panel.right-.04f),h*(panel.bottom-.018f),w*.025f,
+                    w*(panel.right-.04f),h*(panel.bottom-panelHeight*.035f),w*.025f,
                     w*(panel.right-panel.left)*.88f,ink,body,Paint.Align.RIGHT
                 )
             }
