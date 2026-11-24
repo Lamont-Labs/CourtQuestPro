@@ -90,6 +90,10 @@ internal fun DrillLibraryScreen(
         if (attempts >= 20) Triple(skill, skillResults.sumOf { it.completed }, attempts) else null
     }.minByOrNull { it.second.toFloat() / it.third }
     val suggestions = TrainingLibrary.suggestions(save)
+    val hasActiveFilters = query.isNotBlank() || filter != "All" || category != "All skills" ||
+        levelFilter != "All levels" || durationFilter != "Any length"
+    val showRecommendations = section == "Library" && !hasActiveFilters &&
+        swapSlotId == null && suggestions.isNotEmpty()
     LazyColumn(Modifier.fillMaxSize(), state = browseState, contentPadding = PaddingValues(bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
@@ -267,8 +271,7 @@ internal fun DrillLibraryScreen(
                     Text(catalog.firstOrNull { it.id == save.practiceSession?.drillId }?.title ?: "Your saved practice",
                         style = MaterialTheme.typography.bodySmall, color = CourtQuestDesign.textSecondary)
                 }
-                if (section == "Library" && (query.isNotBlank() || category != "All skills" ||
-                    levelFilter != "All levels" || durationFilter != "Any length" || filter != "All")) {
+                if (section == "Library" && hasActiveFilters) {
                     Row(Modifier.fillMaxWidth().testTag("library-active-filters"),
                         verticalAlignment = Alignment.CenterVertically) {
                         Text("${shown.size} matching drills", modifier = Modifier.weight(1f),
@@ -360,9 +363,7 @@ internal fun DrillLibraryScreen(
                 }
             }
         }
-        if (section == "Library" && query.isBlank() && filter == "All" && category == "All skills" &&
-            levelFilter == "All levels" && durationFilter == "Any length" &&
-            swapSlotId == null && suggestions.isNotEmpty()) {
+        if (showRecommendations) {
             item {
                 val featured = suggestions.first()
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -461,9 +462,7 @@ internal fun DrillLibraryScreen(
                 TextButton({ query = ""; category = "All skills"; filter = "All"; levelFilter = "All levels"; durationFilter = "Any length"; onSectionChange("Library") }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Show all drills") }
             }
         }
-        if (section != "Today" && shown.isNotEmpty() &&
-            !(section == "Library" && query.isBlank() && filter == "All" &&
-                category == "All skills" && swapSlotId == null && suggestions.isNotEmpty())) {
+        if (section != "Today" && shown.isNotEmpty() && !showRecommendations) {
             item {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically) {
@@ -476,7 +475,7 @@ internal fun DrillLibraryScreen(
             }
         }
         if (section != "Today") {
-            val grouped = section == "Library" && category == "All skills" && query.isBlank() && filter == "All"
+            val grouped = section == "Library" && !hasActiveFilters && swapSlotId == null
             val groups = if (grouped) TrainingLibrary.categories.map { skill ->
                 skill to shown.filter { it.category == skill }
             }.filter { it.second.isNotEmpty() } else listOf("Results" to shown)
