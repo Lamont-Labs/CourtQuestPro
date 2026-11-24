@@ -115,7 +115,7 @@ data class SaveState(
 
 internal val drills = listOf(
     Drill("s1","Shooting","Five-Spot Form Shooting","Beginner",6,"Shoot from five comfortable spots. Reset your feet and hold your follow-through after each shot.","Make 3 shots from each spot.","basketball five spot shooting drill"),
-    Drill("s2","Shooting","Catch, Set, Shoot","Intermediate",6,"Start balanced, receive a pass or self-toss, square to the hoop, and shoot. Retrieve the ball safely.","Complete 15 controlled attempts.","basketball catch and shoot shooting drill"),
+    Drill("s2","Shooting","Catch, Set, Shoot","Intermediate",6,"Start balanced at a comfortable spot, gently self-toss, catch, set both feet, square to the hoop and shoot. Retrieve the ball safely and reset.","Complete 15 controlled attempts.","basketball catch and shoot shooting drill"),
     Drill("s3","Shooting","Move Into Midrange","Advanced",6,"Start at a wing, make a controlled change of direction, stop under control, then shoot.","Complete 10 balanced attempts from both sides.","basketball midrange footwork drill"),
     Drill("b1","Ball Handling","Stationary Crossover Control","Beginner",6,"Stay in an athletic stance and cross the ball below your waist. Keep your eyes up and use a controlled pace.","30 clean crossovers, then switch direction.","basketball stationary crossover drill"),
     Drill("b2","Ball Handling","Change-of-Pace Lane","Intermediate",6,"Dribble from baseline to half court slowly, accelerate for a few steps, then decelerate under control.","Complete 6 trips without losing control.","basketball change of pace dribbling drill"),
