@@ -3,6 +3,7 @@ package com.courtquestpro
 /** UI-only sequence. No player data or training state is changed by these hints. */
 internal object SoloNavigationTour {
     val tabs = listOf(PlayerTab.COURT, PlayerTab.TRAIN, PlayerTab.TRAIN, PlayerTab.QUESTS, PlayerTab.PROGRESS, PlayerTab.ME, PlayerTab.ME)
+    val headings = listOf("Court · Daily training", "Train · Find drills", "Train · Practice", "Quests · Challenges", "Progress · Results", "Me · Customize", "Me · Profile")
     val cues = listOf(
         "Start or resume today’s training. Swap a drill or build a Mission for your own routine.",
         "Open Library to search by skill or equipment. View technique guides and favorite drills.",
