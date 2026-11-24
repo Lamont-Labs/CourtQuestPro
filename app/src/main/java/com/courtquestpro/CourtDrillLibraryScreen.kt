@@ -48,6 +48,18 @@ internal fun DrillLibraryScreen(
     val largeText = LocalDensity.current.fontScale > 1.3f
     val catalog = TrainingLibrary.catalog(save)
     val browseState = rememberLazyListState()
+    // Keep the list position when returning from details, but reset it when
+    // the user changes the actual browse context. Save the last context so
+    // configuration changes do not discard a restored scroll position.
+    val browseContext = listOf(section, swapSlotId.orEmpty(), query, filter, category,
+        levelFilter, durationFilter).joinToString("") { "${it.length}:$it" }
+    var lastBrowseContext by rememberSaveable { mutableStateOf(browseContext) }
+    LaunchedEffect(browseContext, selectedId) {
+        if (selectedId == null && lastBrowseContext != browseContext) {
+            browseState.scrollToItem(0)
+            lastBrowseContext = browseContext
+        }
+    }
     var lastRandomId by rememberSaveable { mutableStateOf<String?>(null) }
     val selected = catalog.firstOrNull { it.id == selectedId }
     val favorites = save.favoriteDrillIds.orEmpty()
