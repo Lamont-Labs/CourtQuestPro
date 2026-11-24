@@ -65,7 +65,10 @@ internal fun DrillLibraryScreen(
         return
     }
     val available = TrainingLibrary.available(save)
-    val shown = available.filter { drill ->
+    val eligible = if (swapSlotId == null) available else available.filter { drill ->
+        TrainingLibrary.swappableSlot(save, drill, swapSlotId) != null
+    }
+    val shown = eligible.filter { drill ->
         (section != "Custom" || drill.id.startsWith("custom_")) &&
         (category == "All skills" || drill.category == category) &&
         (levelFilter == "All levels" || drill.level == levelFilter) &&
@@ -455,11 +458,18 @@ internal fun DrillLibraryScreen(
         }
         if (section != "Today" && shown.isEmpty()) item {
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(if ((section == "Custom" || filter == "Mine") && query.isBlank()) "Your drills start here." else "Try a different search.",
+                Text(if (swapSlotId != null && eligible.isEmpty()) "No eligible replacements" else if ((section == "Custom" || filter == "Mine") && query.isBlank()) "Your drills start here." else "Try a different search.",
                     style = MaterialTheme.typography.headlineMedium, color = CourtQuestDesign.textPrimary)
-                Text(if (filter == "Favorites") "Tap the star on a drill to keep it here." else "Clear a filter or create a drill with your own instructions and target.",
+                Text(if (swapSlotId != null) {
+                    if (eligible.isEmpty()) "This slot needs an untouched drill of the same skill and an allowed difficulty. Return to your plan to choose another slot."
+                    else "Clear filters to see all eligible replacements for this slot."
+                } else if (filter == "Favorites") "Tap the star on a drill to keep it here." else "Clear a filter or create a drill with your own instructions and target.",
                     style = MaterialTheme.typography.bodyMedium, color = CourtQuestDesign.textSecondary)
-                TextButton({ query = ""; category = "All skills"; filter = "All"; levelFilter = "All levels"; durationFilter = "Any length"; onSectionChange("Library") }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Show all drills") }
+                if (swapSlotId == null || eligible.isNotEmpty()) {
+                    TextButton({ query = ""; category = "All skills"; filter = "All"; levelFilter = "All levels"; durationFilter = "Any length"; onSectionChange("Library") }, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (swapSlotId == null) "Show all drills" else "Show eligible replacements") }
+                } else {
+                    TextButton(onHome, modifier = Modifier.heightIn(min = 48.dp)) { Text("Return to plan") }
+                }
             }
         }
         if (section != "Today" && shown.isNotEmpty() && !showRecommendations) {
