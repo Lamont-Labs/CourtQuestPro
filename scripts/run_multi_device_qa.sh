@@ -40,8 +40,12 @@ case "$QA_SUITE" in
   CardStudioRebuildTest) expected=5 ;;
   *) expected=1 ;;
 esac
-grep -Eq "^OK \\(${expected} tests?\\)" qa-evidence/instrumentation.txt
-grep -Eq '^INSTRUMENTATION_CODE: -1[[:space:]]*
-! grep -Eq 'FAILURES!!!|INSTRUMENTATION_FAILED|INSTRUMENTATION_ABORTED' qa-evidence/instrumentation.txt
- qa-evidence/instrumentation.txt
-! grep -Eq 'FAILURES!!!|INSTRUMENTATION_FAILED|INSTRUMENTATION_ABORTED' qa-evidence/instrumentation.txt
+if [[ "$expected" == 1 ]]; then
+  grep -Fxq 'OK (1 test)' qa-evidence/instrumentation.txt
+else
+  grep -Fxq "OK ($expected tests)" qa-evidence/instrumentation.txt
+fi
+grep -Eq '^INSTRUMENTATION_CODE: -1[[:space:]]*$' qa-evidence/instrumentation.txt
+if grep -Eq 'FAILURES!!!|INSTRUMENTATION_FAILED|INSTRUMENTATION_ABORTED' qa-evidence/instrumentation.txt; then
+  exit 1
+fi
