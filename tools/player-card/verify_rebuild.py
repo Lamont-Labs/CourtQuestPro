@@ -192,8 +192,8 @@ def main():
     ui.seed("visual-review")
     native(out/"navigation","everyGuideActionFitsAboveTheDockAndContinuesToTheCorrectTab","NavigationTourTest")
     (out/"result.json").write_text(json.dumps({"commit":os.environ["GITHUB_SHA"],"candidate_sha256":digest(args.candidate.read_bytes()),
-        "version_code":60,"card_design":"athlete-first","card_front_back_screenshots":8,
-        "pose_edition_front_screenshots":20,"welcome_animation_frames_portrait":8,
+        "version_code":60,"card_design":"five-owner-supplied-paired-editions","card_front_back_screenshots":10,
+        "pose_edition_front_screenshots":25,"welcome_animation_frames_portrait":8,
         "welcome_animation_frames_landscape":8,
         "reduced_motion_entry":True,"direct_upgrades":[56,58,59],"status":"passed"},indent=2))
 if __name__=="__main__":main()

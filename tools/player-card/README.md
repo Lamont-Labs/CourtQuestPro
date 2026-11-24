@@ -19,17 +19,17 @@ a generic shoe. Headbands, sleeves, knee supports and wrist tape are composited
 through the skin matte. This is a 2D customization system, not a
 3D character generator or realistic physical tailoring simulation.
 
-`build_card_surfaces.py` optimizes original generated material artwork into
-`surface-holographic.webp`, `surface-classic.webp`, `surface-battle.webp` and `surface-obsidian.webp`.
-They contain no athlete, branding, player name, serial number, stats or uniform.
-Native foreground layers retain dynamic identity and the approved Signature logo.
-`surface-manifest.json` records source names, dimensions and hashes; the avatar
-manifest records pose mattes and hashes. All production plates work offline.
+`build_card_surfaces.py` and `surface-manifest.json` retain the earlier four
+generated material plates for provenance and artwork regression checks. The
+active Card Studio uses the five owner-supplied paired designs in
+`owner_editions/`; `owner_editions/manifest.json` maps stable style IDs to
+optimized front/back WebP files and records dimensions, original attachment
+names, byte counts and hashes. All ten images ship offline.
 
 Run `python3 tools/player-card/build_head_styles.py --check`,
 `python3 tools/player-card/build_footwear_styles.py --check`, and
 `python3 -m unittest scripts.test_player_card_artwork -v` in addition to
-the original plate check. Native tests capture all four editions across the
+the original plate check. Native tests capture all five editions across the
 saved athlete poses, actual card fronts and backs, uniform synchronization,
 save/restart, compact/large text, landscape, and unchanged training state.
 
@@ -73,9 +73,12 @@ illustrated adaptations, not a 3D cloth simulation or an exact physical tailorin
 preview. Player names are printed on the collectible identity; the front-facing
 uniform retains front chest branding rather than inventing a back view.
 
-All four editions have authored native geometry and typography: prism foil /
-dimensional silver, heritage metal and engraved court texture, and angular
-orange battle lighting, and Obsidian Chrome ceramic/platinum framing. They are not flattened screenshots or web components.
+The five active editions are Court Blueprint, Leather Legacy, Arena
+Championship, Shattered Chrome and Street Comic. Their supplied art is kept as
+full-bleed card backgrounds, while the saved Jersey Studio uniform, player name,
+number and actual saved statistics remain native layers. The old four material
+surfaces remain in the artwork regression set but are no longer selected in the
+active studio.
 Generated shoe trademarks were removed from the standing production plate.
 
 `PlayerCardMaterials` uses serialized background decoding and a bounded 48 MiB
@@ -89,20 +92,30 @@ The finite rail-light response follows system animation scaling. Card graphics e
 retain scalable native text and 48dp targets.
 
 The emulator verifier reuses the guarded CourtQuest QA AVD and records actual
-Android screenshots of the four card fronts and backs, the five-pose/edition
+Android screenshots of the five card fronts and backs, the five-pose/edition
 front gallery, and welcome-animation frames. It exercises APK upgrades,
 save/exit, cold-start persistence, recreation, discard, Jersey Studio
 synchronization, existing jersey customization, navigation/walkthrough and
 training-entry tests. Screenshots use disposable synthetic QA data, never a
 user's phone.
 
-## Athlete-first card and welcome shot
+## Owner-supplied card editions
 
-The card front composites the saved anonymous athlete with the actual live
-Jersey Studio uniform. CourtQuest Rookie, CourtQuest Chrome, CourtQuest
-Signature, and Obsidian Chrome keep separate offline material surfaces and
-native frames. The persisted edition keys do not change. The reverse remains
-populated only by saved player statistics.
+Five paired full-card designs replace the earlier selectable surfaces:
+Court Blueprint, Leather Legacy, Arena Championship, Shattered Chrome and
+Street Comic. Existing stored IDs (`HOLOGRAPHIC`, `CLASSIC`, `BATTLE`,
+`OBSIDIAN`) keep their preference values and map to the closest matching
+artwork; `PLAYBOOK` adds the blueprint edition without resetting saved data.
+The artwork itself contains no player-specific values. The current saved jersey,
+name and number are composited at display time, and the card reverse reads only
+the canonical saved training, game and progression records. No avatar or stats
+are baked into the supplied art.
+
+The native bitmap cache is bounded and decodes selector thumbnails at quarter
+resolution; the full front/back plates remain in the offline APK. The paired
+artwork manifest is checked against file dimensions and SHA-256 by the Python
+suite. Emulator verification captures both sides of all five editions and all
+five saved jersey poses before an update candidate can pass.
 
 The welcome shot measures the stage and rendered backboard rectangle, then maps
 the rim plane and opening from the original 1024 × 637 art. Native visual tests

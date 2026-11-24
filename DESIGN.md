@@ -129,6 +129,30 @@ is part of this implementation. Asset construction and illustration limits are
 documented in `tools/player-card/README.md`. Build/runtime/visual verification is
 recorded separately from owner approval; a green build is not aesthetic approval.
 
+### Owner-supplied paired player-card art
+
+The owner supplied five portrait front/back pairs (1060 × 1484 each), which
+supersede the earlier generated material plates in the active Card Studio:
+Court Blueprint, Leather Legacy, Arena Championship, Shattered Chrome and
+Street Comic. The ten compressed WebP images and deterministic
+`owner_editions/manifest.json` are bundled offline under
+`app/src/main/assets/player_cards/owner_editions/`.
+
+Existing persisted edition IDs remain stable: `HOLOGRAPHIC` maps to Shattered
+Chrome, `CLASSIC` to Leather Legacy, `BATTLE` to Street Comic, and `OBSIDIAN`
+to Arena Championship. `PLAYBOOK` adds Court Blueprint without changing the
+existing preference schema. Each supplied image remains the complete design
+backdrop. The currently approved no-avatar card front overlays the live saved
+Jersey Studio uniform, player name and jersey number; the paired reverse overlays
+only actual saved training, game and progression records. No player-specific
+content is embedded in the artwork.
+
+Full-resolution front/back decoding is serialized off the UI thread in a bounded
+cache; selector thumbnails decode at quarter resolution. Verification checks all
+ten WebP dimensions and hashes, exercises every front and reverse in the Android
+emulator, and captures the five poses. Application ID, signing configuration,
+versionCode, saved player state, and navigation are unchanged.
+
 ## v42 drill-to-receipt batch
 
 Drill discovery matches words across the catalog and written technique cues.

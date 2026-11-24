@@ -146,6 +146,7 @@ class CardStudioRebuildTest {
             val front=crop("edition-${style.name.lowercase()}-front","player-card-preview")
             assertTrue("${style.label} front should have its own composition",frontHashes.add(front))
             click("player-card-preview");wait("player-card-back");ui.waitForIdle()
+            wait("card-back-surface-${style.name.lowercase()}-ready")
             assertTrue(description(),description().contains(record.description))
             val backHash=crop("edition-${style.name.lowercase()}-back","player-card-preview")
             assertTrue("${style.label} reverse should carry its material",backHashes.add(backHash))
@@ -231,7 +232,7 @@ class CardStudioRebuildTest {
             assertTrue("${style.label} is a distinct card composition",editions.add(crop(
                 "${style.name.lowercase()}-jersey-front","player-card-preview")))
         }
-        assertEquals("All four card editions render distinctly",PlayerCardStyle.entries.size,editions.size)
+        assertEquals("All five card editions render distinctly",PlayerCardStyle.entries.size,editions.size)
         val selected=PlayerCardStyle.entries.first{it!=saved.style}
         pick("player-card-style-${selected.name.lowercase()}")
         click("player-card-save");wait("me-player-card-studio");ready()

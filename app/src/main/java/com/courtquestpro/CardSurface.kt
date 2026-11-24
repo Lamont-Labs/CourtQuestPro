@@ -17,26 +17,61 @@ import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.util.Locale
 
+internal enum class CardArtworkFace(val suffix: String) {
+    FRONT("front"), BACK("back")
+}
+
+internal const val PLAYER_CARD_ASPECT_RATIO=1060f/1484f
+
+private data class CardArtworkKey(
+    val style: PlayerCardStyle,
+    val face: CardArtworkFace,
+    val thumbnail: Boolean
+)
+
 internal object CardSurfaceCache {
-    private val images=object:LruCache<PlayerCardStyle,Bitmap>(12*1024*1024) {
-        override fun sizeOf(key:PlayerCardStyle,value:Bitmap)=value.allocationByteCount
+    private val images=object:LruCache<CardArtworkKey,Bitmap>(20*1024*1024) {
+        override fun sizeOf(key:CardArtworkKey,value:Bitmap)=value.allocationByteCount
     }
-    fun cached(style:PlayerCardStyle)=images.get(style)
-    suspend fun load(assets:AssetManager,style:PlayerCardStyle):Bitmap=withContext(Dispatchers.IO) {
-        images.get(style)?:assets.open("player_cards/surface-${style.name.lowercase(Locale.ROOT)}.webp").use {
-            requireNotNull(BitmapFactory.decodeStream(it)).apply {prepareToDraw()}
-        }.also {images.put(style,it)}
+    fun cached(style:PlayerCardStyle,face:CardArtworkFace,thumbnail:Boolean)=
+        images.get(CardArtworkKey(style,face,thumbnail))
+
+    suspend fun load(
+        assets:AssetManager,
+        style:PlayerCardStyle,
+        face:CardArtworkFace,
+        thumbnail:Boolean
+    ):Bitmap=withContext(Dispatchers.IO) {
+        val key=CardArtworkKey(style,face,thumbnail)
+        images.get(key)?:assets.open(
+            "player_cards/owner_editions/${style.artworkId}-${face.suffix}.webp"
+        ).use { stream ->
+            val options=BitmapFactory.Options().apply { inSampleSize=if(thumbnail)4 else 1 }
+            requireNotNull(BitmapFactory.decodeStream(stream,null,options)) {
+                "Could not decode ${style.label} ${face.suffix} artwork"
+            }.apply {prepareToDraw()}
+        }.also {images.put(key,it)}
     }
 }
 
 @Composable
-internal fun CardSurface(style:PlayerCardStyle) {
+internal fun CardSurface(
+    style:PlayerCardStyle,
+    face:CardArtworkFace=CardArtworkFace.FRONT,
+    thumbnail:Boolean=false
+) {
     val context=LocalContext.current
-    var bitmap by remember(style) {mutableStateOf(CardSurfaceCache.cached(style))}
-    LaunchedEffect(style) {
-        try { bitmap=CardSurfaceCache.load(context.assets,style) }
-        catch(error:IOException) {throw IOException("Missing bundled collectible material ${style.name}",error)}
+    var bitmap by remember(style,face,thumbnail) {
+        mutableStateOf(CardSurfaceCache.cached(style,face,thumbnail))
     }
+    LaunchedEffect(style,face,thumbnail) {
+        try { bitmap=CardSurfaceCache.load(context.assets,style,face,thumbnail) }
+        catch(error:IOException) {
+            throw IOException("Missing bundled ${style.label} ${face.suffix} artwork",error)
+        }
+    }
+    val tag=if(face==CardArtworkFace.FRONT) "card-surface-${style.name.lowercase(Locale.ROOT)}-ready"
+        else "card-back-surface-${style.name.lowercase(Locale.ROOT)}-ready"
     bitmap?.let {Image(it.asImageBitmap(),null,Modifier.fillMaxSize()
-        .testTag("card-surface-${style.name.lowercase()}-ready"),contentScale=ContentScale.FillBounds)}
+        .testTag(tag),contentScale=ContentScale.FillBounds)}
 }
