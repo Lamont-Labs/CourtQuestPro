@@ -10,7 +10,7 @@ internal object SoloNavigationTour {
         "Create your own exercise in Custom, or return to Library and start a drill to record practice.",
         "Complete daily and weekly challenges through saved training results. Resume a Mission or review earned rewards.",
         "Review saved attempts, compare results for the same drill and discover your next practice priority.",
-        "Customize your jersey and player card in their studios.",
-        "Edit your profile or restart this walkthrough from the Me menu."
+        "Open Jersey Studio or Player Card Studio to customize your player. Return to Me to continue.",
+        "Use Settings to edit your profile or restart this walkthrough. The Me menu also provides these shortcuts."
     )
 }
