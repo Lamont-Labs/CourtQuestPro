@@ -155,14 +155,15 @@ private fun CardReverse(name:String,number:String?,style:PlayerCardStyle,record:
             val w=size.width;val h=size.height
             val ink=style.metal
             val panelRect=RectF(w*panel.left,h*panel.top,w*panel.right,h*panel.bottom)
-            drawRoundRect(panelRect,w*.018f,h*.012f,
+            val nativeCanvas=drawContext.canvas.nativeCanvas
+            nativeCanvas.drawRoundRect(panelRect,w*.018f,h*.012f,
                 Paint(Paint.ANTI_ALIAS_FLAG).apply { color=Color.Black.copy(alpha=.17f).toArgb() })
-            drawRoundRect(panelRect,w*.018f,h*.012f,
-                Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                    color=ink.copy(alpha=.28f).toArgb()
-                    style=Paint.Style.STROKE
-                    strokeWidth=w*.002f
-                })
+            val panelStroke=Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color=ink.copy(alpha=.28f).toArgb()
+                this.style=Paint.Style.STROKE
+                strokeWidth=w*.002f
+            }
+            nativeCanvas.drawRoundRect(panelRect,w*.018f,h*.012f,panelStroke)
             with(drawContext.canvas.nativeCanvas) {
                 printLine("COURTQUEST  /  PLAYER RECORD",w*(panel.left+.035f),
                     h*(panel.top+.055f),w*.034f,w*(panel.right-panel.left)*.90f,ink,body,Paint.Align.LEFT)
