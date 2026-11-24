@@ -20,7 +20,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
@@ -73,20 +72,22 @@ internal fun CourtPlayerCard(
             rotationY = if (reverse) rotation - 180f else rotation
             cameraDistance = 24 * density
         }.clip(frame).background(Color(0xFF090C11)).border(1.dp,style.metal.copy(alpha=.8f),frame)) {
-            CardSurface(style,CardArtworkFace.FRONT,thumbnail)
+            if (!reverse) CardSurface(style,CardArtworkFace.FRONT,thumbnail)
             // User artwork supplies the card-specific frame; the saved uniform and identity stay native.
-            BoxWithConstraints(Modifier.fillMaxSize().drawWithContent { if (!reverse) drawContent() }) {
+            if (!reverse) BoxWithConstraints(Modifier.fillMaxSize()) {
                 Canvas(Modifier.fillMaxSize()) {
                     val w=size.width;val h=size.height
                     val placement=style.heroPlacement
                     val shadowY=h*(placement.top+placement.height*.94f)
+                    val centerX=w*(.5f+placement.x)
+                    val shadowWidth=w*placement.width*.72f
                     drawOval(
                         Brush.radialGradient(
                             listOf(Color.Black.copy(alpha=.52f),Color.Transparent),
-                            center=Offset(w*.5f,shadowY),radius=w*.30f
+                            center=Offset(centerX,shadowY),radius=shadowWidth*.5f
                         ),
-                        topLeft=Offset(w*.20f,shadowY-h*.018f),
-                        size=Size(w*.60f,h*.036f)
+                        topLeft=Offset(centerX-shadowWidth*.5f,shadowY-h*.018f),
+                        size=Size(shadowWidth,h*.036f)
                     )
                 }
                 val placement=style.heroPlacement
@@ -111,11 +112,11 @@ internal fun CourtPlayerCard(
 
 private data class HeroPlacement(val width:Float,val height:Float,val x:Float,val top:Float)
 private val PlayerCardStyle.heroPlacement:HeroPlacement get()=when(this) {
-    PlayerCardStyle.HOLOGRAPHIC->HeroPlacement(.86f,.64f,.035f,.15f)
-    PlayerCardStyle.CLASSIC->HeroPlacement(.64f,.62f,-.12f,.19f)
-    PlayerCardStyle.BATTLE->HeroPlacement(.70f,.63f,.025f,.19f)
-    PlayerCardStyle.OBSIDIAN->HeroPlacement(.76f,.70f,.08f,.12f)
-    PlayerCardStyle.PLAYBOOK->HeroPlacement(.70f,.55f,-.045f,.31f)
+    PlayerCardStyle.HOLOGRAPHIC->HeroPlacement(.48f,.46f,.06f,.34f)
+    PlayerCardStyle.CLASSIC->HeroPlacement(.49f,.57f,-.19f,.15f)
+    PlayerCardStyle.BATTLE->HeroPlacement(.53f,.55f,.045f,.22f)
+    PlayerCardStyle.OBSIDIAN->HeroPlacement(.53f,.57f,.18f,.21f)
+    PlayerCardStyle.PLAYBOOK->HeroPlacement(.53f,.53f,.04f,.25f)
 }
 
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawArtworkIdentity(
