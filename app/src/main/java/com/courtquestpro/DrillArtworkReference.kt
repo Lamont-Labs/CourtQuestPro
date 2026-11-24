@@ -97,8 +97,14 @@ private object DrillArtworkManifestStore {
     }
 }
 
+// These plates describe partner-based sequences; retain the assets but do not
+// present them as instructions for the revised independent exercises.
+internal fun requiresSoloArtworkRevision(drillId: String): Boolean =
+    drillId in setOf("p1", "d3", "r3", "p2", "p3")
+
 internal fun drillArtworkEntry(context: Context, drillId: String): DrillArtworkManifestEntry? =
-    DrillArtworkManifestStore.entry(context.applicationContext, drillId)
+    if (requiresSoloArtworkRevision(drillId)) null
+    else DrillArtworkManifestStore.entry(context.applicationContext, drillId)
 
 private data class LoadedDrillArtwork(
     val entry: DrillArtworkManifestEntry?,
@@ -183,6 +189,12 @@ internal fun DrillArtworkReference(drill: Drill, showRepCheck: Boolean = true) {
                         color = CourtQuestDesign.textSecondary,
                         style = MaterialTheme.typography.bodySmall)
                 }
+                requiresSoloArtworkRevision(drill.id) -> Text(
+                    "SOLO ILLUSTRATION UPDATE PENDING\nFollow the written independent-practice cues and court-position diagram.",
+                    color = CourtQuestDesign.textSecondary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.testTag("drill-art-solo-fallback-${drill.id}")
+                )
                 drill.id.startsWith("custom_") -> Text(
                     "CUSTOM DRILL · NO MOVEMENT IS INFERRED\nUse the instructions saved with this drill.",
                     color = CourtQuestDesign.textSecondary,
