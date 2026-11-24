@@ -674,6 +674,9 @@ private fun DrillLibraryDetail(drill: Drill, save: SaveState, swapSlotId: String
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 TextButton(onBack, modifier = Modifier.heightIn(min = 48.dp)) { Text("Back to library") }
                 CourtEyebrow("${drill.category.uppercase()} · ${drill.level.uppercase()} · ${drill.minutes} MIN")
+                DrillEquipment.label(drill.id)?.let { equipment ->
+                    Text(equipment, color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
+                }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(drill.title, Modifier.weight(1f),
