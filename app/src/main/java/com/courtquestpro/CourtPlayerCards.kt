@@ -47,7 +47,6 @@ internal fun CourtPlayerCard(
     val context = LocalContext.current
     val display = remember(context) { ResourcesCompat.getFont(context, R.font.barlow_condensed_extra_bold) }
     val body = remember(context) { ResourcesCompat.getFont(context, R.font.barlow_semibold) }
-    val identity = PlayerCardSelection.identity(context)
     val name = playerName.ifBlank { "Your player" }
     var back by rememberSaveable { mutableStateOf(false) }
     var reading by rememberSaveable { mutableStateOf(false) }
@@ -58,7 +57,7 @@ internal fun CourtPlayerCard(
     val frame = RoundedCornerShape(if (style == PlayerCardStyle.CLASSIC) 5.dp else 10.dp)
     val flipLabel = if (targetBack) "Show card front" else "Show player record"
     val description = if (reverse && record != null) "${style.label}. $name. Player record. ${record.description}"
-        else "${style.label} basketball athlete jersey collectible card. $name. " +
+        else "${style.label} jersey collectible card. $name. " +
             "${jersey.design.template.label} saved uniform. " +
             (jersey.number?.let { "Jersey number $it." } ?: "Jersey number not set.")
     val interaction = if (flipEnabled) Modifier.clickable(onClickLabel = flipLabel, role = Role.Button) { back = !back } else Modifier
@@ -120,13 +119,14 @@ internal fun CourtPlayerCard(
                     }
                 }
                 val placement=style.heroPlacement
-                CourtCardAthlete(
-                    jersey = jersey,
-                    identity = identity,
-                    modifier = Modifier.width(maxWidth * placement.width).height(maxHeight * placement.height)
+                CourtJerseyArtwork(
+                    jersey,
+                    Modifier.width(maxWidth * placement.width).height(maxHeight * placement.height)
                         .align(Alignment.TopCenter)
                         .offset(x = maxWidth * placement.x, y = maxHeight * placement.top),
-                    showTestTags = !thumbnail
+                    view = JerseyView.FRONT,
+                    describe = true,
+                    compactMark = false
                 )
                 Canvas(Modifier.fillMaxSize()) {
                     drawEditionNameplate(style,name,jersey.number,display,body)
