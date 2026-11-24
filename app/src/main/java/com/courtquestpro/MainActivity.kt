@@ -419,6 +419,16 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             }
             navigate(tab.route)
         }
+        fun openTourStep(index: Int) {
+            tourStep = index
+            val tab = SoloNavigationTour.tabs[index]
+            selectPlayerTab(tab)
+            if (tab == PlayerTab.TRAIN) {
+                librarySlotId = null
+                librarySelectedId = null
+                libraryInitialSection = if (index == 1) "Library" else "Custom"
+            }
+        }
         fun startNavigationTour() {
             // Replaying from a drill or another section must start at the Court root,
             // not reopen a previously selected drill or an expanded navigation dock.
@@ -434,8 +444,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
         BackHandler(enabled = tourIndex != null) {
             val index = tourIndex ?: return@BackHandler
             if (index == 0) closeTour() else {
-                tourStep = index - 1
-                selectPlayerTab(SoloNavigationTour.tabs[tourStep])
+                openTourStep(index - 1)
             }
         }
         CourtQuestScene {
@@ -727,14 +736,12 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                         onNext = {
                             if (tourIndex == SoloNavigationTour.tabs.lastIndex) closeTour()
                             else {
-                                tourStep = tourIndex + 1
-                                selectPlayerTab(SoloNavigationTour.tabs[tourStep])
+                                openTourStep(tourIndex + 1)
                             }
                         },
                         onSkip = ::closeTour,
                         onBack = {
-                            tourStep = tourIndex - 1
-                            selectPlayerTab(SoloNavigationTour.tabs[tourStep])
+                            openTourStep(tourIndex - 1)
                         }
                     )
                     }
