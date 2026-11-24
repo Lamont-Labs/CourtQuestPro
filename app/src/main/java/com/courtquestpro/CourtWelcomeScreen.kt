@@ -20,7 +20,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
@@ -94,23 +93,19 @@ internal fun CourtWelcomeScreen(
         }
     }
     Box(
-        modifier.fillMaxSize().background(
-            Brush.verticalGradient(listOf(Color(0xFF050505), Color(0xFF110A06), Color(0xFF050505)))
-        ).testTag("court-welcome-screen")
+        modifier.fillMaxSize().background(Color.Black).testTag("court-welcome-screen")
     ) {
+        Image(
+            painter = painterResource(R.drawable.cq_welcome_opening_court),
+            contentDescription = "CourtQuest Pro",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
         Column(
             Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(horizontal = 24.dp, vertical = 18.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                painter = painterResource(R.drawable.courtquest_signature_wordmark),
-                contentDescription = "CourtQuest Pro",
-                modifier = Modifier.fillMaxWidth(.9f)
-                    .heightIn(min = if (landscape) 64.dp else 104.dp, max = if (landscape) 96.dp else 148.dp)
-                    .testTag("welcome-signature-wordmark"),
-                contentScale = ContentScale.Fit
-            )
             Spacer(Modifier.weight(if (landscape) .15f else .5f))
             var stageSize by remember { mutableStateOf(IntSize.Zero) }
             var measuredBoard by remember { mutableStateOf(WelcomeShotRect(0f, 0f, 0f, 0f)) }
