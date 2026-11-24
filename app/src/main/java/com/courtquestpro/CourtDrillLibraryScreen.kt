@@ -84,10 +84,11 @@ internal fun DrillLibraryScreen(
     val validResults = save.drillResults.orEmpty().filter {
         it.attempted > 0 && it.completed in 0..it.attempted
     }
-    val practicePriority = TrainingLibrary.categories.mapNotNull { skill ->
+    val availableSkills = available.map { it.category }.toSet()
+    val catalogSkills = catalog.associate { it.id to it.category }
+    val practicePriority = TrainingLibrary.categories.filter { it in availableSkills }.mapNotNull { skill ->
         val skillResults = validResults.filter { result ->
-            result.drillSnapshot?.category == skill ||
-                catalog.any { it.id == result.drillId && it.category == skill }
+            (result.drillSnapshot?.category ?: catalogSkills[result.drillId]) == skill
         }
         val attempts = skillResults.sumOf { it.attempted }
         if (attempts >= 20) Triple(skill, skillResults.sumOf { it.completed }, attempts) else null
@@ -227,7 +228,7 @@ internal fun DrillLibraryScreen(
                 .then(if (section == "Library") Modifier.testTag("train-library-content") else Modifier),
                 verticalArrangement = Arrangement.spacedBy(11.dp)) {
                 if (section != "Today") {
-                if (section == "Library" && swapSlotId == null && practicePriority != null) {
+                if (section == "Library" && swapSlotId == null && !hasActiveFilters && practicePriority != null) {
                     CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(14.dp)) {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             CourtEyebrow("YOUR PRACTICE FOCUS")
