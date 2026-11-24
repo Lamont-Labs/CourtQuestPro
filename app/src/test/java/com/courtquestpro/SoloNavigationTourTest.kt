@@ -13,6 +13,14 @@ class SoloNavigationTourTest {
         assertEquals(PlayerTab.ME, SoloNavigationTour.tabs.last())
     }
 
+    @Test fun headingsDistinguishEveryInstructionalStep() {
+        assertEquals(SoloNavigationTour.tabs.size, SoloNavigationTour.headings.size)
+        assertEquals(SoloNavigationTour.headings.size, SoloNavigationTour.headings.distinct().size)
+        SoloNavigationTour.headings.forEachIndexed { index, heading ->
+            assertTrue(heading.startsWith(SoloNavigationTour.tabs[index].label))
+        }
+    }
+
     @Test fun everyHintHasAPersonalActionAndPreservesNavigationState() {
         val initial = listOf("home", "library", "missionBuilder")
         SoloNavigationTour.tabs.forEachIndexed { index, tab ->
