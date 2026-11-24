@@ -38,6 +38,6 @@ internal object DrillDiscovery {
         if (terms.isEmpty()) return true
         val fields = listOf(drill.title, drill.category, drill.level, drill.instructions, drill.target) +
             DrillCoachingLibrary.forDrill(drill)?.let { listOf(it.setup, it.movement, it.checkpoint, it.correction) }.orEmpty()
-        return matchesFields(fields, query)
+        return matchesFields(fields + DrillEquipment.searchTerms(drill.id), query)
     }
 }
