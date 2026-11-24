@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/android-multi-device-qa.yml'
       - 'qa/multi-device-request.txt'
+      - 'app/src/androidTest/java/com/courtquestpro/PlayerCardStudioTest.kt'
   workflow_dispatch:
 permissions:
   contents: read
