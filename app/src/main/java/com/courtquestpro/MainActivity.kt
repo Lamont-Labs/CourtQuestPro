@@ -715,10 +715,13 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
             if (tourIndex != null) {
                 // Scaffold places the dock in a higher layer. Use the same safe
                 // content bounds as the screen so that it cannot cover tour actions.
-                Box(
-                    Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding),
-                    contentAlignment = Alignment.BottomCenter
+                BoxWithConstraints(
+                    Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding)
                 ) {
+                    // Keep upper-screen Train and Me controls exposed. On short
+                    // viewports cap the guide so its copy scrolls, not its actions.
+                    val guideHeight = maxHeight * if (maxHeight < 360.dp) 0.72f else 0.48f
+                    Box(Modifier.align(Alignment.BottomCenter).heightIn(max = guideHeight)) {
                     CourtNavigationTour(
                         index = tourIndex,
                         onNext = {
@@ -734,6 +737,7 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                             selectPlayerTab(SoloNavigationTour.tabs[tourStep])
                         }
                     )
+                    }
                 }
             }
             }
