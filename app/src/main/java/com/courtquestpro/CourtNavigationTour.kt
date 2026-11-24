@@ -18,6 +18,8 @@ import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
@@ -33,7 +35,7 @@ import androidx.compose.ui.unit.dp
 /** Floating guide. The parent supplies the usable viewport above the dock. */
 @Composable
 internal fun CourtNavigationTour(index: Int, onNext: () -> Unit, onSkip: () -> Unit, onBack: () -> Unit) {
-    val shape = RoundedCornerShape(18.dp)
+    val shape = RoundedCornerShape(16.dp)
     val tab = SoloNavigationTour.tabs[index]
     val last = index == SoloNavigationTour.tabs.lastIndex
 
@@ -42,18 +44,23 @@ internal fun CourtNavigationTour(index: Int, onNext: () -> Unit, onSkip: () -> U
     ) {
         val compactControls = maxWidth < 292.dp || LocalDensity.current.fontScale > 1.5f
         Column(
-            Modifier.fillMaxWidth().testTag("navigation-tour").clip(shape)
-                .background(Brush.verticalGradient(listOf(Color(0xEC211C1A), Color(0xE80E0E10))))
+            Modifier.fillMaxWidth().testTag("navigation-tour")
+                .shadow(10.dp, shape).clip(shape)
+                .background(Brush.verticalGradient(listOf(Color(0xED17181A), Color(0xE609090A))))
+                .drawBehind {
+                    drawRect(Brush.verticalGradient(listOf(Color.White.copy(alpha = .07f), Color.Transparent)),
+                        size = androidx.compose.ui.geometry.Size(size.width, 24.dp.toPx().coerceAtMost(size.height)))
+                }
                 .border(
                     1.dp,
                     Brush.horizontalGradient(listOf(
-                        CourtQuestDesign.accentVivid.copy(alpha = .68f),
-                        CourtQuestDesign.accent.copy(alpha = .26f),
-                        Color.White.copy(alpha = .18f)
+                        Color.White.copy(alpha = .28f),
+                        CourtQuestDesign.accentVivid.copy(alpha = .42f),
+                        Color.White.copy(alpha = .12f)
                     )),
                     shape
                 )
-                .padding(start = 14.dp, end = 14.dp, top = 10.dp, bottom = 4.dp)
+                .padding(start = 12.dp, end = 12.dp, top = 9.dp, bottom = 2.dp)
         ) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 SoloNavigationTour.tabs.indices.forEach { position ->
@@ -86,8 +93,8 @@ internal fun CourtNavigationTour(index: Int, onNext: () -> Unit, onSkip: () -> U
                             tab.label,
                             Modifier.weight(1f).semantics { heading() },
                             color = CourtQuestDesign.textPrimary,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Black
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
                         )
                         Text(
                             "${index + 1} / ${SoloNavigationTour.tabs.size}",
@@ -101,7 +108,7 @@ internal fun CourtNavigationTour(index: Int, onNext: () -> Unit, onSkip: () -> U
                     Text(
                         SoloNavigationTour.cues[index],
                         color = CourtQuestDesign.textPrimary,
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodySmall
                     )
                 }
             }
@@ -143,7 +150,8 @@ internal fun CourtNavigationTour(index: Int, onNext: () -> Unit, onSkip: () -> U
                         containerColor = CourtQuestDesign.accentVivid,
                         contentColor = CourtQuestDesign.iconForeground
                     ),
-                    contentPadding = PaddingValues(horizontal = 15.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp)
                 ) {
                     Text(if (last) "Finish" else "Next", softWrap = false, fontWeight = FontWeight.Bold)
                 }
