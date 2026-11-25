@@ -128,18 +128,18 @@ private data class HeroDepth(val ambient:Float,val width:Float,val height:Float,
 private val PlayerCardStyle.heroDepth:HeroDepth get()=when(this) {
     PlayerCardStyle.HOLOGRAPHIC->HeroDepth(.12f,.78f,.032f,.48f,.012f)
     PlayerCardStyle.CLASSIC->HeroDepth(.045f,.85f,.046f,.66f,.018f)
-    PlayerCardStyle.BATTLE->HeroDepth(.10f,.86f,.052f,.72f,.022f)
-    PlayerCardStyle.OBSIDIAN->HeroDepth(.08f,.82f,.038f,.76f,.012f)
-    PlayerCardStyle.PLAYBOOK->HeroDepth(.055f,.76f,.030f,.48f,.008f)
+    PlayerCardStyle.BATTLE->HeroDepth(.10f,.94f,.055f,.82f,.022f)
+    PlayerCardStyle.OBSIDIAN->HeroDepth(.08f,.94f,.052f,.88f,.012f)
+    PlayerCardStyle.PLAYBOOK->HeroDepth(.065f,.88f,.040f,.66f,.008f)
 }
 
 private data class HeroPlacement(val width:Float,val height:Float,val x:Float,val top:Float)
 private val PlayerCardStyle.heroPlacement:HeroPlacement get()=when(this) {
     // Keep the embedded mid-left wordmark clear; use the upper central field.
-    PlayerCardStyle.HOLOGRAPHIC->HeroPlacement(.42f,.34f,.04f,.18f)
+    PlayerCardStyle.HOLOGRAPHIC->HeroPlacement(.48f,.43f,.13f,.19f)
     PlayerCardStyle.CLASSIC->HeroPlacement(.56f,.60f,-.08f,.18f)
     PlayerCardStyle.BATTLE->HeroPlacement(.48f,.49f,.02f,.32f)
-    PlayerCardStyle.OBSIDIAN->HeroPlacement(.46f,.49f,.13f,.30f)
+    PlayerCardStyle.OBSIDIAN->HeroPlacement(.49f,.54f,.12f,.31f)
     PlayerCardStyle.PLAYBOOK->HeroPlacement(.48f,.48f,0f,.31f)
 }
 
@@ -159,9 +159,9 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawArtworkIdentity
             topLeft=Offset(w*.07f,h*.906f),size=Size(w*.86f,h*.084f))
     }
     drawContext.canvas.nativeCanvas.apply {
-        printLine(name.uppercase(Locale.ROOT),w*.5f,h*.946f,w*.072f,w*.82f,Color.White,display)
+        printLine(name.uppercase(Locale.ROOT),w*.5f,h*(if(style==PlayerCardStyle.PLAYBOOK) .932f else .946f),w*.072f,w*.82f,Color.White,display)
         val identity=number?.let{"#$it  ·  ${style.edition}"}?:style.edition
-        printLine(identity.uppercase(Locale.ROOT),w*.5f,h*.978f,w*.031f,w*.82f,style.metal,body)
+        printLine(identity.uppercase(Locale.ROOT),w*.5f,h*(if(style==PlayerCardStyle.PLAYBOOK) .963f else .978f),w*.031f,w*.82f,style.metal,body)
     }
 }
 
