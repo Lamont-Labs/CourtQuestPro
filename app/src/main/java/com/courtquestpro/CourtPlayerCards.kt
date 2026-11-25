@@ -106,6 +106,7 @@ internal fun CourtPlayerCard(
                 val placement=style.heroPlacement
                 if (style == PlayerCardStyle.CLASSIC) LeatherMount(Modifier.fillMaxSize())
                 if (style == PlayerCardStyle.BATTLE) ComicPrintField(Modifier.fillMaxSize())
+                if (style == PlayerCardStyle.OBSIDIAN) ArenaSpotlight(Modifier.fillMaxSize())
                 CardGarmentHero(jersey, style,
                     Modifier.width(maxWidth * placement.width).height(maxHeight * placement.height)
                         .align(Alignment.TopCenter)
@@ -151,6 +152,38 @@ private fun CardGarmentHero(jersey: PlayerJersey, style: PlayerCardStyle, modifi
         }
         CourtJerseyArtwork(jersey, Modifier.fillMaxSize(),
             view = JerseyView.FRONT, describe = true, compactMark = false)
+    }
+}
+
+// Championship presentation: overhead beams and a restrained golden halo.
+@Composable
+private fun ArenaSpotlight(modifier: Modifier) {
+    Canvas(modifier) {
+        val w = size.width
+        val h = size.height
+        val center = Offset(w*.62f,h*.53f)
+        drawCircle(Brush.radialGradient(
+            listOf(Color(0xFFFFD36C).copy(alpha=.25f),Color(0xFFB77B24).copy(alpha=.10f),Color.Transparent),
+            center=center,radius=w*.43f),radius=w*.43f,center=center)
+        for (i in 0..2) {
+            val x = w*(.38f+i*.19f)
+            val beam = Path().apply {
+                moveTo(x-w*.018f,h*.24f)
+                lineTo(x+w*.018f,h*.24f)
+                lineTo(w*(.80f+i*.035f),h*.79f)
+                lineTo(w*(.32f+i*.035f),h*.79f)
+                close()
+            }
+            drawPath(beam,Brush.verticalGradient(
+                listOf(Color(0xFFFFE5A4).copy(alpha=.15f),Color(0xFFFFC45A).copy(alpha=.045f),Color.Transparent),
+                startY=h*.24f,endY=h*.79f))
+        }
+        for (i in 0..23) {
+            val x=w*(.28f+((i*37)%61)/100f)
+            val y=h*(.34f+((i*19)%43)/100f)
+            drawCircle(Color(0xFFFFDA86).copy(alpha=.12f+(i%3)*.045f),
+                radius=w*(.0015f+(i%4)*.0007f),center=Offset(x,y))
+        }
     }
 }
 
@@ -248,7 +281,7 @@ private val PlayerCardStyle.heroDepth:HeroDepth get()=when(this) {
     PlayerCardStyle.HOLOGRAPHIC->HeroDepth(.22f,.84f,.038f,.56f,.012f)
     PlayerCardStyle.CLASSIC->HeroDepth(.13f,.92f,.055f,.78f,.018f)
     PlayerCardStyle.BATTLE->HeroDepth(.10f,.94f,.055f,.82f,.022f)
-    PlayerCardStyle.OBSIDIAN->HeroDepth(.08f,.94f,.052f,.88f,.012f)
+    PlayerCardStyle.OBSIDIAN->HeroDepth(.18f,.86f,.038f,.72f,.012f)
     PlayerCardStyle.PLAYBOOK->HeroDepth(.065f,.88f,.040f,.66f,.008f)
 }
 
