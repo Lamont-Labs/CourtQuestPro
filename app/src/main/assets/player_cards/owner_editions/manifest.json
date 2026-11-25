@@ -1,0 +1,155 @@
+{
+  "format": 1,
+  "dimensions": [
+    1060,
+    1484
+  ],
+  "encoding": "WebP lossy quality 90",
+  "cards": [
+    {
+      "style_id": "PLAYBOOK",
+      "label": "Court Blueprint",
+      "slug": "court-blueprint",
+      "faces": {
+        "front": {
+          "file": "court-blueprint-front.webp",
+          "source": "file_00000000849881fdb2f4d2a2767eb54d_1795559518067.png",
+          "dimensions": [
+            1060,
+            1484
+          ],
+          "bytes": 238442,
+          "sha256": "b6953f5b3858c4cf63d4f1c4fb5a60a2dae605c8a66c5d5e11cc8ff2e5c66084",
+          "source_sha256": "33f8430b23ba02dd7d256a7d8423c1e482db71bc839e3b8e0f9ce72bfa12babb"
+        },
+        "back": {
+          "file": "court-blueprint-back.webp",
+          "source": "file_00000000478c81fda85cd350454ab507_1795559518114.png",
+          "dimensions": [
+            1060,
+            1484
+          ],
+          "bytes": 101428,
+          "sha256": "77978f855c4fbf3e395c4220f6719a440b2f1ee1ded5efae11af6a689aaf2d1f",
+          "source_sha256": "b76a1ccefabd35ee99119206a1a967d1642404039c93991c6ee2c4772efa63b9"
+        }
+      }
+    },
+    {
+      "style_id": "CLASSIC",
+      "label": "Leather Legacy",
+      "slug": "leather-legacy",
+      "faces": {
+        "front": {
+          "file": "leather-legacy-front.webp",
+          "source": "file_00000000284481fd85da8222e21cc3bf_1795559518142.png",
+          "dimensions": [
+            1060,
+            1484
+          ],
+          "bytes": 407024,
+          "sha256": "829a7ca10abdf7c47ee92bd377e54bd031a91a5b504de655055d72afecfe0e29",
+          "source_sha256": "6d84d24c9eddb37aaa0a463d3cc520fbbe8bba8b0e1a56c7172772a43fa6c35c"
+        },
+        "back": {
+          "file": "leather-legacy-back.webp",
+          "source": "file_00000000d55c81fd9f9b795eeb511d52_1795559518166.png",
+          "dimensions": [
+            1060,
+            1484
+          ],
+          "bytes": 215582,
+          "sha256": "757b00e0c50ccee7425ffa76de64607bd7e760add494b579da2da26e313a4f72",
+          "source_sha256": "3db7962de755a6762845d95af86a81bee540979ece3e6a34d6e7c2f9af983894"
+        }
+      }
+    },
+    {
+      "style_id": "OBSIDIAN",
+      "label": "Arena Championship",
+      "slug": "arena-championship",
+      "faces": {
+        "front": {
+          "file": "arena-championship-front.webp",
+          "source": "file_0000000031f481fda3c65bf1043fb5cb_1795559518188.png",
+          "dimensions": [
+            1060,
+            1484
+          ],
+          "bytes": 321340,
+          "sha256": "3411423e2b2030bdb8f5661e07584fe75466e793ba997a2f1d55298f8bc435d5",
+          "source_sha256": "71fbab8733d3804336f328781ba654b150fa720d74bfeee90b8483edceb37616"
+        },
+        "back": {
+          "file": "arena-championship-back.webp",
+          "source": "file_00000000abd481fd9188422d1e773136_1795559518216.png",
+          "dimensions": [
+            1060,
+            1484
+          ],
+          "bytes": 392296,
+          "sha256": "5cce8d90898993aa91fc9edd31fddcb3aaacd587d6107182a8060cf63071c40a",
+          "source_sha256": "e76a4e7c2d554841643a784d68b71eeb92a58a5bdaabaa332655923448ca55fa"
+        }
+      }
+    },
+    {
+      "style_id": "HOLOGRAPHIC",
+      "label": "Shattered Chrome",
+      "slug": "shattered-chrome",
+      "faces": {
+        "front": {
+          "file": "shattered-chrome-front.webp",
+          "source": "file_00000000ed1481fdbecb56146bb3f8ff_1795559518243.png",
+          "dimensions": [
+            1060,
+            1484
+          ],
+          "bytes": 400272,
+          "sha256": "aaea6142d10840294454cd7d40daba8cb9c413d96635c43e12d04e89c4452e5e",
+          "source_sha256": "1756438065ae494679257b2a10e952417d02ecadac25eb890cb808b39acc9d59"
+        },
+        "back": {
+          "file": "shattered-chrome-back.webp",
+          "source": "file_00000000a1a081fdaa2acf6bcdd4c38d_1795559518262.png",
+          "dimensions": [
+            1060,
+            1484
+          ],
+          "bytes": 208628,
+          "sha256": "e0e84821a253a67c0ca379b1e858ccebdf6e6d84bb4bc1a82b7f8e468aa8cc11",
+          "source_sha256": "9fb557767e41f892a5218203bb0179c5a92f41b4ca766724975c72eeb7fe1566"
+        }
+      }
+    },
+    {
+      "style_id": "BATTLE",
+      "label": "Street Comic",
+      "slug": "street-comic",
+      "faces": {
+        "front": {
+          "file": "street-comic-front.webp",
+          "source": "file_00000000e40081fda3ed31b889d52fda_1795559518282.png",
+          "dimensions": [
+            1060,
+            1484
+          ],
+          "bytes": 609656,
+          "sha256": "17babd05e4431680b58f0b5533d31866e8664e859747c3086952df68820ededd",
+          "source_sha256": "dbd6f9fc5901dc7d7a3c7e8698e0b6102f5ce71ffe5d62b6c969c0ba2de07415"
+        },
+        "back": {
+          "file": "street-comic-back.webp",
+          "source": "file_00000000342081fd853e18368f222a4b_1795559518303.png",
+          "dimensions": [
+            1060,
+            1484
+          ],
+          "bytes": 262696,
+          "sha256": "f08dd156be71c2049223f460915ecef0762d52f0cd5453c7f64139b696a3bb20",
+          "source_sha256": "76f677d0ee1953de44cad367069d1444aa773fa5d82a15abed7c5fb13452cb5d"
+        }
+      }
+    }
+  ]
+}

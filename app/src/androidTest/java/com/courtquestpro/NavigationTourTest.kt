@@ -20,7 +20,7 @@ class NavigationTourTest {
 
     @Test fun everyGuideActionFitsAboveTheDockAndContinuesToTheCorrectTab() {
         assertTrue("Run against a disposable Android emulator", Build.HARDWARE.contains("ranchu"))
-        click("welcome-get-started")
+        click("welcome-enter-ball")
         compose.waitUntil(timeoutMillis = 15_000) {
             compose.onAllNodesWithTag("dock-home", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()

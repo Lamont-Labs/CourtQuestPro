@@ -36,3 +36,14 @@ Declarative initial values alone also did not describe the visible browse state 
 **How to apply:** Keep matched release/candidate fixtures and capture the complete screen set
 first, then exercise transitions and persistence. Check actual post-navigation expansion/filter
 state before assuming a drill is reachable; distinguish a broken UI flow from an obsolete selector.
+
+Pixel differences and valid image manifests do not establish anatomical fit.
+
+**Why:** Valid layered shoe assets initially left original toes visible and used
+the full athlete foot angle as an extra rotation, despite the source shoe already
+having its own angle. Hash/integrity checks could not reveal the disconnected fit.
+
+**How to apply:** Inspect original ankle-to-toe alignment and actual alpha extent,
+including anti-aliased edges, before fitting replacement wearables. Review close-up
+Android renders as well as full-body composition; prove old-layer clearance and
+viewport coverage separately from whether each option changes pixels.

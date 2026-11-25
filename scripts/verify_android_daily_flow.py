@@ -109,8 +109,18 @@ def navigate(label):
     # the icon-only dock. Verify whichever navigation is actually installed.
     if tagged(nodes(), 'player-bottom-dock') is not None:
         tap(dock_target(label))
-        selected = wait_tagged('dock-' + NAV_ROUTES[label])
-        assert selected.get('selected') == 'true', (label, 'tab not selected')
+        # The destination node can exist before Compose commits its selected
+        # semantics after a navigation animation. Wait for the state transition,
+        # not merely the node's presence; still fail if it never becomes selected.
+        tag = 'dock-' + NAV_ROUTES[label]
+        for attempt in range(15):
+            selected = tagged(nodes(), tag)
+            if selected is not None and selected.get('selected') == 'true':
+                break
+            if attempt < 14:
+                time.sleep(0.2)
+        else:
+            raise AssertionError((label, 'tab not selected after navigation settled'))
     else:
         tap(drawer_target(label))
         wait_tagged('nav-open-handle')
@@ -120,7 +130,20 @@ def adb(*args, data=None, timeout=120):
     result = subprocess.run([str(ADB), '-s', 'emulator-5562', *args], input=data,
                             capture_output=True, timeout=timeout)
     if result.returncode:
-        raise RuntimeError(f'{args}: {result.stdout.decode(errors="replace")} {result.stderr.decode(errors="replace")}')
+        stdout = result.stdout.decode(errors="replace")
+        stderr = result.stderr.decode(errors="replace")
+        print(f'ADB command failed: exit={result.returncode}; args={args}; stdout={stdout[-3000:]}; stderr={stderr[-3000:]}', flush=True)
+        if args[:3] == ('shell', 'am', 'instrument'):
+            for diagnostic in (('devices', '-l'), ('logcat', '-d', '-b', 'crash')):
+                try:
+                    evidence = subprocess.run([str(ADB), '-s', 'emulator-5562', *diagnostic],
+                        capture_output=True, timeout=20)
+                    print(f'ADB diagnostic {diagnostic}: exit={evidence.returncode}; '
+                          f'output={evidence.stdout.decode(errors="replace")[-5000:]} '
+                          f'error={evidence.stderr.decode(errors="replace")[-1000:]}', flush=True)
+                except (OSError, subprocess.TimeoutExpired) as error:
+                    print(f'ADB diagnostic {diagnostic} unavailable: {error}', flush=True)
+        raise RuntimeError(f'ADB exit={result.returncode}; {args}: {stdout} {stderr}')
     return result.stdout
 
 
@@ -163,6 +186,8 @@ def require(items, text):
 
 def assert_empty_progress(items, read_tag=None):
     xp_card = tagged(items, 'progress-lifetime-xp')
+    if xp_card is None and read_tag is not None:
+        xp_card = tagged(read_tag('progress-lifetime-xp'), 'progress-lifetime-xp')
     assert xp_card is not None, 'Player level and lifetime XP card is missing'
     require(list(xp_card.iter('node')), 'PLAYER LEVEL')
     require(list(xp_card.iter('node')), 'TOTAL XP')

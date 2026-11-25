@@ -260,6 +260,11 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
     var editorCategory by rememberSaveable { mutableStateOf("Shooting") }
     var selectedSlot by rememberSaveable { mutableIntStateOf(-1) }
     var playerNameInput by rememberSaveable { mutableStateOf(save.playerName) }
+    fun saveUniform(name:String,number:String,design:JerseyDesign):Boolean {
+        val updated=save.updatePlayerJersey(name,number,design)
+        if(updated) { playerNameInput=save.playerName; refresh() }
+        return updated
+    }
     var opponentInput by rememberSaveable { mutableStateOf("") }
     var error by rememberSaveable { mutableStateOf("") }
     var recap by remember { mutableStateOf<MatchRecord?>(null) }
@@ -451,7 +456,8 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     onGetStarted = { if (!onboardingComplete) finishOnboarding(); showWelcome = false },
                     onGuest = { if (!onboardingComplete) finishOnboarding(); showWelcome = false }
                 )
-            } else AnimatedContent(targetState = screen, label = "screen-transition", modifier = Modifier.padding(padding).consumeWindowInsets(padding)) { target ->
+            } else AnimatedContent(targetState = screen, label = "screen-transition",
+                modifier = Modifier.padding(padding).consumeWindowInsets(padding).testTag("navigation-route-$screen")) { target ->
                 @Composable fun DestinationContent() {
                 when (target) {
                     "home" -> HomeContent()
@@ -684,15 +690,8 @@ fun CourtQuestApp(openUrl: (String) -> Unit) {
                     "me" -> MeScreen(save, onEdit = { navigate("settings") }, onProgress = { navigate("career") },
                         onWalkthrough = { startNavigationTour() }, onJersey = { navigate("jerseyStudio") },
                          onPlayerCard = { navigate("playerCardStudio") })
-                    "playerCardStudio" -> PlayerCardStudio(save.playerJersey, save.playerName, onBack = { goBack() })
-                    "jerseyStudio" -> CourtJerseyStudio(save.playerJersey, onBack = { goBack() }, onSave = { name, number, design ->
-                        val updated = save.updatePlayerJersey(name, number, design)
-                        if (updated) {
-                            playerNameInput = save.playerName
-                            refresh()
-                        }
-                        updated
-                    })
+                    "playerCardStudio" -> PlayerCardStudio(save, ::saveUniform, onBack = { goBack() })
+                    "jerseyStudio" -> CourtJerseyStudio(save.playerJersey, onBack = { goBack() }, onSave = ::saveUniform)
                     "settings" -> SettingsScreen(save.playerName, save.difficulty, onBack = { goBack() },
                         onDifficulty = { save.difficulty = it; refresh() },
                         onJersey = { navigate("jerseyStudio") }, onSaveName = {

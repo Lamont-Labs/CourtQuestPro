@@ -65,8 +65,8 @@ class SoloBatchCaptureTest(unittest.TestCase):
         self.assertEqual([-5, -10, 20, 40],
                          batch.bounds(Element('node', {'bounds':'[-5,-10][20,40]'})))
 
-    def test_released_welcome_uses_its_actual_existing_enter_court_control(self):
-        button = Element('node', {'resource-id':'welcome-get-started',
+    def test_welcome_uses_the_accessible_swipe_ball_entry_action(self):
+        button = Element('node', {'resource-id':'welcome-swipe-ball',
                                  'bounds':'[56,1258][664,1374]'})
         with patch.object(batch.ui, 'nodes', return_value=[button]), \
                 patch.object(batch.ui, 'tap') as tap, \
@@ -76,7 +76,7 @@ class SoloBatchCaptureTest(unittest.TestCase):
         wait.assert_called_once_with('player-bottom-dock', attempts=4)
 
     def test_welcome_retries_only_when_same_actionable_button_remains(self):
-        button = Element('node', {'resource-id':'welcome-get-started',
+        button = Element('node', {'resource-id':'welcome-swipe-ball',
                                  'bounds':'[56,1258][664,1374]',
                                  'clickable':'true','enabled':'true'})
         dock = Element('node', {'resource-id':'player-bottom-dock',
@@ -92,7 +92,7 @@ class SoloBatchCaptureTest(unittest.TestCase):
         self.assertEqual([4, 20], [call.kwargs['attempts'] for call in wait.call_args_list])
 
     def test_welcome_does_not_replay_if_the_ui_changed(self):
-        button = Element('node', {'resource-id':'welcome-get-started',
+        button = Element('node', {'resource-id':'welcome-swipe-ball',
                                  'bounds':'[56,1258][664,1374]'})
         with patch.object(batch.ui, 'nodes', side_effect=[[button], []]), \
                 patch.object(batch.ui, 'tap') as tap, \

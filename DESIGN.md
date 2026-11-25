@@ -28,6 +28,131 @@ omitted:
 
 # CourtQuest Pro design standard
 
+## Premium customization and whole-app quality batch
+
+The approved expansion retains existing artwork and live jersey state. There are
+43 avatar choices across seven dimensions: eight hairstyles, five headwear
+choices, four illustrated builds, nine skin tones, seven shoe colors, six
+accessory combinations and four footwear constructions (the original plus
+three new models). Four card materials, five original poses and four anonymous
+face treatments bring the separate visible-choice inventory to 56; this is not
+a count of independent full-body models or theoretical combinations.
+
+New ready/follow-through athletes have original approved-direction illustration
+plates and authored garment/face/skin boundaries. New Court Low, Elevate High and
+Lockdown shoes use different original mesh, high-collar and strap constructions,
+not the same recolored silhouette. Detailed original hair cutouts replace the
+old repeated-dot curls/locs/braids. The original three athlete plates and three
+material masters remain untouched; Obsidian Chrome adds its own composition.
+
+Studio materials have short touch-triggered rail reflections, not perpetual
+shimmer. Edition changes retain the chosen pose. Larger material thumbnails
+scroll horizontally rather than shrinking four cards across a narrow phone.
+Detail inspection uses full-resolution textures, with inactive uniform maps
+sampled smaller and shared hair cutouts to constrain decoded memory. This is
+still a layered 2D illustration system, not a simulated 3D body or garment fit.
+
+The native source audit repaired lost informational section counts, added
+screen-reader heading semantics and large-text section reflow, corrected Back
+inside settings subpages, removed team-oriented custom lettering copy while
+preserving its saved field, and let the Quests hero grow with readable text
+rather than clipping its fixed-height content.
+
+UI/UX Pro Max remains unavailable; no use is claimed. The bundled Impeccable
+critique is applied to the impatient, one-handed and accessibility-dependent
+journeys. Existing Compose APIs, Barlow typography, near-black/orange tokens,
+48dp targets and solo-player scope remain authoritative. Matched baseline and
+candidate Android captures, isolated artwork pixel comparisons, legacy-save
+migration, four display configurations and deeper receipt/progression/game
+journeys are verification gates. CI evidence and PR #9 record their actual
+outcomes; source inspection and generated-art integrity are not runtime proof.
+
+## Player Card V2
+
+### Owner-requested avatar and collector-material revision
+
+The owner reported that the athlete integration was improving but the cards
+were “extremely mediocre.” The next pass prioritizes hair/headwear, build/skin
+tone, and shoes/accessories. Original generated metal/foil/heritage sports
+material plates replace the simple procedural frames. Athletes, player names,
+numbers and the saved uniform remain live native layers, not baked screenshots.
+
+The avatar editor uses Hair, Body and Gear tools inside the existing studio,
+with fixed save/discard behavior and atomic cosmetic preferences separate from
+training state. Skin and shoe dyes are clipped to pose-specific alpha mattes;
+skin excludes the uniform. Proportions are modest localized 2D illustration
+deformations, not real measurements or simulated 3D anatomy. Hair, headbands,
+sleeves and wrist tape use pose-specific anchors. Anonymous faces remain the
+default and no actual person's likeness is introduced. The existing Barlow,
+Compose APIs, 48dp controls and artwork cache patterns remain authoritative;
+no new runtime service or dependency is introduced.
+
+UI/UX Pro Max remains unavailable in this workspace; no use is claimed. The
+bundled Impeccable review is adapted to the native collector's identity hierarchy,
+material distinction, live customization, legibility and actual Android captures.
+Technical success is not owner aesthetic approval. Font-scale, persistence and
+rendered evidence must be reported separately from source and asset integrity.
+
+The first actual Android captures of the expanded editor exposed undersized
+hair previews and category tabs that disappeared while scrolling the choices.
+Hair/shoe tools now pair the complete collectible with a pose-aware detail
+viewport, while Hair/Body/Gear tabs stay pinned above the scrollable inspector.
+The 200% header uses the shorter “Studio” label without reducing font scaling.
+Card lettering is fitted inside the authored nameplate, not its upper metal edge.
+
+The selected collectible is now the main Me identity, replacing the duplicate
+jersey/profile hero. XP/rank, actual saved training summary, milestones, profile
+settings, history and Jersey Studio remain beneath it. No player metrics are
+invented or included as cosmetic collectible ratings.
+
+Holographic Elite uses cool prismatic foil and silver edge geometry; Court
+Legends uses heritage metallic framing, engraved court texture and serif
+collectible lettering; Battle Series uses angular black/orange light and action
+composition. Original full-body standing, dribbling and layup illustrations
+remain anonymous, with shadow, featureless and question-mark face treatments.
+Live uniform masks carry all saved dye/ink roles and front lettering. The
+edition/pose/face transaction is separate from player/training saves, preserves
+the prior edition preference key and exits only on successful persistence.
+
+The phone studio keeps a large live preview above progressive Edition/Pose/Face
+tools and a fixed Save & Exit action. Large-text edition choices reflow to
+thumbnail rows; native labels and controls respect font scaling. Back offers
+save/discard rather than silently writing a draft. Brief selection crossfades
+follow platform animation scaling; no continuous animation was added.
+
+Existing native Barlow, surface primitives, selectable semantics and the pinned
+Compose BOM remain authoritative. UI/UX Pro Max was not installed in this
+workspace; no use is claimed. The bundled Impeccable reference informs identity
+hierarchy, progressive disclosure, explicit save/discard copy, and actual Android
+capture review. No browser prototype, dependency upgrade or branding replacement
+is part of this implementation. Asset construction and illustration limits are
+documented in `tools/player-card/README.md`. Build/runtime/visual verification is
+recorded separately from owner approval; a green build is not aesthetic approval.
+
+### Owner-supplied paired player-card art
+
+The owner supplied five portrait front/back pairs (1060 × 1484 each), which
+supersede the earlier generated material plates in the active Card Studio:
+Court Blueprint, Leather Legacy, Arena Championship, Shattered Chrome and
+Street Comic. The ten compressed WebP images and deterministic
+`owner_editions/manifest.json` are bundled offline under
+`app/src/main/assets/player_cards/owner_editions/`.
+
+Existing persisted edition IDs remain stable: `HOLOGRAPHIC` maps to Shattered
+Chrome, `CLASSIC` to Leather Legacy, `BATTLE` to Street Comic, and `OBSIDIAN`
+to Arena Championship. `PLAYBOOK` adds Court Blueprint without changing the
+existing preference schema. Each supplied image remains the complete design
+backdrop. The currently approved no-avatar card front overlays the live saved
+Jersey Studio uniform, player name and jersey number; the paired reverse overlays
+only actual saved training, game and progression records. No player-specific
+content is embedded in the artwork.
+
+Full-resolution front/back decoding is serialized off the UI thread in a bounded
+cache; selector thumbnails decode at quarter resolution. Verification checks all
+ten WebP dimensions and hashes, exercises every front and reverse in the Android
+emulator, and captures the five poses. Application ID, signing configuration,
+versionCode, saved player state, and navigation are unchanged.
+
 ## v42 drill-to-receipt batch
 
 Drill discovery matches words across the catalog and written technique cues.
@@ -614,3 +739,41 @@ uses platform sheet and selectable semantics.
 The Studio keeps the photographed garment above the active tool on a phone. Landscape places the tools beside it. Style thumbnails use the live dye palette. Front/back and detail inspection stay on the garment stage. The header owns Save, and the inspector scrolls independently at enlarged text sizes or with the keyboard open. Selected swatches carry a check and an accessible name. The native choices follow the existing Barlow, charcoal and orange system. The Studio uses the Compose selectable and saveable-state APIs available in this repository's pinned BOM.
 
 Each cut has a separate front and back material plate. Arena retains its approved source lighting. Classic uses a scoop neck with straight taped sides, Fastbreak has a split V with curved performance panels, and Retro uses a squared collar with heritage side tape. The five textile zones are lossless material masks. Lettering uses the fabric shadow and is fitted uniformly to measured glyph bounds. A compact print treatment carries the player's actual number and inks into the dock.
+
+## Card Studio v60 — recovery direction
+
+The v58 Android baseline showed useful full-card edition thumbnails, but its athlete occupied too little of the card. v59 materially improved the live athlete scale and registered complexion, hair, shoes, Jersey Studio uniform, persisted two-sided card and real saved-statistics reverse. Its editor reduced those edition previews to text chips; the actual v59 gallery also exposed a wrist-tape anchor outside the dribbling skin matte. v60 keeps the registered athlete pipeline, saved identity, statistics, flip, and v59 material masters while restoring art-led option discovery.
+
+The portrait editor gives the card about 55% of the available height and uses horizontally browsable, 48 dp+ selection tiles for the four real card surfaces, five poses, face treatments and avatar choices. Hair tiles are 128 px transparent WebP portraits derived from the approved standing athlete; their face is shadowed, and color/build/skin controls remain independent. Footwear options use the existing pose-matched shoe artwork. The four editions now have different hero apertures, light cues and nameplate geometry, not just accent colors. Their backs retain only persisted metrics; partial history is labeled as saved history rather than “no record.”
+
+Wrist tape crosses each forearm from pose-specific elbow/wrist coordinates and is clipped by the registered skin matte. The accessory-anchor check validates those points against all five packaged pose masks. A bundled, softly lit featureless face layer backs the blank-face treatment. All art remains offline; no athlete, player data, or identity is replaced with a sample.
+
+The selected guidance for this pass is the existing Barlow, near-black, orange, smoked-glass and 48 dp native system, adapted from actual v58/v59 Android evidence: keep the v59 card scale, return v58's useful image-led discovery, and shorten the control wall with horizontal option rails. No local `ui-ux-pro-max` package was present, so no Pro Max search or output is claimed. Compose and signing dependencies stay pinned. The v60 GitHub candidate workflow captures every face treatment and all 56 avatar options across five poses, checks install-over from the released v56 APK and v58/v59 candidates, large text, compact/landscape layouts, and data persistence; screenshots must still be visually reviewed before delivery.
+
+## Swipe welcome and jersey-first Card Studio
+
+The welcome entrance uses three original, bundled transparent WebP assets: a detailed leather basketball, a glass backboard with rim, and a braided net. Compose controls the idle spin, upward-swipe trajectory, depth scale, hoop reveal, and net response; it does not play a pre-rendered video. The same accessible entry action can be activated without a swipe, and guest entry remains available for first-time players. When Android animations are disabled, the idle motion and flight are skipped.
+
+The active Card Studio now centers the player's live saved Jersey Studio garment. Its four collectible editions retain separate materials, frames, and edition-specific jersey placement; tapping the card still flips to the saved player record. The editor exposes edition selection and the existing Jersey Studio entry point, not the layered avatar controls. Legacy card appearance preferences remain in the saved identity model and are carried forward unchanged when the edition is saved; avatar assets and source history are retained.
+
+The welcome artwork is bundled under `app/src/main/res/drawable-nodpi/` for offline use. Source and resource integrity were checked during implementation, but this source-only handoff did not run an Android emulator or produce visual screenshots; the local environment has no Android SDK. A rendered device review remains required before claiming visual verification.
+
+## Owner-provided cards and welcome-shot geometry
+
+The current active card set uses five owner-supplied full-bleed front/back pairs:
+Court Blueprint, Leather Legacy, Arena Championship, Shattered Chrome, and Street
+Comic. The ten images are bundled as optimized WebP assets with a deterministic
+manifest. Persisted style IDs remain unchanged for the four existing editions;
+the new `PLAYBOOK` style adds the blueprint card. Dynamic Jersey Studio artwork,
+player name, and jersey number remain native layers on each front. Each paired
+reverse retains actual saved player statistics; no player-specific data is
+baked into the supplied art.
+
+The welcome shot maps rim center and opening dimensions from the bundled
+1024 × 637 backboard art into the measured Compose image and stage bounds. It
+scales the ball to the opening, layers it in front of the net until rim entry,
+then behind net strands and the foreground rim before it fades below the stage.
+The route transition follows a short post-shot clear frame; Android reduced
+motion still bypasses flight. Unit tests cover portrait and landscape-sized
+geometry. The updated native verification captures ten front/back sides across
+the five editions and 25 pose/edition front combinations.

@@ -1,135 +1,241 @@
 package com.courtquestpro
 
-import android.content.Context
-import androidx.compose.foundation.BorderStroke
+import android.graphics.Paint
+import android.graphics.RectF
+import android.graphics.Typeface
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.core.content.res.ResourcesCompat
+import java.util.Locale
 
-/** Cosmetic card identity only. Never generates competitive ratings or invented stats. */
-internal enum class PlayerCardStyle(val label: String, val edition: String) {
-    HOLOGRAPHIC("Holographic Elite", "ELITE SERIES"),
-    CLASSIC("Court Classic", "COURT SERIES"),
-    BATTLE("Battle Series", "FUTURE SERIES")
-}
-
-internal object PlayerCardSelection {
-    private const val PREFS = "courtquest_player_card"
-    private const val KEY = "selected_style_v1"
-    private var current by mutableStateOf<PlayerCardStyle?>(null)
-    fun read(context: Context): PlayerCardStyle = current ?:
-        runCatching {
-            PlayerCardStyle.valueOf(context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .getString(KEY, PlayerCardStyle.HOLOGRAPHIC.name)!!)
-        }.getOrDefault(PlayerCardStyle.HOLOGRAPHIC)
-
-    fun write(context: Context, style: PlayerCardStyle): Boolean {
-        val persisted = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-            .putString(KEY, style.name).commit()
-        if (persisted) current = style
-        return persisted
-    }
+internal val PlayerCardStyle.metal: Color get() = when (this) {
+    PlayerCardStyle.HOLOGRAPHIC -> Color(0xFFA9EFFA)
+    PlayerCardStyle.CLASSIC -> Color(0xFFF2D39C)
+    PlayerCardStyle.BATTLE -> Color(0xFFFF9B58)
+    PlayerCardStyle.OBSIDIAN -> Color(0xFFFFD36C)
+    PlayerCardStyle.PLAYBOOK -> Color(0xFF58AFFF)
 }
 
 @Composable
 internal fun CourtPlayerCard(
-    jersey: PlayerJersey,
-    playerName: String,
-    style: PlayerCardStyle,
-    modifier: Modifier = Modifier
+    jersey: PlayerJersey, playerName: String, style: PlayerCardStyle, modifier: Modifier = Modifier,
+    thumbnail: Boolean = false, record: PlayerCardRecord? = null
 ) {
-    val background = when (style) {
-        PlayerCardStyle.HOLOGRAPHIC -> listOf(Color(0xFF10172C), Color(0xFF3C2372), Color(0xFF087D93), Color(0xFF0C1021))
-        PlayerCardStyle.CLASSIC -> listOf(Color(0xFF111922), Color(0xFF273949), Color(0xFF101820))
-        PlayerCardStyle.BATTLE -> listOf(Color(0xFF090A0E), Color(0xFF4A1B09), Color(0xFF130D0B))
-    }
-    val accent = when (style) {
-        PlayerCardStyle.HOLOGRAPHIC -> Color(0xFF7EE8FF)
-        PlayerCardStyle.CLASSIC -> Color(0xFFD7DFE7)
-        PlayerCardStyle.BATTLE -> Color(0xFFFF8A27)
-    }
-    val shape = RoundedCornerShape(22.dp)
-    Column(
-        modifier.aspectRatio(0.72f).clip(shape)
-            .background(Brush.linearGradient(background))
-            .border(BorderStroke(2.dp, Brush.linearGradient(listOf(accent, Color.White.copy(alpha = .75f), accent))), shape)
-            .padding(12.dp).testTag("player-card-preview"),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("COURTQUEST", color = Color.White, fontWeight = FontWeight.Black, fontSize = 12.sp, letterSpacing = 1.8.sp)
-            Text("01 / 03", color = accent, fontWeight = FontWeight.Bold, fontSize = 10.sp)
+    val context = LocalContext.current
+    val display = remember(context) { ResourcesCompat.getFont(context, R.font.barlow_condensed_extra_bold) }
+    val body = remember(context) { ResourcesCompat.getFont(context, R.font.barlow_semibold) }
+    val name = playerName.ifBlank { "Your player" }
+    var back by rememberSaveable { mutableStateOf(false) }
+    var reading by rememberSaveable { mutableStateOf(false) }
+    val flipEnabled = record != null && !thumbnail
+    val targetBack = flipEnabled && back
+    val rotation by animateFloatAsState(if (targetBack) 180f else 0f, tween(440, easing = FastOutSlowInEasing), label = "Card turn")
+    val reverse = rotation > 90f
+    val frame = RoundedCornerShape(if (style == PlayerCardStyle.CLASSIC) 5.dp else 10.dp)
+    val flipLabel = if (targetBack) "Show card front" else "Show player record"
+    val description = if (reverse && record != null) "${style.label}. $name. Player record. ${record.description}"
+        else "${style.label} jersey collectible card. $name. " +
+            "${jersey.design.template.label} saved uniform. " +
+            (jersey.number?.let { "Jersey number $it." } ?: "Jersey number not set.")
+    val interaction = if (flipEnabled) Modifier.clickable(onClickLabel = flipLabel, role = Role.Button) { back = !back } else Modifier
+    if (reading && record != null) PlayerRecordDialog(name, record) { reading = false }
+    Box(modifier.aspectRatio(PLAYER_CARD_ASPECT_RATIO).then(interaction).semantics(mergeDescendants = true) {
+        contentDescription = description
+        if (flipEnabled) {
+            stateDescription = if (targetBack) "Card back" else "Card front"
+            customActions = listOf(CustomAccessibilityAction("Read player statistics") { reading = true; true })
         }
-        Text(style.edition, color = accent, fontSize = 10.sp, letterSpacing = 2.sp)
-        Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-            CourtJerseyArtwork(jersey, Modifier.fillMaxSize(), view = JerseyView.FRONT)
+    }.testTag(if (thumbnail) "card-sample" else "player-card-preview")) {
+        Box(Modifier.fillMaxSize().graphicsLayer {
+            rotationY = if (reverse) rotation - 180f else rotation
+            cameraDistance = 24 * density
+        }.clip(frame).background(Color(0xFF090C11)).border(1.dp,style.metal.copy(alpha=.8f),frame)) {
+            if (!reverse) CardSurface(style,CardArtworkFace.FRONT,thumbnail)
+            // User artwork supplies the card-specific frame; the saved uniform and identity stay native.
+            if (!reverse) BoxWithConstraints(Modifier.fillMaxSize()) {
+                Canvas(Modifier.fillMaxSize()) {
+                    val w=size.width;val h=size.height
+                    val placement=style.heroPlacement
+                    val shadowY=h*(placement.top+placement.height*.94f)
+                    val centerX=w*(.5f+placement.x)
+                    val shadowWidth=w*placement.width*.72f
+                    drawOval(
+                        Brush.radialGradient(
+                            listOf(Color.Black.copy(alpha=.52f),Color.Transparent),
+                            center=Offset(centerX,shadowY),radius=shadowWidth*.5f
+                        ),
+                        topLeft=Offset(centerX-shadowWidth*.5f,shadowY-h*.018f),
+                        size=Size(shadowWidth,h*.036f)
+                    )
+                }
+                val placement=style.heroPlacement
+                CourtJerseyArtwork(
+                    jersey,
+                    Modifier.width(maxWidth * placement.width).height(maxHeight * placement.height)
+                        .align(Alignment.TopCenter)
+                        .offset(x = maxWidth * placement.x, y = maxHeight * placement.top),
+                    view = JerseyView.FRONT,
+                    describe = true,
+                    compactMark = false
+                )
+                Canvas(Modifier.fillMaxSize()) {
+                    drawArtworkIdentity(style,name,jersey.number,display,body)
+                }
+                CardMaterialFinish(style,false)
+            }
+            if (reverse && record != null) CardReverse(name,jersey.number,style,record,display,body)
         }
-        Text(playerName.ifBlank { jersey.name.ifBlank { "PLAYER" } }.uppercase(),
-            color = Color.White, fontWeight = FontWeight.Black, fontSize = 22.sp,
-            maxLines = 2, overflow = TextOverflow.Ellipsis)
-        Text("#${jersey.number ?: "00"}  •  ${jersey.design.template.label.uppercase()}",
-            color = accent, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-        Spacer(Modifier.height(5.dp))
-        Box(Modifier.fillMaxWidth().height(3.dp).background(Brush.horizontalGradient(listOf(accent, Color.White, accent))))
     }
 }
 
+private data class HeroPlacement(val width:Float,val height:Float,val x:Float,val top:Float)
+private val PlayerCardStyle.heroPlacement:HeroPlacement get()=when(this) {
+    PlayerCardStyle.HOLOGRAPHIC->HeroPlacement(.48f,.46f,.06f,.34f)
+    PlayerCardStyle.CLASSIC->HeroPlacement(.49f,.57f,-.19f,.15f)
+    PlayerCardStyle.BATTLE->HeroPlacement(.53f,.55f,.045f,.22f)
+    PlayerCardStyle.OBSIDIAN->HeroPlacement(.53f,.57f,.18f,.21f)
+    PlayerCardStyle.PLAYBOOK->HeroPlacement(.53f,.53f,.04f,.25f)
+}
+
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawArtworkIdentity(
+    style:PlayerCardStyle,name:String,number:String?,display:Typeface?,body:Typeface?
+) {
+    val w=size.width;val h=size.height
+    drawRect(
+        Brush.verticalGradient(
+            listOf(Color.Transparent,Color.Black.copy(alpha=.20f),Color.Black.copy(alpha=.34f)),
+            startY=h*.885f,endY=h
+        ),
+        topLeft=Offset(0f,h*.885f),size=Size(w,h*.115f)
+    )
+    if (style == PlayerCardStyle.OBSIDIAN) {
+        drawRect(Color(0xFF090C11).copy(alpha=.94f),
+            topLeft=Offset(w*.07f,h*.906f),size=Size(w*.86f,h*.084f))
+    }
+    drawContext.canvas.nativeCanvas.apply {
+        printLine(name.uppercase(Locale.ROOT),w*.5f,h*.946f,w*.072f,w*.82f,Color.White,display)
+        val identity=number?.let{"#$it  ·  ${style.edition}"}?:style.edition
+        printLine(identity.uppercase(Locale.ROOT),w*.5f,h*.978f,w*.031f,w*.82f,style.metal,body)
+    }
+}
+
+private fun android.graphics.Canvas.printLine(value:String,x:Float,y:Float,size:Float,max:Float,
+    color:Color,font:Typeface?,align:Paint.Align=Paint.Align.CENTER) {
+    val p=Paint(Paint.ANTI_ALIAS_FLAG or Paint.SUBPIXEL_TEXT_FLAG).apply {
+        typeface=font; textSize=size; this.color=color.toArgb(); textAlign=align
+    }
+    val measured=p.measureText(value)
+    if(measured>max) p.textSize*=max/measured
+    drawText(value,x,y,p)
+}
+
 @Composable
-internal fun PlayerCardStudio(jersey: PlayerJersey, playerName: String, onBack: () -> Unit) {
-    val context = LocalContext.current
-    var selected by remember { mutableStateOf(PlayerCardSelection.read(context)) }
-    var saved by remember { mutableStateOf(true) }
-    Column(Modifier.fillMaxSize().background(CourtQuestDesign.background)
-        .verticalScroll(rememberScrollState()).padding(16.dp).testTag("player-card-studio-screen"),
-        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onBack) { Text("Back") }
-            Text("PLAYER CARD STUDIO", color = Color.White, fontWeight = FontWeight.Black)
-        }
-        Text("Your saved Jersey Studio uniform appears on every card.",
-            color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.bodyMedium)
-        // Keep the choices above the tall preview so all three remain discoverable
-        // without scrolling through the artwork first.
-        PlayerCardStyle.entries.forEach { style ->
-            val active = selected == style
-            Surface(
-                modifier = Modifier.fillMaxWidth().heightIn(min = 46.dp)
-                    .testTag("player-card-style-${style.name.lowercase()}")
-                    .clickable { selected = style; saved = false },
-                shape = RoundedCornerShape(12.dp),
-                color = if (active) Color(0xFF573015) else Color(0xFF202125),
-                border = BorderStroke(1.dp, if (active) Color(0xFFFF942F) else Color(0xFF454545))
-            ) {
-                Row(Modifier.padding(horizontal = 16.dp, vertical = 11.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(style.label, color = Color.White)
-                    if (active) Text("SELECTED", color = Color(0xFFFFA247), fontSize = 11.sp)
+private fun CardReverse(name:String,number:String?,style:PlayerCardStyle,record:PlayerCardRecord,display:Typeface?,body:Typeface?) {
+    val panel=style.recordPanel
+    Box(Modifier.fillMaxSize()) {
+        CardSurface(style,CardArtworkFace.BACK)
+        Canvas(Modifier.fillMaxSize().testTag("player-card-back")) {
+            val w=size.width;val h=size.height
+            val ink=style.metal
+            val panelWidth=panel.right-panel.left
+            val panelHeight=panel.bottom-panel.top
+            val panelRect=RectF(w*panel.left,h*panel.top,w*panel.right,h*panel.bottom)
+            val nativeCanvas=drawContext.canvas.nativeCanvas
+            nativeCanvas.drawRoundRect(panelRect,w*.018f,h*.012f,
+                Paint(Paint.ANTI_ALIAS_FLAG).apply { color=Color(0xFF080A0D).copy(alpha=.84f).toArgb() })
+            val panelStroke=Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color=ink.copy(alpha=.28f).toArgb()
+                this.style=Paint.Style.STROKE
+                strokeWidth=w*.002f
+            }
+            nativeCanvas.drawRoundRect(panelRect,w*.018f,h*.012f,panelStroke)
+            with(drawContext.canvas.nativeCanvas) {
+                printLine("PLAYER RECORD",w*(panel.left+.035f),
+                    h*(panel.top+panelHeight*.08f),w*.034f,w*(panel.right-panel.left)*.90f,ink,body,Paint.Align.LEFT)
+                printLine(name.uppercase(Locale.ROOT),w*(panel.left+.035f),
+                    h*(panel.top+panelHeight*.19f),w*.074f,w*panelWidth*(if(number.isNullOrBlank()) .90f else .65f),Color.White,display,Paint.Align.LEFT)
+                number?.takeIf { it.isNotBlank() }?.let {
+                    printLine("#$it",w*(panel.right-.035f),h*(panel.top+panelHeight*.19f),w*.060f,
+                        w*(panel.right-panel.left)*.20f,ink,display,Paint.Align.RIGHT)
                 }
+                val sections=listOf(
+                    "TRAINING" to record.training,
+                    "GAME LOG" to record.games,
+                    "PROGRESSION" to record.progress
+                )
+                val rowCount=sections.sumOf { it.second.size }.coerceAtLeast(1)
+                val bodyTop=panel.top+panelHeight*.29f
+                val bodyBottom=panel.bottom-panelHeight*.10f
+                val step=(bodyBottom-bodyTop)/(rowCount+sections.size*1.25f)
+                val rulePaint=Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color=ink.copy(alpha=.24f).toArgb(); strokeWidth=w*.0015f
+                }
+                val rowFont=minOf(w*.043f,h*step*.72f)
+                val headingFont=minOf(w*.035f,h*step*.70f)
+                var y=bodyTop
+                sections.forEach { (heading,metrics) ->
+                    drawLine(w*(panel.left+.045f),h*(y-step*.78f),w*(panel.right-.04f),h*(y-step*.78f),rulePaint)
+                    printLine(heading,w*(panel.left+.045f),h*y,headingFont,
+                        w*(panel.right-panel.left)*.86f,ink,body,Paint.Align.LEFT)
+                    y+=step
+                    metrics.forEach { metric ->
+                        printLine(metric.label,w*(panel.left+.045f),h*y,rowFont,
+                            w*panelWidth*.54f,Color(0xFFE8E8E8),body,Paint.Align.LEFT)
+                        printLine(metric.value ?: "—",w*(panel.right-.04f),h*y,rowFont,
+                            w*panelWidth*.28f,Color.White,display,Paint.Align.RIGHT)
+                        y+=step
+                    }
+                    y+=step*.25f
+                }
+                printLine(
+                    if(record.hasRecordedActivity) "SAVED PLAYER RECORD" else "NO SAVED TRAINING OR GAME DATA",
+                    w*(panel.right-.04f),h*(panel.bottom-panelHeight*.035f),w*.025f,
+                    w*(panel.right-panel.left)*.88f,ink,body,Paint.Align.RIGHT
+                )
             }
         }
-        CourtPlayerCard(jersey, playerName, selected, Modifier.width(264.dp))
-        Button(
-            onClick = { if (PlayerCardSelection.write(context, selected)) saved = true },
-            enabled = !saved,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("player-card-save"),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF912B), contentColor = Color.Black)
-        ) { Text(if (saved) "Card saved" else "Save player card", fontWeight = FontWeight.Bold) }
     }
+}
+
+private data class RecordPanel(val left:Float,val right:Float,val top:Float,val bottom:Float)
+private val PlayerCardStyle.recordPanel:RecordPanel get()=when(this) {
+    PlayerCardStyle.PLAYBOOK->RecordPanel(.10f,.90f,.18f,.81f)
+    PlayerCardStyle.CLASSIC->RecordPanel(.075f,.925f,.105f,.88f)
+    PlayerCardStyle.OBSIDIAN->RecordPanel(.09f,.91f,.12f,.735f)
+    PlayerCardStyle.HOLOGRAPHIC->RecordPanel(.14f,.92f,.205f,.84f)
+    PlayerCardStyle.BATTLE->RecordPanel(.085f,.915f,.17f,.845f)
+}
+
+@Composable
+internal fun PlayerRecordDialog(name:String,record:PlayerCardRecord,onDismiss:()->Unit) {
+    AlertDialog(onDismissRequest=onDismiss,title={Text(name.ifBlank{"Player record"})},text={
+        Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(6.dp)) {
+            for ((heading,items) in listOf("Training" to record.training,"Game log" to record.games,"Progression" to record.progress)) {
+                Text(heading,color=CourtQuestDesign.accent,modifier=Modifier.semantics { heading() })
+                items.forEach { metric -> Text("${metric.label}  ·  ${metric.value ?: "No record"}") }
+            }
+        }
+    },confirmButton={TextButton(onDismiss){Text("Done")}})
 }

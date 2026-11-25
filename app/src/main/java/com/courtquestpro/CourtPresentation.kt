@@ -9,6 +9,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -19,9 +21,21 @@ internal fun CourtEyebrow(text: String, modifier: Modifier = Modifier, color: Co
 
 @Composable
 internal fun CourtHeading(title: String, detail: String? = null, onDetail: (() -> Unit)? = null) {
-    Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(title, Modifier.weight(1f), color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineSmall)
-        if (detail != null && onDetail != null) TextButton(onClick = onDetail) { Text(detail) }
+    val enlarged=LocalConfiguration.current.fontScale>1.3f
+    @Composable fun Title(modifier:Modifier=Modifier) {
+        Text(title,modifier.semantics{heading()},color=CourtQuestDesign.textPrimary,style=MaterialTheme.typography.headlineSmall)
+    }
+    @Composable fun Detail() {
+        if(detail!=null) {
+            if(onDetail!=null)TextButton(onClick=onDetail){Text(detail)}
+            else Text(detail,color=CourtQuestDesign.textSecondary,style=MaterialTheme.typography.labelLarge)
+        }
+    }
+    if(enlarged)Column(Modifier.fillMaxWidth().padding(top=8.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
+        Title();Detail()
+    } else Row(Modifier.fillMaxWidth().padding(top=8.dp),verticalAlignment=Alignment.CenterVertically,
+        horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+        Title(Modifier.weight(1f));Detail()
     }
 }
 

@@ -52,9 +52,19 @@ def snap(label):
     ui.screenshot(label)
 
 
+def open_game_app():
+    ui.open_app()
+    items=ui.nodes()
+    welcome=next((target for tag in ("welcome-enter-ball","welcome-swipe-ball","welcome-get-started") if (target:=ui.tagged(items,tag)) is not None),None)
+    if welcome is not None:
+        ui.tap(welcome)
+        ui.wait_tagged("dock-home",attempts=20)
+    skip=ui.tagged(ui.nodes(),"tour-skip")
+    if skip is not None:ui.tap(skip)
+
 def start_game(phase):
     ui.seed('complete')
-    ui.open_app()
+    open_game_app()
     ui.tap(ui.require(ui.nodes(), 'Play 1-on-1'))
     snap(f'{phase}-game-setup')
     fields = [n for n in ui.nodes() if n.get('class') == 'android.widget.EditText']
@@ -102,7 +112,7 @@ def main():
     assert state()['playerScore'] == 5 and state()['opponentScore'] == 2
     ui.require(ui.nodes(), 'Record point for Jordan')
     ui.shell('am', 'force-stop', ui.PACKAGE)
-    ui.open_app()
+    open_game_app()
     ui.tap(reachable('Resume 1-on-1'))
     assert state()['pointHistory'] == [True] * 5 + [False] * 2
     snap('candidate-game-relaunched')
@@ -153,7 +163,7 @@ def main():
     reachable('Casey won')
     snap('candidate-game-history')
     ui.shell('am', 'force-stop', ui.PACKAGE)
-    ui.open_app()
+    open_game_app()
     game = state()
     assert len(game['matches']) == 1 and game['totalXp'] == 200
     assert ui.find(ui.nodes(), 'Resume 1-on-1') is None
@@ -181,7 +191,7 @@ def main():
         ui.seed(variant)
         seeded = state()
         assert seeded['activeDate'] != ui.shell('date', '+%F') and seeded['matchPlayer'] == 'Jordan'
-        ui.open_app()
+        open_game_app()
         rolled = wait_for_daily_reset(ui.shell('date', '+%F'), variant)
         assert rolled['matchPlayer'] == rolled['matchOpponent'] == '', 'Daily reset must clear stale match identity'
         assert rolled['playerScore'] == rolled['opponentScore'] == 0
@@ -190,7 +200,7 @@ def main():
         assert len([n for n in ui.nodes() if n.get('class') == 'android.widget.EditText']) == 2
     snap('candidate-game-new-day-setup')
     ui.seed('game-history')
-    ui.open_app()
+    open_game_app()
     ui.navigate('Progress')
     ui.tap(ui.require(ui.nodes(), 'History'))
     ui.tap(ui.require(ui.nodes(), 'Games'))

@@ -51,13 +51,13 @@ internal fun QuestsScreen(save: SaveState, today: String, onTraining: () -> Unit
         item {
             CourtArenaHero(R.drawable.court_arena_hoop,
                 Modifier.padding(horizontal = 16.dp).fillMaxWidth()
-                    .height(if (LocalDensity.current.fontScale > 1.5f) 112.dp else 136.dp)
+                    .heightIn(min=if (LocalDensity.current.fontScale > 1.5f) 100.dp else 136.dp)
                     .testTag("quests-challenge-hero"), imageAlignment = Alignment.TopEnd) {
                 Row(Modifier.align(Alignment.BottomStart).padding(14.dp),
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     CourtQuestShield(Modifier.size(44.dp), if (slots.isEmpty()) 0f else done.toFloat() / slots.size)
-                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                        CourtEyebrow("REAL SAVED TRAINING")
+                    Column(Modifier.weight(1f),verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        if(LocalDensity.current.fontScale<=1.5f)CourtEyebrow("REAL SAVED TRAINING")
                         Text("Build your next milestone.", color = CourtQuestDesign.textPrimary,
                             style = MaterialTheme.typography.titleLarge)
                     }

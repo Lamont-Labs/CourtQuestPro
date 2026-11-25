@@ -8,6 +8,7 @@ import sys
 import tarfile
 import time
 from pathlib import Path
+from xml.etree import ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'scripts'))
@@ -18,6 +19,29 @@ from verify_phone_update import saved_values_preserved
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+def v56_fixture(raw):
+    """Include the actual v56 DrillResult primitive default before starting its writer."""
+    fixture=json.loads(json.dumps(raw))
+    for result in fixture.get("drillResults",[]):result.setdefault("practice",False)
+    return fixture
+
+def wait_for_fixture(expected, timeout=30):
+    """SharedPreferences writes asynchronously; require complete matching fixture data."""
+    deadline=time.monotonic()+timeout
+    last="not read"
+    while time.monotonic()<deadline:
+        try:
+            current=state()
+            if all(current.get(key)==value for key,value in expected.items()):
+                return current
+            differences={key:{"expected":value,"actual":current.get(key)}
+                         for key,value in expected.items() if current.get(key)!=value}
+            last="saved state did not yet match the seeded fixture: "+json.dumps(differences,sort_keys=True)
+        except (ET.ParseError,json.JSONDecodeError,KeyError) as error:
+            last=f"{type(error).__name__}: {error}"
+        time.sleep(.1)
+    raise AssertionError(f"Fixture was not completely readable within {timeout}s: {last}")
 
 
 def run_test(method, folder):
@@ -43,24 +67,27 @@ def upgrade(previous, candidate, folder):
     assert 'Success' in ui.adb('install', str(previous)).decode()
     assert re.search(r'versionCode=56\b', ui.shell('dumpsys', 'package', ui.PACKAGE))
     ui.seed('game-history')
-    fixture = state()
+    # v56 reserializes absent primitive `practice` as false. A sparse raw seed
+    # only passed the old strict comparison when read before that async write.
+    fixture = v56_fixture(state())
     inks = dict(zip(('fabric', 'secondary', 'side', 'collar', 'armhole', 'numberInk', 'nameInk'),
                     [int(x, 16) - (1 << 24) for x in ('21344A', 'E1B95B', '6D3848', 'BD7A5D', '819F98', 'F3E7D3', 'D9C4AE')]))
     fixture.update(playerName='Morgan Lane', jerseyNumber=0, jerseyDoubleZero=True, jerseyDesign=dict(templateId='RETRO', **inks))
     seed_state(fixture)
-    before = state()
+    before = wait_for_fixture({key:fixture[key] for key in
+        ('jerseyDesign','jerseyDoubleZero','matches','drillResults','totalXp')})
     assert before['jerseyDesign'] == fixture['jerseyDesign'] and before['jerseyDoubleZero'] and before['matches'] and before['drillResults']
     ui.shell('am', 'force-stop', ui.PACKAGE)
     read_preferences = ('exec-out', 'run-as', ui.PACKAGE, 'cat', 'shared_prefs/court_quest_pro.xml')
     before_bytes = ui.adb(*read_preferences)
     assert 'Success' in ui.adb('install', '-r', str(candidate), timeout=180).decode()
     assert ui.adb(*read_preferences) == before_bytes
-    assert re.search(r'versionCode=57\b', ui.shell('dumpsys', 'package', ui.PACKAGE))
+    assert re.search(r'versionCode=58\b', ui.shell('dumpsys', 'package', ui.PACKAGE))
     for _ in range(2):
         ui.open_app(); ui.tap(ui.wait_tagged('welcome-get-started')); ui.wait_tagged('dock-me')
         assert saved_values_preserved(before, state())
         ui.shell('am', 'force-stop', ui.PACKAGE)
-    record = dict(versions=[56,57], android_install_replace=True, preferences_byte_identical_after_install=True,
+    record = dict(versions=[56,58], android_install_replace=True, preferences_byte_identical_after_install=True,
                   saved_values_preserved_after_launch=True, saved_values_preserved_after_relaunch=True,
                   legacy_style='RETRO', legacy_number='00', checked_jersey_colors=7, matches=len(before['matches']),
                   drill_results=len(before['drillResults']), xp=before['totalXp'], input_apk_sha256=digest(candidate),

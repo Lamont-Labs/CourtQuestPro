@@ -118,7 +118,7 @@ def upgrade(args):
             f'Existing v{previous_version} player data changed on first v{candidate_version} launch')
     if candidate_version >= 35:
         ui.wait_tagged('court-welcome-screen')
-        ui.tap(ui.wait_tagged('welcome-get-started'))
+        ui.tap(ui.wait_tagged('welcome-swipe-ball'))
         require(saved_values_preserved(before, json.loads(ui.prefs()['state'].text)),
                 'Welcome entry changed existing player data')
     if candidate_version >= 23:
@@ -132,7 +132,7 @@ def upgrade(args):
     ui.open_app()
     if candidate_version >= 35:
         ui.wait_tagged('court-welcome-screen')
-        ui.tap(ui.wait_tagged('welcome-get-started'))
+        ui.tap(ui.wait_tagged('welcome-swipe-ball'))
         ui.wait_tagged('player-bottom-dock')
     require(saved_values_preserved(before, json.loads(ui.prefs()['state'].text)),
             'Existing data changed after relaunch')

@@ -35,12 +35,20 @@ class JerseyStudioTest {
     private fun edit(tag: String, value: String) { panel(tag).performTextReplacement(value) }
     private fun tool(name: String) { tap("segment-jersey-editor-$name") }
     private fun ready(style: JerseyTemplate, side: JerseyView) {
-        wait("material-${style.name.lowercase()}-${side.name.lowercase()}"); compose.waitForIdle()
+        // Artwork decoding and emulator software rendering may exceed the
+        // generic navigation timeout. Report the exact missing material tag.
+        val tag = "material-${style.name.lowercase()}-${side.name.lowercase()}"
+        try {
+            compose.waitUntil(45_000) { has(tag) }
+        } catch (e: androidx.compose.ui.test.ComposeTimeoutException) {
+            throw AssertionError("Jersey material never became ready: $tag", e)
+        }
+        compose.waitForIdle()
     }
     private fun enter() {
         assertTrue("Use the disposable Android emulator", Build.HARDWARE.contains("ranchu"))
-        compose.waitUntil(20_000) { has("welcome-get-started") || has("dock-me") }
-        if (has("welcome-get-started")) tap("welcome-get-started")
+        compose.waitUntil(20_000) { has("welcome-enter-ball") || has("dock-me") }
+        if (has("welcome-enter-ball")) tap("welcome-enter-ball")
         wait("dock-me"); if (has("tour-skip")) tap("tour-skip")
         tap("dock-me"); if (has("tour-skip")) tap("tour-skip")
         choose("me-jersey-studio"); wait("jersey-preview")
@@ -154,8 +162,8 @@ class JerseyStudioTest {
 
     @Test fun playerCardSelectionPersistsAndUsesSavedJersey() {
         assertTrue("Use the disposable Android emulator", Build.HARDWARE.contains("ranchu"))
-        compose.waitUntil(20_000) { has("welcome-get-started") || has("dock-me") }
-        if (has("welcome-get-started")) tap("welcome-get-started")
+        compose.waitUntil(20_000) { has("welcome-enter-ball") || has("dock-me") }
+        if (has("welcome-enter-ball")) tap("welcome-enter-ball")
         wait("dock-me")
         if (has("tour-skip")) tap("tour-skip")
         tap("dock-me")
@@ -165,7 +173,8 @@ class JerseyStudioTest {
         wait("player-card-style-classic")
         tap("player-card-style-classic")
         node("player-card-save").assertIsEnabled().performClick()
-        node("player-card-save").assertIsNotEnabled()
+        wait("me-player-card-studio")
+        node("player-card-studio-screen").assertDoesNotExist()
         // Assert persisted disk state before recreation, not only the in-memory cache.
         assertEquals("CLASSIC", compose.activity.getSharedPreferences("courtquest_player_card", 0)
             .getString("selected_style_v1", null))
