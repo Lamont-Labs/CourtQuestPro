@@ -6,6 +6,8 @@ import android.graphics.Typeface
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -52,6 +54,8 @@ internal fun CourtPlayerCard(
     val flipEnabled = record != null && !thumbnail
     val targetBack = flipEnabled && back
     val rotation by animateFloatAsState(if (targetBack) 180f else 0f, tween(440, easing = FastOutSlowInEasing), label = "Card turn")
+    var dragTilt by remember { mutableFloatStateOf(0f) }
+    val tilt by animateFloatAsState(dragTilt, tween(120), label = "Card perspective")
     val reverse = rotation > 90f
     val frame = RoundedCornerShape(if (style == PlayerCardStyle.CLASSIC) 5.dp else 10.dp)
     val flipLabel = if (targetBack) "Show card front" else "Show player record"
@@ -60,8 +64,17 @@ internal fun CourtPlayerCard(
             "${jersey.design.template.label} saved uniform. " +
             (jersey.number?.let { "Jersey number $it." } ?: "Jersey number not set.")
     val interaction = if (flipEnabled) Modifier.clickable(onClickLabel = flipLabel, role = Role.Button) { back = !back } else Modifier
+    val perspective = if (flipEnabled) Modifier.pointerInput(targetBack) {
+        detectHorizontalDragGestures(
+            onDragEnd = { dragTilt = 0f },
+            onDragCancel = { dragTilt = 0f }
+        ) { change, amount ->
+            change.consume()
+            dragTilt = (dragTilt + amount / size.width.coerceAtLeast(1) * 65f).coerceIn(-12f, 12f)
+        }
+    } else Modifier
     if (reading && record != null) PlayerRecordDialog(name, record) { reading = false }
-    Box(modifier.aspectRatio(PLAYER_CARD_ASPECT_RATIO).then(interaction).semantics(mergeDescendants = true) {
+    Box(modifier.aspectRatio(PLAYER_CARD_ASPECT_RATIO).then(perspective).then(interaction).semantics(mergeDescendants = true) {
         contentDescription = description
         if (flipEnabled) {
             stateDescription = if (targetBack) "Card back" else "Card front"
@@ -69,7 +82,7 @@ internal fun CourtPlayerCard(
         }
     }.testTag(if (thumbnail) "card-sample" else "player-card-preview")) {
         Box(Modifier.fillMaxSize().graphicsLayer {
-            rotationY = if (reverse) rotation - 180f else rotation
+            rotationY = (if (reverse) rotation - 180f else rotation) + tilt
             cameraDistance = 24 * density
         }.clip(frame).background(Color(0xFF090C11)).border(1.dp,style.metal.copy(alpha=.8f),frame)) {
             if (!reverse) CardSurface(style,CardArtworkFace.FRONT,thumbnail)
