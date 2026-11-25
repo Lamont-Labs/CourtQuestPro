@@ -33,6 +33,11 @@ internal fun CourtWelcomeScreen(
             Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
         BoxWithConstraints(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(horizontal = 20.dp, vertical = 16.dp)) {
+            Text("WELCOME TO", color = Color.White, fontWeight = FontWeight.Black,
+                fontSize = if (maxHeight < 360.dp) 18.sp else 30.sp,
+                maxLines = 1, modifier = Modifier.align(Alignment.TopCenter)
+                    .padding(top = if (maxHeight < 360.dp) 0.dp else 28.dp)
+                    .testTag("welcome-heading"))
             val ballSize = minOf(maxWidth * .36f, maxHeight * .27f, 144.dp).coerceAtLeast(48.dp)
             Column(Modifier.align(Alignment.BottomCenter),
                 horizontalAlignment = Alignment.CenterHorizontally) {
@@ -44,8 +49,8 @@ internal fun CourtWelcomeScreen(
                     Image(painterResource(R.drawable.cq_welcome_ball), null,
                         Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
                     Text("ENTER", color = Color.White, fontWeight = FontWeight.Black,
-                        fontSize = 18.sp, modifier = Modifier.background(Color.Black.copy(alpha = .65f), CircleShape)
-                            .padding(horizontal = 8.dp, vertical = 4.dp))
+                        fontSize = if (ballSize < 80.dp) 10.sp else 18.sp, maxLines = 1, softWrap = false, modifier = Modifier.background(Color.Black.copy(alpha = .65f), CircleShape)
+                            .padding(horizontal = if (ballSize < 80.dp) 2.dp else 8.dp, vertical = 4.dp))
                 }
                 if (!returningPlayer) {
                     TextButton(onClick = onGuest, modifier = Modifier.testTag("welcome-continue-guest")) {
