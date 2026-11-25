@@ -107,6 +107,7 @@ internal fun CourtPlayerCard(
                 if (style == PlayerCardStyle.CLASSIC) LeatherMount(Modifier.fillMaxSize())
                 if (style == PlayerCardStyle.BATTLE) ComicPrintField(Modifier.fillMaxSize())
                 if (style == PlayerCardStyle.OBSIDIAN) ArenaSpotlight(Modifier.fillMaxSize())
+                if (style == PlayerCardStyle.PLAYBOOK) BlueprintGuides(Modifier.fillMaxSize())
                 CardGarmentHero(jersey, style,
                     Modifier.width(maxWidth * placement.width).height(maxHeight * placement.height)
                         .align(Alignment.TopCenter)
@@ -152,6 +153,41 @@ private fun CardGarmentHero(jersey: PlayerJersey, style: PlayerCardStyle, modifi
         }
         CourtJerseyArtwork(jersey, Modifier.fillMaxSize(),
             view = JerseyView.FRONT, describe = true, compactMark = false)
+    }
+}
+
+// Schematic registration guides are illustrative, not physical garment measurements.
+@Composable
+private fun BlueprintGuides(modifier: Modifier) {
+    Canvas(modifier) {
+        val w = size.width
+        val h = size.height
+        val ink = Color(0xFF8BCFFF)
+        val left = w*.22f
+        val right = w*.78f
+        val top = h*.30f
+        val bottom = h*.80f
+        val dash = PathEffect.dashPathEffect(floatArrayOf(w*.012f,w*.009f))
+        for (i in 0..8) {
+            val x = left+(right-left)*i/8f
+            drawLine(ink.copy(alpha=.12f),Offset(x,top),Offset(x,bottom),strokeWidth=w*.0015f)
+            val y = top+(bottom-top)*i/8f
+            drawLine(ink.copy(alpha=.12f),Offset(left,y),Offset(right,y),strokeWidth=w*.0015f)
+        }
+        drawLine(ink.copy(alpha=.48f),Offset(w*.5f,top-h*.018f),Offset(w*.5f,bottom+h*.018f),
+            strokeWidth=w*.002f,pathEffect=dash)
+        val rail = w*.19f
+        drawLine(ink.copy(alpha=.72f),Offset(rail,top),Offset(rail,bottom),strokeWidth=w*.002f)
+        for (i in 0..10) {
+            val y=top+(bottom-top)*i/10f
+            drawLine(ink.copy(alpha=.65f),Offset(rail-w*.008f,y),
+                Offset(rail+w*(if(i%5==0) .018f else .008f),y),strokeWidth=w*.002f)
+        }
+        val base=bottom+h*.018f
+        drawLine(ink.copy(alpha=.65f),Offset(left,base),Offset(right,base),strokeWidth=w*.002f)
+        for (x in listOf(left,right)) {
+            drawLine(ink.copy(alpha=.75f),Offset(x,base-h*.012f),Offset(x,base+h*.012f),strokeWidth=w*.002f)
+        }
     }
 }
 
