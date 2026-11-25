@@ -8,7 +8,7 @@ import verify_android_game_flow as game
 
 class GameWelcomeTest(unittest.TestCase):
     def testCurrentWelcomeAndGuideAreDismissedBeforeGameActions(self):
-        welcome={"resource-id":"welcome-swipe-ball"};skip={"resource-id":"tour-skip"}
+        welcome={"resource-id":"welcome-enter-ball"};skip={"resource-id":"tour-skip"}
         with patch.object(game.ui,"open_app") as opened,patch.object(game.ui,"nodes",return_value=[]),\
              patch.object(game.ui,"tagged",side_effect=[welcome,skip]),\
              patch.object(game.ui,"tap") as tap,patch.object(game.ui,"wait_tagged") as wait:

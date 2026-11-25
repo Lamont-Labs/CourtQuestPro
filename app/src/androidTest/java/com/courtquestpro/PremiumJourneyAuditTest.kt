@@ -72,8 +72,8 @@ class PremiumJourneyAuditTest {
     private fun audit() {
         assertTrue("Disposable emulator only",Build.HARDWARE.contains("ranchu"))
         val baseline=InstrumentationRegistry.getArguments().getString("courtquestBaseline")=="true"
-        compose.waitUntil(20_000){has("welcome-swipe-ball")||has("welcome-get-started")||has("dock-home")}
-        val welcomeTag=if(has("welcome-swipe-ball"))"welcome-swipe-ball" else "welcome-get-started"
+        compose.waitUntil(20_000){has("welcome-enter-ball")||has("welcome-get-started")||has("dock-home")}
+        val welcomeTag=if(has("welcome-enter-ball"))"welcome-enter-ball" else "welcome-get-started"
         if(has(welcomeTag)){capture("welcome");click(welcomeTag)}
         wait("dock-home")
         if(has("tour-skip")){capture("walkthrough");click("tour-skip")}

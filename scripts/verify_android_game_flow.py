@@ -54,7 +54,8 @@ def snap(label):
 
 def open_game_app():
     ui.open_app()
-    welcome=ui.tagged(ui.nodes(),"welcome-swipe-ball")
+    items=ui.nodes()
+    welcome=next((target for tag in ("welcome-enter-ball","welcome-swipe-ball","welcome-get-started") if (target:=ui.tagged(items,tag)) is not None),None)
     if welcome is not None:
         ui.tap(welcome)
         ui.wait_tagged("dock-home",attempts=20)

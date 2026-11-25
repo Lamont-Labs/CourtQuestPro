@@ -6,11 +6,12 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 
 /** Cosmetic identity only; deliberately independent of training and award state. */
-internal enum class PlayerCardStyle(val label: String, val edition: String) {
-    HOLOGRAPHIC("CourtQuest Chrome", "CHROME REFRACTOR"),
-    CLASSIC("CourtQuest Rookie", "ROOKIE COLLECTION"),
-    BATTLE("CourtQuest Signature", "SIGNATURE SERIES"),
-    OBSIDIAN("Obsidian Chrome", "OBSIDIAN CHROME")
+internal enum class PlayerCardStyle(val label: String, val edition: String, val artworkId: String) {
+    HOLOGRAPHIC("Shattered Chrome", "CHROME EDITION", "shattered-chrome"),
+    CLASSIC("Leather Legacy", "LEATHER LEGACY", "leather-legacy"),
+    BATTLE("Street Comic", "STREET SERIES", "street-comic"),
+    OBSIDIAN("Arena Championship", "ARENA CHAMPIONS", "arena-championship"),
+    PLAYBOOK("Court Blueprint", "COURT BLUEPRINT", "court-blueprint")
 }
 
 internal enum class PlayerCardPose(val label: String) {

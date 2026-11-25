@@ -72,10 +72,10 @@ def install(file,code,replace=False):
     if code:assert re.search(rf"versionCode={code}\b",ui.shell("dumpsys","package",ui.PACKAGE))
 
 def enter_welcome_if_present():
-    """Handle the current swipe-ball welcome and older released welcome buttons."""
+    """Handle the current tap-to-enter welcome and older released welcome buttons."""
     for attempt in range(12):
         items=ui.nodes()
-        for tag in ("welcome-swipe-ball","welcome-get-started"):
+        for tag in ("welcome-enter-ball","welcome-swipe-ball","welcome-get-started"):
             target=ui.tagged(items,tag)
             if target is not None:
                 ui.tap(target)
@@ -151,7 +151,7 @@ def main():
         ui.shell("am","force-stop",ui.PACKAGE);files=["court_quest_pro","courtquest_player_card"]
         before={k:pref(k) for k in files};install(args.candidate,60,True)
         assert before=={k:pref(k) for k in files}
-        ui.open_app();ui.wait_tagged("welcome-swipe-ball",attempts=12)
+        ui.open_app();ui.wait_tagged("welcome-enter-ball",attempts=12)
         now=state()
         for key in ("playerName","jerseyNumber","matches","drillResults","totalXp","longestStreak"):
             assert key in saved and key in now, f"Missing required upgrade state: {key}"
@@ -192,8 +192,8 @@ def main():
     ui.seed("visual-review")
     native(out/"navigation","everyGuideActionFitsAboveTheDockAndContinuesToTheCorrectTab","NavigationTourTest")
     (out/"result.json").write_text(json.dumps({"commit":os.environ["GITHUB_SHA"],"candidate_sha256":digest(args.candidate.read_bytes()),
-        "version_code":60,"card_design":"athlete-first","card_front_back_screenshots":8,
-        "pose_edition_front_screenshots":20,"welcome_animation_frames_portrait":8,
-        "welcome_animation_frames_landscape":8,
+        "version_code":60,"card_design":"five-owner-supplied-paired-editions","card_front_back_screenshots":10,
+        "pose_edition_front_screenshots":25,"welcome_entry_screenshots_portrait":2,
+        "welcome_entry_screenshots_landscape":2,
         "reduced_motion_entry":True,"direct_upgrades":[56,58,59],"status":"passed"},indent=2))
 if __name__=="__main__":main()
