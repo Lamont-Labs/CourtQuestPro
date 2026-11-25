@@ -262,3 +262,7 @@ Verified Android development checks run #148 passed for source 03ec8b5. Extended
 ## CQ-023 stage 9 — compact weekly planner
 
 Android CI run #150 passed for stage 8 source cf94d6f. Added an EDIT WEEK/CLOSE toggle to collapse seven-day training and practice/game editing controls by default, keeping today guidance and the three-day challenge visible. Existing schedule persistence unchanged. Source commit 052ad099cf135ace4a989a633971d4e129eace8b. Latest CI and APK publication pending.
+
+## GitHub connection check, 2026-11-25
+
+This documentation entry tests an existing-file update on `dev/living-player-card`.
