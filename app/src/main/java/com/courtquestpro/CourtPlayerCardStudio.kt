@@ -113,7 +113,7 @@ internal fun PlayerCardStudio(save: SaveState, onSaveJersey: (String,String,Jers
             )
             val preview:@Composable (Modifier)->Unit={ mod ->
                 BoxWithConstraints(mod,contentAlignment=Alignment.Center) {
-                    val width=minOf(maxWidth,maxHeight*.69f)
+                    val width=minOf(maxWidth,maxHeight*PLAYER_CARD_ASPECT_RATIO)
                     CourtPlayerCard(jersey,save.playerName,style,Modifier.width(width),record=record)
                 }
             }
