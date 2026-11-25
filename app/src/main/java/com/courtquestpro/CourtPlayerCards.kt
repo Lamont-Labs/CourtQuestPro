@@ -116,7 +116,7 @@ private val PlayerCardStyle.heroPlacement:HeroPlacement get()=when(this) {
     PlayerCardStyle.CLASSIC->HeroPlacement(.56f,.60f,-.08f,.18f)
     PlayerCardStyle.BATTLE->HeroPlacement(.48f,.49f,.02f,.32f)
     PlayerCardStyle.OBSIDIAN->HeroPlacement(.46f,.49f,.13f,.30f)
-    PlayerCardStyle.PLAYBOOK->HeroPlacement(.53f,.53f,.04f,.25f)
+    PlayerCardStyle.PLAYBOOK->HeroPlacement(.48f,.48f,0f,.31f)
 }
 
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawArtworkIdentity(
