@@ -78,17 +78,30 @@ internal fun CourtPlayerCard(
                 Canvas(Modifier.fillMaxSize()) {
                     val w=size.width;val h=size.height
                     val placement=style.heroPlacement
-                    val shadowY=h*(placement.top+placement.height*.98f)
+                    val depth=style.heroDepth
                     val centerX=w*(.5f+placement.x)
-                    val shadowWidth=w*placement.width*.72f
-                    drawOval(
+                    val centerY=h*(placement.top+placement.height*.52f)
+                    val radius=w*placement.width*.62f
+                    drawCircle(
                         Brush.radialGradient(
-                            listOf(Color.Black.copy(alpha=.52f),Color.Transparent),
-                            center=Offset(centerX,shadowY),radius=shadowWidth*.5f
-                        ),
-                        topLeft=Offset(centerX-shadowWidth*.5f,shadowY-h*.018f),
-                        size=Size(shadowWidth,h*.036f)
+                            listOf(style.metal.copy(alpha=depth.ambient),Color.Transparent),
+                            center=Offset(centerX,centerY),radius=radius
+                        ),radius=radius,center=Offset(centerX,centerY)
                     )
+                    val shadowY=h*(placement.top+placement.height*.96f)
+                    val shadowWidth=w*placement.width*depth.width
+                    val shadowHeight=h*depth.height
+                    // Elliptical falloff: normalize the gradient to the actual shadow bounds.
+                    for (i in 12 downTo 1) {
+                        val scale=i/12f
+                        val sw=shadowWidth*scale
+                        val sh=shadowHeight*scale
+                        drawOval(
+                            Color.Black.copy(alpha=depth.opacity/12f),
+                            topLeft=Offset(centerX+w*depth.offset-sw*.5f,shadowY-sh*.5f),
+                            size=Size(sw,sh)
+                        )
+                    }
                 }
                 val placement=style.heroPlacement
                 CourtJerseyArtwork(
@@ -108,6 +121,16 @@ internal fun CourtPlayerCard(
             if (reverse && record != null) CardReverse(name,jersey.number,style,record,display,body)
         }
     }
+}
+
+// Edition-specific lighting, kept behind the live uniform and above the original artwork.
+private data class HeroDepth(val ambient:Float,val width:Float,val height:Float,val opacity:Float,val offset:Float)
+private val PlayerCardStyle.heroDepth:HeroDepth get()=when(this) {
+    PlayerCardStyle.HOLOGRAPHIC->HeroDepth(.12f,.78f,.032f,.48f,.012f)
+    PlayerCardStyle.CLASSIC->HeroDepth(.045f,.85f,.046f,.66f,.018f)
+    PlayerCardStyle.BATTLE->HeroDepth(.10f,.86f,.052f,.72f,.022f)
+    PlayerCardStyle.OBSIDIAN->HeroDepth(.08f,.82f,.038f,.76f,.012f)
+    PlayerCardStyle.PLAYBOOK->HeroDepth(.055f,.76f,.030f,.48f,.008f)
 }
 
 private data class HeroPlacement(val width:Float,val height:Float,val x:Float,val top:Float)
