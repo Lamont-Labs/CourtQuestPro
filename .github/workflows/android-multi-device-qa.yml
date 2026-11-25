@@ -1,13 +1,17 @@
 name: Android multi-device QA
 on:
   push:
-    branches: [main, dev/v65-owner-artwork-integration]
+    branches: [main, dev/v65-owner-artwork-integration, fix/v66-welcome-card-composition]
     paths:
       - '.github/workflows/android-multi-device-qa.yml'
       - 'qa/multi-device-request.txt'
       - 'scripts/run_multi_device_qa.sh'
       - 'app/src/androidTest/java/com/courtquestpro/WelcomeAnimationVisualTest.kt'
       - 'app/src/androidTest/java/com/courtquestpro/PlayerCardStudioTest.kt'
+      - 'app/src/androidTest/java/com/courtquestpro/CardStudioRebuildTest.kt'
+      - 'app/src/main/java/com/courtquestpro/CardSurface.kt'
+      - 'app/src/main/java/com/courtquestpro/CourtPlayerCards.kt'
+      - 'app/src/main/java/com/courtquestpro/CourtWelcomeScreen.kt'
   workflow_dispatch:
 permissions:
   contents: read

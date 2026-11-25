@@ -78,17 +78,30 @@ internal fun CourtPlayerCard(
                 Canvas(Modifier.fillMaxSize()) {
                     val w=size.width;val h=size.height
                     val placement=style.heroPlacement
-                    val shadowY=h*(placement.top+placement.height*.94f)
+                    val depth=style.heroDepth
                     val centerX=w*(.5f+placement.x)
-                    val shadowWidth=w*placement.width*.72f
-                    drawOval(
+                    val centerY=h*(placement.top+placement.height*.52f)
+                    val radius=w*placement.width*.62f
+                    drawCircle(
                         Brush.radialGradient(
-                            listOf(Color.Black.copy(alpha=.52f),Color.Transparent),
-                            center=Offset(centerX,shadowY),radius=shadowWidth*.5f
-                        ),
-                        topLeft=Offset(centerX-shadowWidth*.5f,shadowY-h*.018f),
-                        size=Size(shadowWidth,h*.036f)
+                            listOf(style.metal.copy(alpha=depth.ambient),Color.Transparent),
+                            center=Offset(centerX,centerY),radius=radius
+                        ),radius=radius,center=Offset(centerX,centerY)
                     )
+                    val shadowY=h*(placement.top+placement.height*.96f)
+                    val shadowWidth=w*placement.width*depth.width
+                    val shadowHeight=h*depth.height
+                    // Elliptical falloff: normalize the gradient to the actual shadow bounds.
+                    for (i in 12 downTo 1) {
+                        val scale=i/12f
+                        val sw=shadowWidth*scale
+                        val sh=shadowHeight*scale
+                        drawOval(
+                            Color.Black.copy(alpha=depth.opacity/12f),
+                            topLeft=Offset(centerX+w*depth.offset-sw*.5f,shadowY-sh*.5f),
+                            size=Size(sw,sh)
+                        )
+                    }
                 }
                 val placement=style.heroPlacement
                 CourtJerseyArtwork(
@@ -110,13 +123,24 @@ internal fun CourtPlayerCard(
     }
 }
 
+// Edition-specific lighting, kept behind the live uniform and above the original artwork.
+private data class HeroDepth(val ambient:Float,val width:Float,val height:Float,val opacity:Float,val offset:Float)
+private val PlayerCardStyle.heroDepth:HeroDepth get()=when(this) {
+    PlayerCardStyle.HOLOGRAPHIC->HeroDepth(.12f,.78f,.032f,.48f,.012f)
+    PlayerCardStyle.CLASSIC->HeroDepth(.045f,.85f,.046f,.66f,.018f)
+    PlayerCardStyle.BATTLE->HeroDepth(.10f,.94f,.055f,.82f,.022f)
+    PlayerCardStyle.OBSIDIAN->HeroDepth(.08f,.94f,.052f,.88f,.012f)
+    PlayerCardStyle.PLAYBOOK->HeroDepth(.065f,.88f,.040f,.66f,.008f)
+}
+
 private data class HeroPlacement(val width:Float,val height:Float,val x:Float,val top:Float)
 private val PlayerCardStyle.heroPlacement:HeroPlacement get()=when(this) {
-    PlayerCardStyle.HOLOGRAPHIC->HeroPlacement(.48f,.46f,.06f,.34f)
-    PlayerCardStyle.CLASSIC->HeroPlacement(.49f,.57f,-.19f,.15f)
-    PlayerCardStyle.BATTLE->HeroPlacement(.53f,.55f,.045f,.22f)
-    PlayerCardStyle.OBSIDIAN->HeroPlacement(.53f,.57f,.18f,.21f)
-    PlayerCardStyle.PLAYBOOK->HeroPlacement(.53f,.53f,.04f,.25f)
+    // Keep the embedded mid-left wordmark clear; use the upper central field.
+    PlayerCardStyle.HOLOGRAPHIC->HeroPlacement(.48f,.43f,.13f,.19f)
+    PlayerCardStyle.CLASSIC->HeroPlacement(.56f,.60f,-.08f,.18f)
+    PlayerCardStyle.BATTLE->HeroPlacement(.48f,.49f,.02f,.32f)
+    PlayerCardStyle.OBSIDIAN->HeroPlacement(.49f,.54f,.12f,.31f)
+    PlayerCardStyle.PLAYBOOK->HeroPlacement(.48f,.48f,0f,.31f)
 }
 
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawArtworkIdentity(
@@ -135,9 +159,9 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawArtworkIdentity
             topLeft=Offset(w*.07f,h*.906f),size=Size(w*.86f,h*.084f))
     }
     drawContext.canvas.nativeCanvas.apply {
-        printLine(name.uppercase(Locale.ROOT),w*.5f,h*.946f,w*.072f,w*.82f,Color.White,display)
+        printLine(name.uppercase(Locale.ROOT),w*.5f,h*(if(style==PlayerCardStyle.PLAYBOOK) .932f else .946f),w*.072f,w*.82f,Color.White,display)
         val identity=number?.let{"#$it  ·  ${style.edition}"}?:style.edition
-        printLine(identity.uppercase(Locale.ROOT),w*.5f,h*.978f,w*.031f,w*.82f,style.metal,body)
+        printLine(identity.uppercase(Locale.ROOT),w*.5f,h*(if(style==PlayerCardStyle.PLAYBOOK) .963f else .978f),w*.031f,w*.82f,style.metal,body)
     }
 }
 

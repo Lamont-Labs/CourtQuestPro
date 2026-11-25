@@ -122,6 +122,16 @@ class CardStudioRebuildTest {
         val bmp=node(tag).captureToImage().asAndroidBitmap()
         return write(name,bmp)
     }
+    private fun waitPreviewArtwork(style:PlayerCardStyle, back:Boolean=false) {
+        val prefix=if(back) "card-back-surface" else "card-surface"
+        val tag="$prefix-${style.name.lowercase()}-ready"
+        val matcher=hasTestTag(tag) and hasAnyAncestor(hasTestTag("player-card-preview"))
+        ui.waitUntil(20_000) {
+            ui.onAllNodes(matcher,useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()
+        }
+        ui.onNode(matcher,useUnmergedTree=true).assertIsDisplayed()
+        ui.waitForIdle()
+    }
     private fun menu(tag:String) {click("card-menu");wait(tag);click(tag)}
     private fun description()=node("player-card-preview").fetchSemanticsNode().config[SemanticsProperties.ContentDescription].joinToString()
     private fun showFront() {
@@ -153,13 +163,14 @@ class CardStudioRebuildTest {
         val backHashes=mutableSetOf<String>()
         for(style in PlayerCardStyle.entries) {
             pick("player-card-style-${style.name.lowercase()}")
-            wait("card-surface-${style.name.lowercase()}-ready");ready()
+            waitPreviewArtwork(style)
             assertTrue(description(),description().contains("jersey collectible card"))
             assertTrue(description(),description().contains(player.playerName.ifBlank{"Your player"}))
             val front=crop("edition-${style.name.lowercase()}-front","player-card-preview")
             assertTrue("${style.label} front should have its own composition",frontHashes.add(front))
             click("player-card-preview");wait("player-card-back");ui.waitForIdle()
             assertTrue(description(),description().contains(record.description))
+            waitPreviewArtwork(style,back=true)
             val backHash=crop("edition-${style.name.lowercase()}-back","player-card-preview")
             assertTrue("${style.label} reverse should carry its material",backHashes.add(backHash))
             if(style==PlayerCardStyle.HOLOGRAPHIC) {
@@ -239,7 +250,7 @@ class CardStudioRebuildTest {
         val editions=mutableSetOf<String>()
         for(style in PlayerCardStyle.entries) {
             pick("player-card-style-${style.name.lowercase()}")
-            wait("card-surface-${style.name.lowercase()}-ready");ready()
+            waitPreviewArtwork(style)
             assertTrue(description(),description().contains(style.label))
             assertTrue("${style.label} is a distinct card composition",editions.add(crop(
                 "${style.name.lowercase()}-jersey-front","player-card-preview")))
