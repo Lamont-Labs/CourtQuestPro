@@ -130,6 +130,10 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawArtworkIdentity
         ),
         topLeft=Offset(0f,h*.885f),size=Size(w,h*.115f)
     )
+    if (style == PlayerCardStyle.OBSIDIAN) {
+        drawRect(Color(0xFF090C11).copy(alpha=.94f),
+            topLeft=Offset(w*.07f,h*.906f),size=Size(w*.86f,h*.084f))
+    }
     drawContext.canvas.nativeCanvas.apply {
         printLine(name.uppercase(Locale.ROOT),w*.5f,h*.946f,w*.072f,w*.82f,Color.White,display)
         val identity=number?.let{"#$it  ·  ${style.edition}"}?:style.edition
