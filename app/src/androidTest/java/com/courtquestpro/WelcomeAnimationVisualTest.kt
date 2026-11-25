@@ -1,5 +1,6 @@
 package com.courtquestpro
 
+import androidx.compose.ui.graphics.asAndroidBitmap
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Build
@@ -63,6 +64,13 @@ class WelcomeAnimationVisualTest {
         assertTrue("Basketball is in lower half", bounds.top >= screen.top + (screen.bottom - screen.top) / 2f)
         compose.onNodeWithTag("welcome-swipe-prompt").assertDoesNotExist()
         compose.onNodeWithText("ENTER", useUnmergedTree = true).assertIsDisplayed()
+        compose.waitForIdle()
+        // Capture the actual Compose surface as well as the system frame.
+        val surface = compose.onNodeWithTag("court-welcome-screen").captureToImage()
+        val rendered = surface.asAndroidBitmap()
+        val proof = File(compose.activity.filesDir, "player-card-proof/welcome-compose-surface.png")
+        proof.parentFile?.mkdirs()
+        proof.outputStream().use { assertTrue(rendered.compress(Bitmap.CompressFormat.PNG, 100, it)) }
         capturePresented("welcome-enter-ready")
         button.performClick()
         compose.waitUntil(10_000) { !has("welcome-enter-ball") }
