@@ -1,7 +1,7 @@
 name: Android multi-device QA
 on:
   push:
-    branches: [main, dev/v65-owner-artwork-integration]
+    branches: [main, dev/v65-owner-artwork-integration, fix/v66-welcome-card-composition]
     paths:
       - '.github/workflows/android-multi-device-qa.yml'
       - 'qa/multi-device-request.txt'
