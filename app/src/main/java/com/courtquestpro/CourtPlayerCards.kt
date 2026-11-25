@@ -108,6 +108,7 @@ internal fun CourtPlayerCard(
                     Modifier.width(maxWidth * placement.width).height(maxHeight * placement.height)
                         .align(Alignment.TopCenter)
                         .offset(x = maxWidth * placement.x, y = maxHeight * placement.top))
+                if (style == PlayerCardStyle.HOLOGRAPHIC) ChromeForeground(Modifier.fillMaxSize())
                 Canvas(Modifier.fillMaxSize()) {
                     drawArtworkIdentity(style,name,jersey.number,display,body)
                 }
@@ -147,10 +148,39 @@ private fun CardGarmentHero(jersey: PlayerJersey, style: PlayerCardStyle, modifi
     }
 }
 
+// Sparse foreground facets overlap the garment edges without obscuring its number.
+@Composable
+private fun ChromeForeground(modifier: Modifier) {
+    Canvas(modifier) {
+        val w = size.width
+        val h = size.height
+        val facets = listOf(
+            listOf(Offset(.35f,.27f), Offset(.43f,.31f), Offset(.38f,.43f)),
+            listOf(Offset(.83f,.40f), Offset(.76f,.48f), Offset(.87f,.53f)),
+            listOf(Offset(.46f,.59f), Offset(.57f,.61f), Offset(.49f,.66f))
+        )
+        facets.forEachIndexed { index, points ->
+            val p = points.map { Offset(it.x*w,it.y*h) }
+            val shape = Path().apply {
+                moveTo(p[0].x,p[0].y)
+                lineTo(p[1].x,p[1].y)
+                lineTo(p[2].x,p[2].y)
+                close()
+            }
+            drawPath(shape, Brush.linearGradient(
+                listOf(Color(0xFFB8F5FF).copy(alpha=.32f), Color(0xFF7776FF).copy(alpha=.08f), Color.Transparent),
+                start=p[0],end=p[2]))
+            drawLine(Color(0xFFD9F9FF).copy(alpha=.70f),p[0],p[1],strokeWidth=w*.0025f)
+            drawLine((if(index==1) Color(0xFFBD9AFF) else Color(0xFF62DFFF)).copy(alpha=.45f),
+                p[1],p[2],strokeWidth=w*.0018f)
+        }
+    }
+}
+
 // Edition-specific lighting, kept behind the live uniform and above the original artwork.
 private data class HeroDepth(val ambient:Float,val width:Float,val height:Float,val opacity:Float,val offset:Float)
 private val PlayerCardStyle.heroDepth:HeroDepth get()=when(this) {
-    PlayerCardStyle.HOLOGRAPHIC->HeroDepth(.12f,.78f,.032f,.48f,.012f)
+    PlayerCardStyle.HOLOGRAPHIC->HeroDepth(.22f,.84f,.038f,.56f,.012f)
     PlayerCardStyle.CLASSIC->HeroDepth(.045f,.85f,.046f,.66f,.018f)
     PlayerCardStyle.BATTLE->HeroDepth(.10f,.94f,.055f,.82f,.022f)
     PlayerCardStyle.OBSIDIAN->HeroDepth(.08f,.94f,.052f,.88f,.012f)
