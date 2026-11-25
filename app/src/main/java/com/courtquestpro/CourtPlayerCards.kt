@@ -104,6 +104,7 @@ internal fun CourtPlayerCard(
                     }
                 }
                 val placement=style.heroPlacement
+                if (style == PlayerCardStyle.CLASSIC) LeatherMount(Modifier.fillMaxSize())
                 CardGarmentHero(jersey, style,
                     Modifier.width(maxWidth * placement.width).height(maxHeight * placement.height)
                         .align(Alignment.TopCenter)
@@ -148,6 +149,37 @@ private fun CardGarmentHero(jersey: PlayerJersey, style: PlayerCardStyle, modifi
     }
 }
 
+// Recessed memorabilia mount: warm light, dark inner bevel and stitched perimeter.
+@Composable
+private fun LeatherMount(modifier: Modifier) {
+    Canvas(modifier) {
+        val w = size.width
+        val h = size.height
+        val left = w*.115f
+        val top = h*.165f
+        val mw = w*.61f
+        val mh = h*.63f
+        val corner = androidx.compose.ui.geometry.CornerRadius(w*.035f)
+        drawRoundRect(Color.Black.copy(alpha=.48f), Offset(left+w*.012f,top+h*.009f),
+            Size(mw,mh),corner)
+        drawRoundRect(Brush.verticalGradient(
+            listOf(Color(0xFF170E08).copy(alpha=.82f),Color(0xFF4C2915).copy(alpha=.52f),
+                Color(0xFF130B07).copy(alpha=.86f)),startY=top,endY=top+mh),
+            Offset(left,top),Size(mw,mh),corner)
+        drawRoundRect(Brush.radialGradient(
+            listOf(Color(0xFFFFC17A).copy(alpha=.23f),Color.Transparent),
+            center=Offset(left+mw*.45f,top+mh*.24f),radius=mh*.65f),
+            Offset(left,top),Size(mw,mh),corner)
+        drawRoundRect(Color(0xFFC48A52).copy(alpha=.62f),Offset(left,top),Size(mw,mh),corner,
+            style=androidx.compose.ui.graphics.drawscope.Stroke(width=w*.004f))
+        val inset=w*.014f
+        drawRoundRect(Color(0xFFF1C18B).copy(alpha=.48f),
+            Offset(left+inset,top+inset),Size(mw-2*inset,mh-2*inset),corner,
+            style=androidx.compose.ui.graphics.drawscope.Stroke(width=w*.002f,
+                pathEffect=PathEffect.dashPathEffect(floatArrayOf(w*.012f,w*.009f))))
+    }
+}
+
 // Sparse foreground facets overlap the garment edges without obscuring its number.
 @Composable
 private fun ChromeForeground(modifier: Modifier) {
@@ -181,7 +213,7 @@ private fun ChromeForeground(modifier: Modifier) {
 private data class HeroDepth(val ambient:Float,val width:Float,val height:Float,val opacity:Float,val offset:Float)
 private val PlayerCardStyle.heroDepth:HeroDepth get()=when(this) {
     PlayerCardStyle.HOLOGRAPHIC->HeroDepth(.22f,.84f,.038f,.56f,.012f)
-    PlayerCardStyle.CLASSIC->HeroDepth(.045f,.85f,.046f,.66f,.018f)
+    PlayerCardStyle.CLASSIC->HeroDepth(.13f,.92f,.055f,.78f,.018f)
     PlayerCardStyle.BATTLE->HeroDepth(.10f,.94f,.055f,.82f,.022f)
     PlayerCardStyle.OBSIDIAN->HeroDepth(.08f,.94f,.052f,.88f,.012f)
     PlayerCardStyle.PLAYBOOK->HeroDepth(.065f,.88f,.040f,.66f,.008f)
