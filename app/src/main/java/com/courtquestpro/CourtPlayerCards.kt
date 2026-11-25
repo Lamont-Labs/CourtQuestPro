@@ -104,15 +104,10 @@ internal fun CourtPlayerCard(
                     }
                 }
                 val placement=style.heroPlacement
-                CourtJerseyArtwork(
-                    jersey,
+                CardGarmentHero(jersey, style,
                     Modifier.width(maxWidth * placement.width).height(maxHeight * placement.height)
                         .align(Alignment.TopCenter)
-                        .offset(x = maxWidth * placement.x, y = maxHeight * placement.top),
-                    view = JerseyView.FRONT,
-                    describe = true,
-                    compactMark = false
-                )
+                        .offset(x = maxWidth * placement.x, y = maxHeight * placement.top))
                 Canvas(Modifier.fillMaxSize()) {
                     drawArtworkIdentity(style,name,jersey.number,display,body)
                 }
@@ -120,6 +115,35 @@ internal fun CourtPlayerCard(
             }
             if (reverse && record != null) CardReverse(name,jersey.number,style,record,display,body)
         }
+    }
+}
+
+// One live garment path for every card consumer, including studio and thumbnails.
+@Composable
+private fun CardGarmentHero(jersey: PlayerJersey, style: PlayerCardStyle, modifier: Modifier) {
+    val pose = when (style) {
+        PlayerCardStyle.HOLOGRAPHIC -> Triple(-3f, -9f, -2f)
+        PlayerCardStyle.CLASSIC -> Triple(1f, 4f, 0f)
+        PlayerCardStyle.BATTLE -> Triple(-2f, -5f, -3f)
+        PlayerCardStyle.OBSIDIAN -> Triple(-4f, 7f, 1f)
+        PlayerCardStyle.PLAYBOOK -> Triple(0f, 0f, 0f)
+    }
+    Box(modifier.graphicsLayer {
+        rotationX = pose.first
+        rotationY = pose.second
+        rotationZ = pose.third
+        cameraDistance = 24 * density
+    }) {
+        // Offset silhouettes reuse the exact saved garment shape, not a generic jersey outline.
+        if (style != PlayerCardStyle.PLAYBOOK) {
+            CourtJerseyArtwork(jersey, Modifier.fillMaxSize().graphicsLayer {
+                translationX = size.width * .018f
+                translationY = size.height * .022f
+                alpha = .36f
+            }, view = JerseyView.FRONT, describe = false, compactMark = false)
+        }
+        CourtJerseyArtwork(jersey, Modifier.fillMaxSize(),
+            view = JerseyView.FRONT, describe = true, compactMark = false)
     }
 }
 
