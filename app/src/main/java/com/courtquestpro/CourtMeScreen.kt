@@ -41,17 +41,17 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
     BoxWithConstraints(Modifier.fillMaxSize()) {
     val wide=maxWidth>=480.dp && maxWidth>maxHeight
     val enlarged=LocalDensity.current.fontScale>1.5f
-    val chromeReserve=when {wide&&enlarged->150.dp;wide->90.dp;enlarged->368.dp;else->224.dp}
+    val chromeReserve=when {wide&&enlarged->150.dp;wide->90.dp;enlarged->368.dp;else->200.dp}
     val cardHeight=(maxHeight-chromeReserve)
-        .coerceIn(96.dp,if(wide)260.dp else 424.dp)
-    val cardWidth=(cardHeight*.69f).coerceAtMost(292.dp)
+        .coerceIn(96.dp,if(wide)260.dp else 500.dp)
+    val cardWidth=(cardHeight*.69f).coerceAtMost(340.dp).coerceAtMost((maxWidth-40.dp).coerceAtLeast(1.dp))
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp)) {
         item {
             Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 14.dp, bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically) {
                 Column(if(wide)Modifier.widthIn(min=72.dp,max=110.dp)else Modifier.weight(1f)) {
-                    CourtEyebrow("PLAYER ROOM")
-                    Text("Me", color = CourtQuestDesign.textPrimary, style = if(wide)MaterialTheme.typography.headlineSmall
+                    CourtEyebrow("COURTQUEST PRO")
+                    Text("Player Profile", color = CourtQuestDesign.textPrimary, style = if(wide)MaterialTheme.typography.headlineSmall
                         else if(LocalDensity.current.fontScale>1.3f)MaterialTheme.typography.headlineLarge else MaterialTheme.typography.displaySmall)
                 }
                 if(wide)CourtQuestSegmentRail(listOf("Profile","Settings"),section,{section=it},
@@ -134,30 +134,10 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                             }
                     }
                 }
-                if (section == "Profile") CourtQuestPremiumSurface(Modifier.fillMaxWidth(), PaddingValues(20.dp), highlighted = true) {
-                    Column(Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        CourtEyebrow("YOUR DEVELOPMENT")
-                        // A readable text counterpart to the collectible artwork at enlarged font scales.
-                        if (!wide && LocalDensity.current.fontScale > 1.3f) Text(save.playerName.ifBlank { "Your player" },
-                            color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.titleLarge)
-                        Text("${rankFor(save.totalXp)}  ·  ${save.totalXp} XP",
-                            color = CourtQuestDesign.textPrimary, style = MaterialTheme.typography.headlineSmall)
-                        CourtRankMeter(save.totalXp)
-                        Text("${save.difficulty} · ${save.weeklyPlan} focus",
-                            color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
-                        CourtQuestPrimaryButton(onJersey, Modifier.fillMaxWidth().testTag("me-jersey-studio")) {
-                            Text("Customize jersey")
-                        }
-                        TextButton(onEdit, Modifier.heightIn(min = 48.dp)) {
-                            Icon(Icons.Default.Edit, null); Spacer(Modifier.width(8.dp)); Text("Edit profile")
-                        }
-                        CourtRule()
-                        CourtMetricStrip(listOf(
-                            "Recorded drills" to validResults.size.toString(),
-                            "Training days" to trainingDays.toString(),
-                            "Milestones" to earnedAchievements.size.toString()
-                        ))
+                if (section == "Profile") {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onJersey, Modifier.weight(1f).heightIn(min = 48.dp).testTag("me-jersey-studio")) { Text("Customize jersey") }
+                        OutlinedButton(onProgress, Modifier.weight(1f).heightIn(min = 48.dp).testTag("me-open-progress")) { Text("Progress") }
                     }
                 }
                 if (section == "Settings") {
@@ -192,8 +172,7 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                     }
                     Text("XP tracks participation. Results are self-recorded.",
                         color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
-                    OutlinedButton(onProgress, Modifier.fillMaxWidth().heightIn(min = 52.dp)
-                        .testTag("me-open-progress")) { Text("Open Progress and history") }
+
                 }
                 if (section == "Settings") {
                     CourtRule()
