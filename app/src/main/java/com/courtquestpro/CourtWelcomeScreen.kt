@@ -19,6 +19,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,7 +39,10 @@ internal fun CourtWelcomeScreen(
         BoxWithConstraints(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(horizontal = 20.dp, vertical = 16.dp)) {
             Text("WELCOME TO", color = Color.White, fontWeight = FontWeight.Black,
-                fontSize = if (maxHeight < 360.dp) 18.sp else 30.sp,
+                fontFamily = FontFamily(Font(R.font.barlow_condensed_extra_bold, FontWeight.ExtraBold)),
+                fontSize = if (maxHeight < 360.dp) 20.sp else minOf(42f, maxWidth.value * .115f).sp,
+                letterSpacing = 1.8.sp,
+                style = TextStyle(shadow = Shadow(Color.Black.copy(alpha = .8f), Offset(0f, 2f), 5f)),
                 maxLines = 1, modifier = Modifier.align(Alignment.TopCenter)
                     .padding(top = if (maxHeight < 360.dp) 0.dp else maxHeight * .17f)
                     .testTag("welcome-heading"))
