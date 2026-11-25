@@ -12,6 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -36,7 +39,7 @@ internal fun CourtWelcomeScreen(
             Text("WELCOME TO", color = Color.White, fontWeight = FontWeight.Black,
                 fontSize = if (maxHeight < 360.dp) 18.sp else 30.sp,
                 maxLines = 1, modifier = Modifier.align(Alignment.TopCenter)
-                    .padding(top = if (maxHeight < 360.dp) 0.dp else 28.dp)
+                    .padding(top = if (maxHeight < 360.dp) 0.dp else maxHeight * .17f)
                     .testTag("welcome-heading"))
             val ballSize = minOf(maxWidth * .36f, maxHeight * .27f, 144.dp).coerceAtLeast(48.dp)
             Column(Modifier.align(Alignment.BottomCenter),
@@ -49,8 +52,8 @@ internal fun CourtWelcomeScreen(
                     Image(painterResource(R.drawable.cq_welcome_ball), null,
                         Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
                     Text("ENTER", color = Color.White, fontWeight = FontWeight.Black,
-                        fontSize = if (ballSize < 80.dp) 10.sp else 18.sp, maxLines = 1, softWrap = false, modifier = Modifier.background(Color.Black.copy(alpha = .65f), CircleShape)
-                            .padding(horizontal = if (ballSize < 80.dp) 2.dp else 8.dp, vertical = 4.dp))
+                        fontSize = if (ballSize < 80.dp) 10.sp else 18.sp, maxLines = 1, softWrap = false,
+                        style = TextStyle(shadow = Shadow(Color.Black.copy(alpha = .65f), Offset(0f, 1f), 2f)))
                 }
                 if (!returningPlayer) {
                     TextButton(onClick = onGuest, modifier = Modifier.testTag("welcome-continue-guest")) {
