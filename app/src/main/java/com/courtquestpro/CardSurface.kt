@@ -30,7 +30,7 @@ private data class CardArtworkKey(
 )
 
 internal object CardSurfaceCache {
-    private val images=object:LruCache<CardArtworkKey,Bitmap>(20*1024*1024) {
+    private val images=object:LruCache<CardArtworkKey,Bitmap>(40*1024*1024) {
         override fun sizeOf(key:CardArtworkKey,value:Bitmap)=value.allocationByteCount
     }
     fun cached(style:PlayerCardStyle,face:CardArtworkFace,thumbnail:Boolean)=
@@ -65,13 +65,24 @@ internal fun CardSurface(
         mutableStateOf(CardSurfaceCache.cached(style,face,thumbnail))
     }
     LaunchedEffect(style,face,thumbnail) {
-        try { bitmap=CardSurfaceCache.load(context.assets,style,face,thumbnail) }
+        try {
+            bitmap=CardSurfaceCache.load(context.assets,style,face,thumbnail)
+            // Warm the opposite face while the current face is visible.
+            if(!thumbnail) {
+                val opposite=if(face==CardArtworkFace.FRONT) CardArtworkFace.BACK else CardArtworkFace.FRONT
+                CardSurfaceCache.load(context.assets,style,opposite,false)
+            }
+        }
         catch(error:IOException) {
             throw IOException("Missing bundled ${style.label} ${face.suffix} artwork",error)
         }
     }
     val tag=if(face==CardArtworkFace.FRONT) "card-surface-${style.name.lowercase(Locale.ROOT)}-ready"
         else "card-back-surface-${style.name.lowercase(Locale.ROOT)}-ready"
-    bitmap?.let {Image(it.asImageBitmap(),null,Modifier.fillMaxSize()
-        .testTag(tag),contentScale=ContentScale.FillBounds)}
+    val preview=remember(style,face,thumbnail) {
+        if(thumbnail) null else CardSurfaceCache.cached(style,face,true)
+    }
+    val displayed=bitmap ?: preview
+    displayed?.let {Image(it.asImageBitmap(),null,Modifier.fillMaxSize()
+        .then(if(bitmap!=null) Modifier.testTag(tag) else Modifier),contentScale=ContentScale.FillBounds)}
 }
