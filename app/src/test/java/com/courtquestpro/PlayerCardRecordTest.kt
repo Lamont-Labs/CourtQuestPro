@@ -12,7 +12,11 @@ class PlayerCardRecordTest {
             DrillResult("2026-10-02","4","unknown",0,6), DrillResult("2026-10-02","5","s1",6,1)),
             matches=mutableListOf(MatchRecord("","A","B",11,7,"old name",0),MatchRecord("","A","B",3,8,"B",0)))
         val r=PlayerCardRecord.from(save)
-        assertEquals(listOf("4","25","12","60%",null),r.training.map{it.value})
+        assertEquals(mapOf(
+            "Saved drills" to "4", "Attempts" to "25", "Successful reps" to "12",
+            "Shots attempted" to "5", "Shots made" to "3", "Training days" to "2",
+            "Shooting accuracy" to "60%", "Completed missions" to null
+        ), r.training.associate { it.label to it.value })
         assertEquals(listOf("2","1 / 1"),r.games.map{it.value})
         assertEquals(listOf("425",rankFor(425),"3 d"),r.progress.map{it.value})
     }
@@ -24,6 +28,8 @@ class PlayerCardRecordTest {
         val recorded=PlayerCardRecord.from(SaveState(drillResults=mutableListOf(DrillResult("","s","s1",0,9))))
         assertEquals("0%",recorded.training.first{it.label=="Shooting accuracy"}.value)
         assertEquals("0",recorded.training.first{it.label=="Successful reps"}.value)
+        assertEquals("9",recorded.training.first{it.label=="Shots attempted"}.value)
+        assertEquals("0",recorded.training.first{it.label=="Shots made"}.value)
         assertTrue(recorded.hasRecordedActivity)
     }
 }
