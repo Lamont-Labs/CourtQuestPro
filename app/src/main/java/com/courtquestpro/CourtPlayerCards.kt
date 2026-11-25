@@ -78,7 +78,7 @@ internal fun CourtPlayerCard(
                 Canvas(Modifier.fillMaxSize()) {
                     val w=size.width;val h=size.height
                     val placement=style.heroPlacement
-                    val shadowY=h*(placement.top+placement.height*.94f)
+                    val shadowY=h*(placement.top+placement.height*.98f)
                     val centerX=w*(.5f+placement.x)
                     val shadowWidth=w*placement.width*.72f
                     drawOval(
@@ -112,7 +112,7 @@ internal fun CourtPlayerCard(
 
 private data class HeroPlacement(val width:Float,val height:Float,val x:Float,val top:Float)
 private val PlayerCardStyle.heroPlacement:HeroPlacement get()=when(this) {
-    PlayerCardStyle.HOLOGRAPHIC->HeroPlacement(.48f,.46f,.06f,.34f)
+    PlayerCardStyle.HOLOGRAPHIC->HeroPlacement(.40f,.39f,-.20f,.40f)
     PlayerCardStyle.CLASSIC->HeroPlacement(.49f,.57f,-.19f,.15f)
     PlayerCardStyle.BATTLE->HeroPlacement(.53f,.55f,.045f,.22f)
     PlayerCardStyle.OBSIDIAN->HeroPlacement(.53f,.57f,.18f,.21f)
