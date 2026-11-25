@@ -23,6 +23,7 @@ import java.time.LocalDate
 internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Unit, onWalkthrough: () -> Unit, onJersey: () -> Unit, onPlayerCard: () -> Unit, tourStep: Int? = null) {
     var section by rememberSaveable { mutableStateOf("Profile") }
     var settingsMenu by remember { mutableStateOf(false) }
+    var showAwards by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(tourStep) {
         when (tourStep) {
             5 -> section = "Profile"
@@ -36,8 +37,30 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
     val today = LocalDate.now()
     val achievements = playerAchievements(save, catalog, today)
     val earnedAchievements = achievements.filter { it.earned }
-    val validResults = resultsInProgressRange(save.drillResults.orEmpty(), today, ProgressRange.ALL_TIME)
-    val trainingDays = validResults.map { it.date }.distinct().size
+    if (showAwards) {
+        AlertDialog(
+            onDismissRequest = { showAwards = false },
+            title = { Text("Player awards") },
+            text = {
+                LazyColumn(Modifier.heightIn(max = 360.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (earnedAchievements.isEmpty()) item {
+                        Text("Save a completed drill to unlock your first evidence-based milestone.",
+                            modifier = Modifier.testTag("me-achievements-empty"))
+                    }
+                    items(earnedAchievements.size) { index ->
+                        val achievement = earnedAchievements[index]
+                        Column(Modifier.fillMaxWidth().testTag("me-achievement-${achievement.id}")) {
+                            Text(achievement.title, style = MaterialTheme.typography.titleMedium)
+                            Text("Earned ${achievement.earnedDate ?: "date unavailable"}",
+                                style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                    item { Text("XP tracks participation. Results are self-recorded.", style = MaterialTheme.typography.bodySmall) }
+                }
+            },
+            confirmButton = { TextButton({ showAwards = false }) { Text("Close") } }
+        )
+    }
     BoxWithConstraints(Modifier.fillMaxSize()) {
     val wide=maxWidth>=480.dp && maxWidth>maxHeight
     val enlarged=LocalDensity.current.fontScale>1.5f
@@ -65,6 +88,9 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                     // A popup is outside Scaffold's semantics root.
                     DropdownMenu(settingsMenu, { settingsMenu = false },
                         modifier = Modifier.semantics { testTagsAsResourceId = true }) {
+                        DropdownMenuItem(text = { Text("Settings") },
+                            onClick = { settingsMenu = false; section = "Settings" },
+                            leadingIcon = { Icon(Icons.Default.Settings, null) })
                         DropdownMenuItem(text = { Text("Edit player profile") },
                             onClick = { settingsMenu = false; onEdit() },
                             leadingIcon = { Icon(Icons.Default.Edit, null) })
@@ -82,7 +108,7 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                 }
             }
         }
-        if(!wide)item {
+        if(!wide && (section == "Settings" || tourStep == 6))item {
             CourtQuestSegmentRail(
                 labels = listOf("Profile", "Settings"),
                 selected = section,
@@ -144,35 +170,11 @@ internal fun MeScreen(save: SaveState, onEdit: () -> Unit, onProgress: () -> Uni
                     CourtMeSettingsHub(save, days.map { dayLabels[it - 1] }, onEdit, onWalkthrough)
                 }
                 if (section == "Profile") {
-                    CourtHeading("Milestones", "${earnedAchievements.size} earned")
-                    if (earnedAchievements.isEmpty()) {
-                        CourtQuestPremiumSurface(Modifier.fillMaxWidth().testTag("me-achievements-empty"),
-                            PaddingValues(14.dp)) {
-                            Text("Save a completed drill to unlock your first evidence-based milestone.",
-                                color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodyMedium)
-                        }
-                    } else {
-                        earnedAchievements.take(2).forEach { achievement ->
-                            CourtQuestPremiumSurface(
-                                Modifier.fillMaxWidth().testTag("me-achievement-${achievement.id}"),
-                                PaddingValues(14.dp), highlighted = true
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                    Icon(Icons.Default.EmojiEvents, null, tint = CourtQuestDesign.accent)
-                                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                                        Text(achievement.title, color = CourtQuestDesign.textPrimary,
-                                            style = MaterialTheme.typography.titleMedium)
-                                        Text("Earned ${achievement.earnedDate ?: "date unavailable"}",
-                                            color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
-                                    }
-                                }
-                            }
-                        }
+                    OutlinedButton({ showAwards = true }, Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("me-open-awards")) {
+                        Icon(Icons.Default.EmojiEvents, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Awards · ${earnedAchievements.size} earned")
                     }
-                    Text("XP tracks participation. Results are self-recorded.",
-                        color = CourtQuestDesign.textSecondary, style = MaterialTheme.typography.bodySmall)
-
                 }
                 if (section == "Settings") {
                     CourtRule()
