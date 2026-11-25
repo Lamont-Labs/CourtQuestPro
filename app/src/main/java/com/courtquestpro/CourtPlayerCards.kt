@@ -105,6 +105,7 @@ internal fun CourtPlayerCard(
                 }
                 val placement=style.heroPlacement
                 if (style == PlayerCardStyle.CLASSIC) LeatherMount(Modifier.fillMaxSize())
+                if (style == PlayerCardStyle.BATTLE) ComicPrintField(Modifier.fillMaxSize())
                 CardGarmentHero(jersey, style,
                     Modifier.width(maxWidth * placement.width).height(maxHeight * placement.height)
                         .align(Alignment.TopCenter)
@@ -141,11 +142,43 @@ private fun CardGarmentHero(jersey: PlayerJersey, style: PlayerCardStyle, modifi
             CourtJerseyArtwork(jersey, Modifier.fillMaxSize().graphicsLayer {
                 translationX = size.width * .018f
                 translationY = size.height * .022f
-                alpha = .36f
+                alpha = if (style == PlayerCardStyle.BATTLE) .72f else .36f
+                if (style == PlayerCardStyle.BATTLE) {
+                    // Darken the registered duplicate to create a printed edge.
+                    shadowElevation = 0f
+                }
             }, view = JerseyView.FRONT, describe = false, compactMark = false)
         }
         CourtJerseyArtwork(jersey, Modifier.fillMaxSize(),
             view = JerseyView.FRONT, describe = true, compactMark = false)
+    }
+}
+
+// Screen-print registration and halftone falloff behind the live jersey.
+@Composable
+private fun ComicPrintField(modifier: Modifier) {
+    Canvas(modifier) {
+        val w = size.width
+        val h = size.height
+        val center = Offset(w*.52f,h*.55f)
+        for (row in 0..18) {
+            for (column in 0..18) {
+                val x = w*(.23f+column*.032f+(row%2)*.016f)
+                val y = h*(.30f+row*.029f)
+                val distance = kotlin.math.sqrt(
+                    ((x-center.x)/w)*((x-center.x)/w)+((y-center.y)/h)*((y-center.y)/h))
+                val strength = (1f-distance/.36f).coerceIn(0f,1f)
+                if (strength > 0f) drawCircle(Color(0xFFFFB36B).copy(alpha=.24f*strength),
+                    radius=w*(.002f+.005f*strength),center=Offset(x,y))
+            }
+        }
+        for (i in 0..6) {
+            val y = h*(.34f+i*.065f)
+            drawLine(Color(0xFF101014).copy(alpha=.72f),Offset(w*.18f,y),
+                Offset(w*.35f,y+h*.035f),strokeWidth=w*.009f)
+            drawLine(Color(0xFFFFB36B).copy(alpha=.64f),Offset(w*.18f,y-h*.006f),
+                Offset(w*.35f,y+h*.029f),strokeWidth=w*.003f)
+        }
     }
 }
 
