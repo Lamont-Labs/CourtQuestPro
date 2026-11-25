@@ -26,8 +26,9 @@ internal fun CardMaterialFinish(style:PlayerCardStyle,interactive:Boolean) {
         val colors=when(style) {
             PlayerCardStyle.HOLOGRAPHIC->listOf(Color.Cyan,Color(0xFFB197FF),Color.White,Color(0xFF9AEBDB))
             PlayerCardStyle.CLASSIC->listOf(Color(0xFFB98A41),Color(0xFFFFE8B8),Color.White)
-            PlayerCardStyle.BATTLE->listOf(Color(0xFFFF5B0A),Color.White,Color(0xFF7B3214))
-            PlayerCardStyle.OBSIDIAN->listOf(Color(0xFFB8C7DC),Color.White,Color(0xFF434C5A))
+            PlayerCardStyle.BATTLE->listOf(Color(0xFFFF5B0A),Color(0xFF28D6DE),Color(0xFFEC56AC))
+            PlayerCardStyle.OBSIDIAN->listOf(Color(0xFFFFD36C),Color.White,Color(0xFF704515))
+            PlayerCardStyle.PLAYBOOK->listOf(Color(0xFF43A5FF),Color.White,Color(0xFFFF5B0A))
         }
         val gradient=Brush.linearGradient(colors.map{it.copy(alpha=light)},Offset.Zero,Offset(w,h*.6f))
         // Reflective light stays on the dimensional rails, not on the uniform or player lettering.

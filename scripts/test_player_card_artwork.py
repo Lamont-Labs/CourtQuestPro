@@ -9,6 +9,13 @@ from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageOps
 
 ROOT=Path(__file__).resolve().parents[1]/"app/src/main/assets/player_cards"
 POSES=("standing","dribbling","action","ready","followthrough")
+OWNER_CARDS={
+    "PLAYBOOK":"Court Blueprint",
+    "CLASSIC":"Leather Legacy",
+    "OBSIDIAN":"Arena Championship",
+    "HOLOGRAPHIC":"Shattered Chrome",
+    "BATTLE":"Street Comic",
+}
 
 def layers(path,count):
     with path.open("rb") as f:
@@ -127,6 +134,36 @@ class CollectorArtworkTest(unittest.TestCase):
                 self.assertEqual((828,1200),image.size);image.verify()
             self.assertLess(file.stat().st_size,600_000)
         self.assertEqual(4,len(hashes))
+
+    def testOwnerSuppliedCardFrontsAndBacksArePairedOptimizedAndHashVerified(self):
+        folder=ROOT/"owner_editions"
+        manifest=json.loads((folder/"manifest.json").read_text())
+        cards={card["style_id"]:card for card in manifest["cards"]}
+        self.assertEqual(1,manifest["format"])
+        self.assertEqual([1060,1484],manifest["dimensions"])
+        self.assertEqual(OWNER_CARDS,{style:card["label"] for style,card in cards.items()})
+        outputs=[]
+        for style,card in cards.items():
+            self.assertEqual({"front","back"},set(card["faces"]),style)
+            self.assertRegex(card["slug"],r"^[a-z0-9-]+$")
+            for side,entry in card["faces"].items():
+                filename=entry["file"]
+                self.assertEqual(f"{card['slug']}-{side}.webp",filename)
+                self.assertEqual(64,len(entry["source_sha256"]))
+                self.assertRegex(entry["source_sha256"],r"^[0-9a-f]{64}$")
+                path=folder/filename
+                data=path.read_bytes()
+                outputs.append(path)
+                self.assertEqual(entry["sha256"],hashlib.sha256(data).hexdigest(),filename)
+                self.assertEqual(len(data),entry["bytes"],filename)
+                self.assertLess(len(data),700_000,filename)
+                with Image.open(path) as image:
+                    self.assertEqual("WEBP",image.format,filename)
+                    self.assertEqual("RGB",image.mode,filename)
+                    self.assertEqual((1060,1484),image.size,filename)
+                    image.verify()
+        self.assertEqual(10,len(set(outputs)))
+        self.assertLess(sum(path.stat().st_size for path in outputs),4_000_000)
 
     def testPoseMatchedFootwearUsesNoSpriteFittingAndEachModelHasRealShoeDetail(self):
         manifest=json.loads((ROOT/"premium-manifest.json").read_text())
