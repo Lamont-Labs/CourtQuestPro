@@ -1,11 +1,11 @@
 {
   "request": "publish-verified-main-apk",
-  "source_merge_commit": "cd6dd5bc330e4745af4567a3041110ca1dc43851",
+  "source_merge_commit": "f89ab0b53779bd0c367fac2074a5a0b97ea744ec",
   "require_package": "com.courtquestpro",
   "require_existing_signing_certificate": true,
   "require_android_lint": true,
   "requested_by": "owner",
-  "reason": "Publish v65 after verified integration PR #86, consolidated main validation 45543839954 and main multi-device QA 45543839974. Includes five owner card fronts and backs, integrated card rendering and basketball entry. Preserve package, existing signing certificate and player data. Intermittent Compose layout issue #85 remains tracked.",
-  "feature": "owner-collectible-artwork-welcome-v65",
-  "feature_commit": "cd6dd5bc330e4745af4567a3041110ca1dc43851"
+  "reason": "Publish v66 after integration PR #87, exact development commit 8dc0fafa5954880cf49f5310bfa5d9078ddf7d19, successful development checks 45643641738 and multi-device QA 45643623509. Preserve package, existing signing certificate and player data. Remaining cosmetic issues and intermittent Compose issue #85 remain tracked.",
+  "feature": "welcome-card-composition-v66",
+  "feature_commit": "f89ab0b53779bd0c367fac2074a5a0b97ea744ec"
 }
