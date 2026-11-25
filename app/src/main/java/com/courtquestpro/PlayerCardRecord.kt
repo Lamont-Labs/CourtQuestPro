@@ -20,6 +20,8 @@ internal data class PlayerCardRecord(val training: List<CardMetric>, val games: 
                 vocabulary?.successLabel == "Shots made" && vocabulary.attemptLabel == "Shots attempted"
             }
             val shotAttempts = shots.sumOf { it.attempted.toLong() }
+            val shotMakes = shots.sumOf { it.completed.toLong() }
+            val trainingDays = results.map { it.date }.distinct().size
             val games = save.matches.filter { it.playerScore >= 0 && it.opponentScore >= 0 }
             val wins = games.count { it.playerScore > it.opponentScore }
             val losses = games.count { it.playerScore < it.opponentScore }
@@ -31,7 +33,10 @@ internal data class PlayerCardRecord(val training: List<CardMetric>, val games: 
                     CardMetric("Saved drills", count(results.size, results.isNotEmpty())),
                     CardMetric("Attempts", count(results.sumOf { it.attempted.toLong() }, results.isNotEmpty())),
                     CardMetric("Successful reps", count(results.sumOf { it.completed.toLong() }, results.isNotEmpty())),
-                    CardMetric("Shooting accuracy", if (shotAttempts > 0) "${(shots.sumOf { it.completed.toLong() } * 100 + shotAttempts/2) / shotAttempts}%" else null),
+                    CardMetric("Shots attempted", count(shotAttempts, shotAttempts > 0)),
+                    CardMetric("Shots made", count(shotMakes, shotAttempts > 0)),
+                    CardMetric("Training days", count(trainingDays, results.isNotEmpty())),
+                    CardMetric("Shooting accuracy", if (shotAttempts > 0) "${(shotMakes * 100 + shotAttempts/2) / shotAttempts}%" else null),
                     CardMetric("Completed missions", count(receipts.size, receipts.isNotEmpty()))),
                 games = listOf(CardMetric("Games played", count(games.size, games.isNotEmpty())),
                     CardMetric("Wins / losses", if (games.isNotEmpty()) "$wins / $losses" else null)) +
