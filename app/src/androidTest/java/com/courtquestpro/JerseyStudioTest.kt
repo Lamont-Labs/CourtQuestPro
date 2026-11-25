@@ -47,8 +47,8 @@ class JerseyStudioTest {
     }
     private fun enter() {
         assertTrue("Use the disposable Android emulator", Build.HARDWARE.contains("ranchu"))
-        compose.waitUntil(20_000) { has("welcome-swipe-ball") || has("dock-me") }
-        if (has("welcome-swipe-ball")) tap("welcome-swipe-ball")
+        compose.waitUntil(20_000) { has("welcome-enter-ball") || has("dock-me") }
+        if (has("welcome-enter-ball")) tap("welcome-enter-ball")
         wait("dock-me"); if (has("tour-skip")) tap("tour-skip")
         tap("dock-me"); if (has("tour-skip")) tap("tour-skip")
         choose("me-jersey-studio"); wait("jersey-preview")
@@ -162,8 +162,8 @@ class JerseyStudioTest {
 
     @Test fun playerCardSelectionPersistsAndUsesSavedJersey() {
         assertTrue("Use the disposable Android emulator", Build.HARDWARE.contains("ranchu"))
-        compose.waitUntil(20_000) { has("welcome-swipe-ball") || has("dock-me") }
-        if (has("welcome-swipe-ball")) tap("welcome-swipe-ball")
+        compose.waitUntil(20_000) { has("welcome-enter-ball") || has("dock-me") }
+        if (has("welcome-enter-ball")) tap("welcome-enter-ball")
         wait("dock-me")
         if (has("tour-skip")) tap("tour-skip")
         tap("dock-me")

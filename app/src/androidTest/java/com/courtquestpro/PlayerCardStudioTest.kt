@@ -26,7 +26,7 @@ class PlayerCardStudioTest {
                 "player-card-save-error","player-card-save-state-idle","player-card-save-state-saving",
                 "player-card-save-state-saved","player-card-save-state-back-requested",
                 "player-card-save-state-failed","navigation-route-me","navigation-route-playerCardStudio",
-                "navigation-route-jerseyStudio","navigation-route-home","welcome-swipe-ball")
+                "navigation-route-jerseyStudio","navigation-route-home","welcome-enter-ball")
                 .filter { runCatching{has(it)}.getOrDefault(false) }
             val dir=File(compose.activity.filesDir,"player-card-proof").apply{mkdirs()}
             File(dir,"wait-timeout-$tag.txt").writeText("expected=$tag\nvisibleTags=$tags")
@@ -85,8 +85,8 @@ class PlayerCardStudioTest {
     }
     private fun enter() {
         assertTrue("Only the disposable emulator",Build.HARDWARE.contains("ranchu"))
-        compose.waitUntil(20_000){has("welcome-swipe-ball")||has("dock-me")}
-        if(has("welcome-swipe-ball")) tap("welcome-swipe-ball")
+        compose.waitUntil(20_000){has("welcome-enter-ball")||has("dock-me")}
+        if(has("welcome-enter-ball")) tap("welcome-enter-ball")
         wait("dock-me");if(has("tour-skip"))tap("tour-skip")
         tap("dock-me");if(has("tour-skip"))tap("tour-skip")
         wait("me-player-card")
