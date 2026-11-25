@@ -112,7 +112,8 @@ internal fun CourtPlayerCard(
 
 private data class HeroPlacement(val width:Float,val height:Float,val x:Float,val top:Float)
 private val PlayerCardStyle.heroPlacement:HeroPlacement get()=when(this) {
-    PlayerCardStyle.HOLOGRAPHIC->HeroPlacement(.40f,.39f,-.20f,.40f)
+    // Keep the embedded mid-left wordmark clear; use the upper central field.
+    PlayerCardStyle.HOLOGRAPHIC->HeroPlacement(.42f,.34f,.04f,.18f)
     PlayerCardStyle.CLASSIC->HeroPlacement(.56f,.60f,-.08f,.18f)
     PlayerCardStyle.BATTLE->HeroPlacement(.48f,.49f,.02f,.32f)
     PlayerCardStyle.OBSIDIAN->HeroPlacement(.46f,.49f,.13f,.30f)
