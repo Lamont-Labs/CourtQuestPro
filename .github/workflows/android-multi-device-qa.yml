@@ -8,6 +8,10 @@ on:
       - 'scripts/run_multi_device_qa.sh'
       - 'app/src/androidTest/java/com/courtquestpro/WelcomeAnimationVisualTest.kt'
       - 'app/src/androidTest/java/com/courtquestpro/PlayerCardStudioTest.kt'
+      - 'app/src/androidTest/java/com/courtquestpro/CardStudioRebuildTest.kt'
+      - 'app/src/main/java/com/courtquestpro/CardSurface.kt'
+      - 'app/src/main/java/com/courtquestpro/CourtPlayerCards.kt'
+      - 'app/src/main/java/com/courtquestpro/CourtWelcomeScreen.kt'
   workflow_dispatch:
 permissions:
   contents: read
